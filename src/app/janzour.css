@@ -1,9 +1,10 @@
 /* Janzour directory: hierarchy, independent membership and editable administration. */
-.site-header .header-inner{justify-content:center}
-.site-header .header-inner>.main-nav,.site-header .header-inner>.header-actions{display:none!important}
-.site-header .header-inner>.brand{flex:0 1 auto;min-width:0;max-width:100%}
-.site-header .brand-copy{min-width:0}
-.site-header .brand-copy>span{max-width:min(70vw,620px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.site-header .header-inner{height:104px;gap:18px}
+.header-banner{display:block;flex:0 1 300px;min-width:160px;line-height:0}
+.header-banner img{display:block;width:100%;height:auto;max-height:98px;object-fit:contain}
+@media(max-width:1050px){.site-header .header-inner{height:92px;gap:12px}.header-banner{flex-basis:270px;min-width:145px}.header-banner img{max-height:84px}}
+@media(max-width:700px){.site-header .header-inner{height:auto;min-height:92px;gap:8px}.header-banner{flex:0 1 255px;min-width:0}.header-banner img{max-height:82px}}
+@media(max-width:390px){.site-header .header-inner{min-height:84px}.header-banner{flex-basis:215px}.header-banner img{max-height:72px}}
 .header-inner{gap:20px}
 .header-actions{gap:12px}
 .main-nav{gap:23px}
