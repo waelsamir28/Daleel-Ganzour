@@ -58,6 +58,10 @@
 .ticker-fallback{color:var(--ticker-text-color,#f0ece6);font-size:13px}
 .advertising-book{border:1px solid #ffac4d65;background:#271d13;color:#ffbc6a;font-size:12px;padding:6px 10px;border-radius:8px;gap:5px}
 .advertising-book:hover{background:#433022;color:#ffd8a8}
+.add-service-header{animation:add-service-attention 2.5s ease-in-out infinite;transform-origin:center;will-change:transform}
+@keyframes add-service-attention{0%,100%{transform:translateY(0) scale(1);box-shadow:0 5px 14px #0879dc24}50%{transform:translateY(-2px) scale(1.035);box-shadow:0 8px 20px #0879dc4d}}
+@media(max-width:700px) and (hover:none){.marquee-window:hover .marquee-track:not(.marquee-motion-static),.marquee-window:focus-within .marquee-track:not(.marquee-motion-static){animation-play-state:running!important}}
+@media(prefers-reduced-motion:reduce){.add-service-header{animation:none;will-change:auto}}
 .main-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
 .main-category-grid .category-tile{min-height:155px;border-radius:18px;padding:17px 9px;gap:12px}
 .main-category-grid .category-icon{width:70px;height:70px}
