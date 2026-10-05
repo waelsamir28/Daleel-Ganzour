@@ -1,4 +1,9 @@
 /* Janzour directory: hierarchy, independent membership and editable administration. */
+.site-header .header-inner{justify-content:center}
+.site-header .header-inner>.main-nav,.site-header .header-inner>.header-actions{display:none!important}
+.site-header .header-inner>.brand{flex:0 1 auto;min-width:0;max-width:100%}
+.site-header .brand-copy{min-width:0}
+.site-header .brand-copy>span{max-width:min(70vw,620px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .header-inner{gap:20px}
 .header-actions{gap:12px}
 .main-nav{gap:23px}
@@ -251,6 +256,23 @@
 .admin-breadcrumb{justify-content:center;font-size:12px}
 .admin-topbar h1{font-size:clamp(28px,2.4vw,34px);line-height:1.65;color:var(--admin-ink)}
 .admin-topbar p{font-size:15px;color:var(--admin-muted)}
+
+.marquee-group a{font-size:18px}
+.marquee-group a strong{color:var(--ticker-name-color,#ffd88a)}
+.ticker-separator{color:color-mix(in srgb,var(--ticker-text-color,#ffffff) 48%,white)}
+.ticker-phone{color:var(--ticker-text-color,#ffffff);font-size:15px}
+.ticker-fallback{color:var(--ticker-text-color,#ffffff);font-size:17px}
+.ad-settings-preview p strong{color:var(--preview-name,#ffd88a)}
+.ad-settings-preview p>span:not(.marquee-preview-copy){color:var(--preview-text,#fff)}
+.ad-settings-preview .marquee-preview-copy{color:var(--preview-text,#fff);font-size:16px}
+.field .emoji-textarea textarea{width:100%;min-height:100px;border:1px solid #dce7f2;border-radius:9px;padding:10px 12px;background:#fff;color:#203b59;font-size:13px;resize:vertical;outline:none}
+.field .emoji-textarea textarea:focus{border-color:#72b2eb;box-shadow:0 0 0 3px #1484e714}
+.emoji-textarea{display:flex;flex-direction:column;gap:8px}
+.emoji-toolbar{display:flex;flex-wrap:wrap;gap:5px;padding:8px;border:1px solid #e2eaf2;border-radius:9px;background:#f8fbff}
+.emoji-toolbar button{display:grid;place-items:center;min-width:34px;min-height:34px;padding:4px;border:1px solid transparent;border-radius:7px;background:#fff;font-size:19px;line-height:1}
+.emoji-toolbar button:hover{border-color:#c4dcf4;background:#edf6ff}
+@media(max-width:700px){.site-header .header-inner{height:72px}.site-header .brand-symbol{width:34px;height:43px}.site-header .brand-copy strong{font-size:18px}.site-header .brand-copy>span{font-size:10px}.marquee-group a{font-size:16px}.ticker-phone{font-size:14px}.ticker-fallback{font-size:15px}.marquee-track:not(.marquee-motion-static){animation-play-state:running}}
+
 .admin-user strong{font-size:15px}
 .admin-user small{font-size:12px}
 .admin-notification-button{width:44px;height:44px;border-radius:13px;color:var(--admin-accent);background:var(--admin-surface);box-shadow:0 4px 12px #173b5c0a}

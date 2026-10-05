@@ -32,31 +32,8 @@ export const marqueeMotionOptions = [
   { id: "blur", label: "ضباب وانسياب" },
   { id: "static", label: "ثابت بدون حركة" },
 ] as const;
-export const marqueeIconOptions = [
-  { icon: "Sparkles", label: "لمعة" },
-  { icon: "Star", label: "نجمة" },
-  { icon: "Heart", label: "قلب" },
-  { icon: "Smile", label: "ابتسامة" },
-  { icon: "SmilePlus", label: "ابتسامة مميزة" },
-  { icon: "Laugh", label: "ضحكة" },
-  { icon: "PartyPopper", label: "احتفال" },
-  { icon: "Gift", label: "هدية" },
-  { icon: "Crown", label: "تاج" },
-  { icon: "Rocket", label: "صاروخ" },
-  { icon: "Flame", label: "شعلة" },
-  { icon: "Bell", label: "جرس" },
-  { icon: "ThumbsUp", label: "إعجاب" },
-  { icon: "HandHeart", label: "قلب في اليد" },
-  { icon: "Flower2", label: "زهرة" },
-  { icon: "Sun", label: "شمس" },
-  { icon: "MoonStar", label: "قمر ونجمة" },
-  { icon: "Coffee", label: "قهوة" },
-  { icon: "Gem", label: "جوهرة" },
-  { icon: "BadgeCheck", label: "شارة موثقة" },
-  { icon: "Zap", label: "برق" },
-  { icon: "Store", label: "متجر" },
-] as const;
-export const marqueeIconNames = marqueeIconOptions.map(({ icon }) => icon);
+export const marqueeEmojis = ["📢", "⚡", "💪", "📱", "❓", "🥰", "😉", "♥️", "🎯", "❤️‍🔥", "😀", "💥", "💯", "💋", "💗", "🌹", "🔥", "🎉", "🎈", "🎁", "🏆", "☎️", "📌", "🔊", "🚬", "❌", "📳"] as const;
+export const marqueeIconOptions = [{ icon: "Sparkles", label: "لمعة" }] as const;
 export const marqueeTextColors = [
   { color: "#745827", label: "ذهبي داكن" },
   { color: "#155e91", label: "أزرق" },
@@ -93,7 +70,8 @@ export type SiteSettings = {
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;
   phone: string; adPrice: number; adDays: number; marqueeEnabled: boolean; marqueeSpeed: number;
   marqueeMotion: typeof marqueeMotionOptions[number]["id"]; marqueeTextColor: typeof marqueeTextColors[number]["color"];
-  marqueeIcon: typeof marqueeIconOptions[number]["icon"]; marqueeIconColor: typeof marqueeIconColors[number]["color"];
+  marqueeNameColor: typeof marqueeTextColors[number]["color"];
+  marqueeIcon: string; marqueeIconColor: string;
   marqueeBackgroundColor: typeof marqueeBackgroundColors[number]["color"];
   marqueeFallback: string; showEmergency: boolean;
 };
@@ -112,7 +90,7 @@ export const defaultSettings: SiteSettings = {
   contactText: "لحجز إعلان، متابعة طلب إضافة مهنة، أو أي استفسار عن الدليل، تواصل مع مكتب الجمال مباشرة.",
   copyright: "جميع الحقوق محفوظة لمكتب الجمال للدعاية والإعلان.", phone: OFFICE_PHONE,
   adPrice: AD_PRICE, adDays: 7, marqueeEnabled: true, marqueeSpeed: 38,
-  marqueeMotion: "right", marqueeTextColor: "#f0ece6", marqueeIcon: "Sparkles", marqueeIconColor: "#e6a329", marqueeBackgroundColor: "#0e0f11",
+  marqueeMotion: "right", marqueeTextColor: "#ffffff", marqueeNameColor: "#ffd88a", marqueeIcon: "Sparkles", marqueeIconColor: "#e6a329", marqueeBackgroundColor: "#0e0f11",
   marqueeFallback: "مساحتك الإعلانية هنا.. خلّي شغلك يوصل لكل أهل جنزور مع مكتب الجمال", showEmergency: true,
 };
 

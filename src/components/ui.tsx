@@ -9,12 +9,12 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
-export function Logo({ compact = false, footer = false, name = defaultSettings.siteName }: { compact?: boolean; footer?: boolean; name?: string }) {
+export function Logo({ compact = false, footer = false, name = defaultSettings.siteName, description }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
   const [title, village] = name.split("بقرية");
   return <a href="/" className={`brand ${footer ? "brand-light" : ""}`} aria-label={`${name} - الرئيسية`}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src="/icon.svg" width="48" height="60" alt="" className="brand-symbol"/>
-    <span className="brand-copy"><strong>{compact ? "دليل جنزور" : title.trim()}</strong><span>{village ? `بقرية ${village.trim()}` : "كل ما تحتاجه.. في مكان واحد"}{footer && " • مكتب الجمال"}</span></span>
+    <span className="brand-copy"><strong>{compact ? "دليل جنزور" : title.trim()}</strong><span>{description ?? (village ? `بقرية ${village.trim()}` : "كل ما تحتاجه.. في مكان واحد")}{footer && " • مكتب الجمال"}</span></span>
   </a>;
 }
 export function AdvertisingIcon({ className = "" }: { className?: string }) {
