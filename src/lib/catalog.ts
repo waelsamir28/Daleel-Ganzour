@@ -20,10 +20,30 @@ export type AdRecord = {
 export type MemberRecord = { id: string; name: string; username: string; phone: string; active: boolean; createdAt: string };
 export type NotificationRecord = { id: string; type: string; title: string; message: string; entityId: string; read: boolean; createdAt: string };
 export type Viewer = { role: "guest" | "member" | "admin"; id?: string; name?: string; username?: string };
+export const marqueeMotionOptions = ["right", "left", "bounce", "fade", "static"] as const;
+export const marqueeIconNames = ["Sparkles", "Star", "Heart", "Zap", "Store", "HandHeart"] as const;
+export const marqueeTextColors = [
+  { color: "#745827", label: "ذهبي داكن" },
+  { color: "#155e91", label: "أزرق" },
+  { color: "#16734a", label: "أخضر" },
+  { color: "#a43f60", label: "وردي" },
+  { color: "#5d48a1", label: "بنفسجي" },
+  { color: "#27384a", label: "كحلي" },
+] as const;
+export const marqueeIconColors = [
+  { color: "#e6a329", label: "ذهبي" },
+  { color: "#1684d4", label: "أزرق" },
+  { color: "#20a66d", label: "أخضر" },
+  { color: "#e75d83", label: "وردي" },
+  { color: "#8561d5", label: "بنفسجي" },
+  { color: "#13a0a0", label: "فيروزي" },
+] as const;
 export type SiteSettings = {
   siteName: string; heroSubtitle: string; heroEyebrow: string; tagline: string;
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;
   phone: string; adPrice: number; adDays: number; marqueeEnabled: boolean; marqueeSpeed: number;
+  marqueeMotion: typeof marqueeMotionOptions[number]; marqueeTextColor: typeof marqueeTextColors[number]["color"];
+  marqueeIcon: typeof marqueeIconNames[number]; marqueeIconColor: typeof marqueeIconColors[number]["color"];
   marqueeFallback: string; showEmergency: boolean;
 };
 export type PublicDirectory = {
@@ -41,6 +61,7 @@ export const defaultSettings: SiteSettings = {
   contactText: "لحجز إعلان، متابعة طلب إضافة مهنة، أو أي استفسار عن الدليل، تواصل مع مكتب الجمال مباشرة.",
   copyright: "جميع الحقوق محفوظة لمكتب الجمال للدعاية والإعلان.", phone: OFFICE_PHONE,
   adPrice: AD_PRICE, adDays: 7, marqueeEnabled: true, marqueeSpeed: 38,
+  marqueeMotion: "right", marqueeTextColor: "#745827", marqueeIcon: "Sparkles", marqueeIconColor: "#e6a329",
   marqueeFallback: "مساحتك الإعلانية هنا.. خلّي شغلك يوصل لكل أهل جنزور مع مكتب الجمال", showEmergency: true,
 };
 
