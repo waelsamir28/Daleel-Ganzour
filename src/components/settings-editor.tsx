@@ -48,7 +48,7 @@ export default function SettingsEditor({ settings, section = "all", onSave }: Se
   return <form className="request-form settings-editor" onSubmit={submit}>
     {section === "all" && <>
       <div className="settings-section-heading"><h3>هوية الموقع ومحتواه</h3><p>التغييرات تظهر على الصفحات والروابط فور تحديثها.</p></div>
-      <div className="settings-text-grid">{textFields.map(([key, label]) => <label className={`field ${["siteName", "contactText", "copyright"].includes(key) ? "settings-wide-field" : ""}`} key={key}>{label}<input name={key} defaultValue={String(settings[key])} required maxLength={key === "contactText" ? 500 : 240}/></label>)}</div>
+      <div className="settings-text-grid">{textFields.map(([key, label]) => <label className={`field ${["siteName", "contactText", "copyright"].includes(key) ? "settings-wide-field" : ""}`} key={key}>{label}<input name={key} defaultValue={String(settings[key])} placeholder={key === "siteName" ? "دليل خدمات جنزور" : undefined} required maxLength={key === "contactText" ? 500 : 240}/></label>)}</div>
       <label className="field">رقم تواصل المكتب / واتساب<input name="phone" defaultValue={settings.phone} type="tel" dir="ltr" required maxLength={16}/></label>
       <label className="checkbox-field"><input name="showEmergency" type="checkbox" defaultChecked={settings.showEmergency}/> إظهار خدمات وشريط الطوارئ</label>
     </>}
