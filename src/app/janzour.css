@@ -33,16 +33,27 @@
 .hero-trust{gap:17px}
 .hero-trust>span{font-size:11px}
 .hero-trust>span:not(:last-child){padding-left:15px}
+.hero-trust{color:#000}
 .hero-breadcrumb{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;color:#c5eaff;margin-bottom:12px;flex-wrap:wrap}
 .hero-breadcrumb a:hover{color:#fff;text-decoration:underline}
 .category-page-hero .hero-inner{min-height:330px}
 .category-page-hero h1{font-size:36px}
-.category-page-hero .hero-visual{height:305px}
-.category-page-hero .hero-image{height:310px;top:-3px}
-.category-page-hero .hero-floating-tag{bottom:5px}
+.category-page-hero .hero-visual{height:305px;display:flex;align-items:center;justify-content:center}
+.category-page-hero .hero-image{position:relative;inset:auto;width:205px;height:305px;object-fit:contain;mask-image:none;mix-blend-mode:screen}
+.category-page-hero .hero-floating-tag,.category-page-hero .hero-breadcrumb,.category-page-hero .hero-eyebrow,.category-page-hero .hero-tagline,.category-page-hero .hero-trust,.category-page-hero .hero-search{display:none}
+.category-page-hero .hero-copy{padding-block:26px 30px}
 .category-page-hero .hero-subtitle{font-size:15px}
-.category-page-hero .hero-tagline{display:none}
-.category-page-hero .hero-trust{margin-top:20px}
+.side-office-banner{min-height:226px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:18px 13px;border:1px solid #b9dcfb;border-radius:14px;background:linear-gradient(145deg,#eaf6ff,#d8edff);color:#124b88;text-align:center;overflow:hidden;isolation:isolate}
+.side-office-banner:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(110deg,transparent 25%,#fff9 48%,transparent 72%);transform:translateX(-110%);animation:office-banner-sheen 4s ease-in-out infinite}
+.side-office-banner>*{position:relative;z-index:1}
+.side-office-banner>span{font-size:10px;color:#1675bd;font-weight:700}
+.side-office-banner>strong{font-size:19px;line-height:1.7;font-weight:900}
+.side-office-banner>p{font-size:11px;color:#497ba4;line-height:1.8}
+.side-office-banner>button{display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 13px;border-radius:30px;background:#0876e1;color:#fff;font-size:11px;font-weight:800}
+.side-office-banner>button:hover{background:#075db7}
+@keyframes office-banner-sheen{0%,20%{transform:translateX(-110%)}70%,100%{transform:translateX(110%)}}
+@media(prefers-reduced-motion:reduce){.side-office-banner:before{animation:none;transform:none}}
+.category-page-hero .hero-trust{color:#000}
 .ad-container{margin-top:18px;margin-bottom:2px}
 .advertising-strip{background:var(--ticker-background,#0e0f11);border:1px solid color-mix(in srgb,var(--ticker-background,#0e0f11) 72%,white);border-radius:16px;box-shadow:0 7px 16px #1229440c;overflow:visible}
 .advertising-inner{height:69px;gap:17px;padding:9px 13px;overflow:hidden;border-radius:16px}
@@ -58,11 +69,18 @@
 .ticker-separator{color:color-mix(in srgb,var(--ticker-text-color,#ffc378) 44%,white)}
 .ticker-phone{color:var(--ticker-text-color,#ffc378);font-size:12px}
 .ticker-fallback{color:var(--ticker-text-color,#f0ece6);font-size:13px}
-.advertising-book{border:1px solid #ffac4d65;background:#271d13;color:#ffbc6a;font-size:12px;padding:6px 10px;border-radius:8px;gap:5px}
-.advertising-book:hover{background:#433022;color:#ffd8a8}
+.advertising-book{border:1px solid #c42025;background:#dc262b;color:#fff;font-size:12px;padding:6px 10px;border-radius:8px;gap:5px;animation:promotional-label 2.4s ease-in-out infinite}
+.advertising-book:hover{background:#b91c22;color:#fff}
+.add-service-header{background:#dc262b;color:#fff;animation:add-service-attention 2.5s ease-in-out infinite,promotional-label 2.4s ease-in-out infinite;will-change:transform}
+.add-service-header:hover{background:#b91c22;color:#fff}
+.add-service-quick-link{color:#dc262b!important;font-weight:800!important}
+.add-service-quick-link .quick-icon{color:#dc262b!important}
+@keyframes promotional-label{0%,45%{color:#fff}50%,95%{color:#ffeb70}100%{color:#fff}}
+@media(prefers-reduced-motion:reduce){.advertising-book{animation:none;color:#ffeb70}.add-service-header{animation:none;transform:none;color:#ffeb70}}
+.login-art>img.login-portrait-image{mix-blend-mode:screen}
 .login-promo-banner{display:block;width:calc(100% + 34px)!important;max-width:none!important;height:auto!important;aspect-ratio:8/3;object-fit:cover!important;mask-image:none!important;border-radius:12px;margin:8px -17px 13px!important;box-shadow:0 8px 24px #003c9c45}
 @media(max-width:700px){.login-layout{grid-template-columns:1fr;width:calc(100% - 28px);margin:12px auto 24px;min-height:0}.admin-public-header{height:76px}.login-art{padding:24px 22px 20px}.login-art-badge{margin-bottom:9px}.login-art h2{font-size:27px;line-height:1.45}.login-art>p{margin-top:6px;font-size:11px}.login-promo-banner{width:calc(100% + 44px)!important;margin:7px -22px 10px!important;border-radius:0!important}.login-art>img.login-portrait-image{width:min(100%,410px);height:auto;max-width:100%;flex:none;object-fit:contain}.login-form-panel{padding:30px 24px 28px}.login-lock{margin-bottom:16px}.login-form-panel h1{font-size:27px}.registration-layout{margin-top:12px;min-height:0}.registration-layout .login-form-panel{padding-top:26px;padding-bottom:27px}}
-.add-service-header{animation:add-service-attention 2.5s ease-in-out infinite;transform-origin:center;will-change:transform}
+.add-service-header{background:#dc262b;color:#fff;animation:add-service-attention 2.5s ease-in-out infinite,promotional-label 2.4s ease-in-out infinite;transform-origin:center;will-change:transform}
 @keyframes add-service-attention{0%,100%{transform:translateY(0) scale(1);box-shadow:0 5px 14px #0879dc24}50%{transform:translateY(-2px) scale(1.035);box-shadow:0 8px 20px #0879dc4d}}
 @media(max-width:700px) and (hover:none){.marquee-window:hover .marquee-track:not(.marquee-motion-static),.marquee-window:focus-within .marquee-track:not(.marquee-motion-static){animation-play-state:running!important}}
 @media(prefers-reduced-motion:reduce){.add-service-header{animation:none;will-change:auto}}
