@@ -1,10 +1,13 @@
 /* Janzour directory: hierarchy, independent membership and editable administration. */
-.site-header .header-inner{height:104px;gap:18px}
-.header-banner{display:block;flex:0 1 300px;min-width:160px;line-height:0}
-.header-banner img{display:block;width:100%;height:auto;max-height:98px;object-fit:contain}
-@media(max-width:1050px){.site-header .header-inner{height:92px;gap:12px}.header-banner{flex-basis:270px;min-width:145px}.header-banner img{max-height:84px}}
-@media(max-width:700px){.site-header .header-inner{height:auto;min-height:92px;gap:8px}.header-banner{flex:0 1 255px;min-width:0}.header-banner img{max-height:82px}}
-@media(max-width:390px){.site-header .header-inner{min-height:84px}.header-banner{flex-basis:215px}.header-banner img{max-height:72px}}
+.hero-banner-wrap{position:relative;z-index:2;width:100%;line-height:0}
+.hero-banner-wrap img{display:block;width:100%;height:auto;object-fit:contain}
+.hero-with-banner .hero-inner{display:flex;min-height:0;flex-direction:column;align-items:stretch;gap:0}
+.hero-with-banner .hero-visual{display:none}
+.hero-with-banner .hero-copy{width:100%;padding-block:8px 24px}
+.hero-with-banner .hero-eyebrow,.hero-with-banner .hero-subtitle,.hero-with-banner .hero-tagline{display:none}
+.hero-with-banner h1{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.hero-with-banner .hero-search{margin-top:8px}
+@media(max-width:700px){.hero-with-banner .hero-copy{padding-block:6px 18px}}
 .header-inner{gap:20px}
 .header-actions{gap:12px}
 .main-nav{gap:23px}
