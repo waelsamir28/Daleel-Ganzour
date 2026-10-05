@@ -34,7 +34,7 @@ export async function getSettings(): Promise<SiteSettings> {
   await ensureSeed();
   const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "site_config"));
   if (!row) return defaultSettings;
-  try { return { ...defaultSettings, ...JSON.parse(row.value) }; } catch { return defaultSettings; }
+  try { const saved = JSON.parse(row.value) as Partial<SiteSettings>; return { ...defaultSettings, ...saved, marqueeTextColor: !saved.marqueeBackgroundColor && saved.marqueeTextColor === "#745827" ? defaultSettings.marqueeTextColor : saved.marqueeTextColor ?? defaultSettings.marqueeTextColor }; } catch { return defaultSettings; }
 }
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord { return { ...item, createdAt: item.createdAt.toISOString() }; }
 export function serializeAd(item: typeof advertisements.$inferSelect): AdRecord { return { ...item, createdAt: item.createdAt.toISOString(), expiresAt: item.expiresAt?.toISOString() ?? null }; }

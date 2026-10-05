@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
-import { Activity, Anvil, Armchair, Baby, BookOpen, Bone, BrickWall, Calculator, Cctv, Cog, Droplets, Ellipsis, Eye, FlaskConical, Globe, GraduationCap, Grid2X2, Hammer, HandHeart, Heart, HeartPulse, Languages, Paintbrush, PanelsTopLeft, Pill, Scale, Shirt, ShoppingBasket, Smartphone, Smile, Snowflake, Stethoscope, Store, Sun, Truck, Tv, UsersRound, Utensils, Wrench, X, Zap, Sparkles, type LucideIcon } from "lucide-react";
+import { Activity, Anvil, Armchair, Baby, BadgeCheck, Bell, BookOpen, Bone, BrickWall, Calculator, Cctv, Coffee, Cog, Crown, Droplets, Ellipsis, Eye, Flame, FlaskConical, Flower2, Gem, Gift, Globe, GraduationCap, Grid2X2, Hammer, HandHeart, Heart, HeartPulse, Laugh, Languages, MoonStar, Paintbrush, PartyPopper, PanelsTopLeft, Pill, Rocket, Scale, Shirt, ShoppingBasket, Smartphone, Smile, SmilePlus, Snowflake, Stethoscope, Store, Sun, ThumbsUp, Truck, Tv, UsersRound, Utensils, Wrench, X, Zap, Sparkles, type LucideIcon } from "lucide-react";
 import { defaultSettings, getCategory, type CategoryRecord } from "@/lib/catalog";
 
-const categoryIcons: Record<string, LucideIcon> = { Activity, Anvil, Armchair, Baby, BookOpen, Bone, BrickWall, Calculator, Cctv, Cog, Droplets, Ellipsis, Eye, FlaskConical, Globe, GraduationCap, Grid2X2, Hammer, HandHeart, Heart, HeartPulse, Languages, Paintbrush, PanelsTopLeft, Pill, Scale, Shirt, ShoppingBasket, Smartphone, Smile, Snowflake, Stethoscope, Store, Sun, Truck, Tv, UsersRound, Utensils, Wrench, Zap, Sparkles };
+const categoryIcons: Record<string, LucideIcon> = { Activity, Anvil, Armchair, Baby, BadgeCheck, Bell, BookOpen, Bone, BrickWall, Calculator, Cctv, Coffee, Cog, Crown, Droplets, Ellipsis, Eye, Flame, FlaskConical, Flower2, Gem, Gift, Globe, GraduationCap, Grid2X2, Hammer, HandHeart, Heart, HeartPulse, Laugh, Languages, MoonStar, Paintbrush, PartyPopper, PanelsTopLeft, Pill, Rocket, Scale, Shirt, ShoppingBasket, Smartphone, Smile, SmilePlus, Snowflake, Stethoscope, Store, Sun, ThumbsUp, Truck, Tv, UsersRound, Utensils, Wrench, Zap, Sparkles };
 export function CategoryIcon({ category = "", icon, size = 32, className = "" }: { category?: string; icon?: string; size?: number; className?: string }) {
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;

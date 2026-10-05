@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { defaultSettings, iconNames, marqueeIconColors, marqueeIconNames, marqueeMotionOptions, marqueeTextColors, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
+import { defaultSettings, iconNames, marqueeBackgroundColors, marqueeIconColors, marqueeIconOptions, marqueeMotionOptions, marqueeTextColors, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
 
@@ -51,14 +51,16 @@ export function settingsInput(body: Record<string, unknown>): SiteSettings {
   next.adPrice = integerInput(body.adPrice, 1, 100000, "سعر الإعلان");
   next.adDays = integerInput(body.adDays, 1, 365, "مدة الإعلان");
   next.marqueeSpeed = integerInput(body.marqueeSpeed, 10, 120, "مدة حركة الشريط");
-  if (typeof body.marqueeMotion !== "string" || !marqueeMotionOptions.includes(body.marqueeMotion as typeof marqueeMotionOptions[number])) throw new InputError("اختار نوع حركة صحيح للشريط.");
+  if (typeof body.marqueeMotion !== "string" || !marqueeMotionOptions.some(({ id }) => id === body.marqueeMotion)) throw new InputError("اختار نوع حركة صحيح للشريط.");
   if (typeof body.marqueeTextColor !== "string" || !marqueeTextColors.some(({ color }) => color === body.marqueeTextColor)) throw new InputError("اختار لونًا من لوحة الألوان.");
-  if (typeof body.marqueeIcon !== "string" || !marqueeIconNames.includes(body.marqueeIcon as typeof marqueeIconNames[number])) throw new InputError("اختار أيقونة صحيحة للإعلان.");
+  if (typeof body.marqueeIcon !== "string" || !marqueeIconOptions.some(({ icon }) => icon === body.marqueeIcon)) throw new InputError("اختار أيقونة صحيحة للإعلان.");
   if (typeof body.marqueeIconColor !== "string" || !marqueeIconColors.some(({ color }) => color === body.marqueeIconColor)) throw new InputError("اختار لونًا صحيحًا للأيقونة.");
+  if (typeof body.marqueeBackgroundColor !== "string" || !marqueeBackgroundColors.some(({ color }) => color === body.marqueeBackgroundColor)) throw new InputError("اختار لونًا صحيحًا لخلفية الشريط.");
   next.marqueeMotion = body.marqueeMotion as SiteSettings["marqueeMotion"];
   next.marqueeTextColor = body.marqueeTextColor as SiteSettings["marqueeTextColor"];
   next.marqueeIcon = body.marqueeIcon as SiteSettings["marqueeIcon"];
   next.marqueeIconColor = body.marqueeIconColor as SiteSettings["marqueeIconColor"];
+  next.marqueeBackgroundColor = body.marqueeBackgroundColor as SiteSettings["marqueeBackgroundColor"];
   next.marqueeEnabled = body.marqueeEnabled === true; next.showEmergency = body.showEmergency === true;
   return next;
 }

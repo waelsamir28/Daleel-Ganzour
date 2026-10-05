@@ -20,8 +20,43 @@ export type AdRecord = {
 export type MemberRecord = { id: string; name: string; username: string; phone: string; active: boolean; createdAt: string };
 export type NotificationRecord = { id: string; type: string; title: string; message: string; entityId: string; read: boolean; createdAt: string };
 export type Viewer = { role: "guest" | "member" | "admin"; id?: string; name?: string; username?: string };
-export const marqueeMotionOptions = ["right", "left", "bounce", "fade", "static"] as const;
-export const marqueeIconNames = ["Sparkles", "Star", "Heart", "Zap", "Store", "HandHeart"] as const;
+export const marqueeMotionOptions = [
+  { id: "right", label: "انسيابي لليمين" },
+  { id: "left", label: "انسيابي لليسار" },
+  { id: "bounce", label: "ذهاب وعودة" },
+  { id: "fade", label: "ظهور واختفاء" },
+  { id: "wave", label: "موجة متحركة" },
+  { id: "float", label: "طفو وانسياب" },
+  { id: "pulse", label: "نبض وانسياب" },
+  { id: "glow", label: "توهج متحرك" },
+  { id: "blur", label: "ضباب وانسياب" },
+  { id: "static", label: "ثابت بدون حركة" },
+] as const;
+export const marqueeIconOptions = [
+  { icon: "Sparkles", label: "لمعة" },
+  { icon: "Star", label: "نجمة" },
+  { icon: "Heart", label: "قلب" },
+  { icon: "Smile", label: "ابتسامة" },
+  { icon: "SmilePlus", label: "ابتسامة مميزة" },
+  { icon: "Laugh", label: "ضحكة" },
+  { icon: "PartyPopper", label: "احتفال" },
+  { icon: "Gift", label: "هدية" },
+  { icon: "Crown", label: "تاج" },
+  { icon: "Rocket", label: "صاروخ" },
+  { icon: "Flame", label: "شعلة" },
+  { icon: "Bell", label: "جرس" },
+  { icon: "ThumbsUp", label: "إعجاب" },
+  { icon: "HandHeart", label: "قلب في اليد" },
+  { icon: "Flower2", label: "زهرة" },
+  { icon: "Sun", label: "شمس" },
+  { icon: "MoonStar", label: "قمر ونجمة" },
+  { icon: "Coffee", label: "قهوة" },
+  { icon: "Gem", label: "جوهرة" },
+  { icon: "BadgeCheck", label: "شارة موثقة" },
+  { icon: "Zap", label: "برق" },
+  { icon: "Store", label: "متجر" },
+] as const;
+export const marqueeIconNames = marqueeIconOptions.map(({ icon }) => icon);
 export const marqueeTextColors = [
   { color: "#745827", label: "ذهبي داكن" },
   { color: "#155e91", label: "أزرق" },
@@ -29,6 +64,9 @@ export const marqueeTextColors = [
   { color: "#a43f60", label: "وردي" },
   { color: "#5d48a1", label: "بنفسجي" },
   { color: "#27384a", label: "كحلي" },
+  { color: "#f0ece6", label: "عاجي فاتح" },
+  { color: "#ffffff", label: "أبيض" },
+  { color: "#ffd88a", label: "ذهبي فاتح" },
 ] as const;
 export const marqueeIconColors = [
   { color: "#e6a329", label: "ذهبي" },
@@ -38,12 +76,25 @@ export const marqueeIconColors = [
   { color: "#8561d5", label: "بنفسجي" },
   { color: "#13a0a0", label: "فيروزي" },
 ] as const;
+export const marqueeBackgroundColors = [
+  { color: "#0e0f11", label: "أسود" },
+  { color: "#173453", label: "أزرق داكن" },
+  { color: "#174437", label: "أخضر داكن" },
+  { color: "#49365d", label: "بنفسجي داكن" },
+  { color: "#71404c", label: "خمري" },
+  { color: "#fff6e8", label: "كريمي" },
+  { color: "#eaf4ff", label: "أزرق فاتح" },
+  { color: "#eaf7ef", label: "أخضر فاتح" },
+  { color: "#fff0f4", label: "وردي فاتح" },
+  { color: "#f2efff", label: "بنفسجي فاتح" },
+] as const;
 export type SiteSettings = {
   siteName: string; heroSubtitle: string; heroEyebrow: string; tagline: string;
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;
   phone: string; adPrice: number; adDays: number; marqueeEnabled: boolean; marqueeSpeed: number;
-  marqueeMotion: typeof marqueeMotionOptions[number]; marqueeTextColor: typeof marqueeTextColors[number]["color"];
-  marqueeIcon: typeof marqueeIconNames[number]; marqueeIconColor: typeof marqueeIconColors[number]["color"];
+  marqueeMotion: typeof marqueeMotionOptions[number]["id"]; marqueeTextColor: typeof marqueeTextColors[number]["color"];
+  marqueeIcon: typeof marqueeIconOptions[number]["icon"]; marqueeIconColor: typeof marqueeIconColors[number]["color"];
+  marqueeBackgroundColor: typeof marqueeBackgroundColors[number]["color"];
   marqueeFallback: string; showEmergency: boolean;
 };
 export type PublicDirectory = {
@@ -61,7 +112,7 @@ export const defaultSettings: SiteSettings = {
   contactText: "لحجز إعلان، متابعة طلب إضافة مهنة، أو أي استفسار عن الدليل، تواصل مع مكتب الجمال مباشرة.",
   copyright: "جميع الحقوق محفوظة لمكتب الجمال للدعاية والإعلان.", phone: OFFICE_PHONE,
   adPrice: AD_PRICE, adDays: 7, marqueeEnabled: true, marqueeSpeed: 38,
-  marqueeMotion: "right", marqueeTextColor: "#745827", marqueeIcon: "Sparkles", marqueeIconColor: "#e6a329",
+  marqueeMotion: "right", marqueeTextColor: "#f0ece6", marqueeIcon: "Sparkles", marqueeIconColor: "#e6a329", marqueeBackgroundColor: "#0e0f11",
   marqueeFallback: "مساحتك الإعلانية هنا.. خلّي شغلك يوصل لكل أهل جنزور مع مكتب الجمال", showEmergency: true,
 };
 
@@ -81,7 +132,7 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   shops: [["groceries", "البقالة والسوبر ماركت", "ShoppingBasket"], ["pharmacies", "الصيدليات", "Pill"], ["clothing", "الملابس", "Shirt"], ["stationery", "المكتبات والأدوات المدرسية", "BookOpen"], ["appliances", "الأجهزة الكهربائية", "Tv"], ["food", "المطاعم والمأكولات", "Utensils"], ["mobile-shops", "الموبايلات والكمبيوتر", "Smartphone"]],
   teachers: [["arabic", "اللغة العربية", "BookOpen"], ["english", "اللغة الإنجليزية", "Languages"], ["math", "الرياضيات", "Calculator"], ["science", "العلوم والكيمياء والفيزياء", "FlaskConical"], ["social-studies", "الدراسات والتاريخ والجغرافيا", "Globe"]],
   charities: [["charitable-associations", "الجمعيات الأهلية", "HandHeart"], ["orphan-care", "رعاية الأيتام", "Heart"], ["community-support", "التكافل والمساعدات", "UsersRound"]],
-  "other-services": [["law", "المحاماة والاستشارات", "Scale"], ["transport", "النقل والمواصلات", "Truck"], ["cameras", "كاميرات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["cleaning", "النظافة والخدمات المنزلية", "Sparkles"], ["other", "خدمات متنوعة", "Ellipsis"]],
+  "other-services": [["law", "المحاماة والاستشارات", "Scale"], ["transport", "النقل والمواصلات", "Truck"], ["cameras", "كام��رات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["cleaning", "النظافة والخدمات المنزلية", "Sparkles"], ["other", "خدمات متنوعة", "Ellipsis"]],
 };
 export const iconNames = ["Wrench", "Stethoscope", "Store", "GraduationCap", "HandHeart", "Grid2X2", "Hammer", "Droplets", "Zap", "Anvil", "Paintbrush", "BrickWall", "PanelsTopLeft", "Snowflake", "Cog", "Armchair", "Baby", "Smile", "HeartPulse", "Bone", "Sparkles", "Eye", "Activity", "ShoppingBasket", "Pill", "Shirt", "BookOpen", "Tv", "Utensils", "Smartphone", "Languages", "Calculator", "FlaskConical", "Globe", "Heart", "UsersRound", "Scale", "Truck", "Cctv", "Sun", "Ellipsis"];
 export const initialCategories: CategoryRecord[] = roots.flatMap(([id, name, color, icon, description], sortOrder) => [
