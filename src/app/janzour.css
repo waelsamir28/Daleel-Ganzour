@@ -58,6 +58,12 @@
 .ticker-fallback{color:var(--ticker-text-color,#f0ece6);font-size:13px}
 .advertising-book{border:1px solid #ffac4d65;background:#271d13;color:#ffbc6a;font-size:12px;padding:6px 10px;border-radius:8px;gap:5px}
 .advertising-book:hover{background:#433022;color:#ffd8a8}
+.login-promo-banner{display:block;width:calc(100% + 34px)!important;max-width:none!important;height:auto!important;aspect-ratio:8/3;object-fit:cover!important;mask-image:none!important;border-radius:12px;margin:8px -17px 13px!important;box-shadow:0 8px 24px #003c9c45}
+@media(max-width:700px){.login-layout{grid-template-columns:1fr;width:calc(100% - 28px);margin:12px auto 24px;min-height:0}.admin-public-header{height:76px}.login-art{padding:24px 22px 20px}.login-art-badge{margin-bottom:9px}.login-art h2{font-size:27px;line-height:1.45}.login-art>p{margin-top:6px;font-size:11px}.login-promo-banner{width:calc(100% + 44px)!important;margin:7px -22px 10px!important;border-radius:0!important}.login-art>img:not(.login-promo-banner){width:min(100%,410px);height:auto;max-width:100%}.login-form-panel{padding:30px 24px 28px}.login-lock{margin-bottom:16px}.login-form-panel h1{font-size:27px}.registration-layout{margin-top:12px;min-height:0}.registration-layout .login-form-panel{padding-top:26px;padding-bottom:27px}}
+.add-service-header{animation:add-service-attention 2.5s ease-in-out infinite;transform-origin:center;will-change:transform}
+@keyframes add-service-attention{0%,100%{transform:translateY(0) scale(1);box-shadow:0 5px 14px #0879dc24}50%{transform:translateY(-2px) scale(1.035);box-shadow:0 8px 20px #0879dc4d}}
+@media(max-width:700px) and (hover:none){.marquee-window:hover .marquee-track:not(.marquee-motion-static),.marquee-window:focus-within .marquee-track:not(.marquee-motion-static){animation-play-state:running!important}}
+@media(prefers-reduced-motion:reduce){.add-service-header{animation:none;will-change:auto}}
 .main-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
 .main-category-grid .category-tile{min-height:155px;border-radius:18px;padding:17px 9px;gap:12px}
 .main-category-grid .category-icon{width:70px;height:70px}
