@@ -3,7 +3,7 @@
 @font-face{font-family:Cairo;src:url('/fonts/cairo-regular.ttf') format('truetype');font-weight:400 500;font-style:normal;font-display:swap}
 @font-face{font-family:Cairo;src:url('/fonts/cairo-bold.ttf') format('truetype');font-weight:600 700;font-style:normal;font-display:swap}
 @font-face{font-family:Cairo;src:url('/fonts/cairo-extrabold.ttf') format('truetype');font-weight:800 900;font-style:normal;font-display:swap}
-:root{--blue:#0876e1;--blue-dark:#123d75;--navy:#113766;--muted:#778ba6;--border:#e1ebf5;--green:#06a553;--font:Cairo,Tahoma,Arial,sans-serif}
+:root{--color-canvas:#f2f6fb;--color-surface:#fff;--color-surface-soft:#f7faff;--color-text:#173b61;--color-text-muted:#7087a1;--color-accent:#0876e1;--color-accent-strong:#075db7;--color-border:#dce7f2;--color-success:#16875f;--blue:var(--color-accent);--blue-dark:#123d75;--navy:var(--color-text);--muted:var(--color-text-muted);--border:var(--color-border);--green:#06a553;--font:Cairo,Tahoma,Arial,sans-serif}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:104px}
 body{margin:0;background:#fff;color:var(--navy);font-family:var(--font);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
