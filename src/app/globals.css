@@ -37,6 +37,12 @@ img,svg{vertical-align:middle}
 .header-inner{height:86px;display:flex;align-items:center;justify-content:space-between;gap:27px;max-width:1120px}
 .brand{display:inline-flex;align-items:center;gap:10px;flex-shrink:0}
 .brand-symbol{width:44px;height:55px;object-fit:contain}
+.brand-logo-only{gap:0}
+.brand-logo-only .brand-symbol{width:58px;height:84px;object-fit:contain}
+.brand-light.brand-logo-only .brand-symbol{width:50px;height:72px}
+.admin-sidebar .brand-logo-only .brand-symbol{width:42px;height:62px}
+@media(max-width:700px){.header-inner .brand-logo-only .brand-symbol{width:52px;height:74px}}
+@media(max-width:390px){.header-inner .brand-logo-only .brand-symbol{width:46px;height:68px}}
 .brand-copy{display:flex;flex-direction:column}
 .brand-copy strong{font-weight:900;font-size:22px;letter-spacing:-.65px;line-height:1.65;color:#124b88;white-space:nowrap}
 .brand-copy>span{color:#0088ee;font-size:11px;letter-spacing:.2px;font-weight:600}
