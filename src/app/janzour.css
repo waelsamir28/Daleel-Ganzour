@@ -49,20 +49,10 @@
 .category-page-hero .hero-inner{min-height:330px}
 .category-page-hero h1{font-size:36px}
 .category-page-hero .hero-visual{height:305px;display:flex;align-items:center;justify-content:center}
-.category-page-hero .hero-image{position:relative;inset:auto;width:205px;height:305px;object-fit:contain;mask-image:none;mix-blend-mode:screen}
+.category-page-hero .hero-image{position:relative;inset:auto;width:205px;height:305px;object-fit:contain;mask-image:none}
 .category-page-hero .hero-floating-tag,.category-page-hero .hero-breadcrumb,.category-page-hero .hero-eyebrow,.category-page-hero .hero-tagline,.category-page-hero .hero-trust,.category-page-hero .hero-search{display:none}
 .category-page-hero .hero-copy{padding-block:26px 30px}
 .category-page-hero .hero-subtitle{font-size:15px}
-.side-office-banner{min-height:226px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:18px 13px;border:1px solid #b9dcfb;border-radius:14px;background:linear-gradient(145deg,#eaf6ff,#d8edff);color:#124b88;text-align:center;overflow:hidden;isolation:isolate}
-.side-office-banner:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(110deg,transparent 25%,#fff9 48%,transparent 72%);transform:translateX(-110%);animation:office-banner-sheen 4s ease-in-out infinite}
-.side-office-banner>*{position:relative;z-index:1}
-.side-office-banner>span{font-size:10px;color:#1675bd;font-weight:700}
-.side-office-banner>strong{font-size:19px;line-height:1.7;font-weight:900}
-.side-office-banner>p{font-size:11px;color:#497ba4;line-height:1.8}
-.side-office-banner>button{display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 13px;border-radius:30px;background:#0876e1;color:#fff;font-size:11px;font-weight:800}
-.side-office-banner>button:hover{background:#075db7}
-@keyframes office-banner-sheen{0%,20%{transform:translateX(-110%)}70%,100%{transform:translateX(110%)}}
-@media(prefers-reduced-motion:reduce){.side-office-banner:before{animation:none;transform:none}}
 .category-page-hero .hero-trust{color:#000}
 .ad-container{margin-top:18px;margin-bottom:2px}
 .advertising-strip{background:var(--ticker-background,#0e0f11);border:1px solid color-mix(in srgb,var(--ticker-background,#0e0f11) 72%,white);border-radius:16px;box-shadow:0 7px 16px #1229440c;overflow:visible}
