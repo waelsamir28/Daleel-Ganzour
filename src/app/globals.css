@@ -37,8 +37,8 @@ img,svg{vertical-align:middle}
 .header-inner{height:86px;display:flex;align-items:center;justify-content:space-between;gap:27px;max-width:1120px}
 .brand{display:inline-flex;align-items:center;gap:10px;flex-shrink:0}
 .brand-symbol{width:44px;height:55px;object-fit:contain}
-.brand-logo-only{gap:0}
-.brand-logo-only .brand-symbol{width:58px;height:84px;object-fit:contain}
+  .brand-logo-only{gap:0;background-color:transparent;box-shadow:none}
+  .brand-logo-only .brand-symbol{width:58px;height:84px;object-fit:contain;background-color:transparent;box-shadow:none}
 .brand-light.brand-logo-only .brand-symbol{width:50px;height:72px}
 .admin-sidebar .brand-logo-only .brand-symbol{width:42px;height:62px}
 @media(max-width:700px){.header-inner .brand-logo-only .brand-symbol{width:52px;height:74px}}
@@ -289,6 +289,30 @@ img,svg{vertical-align:middle}
 .footer-bottom>span,.footer-bottom>a{display:flex;align-items:center;gap:5px}
 .footer-bottom>span svg{color:#ec91a6}
 .footer-bottom>a{color:#cad9e8}
+.footer-main{display:grid;grid-template-columns:auto minmax(250px,1fr) auto auto;align-items:center;gap:26px;padding-top:23px;padding-bottom:20px}
+.footer-brand-lockup{display:flex;align-items:center;gap:12px;min-width:0}
+.footer-brand-lockup .brand-logo-only .brand-symbol{width:46px;height:66px;object-fit:contain}
+.footer-brand-copy{display:flex;flex-direction:column;gap:5px;white-space:nowrap}
+.footer-brand-copy strong{font-size:16px;font-weight:800;letter-spacing:-.25px;color:#fff}
+.footer-brand-copy span{font-size:11px;color:#a9c5e0}
+.footer-main nav{justify-content:center;gap:clamp(13px,2vw,25px);flex-wrap:wrap}
+.footer-main nav a,.footer-main nav button{padding:8px 10px;border:1px solid #294866;border-radius:9px;background:#0c2845;color:#c7def3;transition:color .18s ease,transform .18s ease,background .18s ease,border-color .18s ease}
+.footer-main nav a:hover,.footer-main nav button:hover{color:#7ce0b2;transform:translateY(-1px);background:#153a5e;border-color:#3c6389}
+.footer-main nav a:focus-visible,.footer-main nav button:focus-visible,.footer-admin-link:focus-visible,.footer-whatsapp:focus-visible{outline:2px solid #78caff;outline-offset:3px}
+.footer-whatsapp{gap:10px;padding:7px 10px;border:1px solid #ffffff14;border-radius:13px;background:#ffffff08;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.footer-whatsapp:hover{background:#0dbf751a;border-color:#20c88366;transform:translateY(-1px)}
+.footer-whatsapp>span{width:38px;height:38px;border:0;border-radius:11px;background:#0cbf76;color:#fff}
+.footer-whatsapp>span svg{width:23px;height:23px}
+.footer-whatsapp small{font-size:10px;color:#b6cae0;letter-spacing:0}
+.footer-whatsapp strong{font-size:14px;letter-spacing:.3px}
+.footer-admin-link{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 13px;border:1px solid #60b6ff4a;border-radius:11px;background:linear-gradient(135deg,#ffffff12,#69baff14);color:#e6f4ff;font-size:11px;font-weight:750;white-space:nowrap;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+.footer-admin-link svg:first-child{color:#7bc8ff}
+.footer-admin-link:hover{transform:translateY(-2px);border-color:#75c5ff;background:#1783cf35}
+.footer-bottom{display:flex;justify-content:center;align-items:center;min-height:42px;padding-block:12px;border-top:1px solid #ffffff16}
+.footer-copyright{margin:0;text-align:center;line-height:1.7;color:#c2d2e4}
+@media(max-width:900px){.footer-main{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand contact" "nav admin";gap:18px 14px}.footer-brand-lockup{grid-area:brand}.footer-main nav{grid-area:nav;justify-content:flex-start;gap:16px}.footer-whatsapp{grid-area:contact;justify-self:end}.footer-admin-link{grid-area:admin;justify-self:end}.footer-bottom{min-height:40px}}
+@media(max-width:600px){.footer-main{grid-template-columns:1fr;grid-template-areas:"brand" "contact" "nav" "admin";justify-items:center;gap:16px;padding-top:21px;padding-bottom:17px}.footer-brand-lockup{justify-content:center}.footer-brand-lockup .brand-logo-only .brand-symbol{width:42px;height:60px}.footer-brand-copy strong{font-size:15px}.footer-brand-copy span{font-size:10px}.footer-main nav{justify-content:center;gap:10px 19px;font-size:11px}.footer-whatsapp,.footer-admin-link{justify-self:center}.footer-bottom{padding:11px 18px}.footer-copyright{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.footer-main nav a,.footer-main nav button,.footer-whatsapp,.footer-admin-link{transition:none}}
 .floating-whatsapp{position:fixed;bottom:21px;left:23px;z-index:45;background:#0aba69;color:#fff;display:flex;align-items:center;gap:7px;padding:12px;border-radius:50px;box-shadow:0 5px 18px #009a5a30;transition:transform .2s}
 .floating-whatsapp:hover{transform:translateY(-3px)}
 .floating-whatsapp>span{font-size:12px;font-weight:700;padding-left:3px}
