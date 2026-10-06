@@ -5,6 +5,7 @@ import { and, eq, gt, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { adminSessions, members, memberSessions } from "@/db/schema";
 import type { Viewer } from "@/lib/catalog";
+import { ensureSeed } from "@/lib/directory";
 
 const ADMIN_COOKIE = "elgamal_admin";
 const MEMBER_COOKIE = "janzour_member";
@@ -41,8 +42,9 @@ export async function getViewer(): Promise<Viewer> {
   if (await isAdmin()) return { role: "admin", name: "مدير الموقع", username: process.env.ADMIN_USERNAME ?? "admin" };
   const token = (await cookies()).get(MEMBER_COOKIE)?.value;
   if (!token || token.length !== 64) return { role: "guest" };
-  const [member] = await db.select({ id: members.id, name: members.name, username: members.username }).from(memberSessions).innerJoin(members, eq(memberSessions.memberId, members.id)).where(and(eq(memberSessions.id, hash(token)), gt(memberSessions.expiresAt, new Date()), eq(members.active, true))).limit(1);
-  return member ? { role: "member", ...member } : { role: "guest" };
+  await ensureSeed();
+  const [member] = await db.select({ id: members.id, name: members.name, username: members.username, role: members.role }).from(memberSessions).innerJoin(members, eq(memberSessions.memberId, members.id)).where(and(eq(memberSessions.id, hash(token)), gt(memberSessions.expiresAt, new Date()), eq(members.active, true))).limit(1);
+  return member ? { role: member.role === "moderator" ? "moderator" : "member", id: member.id, name: member.name, username: member.username } : { role: "guest" };
 }
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
