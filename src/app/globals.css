@@ -37,8 +37,8 @@ img,svg{vertical-align:middle}
 .header-inner{height:86px;display:flex;align-items:center;justify-content:space-between;gap:27px;max-width:1120px}
 .brand{display:inline-flex;align-items:center;gap:10px;flex-shrink:0}
 .brand-symbol{width:44px;height:55px;object-fit:contain}
-.brand-logo-only{gap:0}
-.brand-logo-only .brand-symbol{width:58px;height:84px;object-fit:contain}
+  .brand-logo-only{gap:0;background-color:transparent;box-shadow:none}
+  .brand-logo-only .brand-symbol{width:58px;height:84px;object-fit:contain;background-color:transparent;box-shadow:none}
 .brand-light.brand-logo-only .brand-symbol{width:50px;height:72px}
 .admin-sidebar .brand-logo-only .brand-symbol{width:42px;height:62px}
 @media(max-width:700px){.header-inner .brand-logo-only .brand-symbol{width:52px;height:74px}}
@@ -296,8 +296,8 @@ img,svg{vertical-align:middle}
 .footer-brand-copy strong{font-size:16px;font-weight:800;letter-spacing:-.25px;color:#fff}
 .footer-brand-copy span{font-size:11px;color:#a9c5e0}
 .footer-main nav{justify-content:center;gap:clamp(13px,2vw,25px);flex-wrap:wrap}
-.footer-main nav a,.footer-main nav button{padding:8px 10px;border:1px solid #ffffff12;border-radius:9px;background:#ffffff06;transition:color .18s ease,transform .18s ease,background .18s ease,border-color .18s ease}
-.footer-main nav a:hover,.footer-main nav button:hover{color:#6ae0ad;transform:translateY(-1px);background:#ffffff0d;border-color:#ffffff25}
+.footer-main nav a,.footer-main nav button{padding:8px 10px;border:1px solid #294866;border-radius:9px;background:#0c2845;color:#c7def3;transition:color .18s ease,transform .18s ease,background .18s ease,border-color .18s ease}
+.footer-main nav a:hover,.footer-main nav button:hover{color:#7ce0b2;transform:translateY(-1px);background:#153a5e;border-color:#3c6389}
 .footer-main nav a:focus-visible,.footer-main nav button:focus-visible,.footer-admin-link:focus-visible,.footer-whatsapp:focus-visible{outline:2px solid #78caff;outline-offset:3px}
 .footer-whatsapp{gap:10px;padding:7px 10px;border:1px solid #ffffff14;border-radius:13px;background:#ffffff08;transition:background .18s ease,border-color .18s ease,transform .18s ease}
 .footer-whatsapp:hover{background:#0dbf751a;border-color:#20c88366;transform:translateY(-1px)}
