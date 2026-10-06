@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import Link from "next/link";
 import { Activity, Anvil, Armchair, Baby, BadgeCheck, Bell, BookOpen, Bone, BrickWall, Calculator, Cctv, Coffee, Cog, Crown, Droplets, Ellipsis, Eye, Flame, FlaskConical, Flower2, Gem, Gift, Globe, GraduationCap, Grid2X2, Hammer, HandHeart, Heart, HeartPulse, Laugh, Languages, MoonStar, Paintbrush, PartyPopper, PanelsTopLeft, Pill, Rocket, Scale, Shirt, ShoppingBasket, Smartphone, Smile, SmilePlus, Snowflake, Stethoscope, Store, Sun, ThumbsUp, Truck, Tv, UsersRound, Utensils, Wrench, X, Zap, Sparkles, type LucideIcon } from "lucide-react";
 import { defaultSettings, getCategory, type CategoryRecord } from "@/lib/catalog";
 
@@ -9,13 +10,11 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
-export function Logo({ compact = false, footer = false, name = defaultSettings.siteName, description }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
-  const [title, village] = name.split("بقرية");
-  return <a href="/" className={`brand ${footer ? "brand-light" : ""}`} aria-label={`${name} - الرئيسية`}>
+export function Logo({ compact = false, footer = false, name = defaultSettings.siteName }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
+  return <Link href="/" className={`brand brand-logo-only ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src="/icon.svg" width="48" height="60" alt="" className="brand-symbol"/>
-    <span className="brand-copy"><strong>{compact ? "دليل جنزور" : title.trim()}</strong><span>{description ?? (village ? `بقرية ${village.trim()}` : "كل ما تحتاجه.. في مكان واحد")}{footer && " • مكتب الجمال"}</span></span>
-  </a>;
+    <img src="/images/logo-janzour.png" width="56" height="84" alt="" className="brand-symbol"/>
+  </Link>;
 }
 export function AdvertisingIcon({ className = "" }: { className?: string }) {
   const id = useId().replace(/:/g, "");
