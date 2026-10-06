@@ -9,6 +9,7 @@ export async function ensureSeed() {
   if (!seedPromise) {
     seedPromise = db.transaction(async (tx) => {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoNothing();
       if (!marker.length) return;
@@ -60,14 +61,14 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
   ]);
   return { ...catalog, categories: visibleCategories, services: providers.map(serializeService), ads: ads.map(serializeAd) };
 }
-export async function getAdminDirectory(): Promise<AdminDirectory> {
+export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
   const [providers, ads, memberRows, notificationRows, unreadTotal] = await Promise.all([
     db.select().from(services).orderBy(desc(services.createdAt)),
     db.select().from(advertisements).orderBy(desc(advertisements.createdAt)),
-    db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)),
-    db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200),
-    db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)),
+    role === "admin" ? db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, role: members.role, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)) : Promise.resolve([]),
+    role === "admin" ? db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, ["service", "ad"])).orderBy(desc(notifications.createdAt)).limit(200),
+    role === "admin" ? db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, ["service", "ad"]))),
   ]);
-  return { ...catalog, services: providers.map(serializeService), ads: ads.map(serializeAd), members: memberRows.map((member) => ({ ...member, createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
+  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), ads: ads.map(serializeAd), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
 }

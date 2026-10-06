@@ -17,9 +17,10 @@ export type AdRecord = {
   id: string; businessName: string; text: string; phone: string; status: string;
   price: number; paid: boolean; expiresAt: string | null; createdAt: string;
 };
-export type MemberRecord = { id: string; name: string; username: string; phone: string; active: boolean; createdAt: string };
+export type MemberRole = "member" | "moderator";
+export type MemberRecord = { id: string; name: string; username: string; phone: string; role: MemberRole; active: boolean; createdAt: string };
 export type NotificationRecord = { id: string; type: string; title: string; message: string; entityId: string; read: boolean; createdAt: string };
-export type Viewer = { role: "guest" | "member" | "admin"; id?: string; name?: string; username?: string };
+export type Viewer = { role: "guest" | "member" | "moderator" | "admin"; id?: string; name?: string; username?: string };
 export const marqueeMotionOptions = [
   { id: "right", label: "انسيابي لليمين" },
   { id: "left", label: "انسيابي لليسار" },

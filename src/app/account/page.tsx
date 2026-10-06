@@ -13,7 +13,7 @@ export const metadata = { title: "حسابي | دليل جنزور", robots: { i
 export default async function AccountPage() {
   const viewer = await getViewer();
   if (viewer.role === "guest") redirect("/login");
-  if (viewer.role === "admin") redirect("/admin");
+  if (viewer.role === "admin" || viewer.role === "moderator") redirect("/admin");
   const [member] = await db.select({ name: members.name, username: members.username, phone: members.phone, createdAt: members.createdAt }).from(members).where(eq(members.id, viewer.id!)).limit(1);
   if (!member) redirect("/login");
   const settings = await getSettings();

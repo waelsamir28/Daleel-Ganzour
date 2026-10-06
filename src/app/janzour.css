@@ -1,8 +1,8 @@
 /* Janzour directory: hierarchy, independent membership and editable administration. */
 .hero-with-banner{background:transparent;color:var(--navy)}
 .hero-with-banner .hero-glow,.hero-with-banner .hero-skyline{display:none}
-.hero-banner-wrap{position:relative;z-index:2;width:calc(100% - 56px);max-width:1120px;margin-inline:auto;line-height:0}
-.hero-banner-wrap img{display:block;width:100%;height:auto;object-fit:contain;border-radius:16px}
+.hero-banner-wrap{position:relative;z-index:2;width:100%;max-width:none;margin-inline:auto;line-height:0}
+.hero-banner-wrap img{display:block;width:100%;height:auto;object-fit:cover;border-radius:0}
 .hero-with-banner .hero-inner{display:flex;min-height:0;flex-direction:column;align-items:stretch;gap:0}
 .hero-with-banner .hero-visual{display:none}
 .hero-with-banner .hero-copy{width:100%;padding-block:8px 24px}
@@ -180,6 +180,7 @@
 .admin-sidebar nav button>span{font-size:10px}
 .admin-main{margin-right:252px}
 .admin-topbar-actions{display:flex;align-items:center;gap:24px}
+.admin-shell-moderator .admin-service-row .admin-row-actions>.button-soft,.admin-shell-moderator .admin-service-row .admin-row-actions>div>button:not(.button-success):not(.button-danger-soft),.admin-shell-moderator .admin-ad-row .admin-row-actions>button:first-child,.admin-shell-moderator .admin-ad-row .admin-row-actions>div>button.admin-delete{display:none}
 .admin-notification-button{position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:1px solid #e1eaf7;border-radius:11px;color:#417da8;background:#fff}
 .admin-review-notice{gap:10px}
 .admin-review-notice p{flex:1;font-size:11px}

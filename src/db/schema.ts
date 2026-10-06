@@ -54,6 +54,7 @@ export const members = pgTable("directory_members", {
   username: varchar("username", { length: 40 }).notNull().unique(),
   phone: varchar("phone", { length: 24 }).notNull(),
   passwordHash: text("password_hash").notNull(),
+  role: varchar("role", { length: 20 }).notNull().default("member"),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
