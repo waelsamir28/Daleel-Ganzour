@@ -348,6 +348,8 @@ img,svg{vertical-align:middle}
 .service-details{text-align:center}
 .service-details>.service-art{height:110px;width:130px;margin-bottom:9px}
 .service-details h3{font-size:23px;font-weight:800}
+.service-phone-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 12px}
+.service-phone-list a{padding:7px 12px;border:1px solid #d9e8f4;border-radius:999px;background:#f7fbff;color:#17699e;font-size:13px;font-weight:800;text-decoration:none}
 .details-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin:12px 0 18px}
 .details-badges>span{font-size:10px;display:flex;align-items:center;gap:4px;background:#f0f6fd;color:#5383ad;padding:4px 8px;border-radius:30px}
 .details-badges .detail-verified{background:#eafaef;color:#0ca062}

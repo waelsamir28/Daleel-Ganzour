@@ -7,6 +7,7 @@ export const services = pgTable("directory_services", {
   area: varchar("area", { length: 80 }).notNull(),
   address: varchar("address", { length: 240 }).notNull().default(""),
   phone: varchar("phone", { length: 24 }).notNull(),
+  phoneSecondary: varchar("phone_secondary", { length: 24 }).notNull().default(""),
   description: text("description").notNull(),
   status: varchar("status", { length: 20 }).notNull().default("pending"),
   verified: boolean("verified").notNull().default(false),

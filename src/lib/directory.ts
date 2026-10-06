@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gt, inArray, isNull, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { advertisements, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
 import { areas, defaultSettings, initialCategories, sampleServices, type AdRecord, type AdminDirectory, type CategoryRecord, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
@@ -8,6 +8,7 @@ let seedPromise: Promise<void> | undefined;
 export async function ensureSeed() {
   if (!seedPromise) {
     seedPromise = db.transaction(async (tx) => {
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoNothing();
       if (!marker.length) return;
