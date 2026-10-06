@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import PwaInstall from "@/components/pwa-install";
+import RouteTransition from "@/components/route-transition";
 import "./globals.css";
 import "./janzour.css";
 
@@ -23,5 +24,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return <html lang="ar" dir="rtl"><body>{children}<PwaInstall /></body></html>;
+  return <html lang="ar" dir="rtl"><body><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
 }
