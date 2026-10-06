@@ -581,3 +581,30 @@ img,svg{vertical-align:middle}
 .admin-import-row-ready{color:#168455}
 .admin-import-more{margin:0;color:#8496aa;font-size:10px}
 @media(max-width:700px){.admin-import{gap:15px}.admin-import-intro{padding:15px;gap:11px}.admin-import-intro h3{font-size:14px}.admin-import-intro p{font-size:11px}.admin-import-settings{grid-template-columns:1fr}.admin-import-summary strong{width:100%}.admin-import-actions .button{flex:1}}
+
+:root{--motion-standard:cubic-bezier(.2,.8,.2,1);--motion-spring:cubic-bezier(.22,1,.36,1)}
+@keyframes motion-fade-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes motion-fade-scale{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@keyframes motion-slide-left{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes motion-slide-down{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes modal-sheet-in{from{opacity:.7;transform:translateY(36px)}to{opacity:1;transform:translateY(0)}}
+.hero:not(.category-page-hero) .hero-copy{animation:motion-fade-up 620ms var(--motion-spring) both}
+.category-page-hero .hero-copy{animation:motion-slide-left 560ms var(--motion-spring) both}
+.hero-visual{animation:motion-fade-scale 680ms var(--motion-spring) both}
+.login-layout,.registration-layout,.member-profile-card{animation:motion-fade-scale 520ms var(--motion-spring) both}
+.hero-search{transform-origin:center;transition:transform 320ms var(--motion-spring),box-shadow 320ms var(--motion-standard)}
+.hero-search:focus-within{transform:scale(1.012);box-shadow:0 12px 30px #00408038}
+.public-notification-dropdown{animation:motion-slide-down 240ms var(--motion-spring) both;transform-origin:top left}
+.category-tile,.provider-card{animation:motion-fade-up 420ms var(--motion-spring) both}
+.category-tile:nth-child(2),.provider-card:nth-child(2){animation-delay:35ms}
+.category-tile:nth-child(3),.provider-card:nth-child(3){animation-delay:70ms}
+.category-tile:nth-child(4),.provider-card:nth-child(4){animation-delay:105ms}
+.category-tile:nth-child(5),.provider-card:nth-child(5){animation-delay:140ms}
+.category-tile:nth-child(6),.provider-card:nth-child(6){animation-delay:175ms}
+.category-tile:nth-child(n+7),.provider-card:nth-child(n+7){animation-delay:210ms}
+
+.modal-overlay:has(.service-details) .modal-panel{view-transition-name:provider-detail;animation:none}
+::view-transition-group(provider-detail){animation-duration:480ms;animation-timing-function:var(--motion-spring)}
+::view-transition-old(provider-detail),::view-transition-new(provider-detail){animation-duration:480ms}
+@media(max-width:700px){.modal-overlay{align-items:flex-end;padding:0}.modal-panel{max-width:none;max-height:min(92dvh,900px);border-radius:22px 22px 0 0;animation:modal-sheet-in 340ms var(--motion-spring)}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero-copy,.hero-visual,.login-layout,.registration-layout,.member-profile-card,.public-notification-dropdown,.category-tile,.provider-card,.modal-overlay,.modal-panel{animation:none!important}.marquee-track{animation:none!important;transform:none!important}.provider-card,.category-tile,.button,.hero-search{transition-duration:.01ms!important}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation-duration:.01ms!important}}
