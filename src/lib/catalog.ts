@@ -9,7 +9,7 @@ export type CategoryRecord = {
 };
 export type AreaRecord = { id: string; name: string; sortOrder: number };
 export type ServiceRecord = {
-  id: string; name: string; category: string; area: string; address: string; phone: string;
+  id: string; name: string; category: string; area: string; address: string; phone: string; phoneSecondary: string;
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
   emergency: boolean; rating: string; reviews: number; createdAt: string;
 };
