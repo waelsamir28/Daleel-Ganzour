@@ -55,6 +55,44 @@
 .category-page-hero .hero-subtitle{font-size:15px}
 .category-page-hero .hero-trust{color:#000}
 .ad-container{margin-top:18px;margin-bottom:2px}
+.ad-carousel{position:relative;overflow:hidden;display:grid;gap:13px;padding:15px;border:1px solid #d8e5f2;border-radius:18px;background:linear-gradient(140deg,#f3f8ff 0%,#fff 58%,#fff8eb 100%);box-shadow:0 10px 24px #102a4610;direction:rtl}
+.ad-carousel-header,.ad-carousel-title,.ad-carousel-controls,.ad-carousel-footer,.ad-slide-contact{display:flex;align-items:center}
+.ad-carousel-header,.ad-carousel-footer{justify-content:space-between;gap:12px}
+.ad-carousel-title{gap:10px;min-width:0}
+.ad-carousel-mark{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid #efddbb;border-radius:13px;background:#fff4df}
+.ad-carousel-mark .advertising-3d-icon{width:49px;height:45px}
+.ad-carousel-eyebrow{display:block;color:#8b6a2b;font-size:10px;font-weight:700}
+.ad-carousel-title h2{color:#173b61;font-size:17px;font-weight:900;line-height:1.5}
+.ad-carousel-controls{gap:8px;color:#69819a;font-size:10px}
+.ad-carousel-controls button{display:grid;place-items:center;width:32px;height:32px;border:1px solid #dce7f2;border-radius:10px;background:#fff;color:#2a5a84;transition:background .18s,border-color .18s}
+.ad-carousel-controls button:hover{border-color:#93c5ec;background:#eff8ff}
+.ad-carousel-controls button svg{width:17px;height:17px}
+.ad-slide{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:151px;padding:18px 20px;border:1px solid #315e80;border-radius:14px;background:linear-gradient(115deg,#123552 0%,#174e70 67%,#126e8b 100%);color:#fff;animation:ad-slide-in .32s ease both}
+.ad-slide-copy{display:grid;justify-items:start;gap:5px;min-width:0}
+.ad-slide-approved{display:inline-flex;align-items:center;gap:4px;color:#ffdf9a;font-size:10px;font-weight:800}
+.ad-slide-approved svg{width:14px;height:14px}
+.ad-slide h3{max-width:100%;color:#fff;font-size:21px;font-weight:900;line-height:1.45;overflow-wrap:anywhere}
+.ad-slide p{max-width:620px;color:#e2edf6;font-size:12px;font-weight:600;line-height:1.8;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ad-slide-contact{flex-wrap:wrap;gap:6px;color:#ffe0a1;font-size:11px;font-weight:800}
+.ad-slide-contact svg{width:15px;height:15px}
+.ad-slide-contact span{color:#d5e8f6;font-size:10px;font-weight:700}
+.ad-slide-art{display:grid;justify-items:center;gap:8px;flex:none;width:116px;color:#ffdda0}
+.ad-slide-art>span{display:grid;place-items:center;width:64px;height:64px;border:1px solid #ffffff36;border-radius:21px;background:linear-gradient(145deg,#ffffff20,#ffffff08);box-shadow:inset 0 1px #ffffff32,0 8px 20px #071c2d3d;transform:rotate(-6deg)}
+.ad-slide-art>span svg{width:35px;height:35px;filter:drop-shadow(0 3px 5px #071c2d55)}
+.ad-slide-art small{color:#d6e8f3;font-size:9px;font-weight:700;white-space:nowrap}
+.ad-slide-empty{background:linear-gradient(115deg,#17476a,#1a6485 72%,#387f8a)}
+.ad-carousel-price{color:#183d60;font-size:12px;font-weight:900;white-space:nowrap}
+.ad-carousel-price span{color:#8295a8;font-size:10px;font-weight:700}
+.ad-carousel-dots{display:flex;align-items:center;justify-content:center;gap:6px}
+.ad-carousel-dots button{width:7px;height:7px;padding:0;border-radius:99px;background:#c5d5e4;transition:width .2s,background .2s}
+.ad-carousel-dots button.is-active{width:19px;background:#e4a849}
+.ad-carousel-book{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:35px;padding:6px 12px;border:1px solid #e9b75e;border-radius:10px;background:linear-gradient(135deg,#ffd782,#ffbd55);color:#593b10;font-size:11px;font-weight:900;box-shadow:0 4px 9px #b679281a;transition:transform .18s,box-shadow .18s}
+.ad-carousel-book:hover{transform:translateY(-1px);box-shadow:0 6px 12px #b6792833}
+.ad-carousel-book svg{width:15px;height:15px}
+@keyframes ad-slide-in{from{opacity:.45;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){.ad-container{margin-top:12px}.ad-carousel{gap:10px;padding:11px;border-radius:15px}.ad-carousel-mark{width:38px;height:38px}.ad-carousel-mark .advertising-3d-icon{width:43px;height:40px}.ad-carousel-eyebrow{font-size:9px}.ad-carousel-title h2{font-size:15px}.ad-carousel-controls{gap:5px}.ad-carousel-controls button{width:29px;height:29px}.ad-slide{min-height:139px;gap:9px;padding:14px 13px}.ad-slide h3{font-size:17px}.ad-slide p{font-size:10px;line-height:1.8}.ad-slide-contact{font-size:10px;gap:4px}.ad-slide-art{width:72px;gap:6px}.ad-slide-art>span{width:51px;height:51px;border-radius:17px}.ad-slide-art>span svg{width:29px;height:29px}.ad-slide-art small{font-size:8px}.ad-carousel-footer{gap:7px}.ad-carousel-price{font-size:10px}.ad-carousel-price span{font-size:9px}.ad-carousel-book{min-height:32px;padding:5px 8px;font-size:10px}}
+@media(max-width:390px){.ad-slide-art{width:59px}.ad-slide{padding-inline:10px}.ad-slide h3{font-size:15px}.ad-carousel-dots{gap:4px}.ad-carousel-dots button{width:6px;height:6px}.ad-carousel-dots button.is-active{width:14px}}
+@media(prefers-reduced-motion:reduce){.ad-slide,.ad-carousel-controls button,.ad-carousel-dots button,.ad-carousel-book{animation:none;transition:none}}
 .advertising-strip{background:var(--ticker-background,#0e0f11);border:1px solid color-mix(in srgb,var(--ticker-background,#0e0f11) 72%,white);border-radius:16px;box-shadow:0 7px 16px #1229440c;overflow:visible}
 .advertising-inner{height:69px;gap:17px;padding:9px 13px;overflow:hidden;border-radius:16px}
 .advertising-label{background:linear-gradient(145deg,#ffbe57 0%,#ff932c 48%,#f27b12 100%);color:#613300;display:flex;align-items:center;gap:1px;padding:0 12px 0 6px;border:1px solid #ffca7680;border-radius:11px;box-shadow:inset 0 2px 0 #ffe2b87a,inset 0 -1px 0 #dd6a18,0 5px 0 #9e4911,0 7px 10px #00000052;height:45px;transform:translateY(-2px);flex-shrink:0;position:relative;isolation:isolate}
