@@ -1,11 +1,23 @@
 import "server-only";
 import { and, asc, count, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { databaseConfigured, db } from "@/db";
 import { advertisements, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
 import { areas, defaultSettings, initialCategories, sampleServices, type AdRecord, type AdminDirectory, type CategoryRecord, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
+function getPreviewDirectory(): PublicDirectory {
+  return {
+    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
+    ads: [],
+    categories: initialCategories,
+    areas: areas.map((name, sortOrder) => ({ id: `preview-area-${sortOrder + 1}`, name, sortOrder })),
+    settings: defaultSettings,
+    memberCount: 0,
+    previewMode: true,
+  };
+}
 export async function ensureSeed() {
+  if (!databaseConfigured) throw new Error("Database operations are unavailable in preview mode.");
   if (!seedPromise) {
     seedPromise = db.transaction(async (tx) => {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
@@ -33,6 +45,7 @@ export async function ensureSeed() {
   await seedPromise;
 }
 export async function getSettings(): Promise<SiteSettings> {
+  if (!databaseConfigured) return defaultSettings;
   await ensureSeed();
   const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "site_config"));
   if (!row) return defaultSettings;
@@ -51,6 +64,7 @@ async function getCatalog() {
   return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, memberCount: memberTotal[0]?.total ?? 0 };
 }
 export async function getPublicDirectory(): Promise<PublicDirectory> {
+  if (!databaseConfigured) return getPreviewDirectory();
   const catalog = await getCatalog();
   const visibleRoots = catalog.categories.filter((category) => !category.parentId && category.active).map((category) => category.id);
   const visibleCategories = catalog.categories.filter((category) => category.active && (!category.parentId || visibleRoots.includes(category.parentId)));

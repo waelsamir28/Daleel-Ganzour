@@ -1,5 +1,5 @@
 import "server-only";
-import { db } from "@/db";
+import { databaseConfigured, db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { defaultSettings, iconNames, marqueeBackgroundColors, marqueeMotionOptions, marqueeTextColors, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
@@ -64,6 +64,7 @@ export function settingsInput(body: Record<string, unknown>): SiteSettings {
   return next;
 }
 export function apiError(error: unknown) {
+  if (!databaseConfigured) return Response.json({ error: "الحفظ غير متاح في وضع المعاينة دون قاعدة بيانات." }, { status: 503 });
   if (error instanceof InputError) return Response.json({ error: error.message }, { status: error.status });
   if (error instanceof SyntaxError) return Response.json({ error: "بيانات الطلب غير صحيحة." }, { status: 400 });
   console.error("Directory request failed", error);

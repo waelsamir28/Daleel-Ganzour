@@ -279,6 +279,11 @@
 .admin-sidebar nav{gap:8px}
 .admin-sidebar nav button{font-size:14px;min-height:49px;border:1px solid transparent}
 .admin-sidebar nav button.active{background:#ffffff;color:#135da0;box-shadow:0 8px 20px #071d3524}
+.preview-mode-notice{width:min(calc(100% - 32px),1100px);margin:10px auto 0;padding:9px 14px;border:1px solid #f0dcae;border-radius:10px;background:#fff9e9;color:#72551e;text-align:center;font-size:13px;font-weight:700;line-height:1.7}
+.section-heading p,.benefits-section .section-heading p,.specialty-intro p,.admin-content-heading p,.settings-section-heading p,.category-management-heading p,.community-card p,.sidebar-ad p,.emergency-banner p,.location-card p{font-size:14px;line-height:1.9}
+.category-page-hero .hero-subtitle{font-size:17px}
+@media(max-width:480px){.preview-mode-notice{font-size:12px}}
+@media(max-width:390px){.section-heading p,.benefits-section .section-heading p,.specialty-intro p,.admin-content-heading p,.settings-section-heading p,.category-management-heading p,.community-card p,.sidebar-ad p,.emergency-banner p,.location-card p{font-size:13px}.category-page-hero .hero-subtitle{font-size:15px}}
 .admin-sidebar nav button.active>span{background:#e7f2ff;color:#135da0}
 .admin-sidebar-bottom>a,.admin-sidebar-bottom>button{font-size:13px}
 .admin-main{padding-top:36px}

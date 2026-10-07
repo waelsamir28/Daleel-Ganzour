@@ -78,7 +78,7 @@ export type SiteSettings = {
 };
 export type PublicDirectory = {
   services: ServiceRecord[]; ads: AdRecord[]; categories: CategoryRecord[];
-  areas: AreaRecord[]; settings: SiteSettings; memberCount: number;
+  areas: AreaRecord[]; settings: SiteSettings; memberCount: number; previewMode?: boolean;
 };
 export type AdminDirectory = PublicDirectory & { members: MemberRecord[]; notifications: NotificationRecord[]; notificationUnread: number };
 

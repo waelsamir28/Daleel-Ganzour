@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, BadgeCheck, Bell, BellRing, Check, CheckCheck, CheckCircle2, ChevronLeft, CircleX, Clock3, Eye, EyeOff, FileClock, FileSpreadsheet, Grid2X2, LoaderCircle, LockKeyhole, LogOut, MapPin, Megaphone, MessageCircle, Pencil, Phone, Plus, RotateCw, Search, Settings2, ShieldCheck, Star, Trash2, UserRound, UsersRound, X } from "lucide-react";
 import { getCategory, normalizeSearch, whatsappUrl, type AdminDirectory, type CategoryRecord, type NotificationRecord } from "@/lib/catalog";
 import { CategoryIcon, Logo, Modal } from "@/components/ui";
@@ -22,8 +22,8 @@ export default function AdminPanel({ initialData, initialTab, username = "admin"
   const [busy, setBusy] = useState<string | null>(null), [editing, setEditing] = useState<EditorState | null>(null), [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [toast, setToast] = useState<{ text: string; error: boolean } | null>(null), [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const knownNotifications = useRef(new Set(initialData.notifications.map((notification) => notification.id)));
-  const closeEditor = useCallback(() => setEditing(null), []), closeConfirmation = useCallback(() => setConfirmation(null), []);
-  useEffect(() => { setData(initialData); }, [initialData]);
+  const closeEditor = () => setEditing(null), closeConfirmation = () => setConfirmation(null);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Read the browser notification permission on mount.
   useEffect(() => { setPermission(typeof Notification === "undefined" ? "unsupported" : Notification.permission); }, []);
   useEffect(() => {
     if (busy) return;

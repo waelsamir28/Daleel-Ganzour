@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { and, eq, gt, lt } from "drizzle-orm";
-import { db } from "@/db";
+import { databaseConfigured, db } from "@/db";
 import { adminSessions, members, memberSessions } from "@/db/schema";
 import type { Viewer } from "@/lib/catalog";
 import { ensureSeed } from "@/lib/directory";
@@ -33,12 +33,14 @@ export async function verifyPassword(password: string, stored: string) {
   return timingSafeEqual(actual, Buffer.from(encoded, "hex"));
 }
 export async function isAdmin() {
+  if (!databaseConfigured) return false;
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (!token || token.length !== 64) return false;
   const [session] = await db.select({ id: adminSessions.id }).from(adminSessions).where(and(eq(adminSessions.id, hash(token)), gt(adminSessions.expiresAt, new Date()))).limit(1);
   return Boolean(session);
 }
 export async function getViewer(): Promise<Viewer> {
+  if (!databaseConfigured) return { role: "guest" };
   if (await isAdmin()) return { role: "admin", name: "مدير الموقع", username: process.env.ADMIN_USERNAME ?? "admin" };
   const token = (await cookies()).get(MEMBER_COOKIE)?.value;
   if (!token || token.length !== 64) return { role: "guest" };
@@ -78,11 +80,11 @@ export async function createMemberSession(memberId: string, secure: boolean) {
 }
 export async function destroyAdminSession(secure: boolean) {
   const store = await cookies(); const token = store.get(ADMIN_COOKIE)?.value;
-  if (token) await db.delete(adminSessions).where(eq(adminSessions.id, hash(token)));
+  if (token && databaseConfigured) await db.delete(adminSessions).where(eq(adminSessions.id, hash(token)));
   store.set(ADMIN_COOKIE, "", { ...cookieOptions(secure), maxAge: 0 });
 }
 export async function destroyMemberSession(secure: boolean) {
   const store = await cookies(); const token = store.get(MEMBER_COOKIE)?.value;
-  if (token) await db.delete(memberSessions).where(eq(memberSessions.id, hash(token)));
+  if (token && databaseConfigured) await db.delete(memberSessions).where(eq(memberSessions.id, hash(token)));
   store.set(MEMBER_COOKIE, "", { ...cookieOptions(secure), maxAge: 0 });
 }
