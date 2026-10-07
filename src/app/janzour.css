@@ -253,9 +253,14 @@
 .admin-member-row p{display:flex;align-items:center;gap:11px;flex-wrap:wrap;font-size:11px;line-height:1.9;color:#8ba4bc;margin-top:5px}
 .member-row-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .notification-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.notification-select-all{margin-right:auto}
+.notification-row-checkbox{display:flex;align-items:center;justify-content:center;align-self:center;flex-shrink:0;min-width:24px;min-height:24px;cursor:pointer}
+.notification-row-checkbox input{width:18px;height:18px;accent-color:#0876ce;cursor:pointer}
+.notification-row-selected{border-color:#7db8ed;box-shadow:0 0 0 2px #0876ce12}
 .notification-help{font-size:11px;color:#91a6bd;line-height:1.9;margin-bottom:20px}
 .notifications-list{display:flex;flex-direction:column;gap:11px}
 .notification-row{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid #e5edf7;border-radius:11px;padding:16px 17px}
+@media(max-width:600px){.notification-tools{gap:7px}.notification-tools .button-small{font-size:10px;padding:7px 9px}.notification-select-all{margin-right:0}.notification-row{gap:8px;padding:13px 10px}.notification-row-checkbox{min-width:22px}.notification-type-icon{height:36px;width:36px}.notification-row>.button{font-size:10px;padding:7px 8px}}
 .notification-unread{background:#f5faff;border-color:#d5e6fc}
 .notification-type-icon{height:41px;width:41px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#eaf4ff;color:#488bc9;flex-shrink:0}
 .notification-row>div{flex:1;min-width:0}
