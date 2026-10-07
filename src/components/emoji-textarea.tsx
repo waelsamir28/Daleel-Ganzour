@@ -10,9 +10,10 @@ type EmojiTextareaProps = {
   rows?: number;
   minLength?: number;
   required?: boolean;
+  onValueChange?: (value: string) => void;
 };
 
-export default function EmojiTextarea({ name, initialValue, maxLength, rows = 3, minLength = 0, required = false }: EmojiTextareaProps) {
+export default function EmojiTextarea({ name, initialValue, maxLength, rows = 3, minLength = 0, required = false, onValueChange }: EmojiTextareaProps) {
   const [value, setValue] = useState(initialValue);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -24,6 +25,7 @@ export default function EmojiTextarea({ name, initialValue, maxLength, rows = 3,
     const next = `${value.slice(0, start)}${emoji}${value.slice(end)}`;
     if (next.length > maxLength) return;
     setValue(next);
+    onValueChange?.(next);
     requestAnimationFrame(() => {
       textareaRef.current?.focus();
       textareaRef.current?.setSelectionRange(start + emoji.length, start + emoji.length);
@@ -31,7 +33,7 @@ export default function EmojiTextarea({ name, initialValue, maxLength, rows = 3,
   }
 
   return <div className="emoji-textarea">
-    <textarea ref={textareaRef} name={name} value={value} onChange={(event) => setValue(event.target.value)} rows={rows} maxLength={maxLength} minLength={minLength} required={required}/>
+    <textarea ref={textareaRef} name={name} value={value} onChange={(event) => { setValue(event.target.value); onValueChange?.(event.target.value); }} rows={rows} maxLength={maxLength} minLength={minLength} required={required}/>
     <div className="emoji-toolbar" role="group" aria-label="إضافة رموز تعبيرية إلى الإعلان">
       {marqueeEmojis.map((emoji) => <button key={emoji} type="button" onClick={() => insertEmoji(emoji)} aria-label={`إضافة ${emoji} إلى النص`} title={emoji}>{emoji}</button>)}
     </div>

@@ -22,6 +22,10 @@ export async function ensureSeed() {
     seedPromise = db.transaction(async (tx) => {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
+      await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS background_color varchar(7) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS icon varchar(40) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS text_size integer NOT NULL DEFAULT 17`);
+      await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS highlight_word varchar(60) NOT NULL DEFAULT ''`);
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoNothing();
       if (!marker.length) return;

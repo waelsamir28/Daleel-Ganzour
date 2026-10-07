@@ -1,8 +1,5 @@
 @import "tailwindcss";
 
-@font-face{font-family:Cairo;src:url('/fonts/cairo-regular.ttf') format('truetype');font-weight:400 500;font-style:normal;font-display:swap}
-@font-face{font-family:Cairo;src:url('/fonts/cairo-bold.ttf') format('truetype');font-weight:600 700;font-style:normal;font-display:swap}
-@font-face{font-family:Cairo;src:url('/fonts/cairo-extrabold.ttf') format('truetype');font-weight:800 900;font-style:normal;font-display:swap}
 :root{--color-canvas:#f2f6fb;--color-surface:#fff;--color-surface-soft:#f7faff;--color-text:#173b61;--color-text-muted:#7087a1;--color-accent:#0876e1;--color-accent-strong:#075db7;--color-border:#dce7f2;--color-success:#16875f;--blue:var(--color-accent);--blue-dark:#123d75;--navy:var(--color-text);--muted:var(--color-text-muted);--border:var(--color-border);--green:#06a553;--font:Cairo,Tahoma,Arial,sans-serif}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:104px}
@@ -129,6 +126,8 @@ img,svg{vertical-align:middle}
 .section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
 .section-heading h2{font-size:19px;font-weight:800;display:flex;align-items:center;gap:9px;line-height:1.7}
 .section-heading h2>svg{flex-shrink:0}
+.directory-section-heading h2{color:#174c70}
+.directory-section-heading h2>svg{color:#1681b9}
 .section-heading p{color:var(--muted);font-size:12px;margin-top:1px}
 .section-count{font-size:11px;background:#f3f7fc;border:1px solid #e8eff6;color:#8094ae;padding:3px 9px;border-radius:30px;white-space:nowrap}
 .category-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px 14px}
@@ -138,7 +137,7 @@ img,svg{vertical-align:middle}
 .category-tile strong{font-size:13px;font-weight:800;line-height:1.5;white-space:nowrap}
 .category-selected{border:2px solid var(--category-color);padding:12px 3px 10px;box-shadow:0 4px 14px color-mix(in srgb,var(--category-color) 10%,transparent)}
 .category-check{position:absolute;top:7px;left:7px;background:var(--category-color);border-radius:50%;width:17px;height:17px;display:flex;align-items:center;justify-content:center;color:white}
-.providers-section{border-top:1px solid #e4edf7;margin-top:26px;padding-top:22px;scroll-margin-top:106px}
+.providers-section{border-top:2px solid #b9d1e5;margin-top:26px;padding-top:22px;scroll-margin-top:106px}
 .providers-section .section-heading{margin-bottom:19px}
 .crown-icon{color:#ffb91a;fill:#ffb91a22}
 .pink-icon{color:#ff4f7b}
@@ -164,7 +163,7 @@ img,svg{vertical-align:middle}
 .art-cog{color:#079dd2;fill:#19b5e7;position:absolute;left:16px;transform:rotate(-12deg);filter:drop-shadow(0 3px 2px #00488412)}
 .art-wrench{position:absolute;right:14px;top:18px;color:#14548c;fill:#d6eafb;transform:rotate(-5deg);filter:drop-shadow(2px 2px 0 #ffffff)}
 .provider-card h3{font-size:13px;line-height:1.7;font-weight:800;margin:1px 0 6px;white-space:nowrap;width:100%;text-overflow:ellipsis;overflow:hidden}
-.provider-card .provider-detail-button>p{font-size:11px;color:#7c8da8;line-height:1.9;height:38px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-width:100%}
+.provider-card .provider-detail-button>p{display:none}
 .provider-rating{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:10px;min-height:21px;font-size:12px}
 .provider-rating>svg{color:#ffa915}
 .provider-rating strong{font-size:12px;font-weight:800}
@@ -579,6 +578,10 @@ img,svg{vertical-align:middle}
 .admin-import-table-wrap tr:last-child td{border-bottom:0}
 .admin-import-row-error{color:#b3474c}
 .admin-import-row-ready{color:#168455}
+.admin-import-row-root,.admin-import-row-new{display:block;margin-top:3px;color:#71869d;font-size:9px;font-weight:700}
+.admin-import-row-new{color:#a36a10}
+.admin-import-description{max-width:280px;min-width:180px;color:#506b83;font-size:10px;line-height:1.8}
+.admin-import-table-wrap table{min-width:900px}
 .admin-import-more{margin:0;color:#8496aa;font-size:10px}
 @media(max-width:700px){.admin-import{gap:15px}.admin-import-intro{padding:15px;gap:11px}.admin-import-intro h3{font-size:14px}.admin-import-intro p{font-size:11px}.admin-import-settings{grid-template-columns:1fr}.admin-import-summary strong{width:100%}.admin-import-actions .button{flex:1}}
 

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import ExcelJS from "exceljs";
 import { eq, inArray, or } from "drizzle-orm";
 import { db } from "@/db";
@@ -27,6 +27,44 @@ const aliases = {
   description: ["وصف الخدمة", "الوصف", "تفاصيل الخدمة", "description", "service description"],
   labName: ["المعمل", "اسم المعمل", "المختبر", "اسم المختبر", "اسم المنشأة", "lab", "laboratory", "lab name"],
 } as const;
+const rootAliases: Record<string, string[]> = {
+  clinics: ["أطباء", "الأطباء", "طبيب", "عيادات"],
+  crafts: ["حرفيين", "حرفي", "الصنايعية", "مهن حرفية"],
+  shops: ["محلات", "محل", "متاجر"],
+  labs: ["معامل", "مختبرات", "تحاليل"],
+  teachers: ["مدرسين", "مدرس"],
+  charities: ["جمعيات خيرية", "جمعيات أهلية", "جمعيات"],
+  "other-services": ["خدمات أخرى", "خدمات متنوعة"],
+};
+const specialtyAliases: Record<string, string[]> = {
+  carpentry: ["نجار", "نجارة", "أعمال نجارة"],
+  plumbing: ["سباك", "سباكة", "أعمال سباكة"],
+  electricity: ["كهربائي", "كهرباء"],
+  metalwork: ["حداد", "حدادة"],
+  painting: ["نقاش", "دهان", "دهانات"],
+  masonry: ["بناء", "محارة"],
+  tiles: ["سيراميك", "بلاط"],
+  ac: ["تكييف", "تبريد"],
+  mechanics: ["ميكانيكي", "ميكانيكا"],
+  family: ["باطنة", "طب باطنة", "طب الأسرة"],
+  pediatrics: ["أطفال", "طب أطفال"],
+  dentistry: ["أسنان", "طب أسنان"],
+  gynecology: ["نساء وتوليد"],
+  orthopedics: ["عظام"],
+  dermatology: ["جلدية"],
+  ophthalmology: ["عيون", "عيون ورمد", "رمد"],
+  ent: ["أنف وأذن", "أنف وأذن وحنجرة"],
+  physiotherapy: ["علاج طبيعي"],
+  "medical-labs": ["تحاليل طبية", "مختبرات"],
+  pharmacies: ["صيدلية", "صيدلي"],
+  groceries: ["بقالة", "بقال", "سوبر ماركت"],
+};
+const importedSpecialties = [
+  { rootId: "clinics", name: "المسالك البولية", aliases: ["مسالك بولية", "مسالك"] },
+  { rootId: "clinics", name: "المخ والأعصاب", aliases: ["مخ وأعصاب", "مخ واعصاب"] },
+  { rootId: "clinics", name: "القلب والصدر", aliases: ["قلب وصدر"] },
+  { rootId: "clinics", name: "الطب البيطري", aliases: ["بيطري", "طب بيطري"] },
+] as const;
 type RowKind = keyof typeof aliases;
 type ParsedRow = {
   rowNumber: number;
@@ -37,6 +75,10 @@ type ParsedRow = {
   profession: string;
   categoryLabel: string;
   categoryId: string;
+  categoryName: string;
+  categoryParentId: string;
+  rootName: string;
+  newSpecialty: boolean;
   address: string;
   description: string;
   error: string | null;
@@ -70,10 +112,40 @@ function normalizePhone(value: string) {
   return /^1[0125]\d{8}$/.test(cleaned) ? `0${cleaned}` : cleaned;
 }
 
+function withoutDefiniteArticle(value: string) {
+  return value.startsWith("ال") && value.length > 2 ? value.slice(2) : value;
+}
+
+function sameLabel(first: string, second: string) {
+  const firstLabel = normalizedCell(first), secondLabel = normalizedCell(second);
+  return firstLabel === secondLabel || withoutDefiniteArticle(firstLabel) === withoutDefiniteArticle(secondLabel);
+}
+
 function matchCategory(value: string, categories: CategoryRecord[]) {
-  const target = normalizedCell(value);
-  if (!target) return undefined;
-  return categories.find((category) => category.active && (normalizedCell(category.id) === target || normalizedCell(category.name) === target));
+  if (!normalizedCell(value)) return undefined;
+  return categories.find((category) => category.active && (sameLabel(category.id, value) || sameLabel(category.name, value)));
+}
+
+function matchRoot(value: string, categories: CategoryRecord[]) {
+  if (!normalizedCell(value)) return undefined;
+  return categories.find((category) => category.active && !category.parentId && sameLabel(category.name, value))
+    ?? categories.find((category) => category.active && !category.parentId && (rootAliases[category.id] ?? []).some((alias) => sameLabel(alias, value)));
+}
+
+function matchSpecialty(value: string, categories: CategoryRecord[]) {
+  if (!normalizedCell(value)) return undefined;
+  const exact = matchCategory(value, categories);
+  if (exact?.parentId) return exact;
+  return categories.find((category) => category.active && category.parentId && (specialtyAliases[category.id] ?? []).some((alias) => sameLabel(alias, value)));
+}
+
+function importedSpecialtyName(value: string, parentId: string) {
+  return importedSpecialties.find((specialty) => specialty.rootId === parentId && specialty.aliases.some((alias) => sameLabel(alias, value)))?.name ?? value;
+}
+
+function importedSpecialtyId(parentId: string, name: string) {
+  const normalizedName = withoutDefiniteArticle(normalizedCell(name));
+  return `import-${createHash("sha256").update(`${parentId}:${normalizedName}`).digest("hex").slice(0, 48)}`;
 }
 
 async function parseWorkbook(file: File, categories: CategoryRecord[], areas: Array<{ name: string }>, fallbackCategoryId: string, defaultArea: string): Promise<ParsedRow[]> {
@@ -127,22 +199,51 @@ async function parseWorkbook(file: File, categories: CategoryRecord[], areas: Ar
     if (name.length < 3) error = "الاسم ناقص أو غير صحيح.";
     else if (!validPhone(phone)) error = "رقم الهاتف غير صحيح؛ راجع أصفار البداية.";
     else if (phoneSecondary && (!validPhone(phoneSecondary) || phoneSecondary === phone)) error = "رقم الهاتف الإضافي غير صحيح أو مطابق للرقم الأول.";
-    let selected = matchCategory(profession, categories);
-    const listedCategory = matchCategory(categoryLabel, categories);
-    if (!error && categoryLabel && !listedCategory) error = "التصنيف غير مطابق لقسم نشط في الدليل.";
-    if (!error && profession && (!selected?.parentId || !selected.active)) error = "المهنة غير مطابقة لتخصص نشط في الدليل.";
+    const listedCategory = matchCategory(categoryLabel, categories) ?? matchSpecialty(categoryLabel, categories);
+    const listedRoot = matchRoot(categoryLabel, categories);
+    const requestedRoot = listedCategory
+      ? listedCategory.parentId ? categories.find((item) => item.id === listedCategory.parentId) : listedCategory
+      : listedRoot;
+    if (!error && categoryLabel && !listedCategory && !listedRoot) error = "التصنيف غير مطابق لقسم نشط في الدليل.";
+
+    let selected = profession ? matchSpecialty(profession, categories) : undefined;
+    let newSpecialty = false;
+    if (!error && profession && !selected) {
+      if (requestedRoot && !listedCategory?.parentId) {
+        const name = importedSpecialtyName(profession, requestedRoot.id);
+        selected = {
+          id: importedSpecialtyId(requestedRoot.id, name),
+          name,
+          parentId: requestedRoot.id,
+          description: `مقدمو خدمات ${name} بقرية جنزور`,
+          color: requestedRoot.color,
+          light: `${requestedRoot.color}12`,
+          icon: requestedRoot.icon,
+          sortOrder: categories.filter((item) => item.parentId === requestedRoot.id).length,
+          active: true,
+        };
+        newSpecialty = true;
+      } else {
+        error = requestedRoot ? "المهنة غير مطابقة للتصنيف الفرعي المحدد." : "المهنة غير مطابقة لتخصص نشط. اكتب القسم الرئيسي في عمود التصنيف.";
+      }
+    }
     if (!error && !selected && listedCategory?.parentId) selected = listedCategory;
     if (!error && !selected) {
       const fallback = categories.find((category) => category.id === fallbackCategoryId && category.active && category.parentId);
-      const requestedRoot = listedCategory && !listedCategory.parentId ? listedCategory.id : undefined;
-      if (requestedRoot && fallback?.parentId !== requestedRoot) error = "التصنيف يحتاج إلى مهنة أو تخصص مطابق في العمود السابق.";
+      if (requestedRoot && fallback?.parentId !== requestedRoot.id) error = "التصنيف يحتاج إلى مهنة أو تخصص مناسب في عمود المهنة.";
       else selected = fallback;
     }
-    if (!error && (!selected || !selected.parentId)) error = "اختار مهنة أو تخصصًا صحيحًا، أو أضفه في عمود المهنة.";
-    if (!error && selected?.parentId && !categories.some((item) => item.id === selected.parentId && item.active)) error = "التصنيف الرئيسي للمهنة غير نشط.";
+    if (!error && (!selected || !selected.parentId)) error = "اختار مهنة أو تخصصًا صحيحًا، أو اكتبها في عمود المهنة.";
+    if (!error && selected?.parentId && !categories.some((item) => item.id === selected?.parentId && item.active)) error = "التصنيف الرئيسي للمهنة غير نشط.";
     if (!error && listedCategory?.parentId && selected?.id !== listedCategory.id) error = "المهنة لا تتوافق مع التصنيف المحدد.";
-    if (!error && listedCategory && !listedCategory.parentId && selected?.parentId !== listedCategory.id) error = "المهنة لا تتبع التصنيف الرئيسي المحدد.";
-    rows.push({ rowNumber, name, contactName, phone, phoneSecondary, profession, categoryLabel, categoryId: selected?.id ?? "", address, description, error });
+    if (!error && requestedRoot && selected?.parentId !== requestedRoot.id) error = "المهنة لا تتبع التصنيف الرئيسي المحدد.";
+
+    const categoryName = selected?.name ?? profession;
+    const rootName = requestedRoot?.name ?? categories.find((item) => item.id === selected?.parentId)?.name ?? "";
+    const finalDescription = description.length >= 10
+      ? description
+      : selected ? serviceDescriptionVariant(selected.id, selected.name, `${phone}:${normalizedCell(name)}`) : description;
+    rows.push({ rowNumber, name, contactName, phone, phoneSecondary, profession, categoryLabel, categoryId: selected?.id ?? "", categoryName, categoryParentId: selected?.parentId ?? "", rootName, newSpecialty, address, description: finalDescription, error });
     if (rows.length > MAX_DATA_ROWS) throw new InputError("الملف يتجاوز الحد الأقصى البالغ 500 صف بيانات.");
   }
   if (!rows.length) throw new InputError("لم أجد صفوف بيانات. استخدم أعمدة الاسم ورقم التليفون والمهنة أو المعمل.");
@@ -198,51 +299,93 @@ export async function POST(request: Request) {
     const rows = await parseWorkbook(file, categories.map((item) => ({ ...item, light: `${item.color}12` })), areas, categoryId, areaName);
     await markExistingDuplicates(rows);
     const ready = rows.filter((row) => !row.error);
-    if (!confirm || !ready.length) return Response.json({ rows, total: rows.length, readyCount: ready.length });
+    const newSpecialtyCount = new Set(ready.filter((row) => row.newSpecialty).map((row) => row.categoryId)).size;
+  if (!confirm) return Response.json({ rows, total: rows.length, readyCount: ready.length, newSpecialtyCount });
+  if (!ready.length) return Response.json({ rows, total: rows.length, readyCount: 0, newSpecialtyCount: 0, importedCount: 0 });
 
-    const importedCount = await db.transaction(async (tx) => {
-      const phones = [...new Set(ready.flatMap((row) => [row.phone, row.phoneSecondary].filter(Boolean)))];
-      const names = [...new Set(ready.map((row) => row.name))];
-      const existing = await tx.select({ name: services.name, phone: services.phone, phoneSecondary: services.phoneSecondary }).from(services).where(or(inArray(services.phone, phones), inArray(services.phoneSecondary, phones), inArray(services.name, names)));
-      const existingPhones = new Set(existing.flatMap((item) => [item.phone, item.phoneSecondary].filter(Boolean)));
-      const existingNames = new Set(existing.map((item) => normalizedCell(item.name)));
-      const insertable = ready.filter((row) => !existingPhones.has(row.phone) && (!row.phoneSecondary || !existingPhones.has(row.phoneSecondary)) && !existingNames.has(normalizedCell(row.name)));
-      for (const row of ready) {
-        if (!insertable.includes(row)) row.error = "تم تسجيل الاسم أو رقم الهاتف منذ المعاينة؛ لم تتم إضافته مرة أخرى.";
+  const importSummary = await db.transaction(async (tx) => {
+    const phones = [...new Set(ready.flatMap((row) => [row.phone, row.phoneSecondary].filter(Boolean)))];
+    const names = [...new Set(ready.map((row) => row.name))];
+    const existing = await tx.select({ name: services.name, phone: services.phone, phoneSecondary: services.phoneSecondary }).from(services).where(or(inArray(services.phone, phones), inArray(services.phoneSecondary, phones), inArray(services.name, names)));
+    const existingPhones = new Set(existing.flatMap((item) => [item.phone, item.phoneSecondary].filter(Boolean)));
+    const existingNames = new Set(existing.map((item) => normalizedCell(item.name)));
+    const insertable = ready.filter((row) => !existingPhones.has(row.phone) && (!row.phoneSecondary || !existingPhones.has(row.phoneSecondary)) && !existingNames.has(normalizedCell(row.name)));
+    for (const row of ready) {
+      if (!insertable.includes(row)) row.error = "تم تسجيل الاسم أو رقم الهاتف منذ المعاينة؛ لم تتم إضافته مرة أخرى.";
+    }
+    if (!insertable.length) return { importedCount: 0, newSpecialtyCount: 0 };
+
+    const latestCategories = await tx.select().from(directoryCategories);
+    for (const row of insertable) {
+      if (!row.newSpecialty) continue;
+      const existingSpecialty = latestCategories.find((item) => item.parentId === row.categoryParentId && sameLabel(item.name, row.categoryName));
+      if (existingSpecialty && !existingSpecialty.active) throw new InputError(`التخصص «${row.categoryName}» موجود لكنه مخفي. فعّله من التصنيفات قبل الاستيراد.`, 409);
+      if (existingSpecialty) {
+        row.categoryId = existingSpecialty.id;
+        row.categoryName = existingSpecialty.name;
+        row.newSpecialty = false;
       }
-      if (!insertable.length) return 0;
-      const created: Candidate[] = insertable.map((row) => ({ row, serviceId: randomUUID() }));
-      const byId = new Map(categories.map((item) => [item.id, item]));
-      await tx.insert(services).values(created.map(({ row, serviceId }) => {
-        const specialty = byId.get(row.categoryId);
-        const rowArea = areas.find((item) => normalizedCell(item.name) === normalizedCell(row.address));
-        const description = row.description.length >= 10 ? row.description : serviceDescriptionVariant(row.categoryId, specialty?.name ?? row.profession, serviceId);
-        return {
-          id: serviceId,
-          name: row.name,
-          category: row.categoryId,
-          area: rowArea?.name ?? areaName,
-          address: row.address || rowArea?.name || areaName,
-          phone: row.phone,
-          phoneSecondary: row.phoneSecondary,
-          description,
-          status: "pending",
-          verified: false,
-          featured: false,
-          emergency: false,
-          demo: false,
-        };
-      }));
-      await tx.insert(notifications).values(created.map(({ row, serviceId }) => ({
-        type: "service",
-        title: "طلبات مهن جديدة",
-        message: `${row.name} • ${row.phone}${row.phoneSecondary ? ` / ${row.phoneSecondary}` : ""} (استيراد Excel)`,
-        entityId: serviceId,
-      })));
-      return created.length;
-    });
+    }
 
-    return Response.json({ rows, total: rows.length, readyCount: 0, importedCount });
+    const latestById = new Map(latestCategories.map((item) => [item.id, item]));
+    const nextOrderByRoot = new Map<string, number>();
+    const specialtyRows = [...new Map(insertable.filter((row) => row.newSpecialty).map((row) => [row.categoryId, row])).values()];
+    const categoryValues = specialtyRows.map((row) => {
+      const parent = latestById.get(row.categoryParentId);
+      if (!parent || parent.parentId || !parent.active) throw new InputError("التصنيف الرئيسي للمهنة لم يعد نشطًا. حدّث الصفحة وأعد معاينة الملف.", 409);
+      const nextOrder = nextOrderByRoot.get(parent.id) ?? latestCategories.filter((item) => item.parentId === parent.id).reduce((maximum, item) => Math.max(maximum, item.sortOrder), -1) + 1;
+      nextOrderByRoot.set(parent.id, nextOrder + 1);
+      return {
+        id: row.categoryId,
+        name: row.categoryName,
+        parentId: parent.id,
+        description: `مقدمو خدمات ${row.categoryName} بقرية جنزور`,
+        color: parent.color,
+        icon: parent.icon,
+        sortOrder: nextOrder,
+        active: true,
+      };
+    });
+    const insertedSpecialties = categoryValues.length
+      ? await tx.insert(directoryCategories).values(categoryValues).onConflictDoNothing().returning({ id: directoryCategories.id })
+      : [];
+    if (categoryValues.length) {
+      const savedSpecialties = await tx.select().from(directoryCategories).where(inArray(directoryCategories.id, categoryValues.map((item) => item.id)));
+      for (const candidate of categoryValues) {
+        const saved = savedSpecialties.find((item) => item.id === candidate.id);
+        if (!saved || saved.parentId !== candidate.parentId || !sameLabel(saved.name, candidate.name)) throw new InputError("تعذر تأكيد التخصص الجديد. أعد معاينة الملف وحاول مرة أخرى.", 409);
+      }
+    }
+
+    const created: Candidate[] = insertable.map((row) => ({ row, serviceId: randomUUID() }));
+    await tx.insert(services).values(created.map(({ row, serviceId }) => {
+      const rowArea = areas.find((item) => normalizedCell(item.name) === normalizedCell(row.address));
+      return {
+        id: serviceId,
+        name: row.name,
+        category: row.categoryId,
+        area: rowArea?.name ?? areaName,
+        address: row.address || rowArea?.name || areaName,
+        phone: row.phone,
+        phoneSecondary: row.phoneSecondary,
+        description: row.description,
+        status: "pending",
+        verified: false,
+        featured: false,
+        emergency: false,
+        demo: false,
+      };
+    }));
+    await tx.insert(notifications).values(created.map(({ row, serviceId }) => ({
+      type: "service",
+      title: "طلبات مهن جديدة",
+      message: `${row.name} • ${row.phone}${row.phoneSecondary ? ` / ${row.phoneSecondary}` : ""} (استيراد Excel)`,
+      entityId: serviceId,
+    })));
+    return { importedCount: created.length, newSpecialtyCount: insertedSpecialties.length };
+  });
+
+  return Response.json({ rows, total: rows.length, readyCount: 0, importedCount: importSummary.importedCount, newSpecialtyCount: importSummary.newSpecialtyCount });
   } catch (error) {
     return apiError(error);
   }
