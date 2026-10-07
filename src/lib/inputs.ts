@@ -2,7 +2,7 @@ import "server-only";
 import { databaseConfigured, db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { defaultSettings, iconNames, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
+import { defaultSettings, iconNames, marqueeBackgroundColors, marqueeMotionOptions, marqueeTextColors, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
 
@@ -19,17 +19,18 @@ export function integerInput(value: unknown, min: number, max: number, label: st
 export async function serviceInput(body: Record<string, unknown>, admin = false) {
   await ensureSeed();
   const name = cleanText(body.name, 160), description = cleanText(body.description, 1000), phone = cleanPhone(body.phone);
+  const phoneSecondary = cleanPhone(body.phoneSecondary ?? "");
   const category = cleanText(body.category, 60), area = cleanText(body.area, 80);
   let address = cleanText(body.address, 240);
   const [selected] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, category)).limit(1);
   const [root] = selected?.parentId ? await db.select().from(directoryCategories).where(eq(directoryCategories.id, selected.parentId)).limit(1) : [];
   const [selectedArea] = await db.select().from(directoryAreas).where(eq(directoryAreas.name, area)).limit(1);
-  if (name.length < 3 || description.length < 10 || !validPhone(phone) || !selected?.parentId || (!admin && (!selected.active || !root?.active))) throw new InputError("أكمل الاسم ووصف الخدمة، واختر تخصصًا صحيحًا، وأدخل رقم هاتف مصري صحيح.");
+  if (name.length < 3 || description.length < 10 || !validPhone(phone) || (phoneSecondary && !validPhone(phoneSecondary)) || !selected?.parentId || (!admin && (!selected.active || !root?.active))) throw new InputError("أكمل الاسم ووصف الخدمة، واختر تخصصًا صحيحًا، وأدخل رقم هاتف مصري صحيح.");
   if (area === OTHER_ADDRESS) { if (address.length < 3) throw new InputError("اكتب العنوان الآخر في الخانة المخصصة."); }
   else if (!selectedArea && !admin) throw new InputError("اختار عنوانًا من عناوين جنزور أو اختار عنوان آخر.");
   if (!area) throw new InputError("اختار العنوان.");
   if (!address) address = area;
-  return { name, description, phone, category, area, address, emergency: body.emergency === true };
+  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true };
 }
 export function adInput(body: Record<string, unknown>) {
   const businessName = cleanText(body.businessName, 160), text = cleanText(body.text, 300), phone = cleanPhone(body.phone);
@@ -51,6 +52,14 @@ export function settingsInput(body: Record<string, unknown>): SiteSettings {
   next.adPrice = integerInput(body.adPrice, 1, 100000, "سعر الإعلان");
   next.adDays = integerInput(body.adDays, 1, 365, "مدة الإعلان");
   next.marqueeSpeed = integerInput(body.marqueeSpeed, 10, 120, "مدة حركة الشريط");
+  if (typeof body.marqueeMotion !== "string" || !marqueeMotionOptions.some(({ id }) => id === body.marqueeMotion)) throw new InputError("اختار نوع حركة صحيح للشريط.");
+  if (typeof body.marqueeTextColor !== "string" || !marqueeTextColors.some(({ color }) => color === body.marqueeTextColor)) throw new InputError("اختار لونًا من لوحة الألوان.");
+  if (typeof body.marqueeNameColor !== "string" || !marqueeTextColors.some(({ color }) => color === body.marqueeNameColor)) throw new InputError("اختار لونًا صحيحًا لاسم النشاط.");
+  if (typeof body.marqueeBackgroundColor !== "string" || !marqueeBackgroundColors.some(({ color }) => color === body.marqueeBackgroundColor)) throw new InputError("اختار لونًا صحيحًا لخلفية الشريط.");
+  next.marqueeMotion = body.marqueeMotion as SiteSettings["marqueeMotion"];
+  next.marqueeTextColor = body.marqueeTextColor as SiteSettings["marqueeTextColor"];
+  next.marqueeNameColor = body.marqueeNameColor as SiteSettings["marqueeNameColor"];
+  next.marqueeBackgroundColor = body.marqueeBackgroundColor as SiteSettings["marqueeBackgroundColor"];
   next.marqueeEnabled = body.marqueeEnabled === true; next.showEmergency = body.showEmergency === true;
   return next;
 }

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gt, inArray, isNull, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { advertisements, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
 import { areas, defaultSettings, initialCategories, sampleServices, type AdRecord, type AdminDirectory, type CategoryRecord, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
@@ -7,7 +7,7 @@ import { areas, defaultSettings, initialCategories, sampleServices, type AdRecor
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
   return {
-    services: sampleServices.map((service) => ({ ...service, status: "approved", verified: true, demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
+    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
     ads: [],
     categories: initialCategories,
     areas: areas.map((name, sortOrder) => ({ id: `preview-area-${sortOrder + 1}`, name, sortOrder })),
@@ -20,9 +20,11 @@ export async function ensureSeed() {
   if (!databaseConfigured) throw new Error("Database operations are unavailable in preview mode.");
   if (!seedPromise) {
     seedPromise = db.transaction(async (tx) => {
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
-      if (!marker.length) return;
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoNothing();
+      if (!marker.length) return;
       await tx.insert(directoryAreas).values(areas.map((name, sortOrder) => ({ name, sortOrder }))).onConflictDoNothing();
       await tx.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(defaultSettings) }).onConflictDoNothing();
       const [legacy] = await tx.select().from(directorySettings).where(eq(directorySettings.key, "sample_data_v1"));
@@ -47,7 +49,7 @@ export async function getSettings(): Promise<SiteSettings> {
   await ensureSeed();
   const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "site_config"));
   if (!row) return defaultSettings;
-  try { return { ...defaultSettings, ...JSON.parse(row.value) }; } catch { return defaultSettings; }
+  try { const saved = JSON.parse(row.value) as Partial<SiteSettings>; return { ...defaultSettings, ...saved, marqueeTextColor: !saved.marqueeBackgroundColor && saved.marqueeTextColor === "#745827" ? defaultSettings.marqueeTextColor : saved.marqueeTextColor ?? defaultSettings.marqueeTextColor }; } catch { return defaultSettings; }
 }
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord { return { ...item, createdAt: item.createdAt.toISOString() }; }
 export function serializeAd(item: typeof advertisements.$inferSelect): AdRecord { return { ...item, createdAt: item.createdAt.toISOString(), expiresAt: item.expiresAt?.toISOString() ?? null }; }
@@ -73,14 +75,14 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
   ]);
   return { ...catalog, categories: visibleCategories, services: providers.map(serializeService), ads: ads.map(serializeAd) };
 }
-export async function getAdminDirectory(): Promise<AdminDirectory> {
+export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
   const [providers, ads, memberRows, notificationRows, unreadTotal] = await Promise.all([
     db.select().from(services).orderBy(desc(services.createdAt)),
     db.select().from(advertisements).orderBy(desc(advertisements.createdAt)),
-    db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)),
-    db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200),
-    db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)),
+    role === "admin" ? db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, role: members.role, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)) : Promise.resolve([]),
+    role === "admin" ? db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, ["service", "ad"])).orderBy(desc(notifications.createdAt)).limit(200),
+    role === "admin" ? db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, ["service", "ad"]))),
   ]);
-  return { ...catalog, services: providers.map(serializeService), ads: ads.map(serializeAd), members: memberRows.map((member) => ({ ...member, createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
+  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), ads: ads.map(serializeAd), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
 }

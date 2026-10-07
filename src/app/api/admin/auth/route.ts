@@ -1,8 +1,10 @@
+import { databaseConfigured } from "@/db";
 import { createAdminSession, destroyAdminSession, sameOrigin, usesSecureCookies, validCredentials } from "@/lib/auth";
 import { rateLimit } from "@/lib/validation";
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
+  if (!databaseConfigured) return Response.json({ error: "تسجيل الدخول غير متاح دون اتصال قاعدة البيانات." }, { status: 503 });
   if (rateLimit(request, "login", 12)) return Response.json({ error: "محاولات كثيرة. حاول مجددًا بعد ١٥ دقيقة." }, { status: 429 });
   try {
     const body = await request.json();

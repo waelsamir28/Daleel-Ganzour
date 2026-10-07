@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const [member] = await db.select().from(members).where(eq(members.username, username)).limit(1);
     if (!member?.active || !(await verifyPassword(password, member.passwordHash))) throw new InputError("اسم المستخدم أو كلمة المرور غير صحيحة، أو الحساب غير نشط.", 401);
     await createMemberSession(member.id, secure);
-    return Response.json({ ok: true, role: "member" });
+    return Response.json({ ok: true, role: member.role === "moderator" ? "moderator" : "member" });
   } catch (error) { return apiError(error); }
 }
 export async function DELETE(request: Request) {

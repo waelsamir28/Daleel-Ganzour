@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { advertisements, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, services } from "@/db/schema";
-import { isAdmin, sameOrigin } from "@/lib/auth";
+import { getViewer, sameOrigin } from "@/lib/auth";
 import { getAdminDirectory, getSettings } from "@/lib/directory";
 import { adInput, apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
@@ -13,10 +13,13 @@ const statusInput = (value: unknown) => {
   return value;
 };
 function uuid(value: unknown) { if (!validId(value)) throw new InputError("معرّف غير صحيح."); return value; }
-async function guard(request?: Request) {
+async function guard(request?: Request): Promise<"admin" | "moderator"> {
   if (request && !sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
-  if (!(await isAdmin())) throw new InputError("اللوحة متاحة للأدمن فقط. يرجى تسجيل الدخول.", 401);
+  const viewer = await getViewer();
+  if (viewer.role === "admin" || viewer.role === "moderator") return viewer.role;
+  throw new InputError(viewer.role === "member" ? "صلاحياتك لا تسمح بفتح لوحة الإدارة." : "يرجى تسجيل الدخول إلى لوحة الإدارة.", viewer.role === "member" ? 403 : 401);
 }
+function denyModerator() { throw new InputError("هذا الإجراء متاح للأدمن فقط.", 403); }
 async function categoryParent(parentId: string | null, id?: string) {
   if (!parentId) return;
   const [parent] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, parentId)).limit(1);
@@ -32,13 +35,14 @@ async function adValues(values: Record<string, unknown>) {
   return { ...basics, status, paid, expiresAt, price: integerInput(values.price ?? settings.adPrice, 0, 100000, "سعر الإعلان") };
 }
 export async function GET() {
-  try { await guard(); return Response.json(await getAdminDirectory()); }
+  try { const role = await guard(); return Response.json(await getAdminDirectory(role)); }
   catch (error) { return apiError(error); }
 }
 export async function POST(request: Request) {
   try {
-    await guard(request);
+    const role = await guard(request);
     const body = objectInput(await request.json()), values = objectInput(body.values);
+    if (role === "moderator" && body.type !== "category") denyModerator();
     if (body.type === "category") {
       const category = categoryInput(values);
       await categoryParent(category.parentId);
@@ -57,20 +61,22 @@ export async function POST(request: Request) {
     } else if (body.type === "ad") {
       await db.insert(advertisements).values(await adValues(values));
     } else throw new InputError("نوع الإضافة غير صحيح.");
-    return Response.json({ ok: true, ...(await getAdminDirectory()) }, { status: 201 });
+    return Response.json({ ok: true, ...(await getAdminDirectory(role)) }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
 export async function PATCH(request: Request) {
   try {
-    await guard(request);
+    const role = await guard(request);
     const body = objectInput(await request.json());
     const { type, action } = body;
+    const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "ad") && (action === "approve" || action === "reject"));
+    if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
       await db.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(settings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(settings) } });
     } else if (type === "notification") {
-      if (action === "read-all") await db.update(notifications).set({ read: true }).where(eq(notifications.read, false));
-      else if (action === "read") await db.update(notifications).set({ read: true }).where(eq(notifications.id, uuid(body.id)));
+      if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), inArray(notifications.type, ["service", "ad"])) : eq(notifications.read, false));
+      else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), inArray(notifications.type, ["service", "ad"])) : eq(notifications.id, uuid(body.id)));
       else throw new InputError("إجراء غير صحيح.");
     } else if (type === "category") {
       const id = cleanText(body.id, 60), values = categoryInput(objectInput(body.values));
@@ -125,20 +131,23 @@ export async function PATCH(request: Request) {
       const name = cleanText(values.name ?? existing.name, 120), phone = cleanPhone(values.phone ?? existing.phone);
       if (name.length < 3 || !validPhone(phone)) throw new InputError("اسم العضو أو رقم الهاتف غير صحيح.");
       const active = typeof values.active === "boolean" ? values.active : existing.active;
-      await db.update(members).set({ name, phone, active }).where(eq(members.id, id));
+      const requestedRole = values.role ?? existing.role;
+      if (requestedRole !== "member" && requestedRole !== "moderator") throw new InputError("رتبة العضو غير صحيحة.");
+      await db.update(members).set({ name, phone, role: requestedRole, active }).where(eq(members.id, id));
       if (!active) await db.delete(memberSessions).where(eq(memberSessions.memberId, id));
     } else throw new InputError("نوع التعديل غير صحيح.");
     if ((type === "service" || type === "ad") && (action === "approve" || action === "reject")) {
       await db.update(notifications).set({ read: true }).where(eq(notifications.entityId, uuid(body.id)));
     }
-    return Response.json({ ok: true, ...(await getAdminDirectory()) });
+    return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
 }
 export async function DELETE(request: Request) {
   try {
-    await guard(request);
+    const role = await guard(request);
     const body = objectInput(await request.json());
     const { type } = body;
+    if (role === "moderator" && type !== "category") denyModerator();
     if (type === "category") {
       const id = cleanText(body.id, 60);
       const children = await db.select({ total: count() }).from(directoryCategories).where(eq(directoryCategories.parentId, id));
@@ -160,6 +169,6 @@ export async function DELETE(request: Request) {
       else throw new InputError("نوع الحذف غير صحيح.");
       if (["service", "ad", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
     }
-    return Response.json({ ok: true, ...(await getAdminDirectory()) });
+    return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
 }
