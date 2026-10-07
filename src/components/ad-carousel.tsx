@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { BadgeCheck, ChevronLeft, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
-import { AdvertisingIcon } from "@/components/ui";
-import { whatsappUrl, type AdRecord, type SiteSettings } from "@/lib/catalog";
+import { AdvertisingIcon, CategoryIcon, HighlightedAdText } from "@/components/ui";
+import { adBackgroundOptions, adIconOptions, getContrastTextColor, whatsappUrl, type AdRecord, type SiteSettings } from "@/lib/catalog";
 
 export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[]; settings: SiteSettings; onBook: () => void }) {
   const [slideIndex, setSlideIndex] = useState(0);
@@ -12,6 +12,24 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
   const [reducedMotion, setReducedMotion] = useState(false);
   const activeIndex = ads.length ? slideIndex % ads.length : 0;
   const activeAd = ads[activeIndex];
+  const resolvedAdBackgrounds = ads.reduce<string[]>((backgrounds, ad, index) => {
+    const customColor = typeof ad.backgroundColor === "string" && /^#[0-9a-f]{6}$/i.test(ad.backgroundColor) ? ad.backgroundColor : "";
+    const preferredColor = adBackgroundOptions[index % adBackgroundOptions.length].color;
+    const previousColor = backgrounds[index - 1];
+    const fallbackColor = previousColor === preferredColor
+      ? adBackgroundOptions.find(({ color }) => color !== previousColor)?.color ?? preferredColor
+      : preferredColor;
+    backgrounds.push(customColor || fallbackColor);
+    return backgrounds;
+  }, []);
+  const adBackground = resolvedAdBackgrounds[activeIndex] ?? adBackgroundOptions[activeIndex % adBackgroundOptions.length].color;
+  const adIcon = activeAd?.icon || adIconOptions[activeIndex % adIconOptions.length].icon;
+  const adTextSize = Math.min(30, Math.max(14, activeAd?.textSize ?? 17));
+  const adStyle = {
+    "--ad-background": adBackground,
+    "--ad-foreground": getContrastTextColor(adBackground),
+    "--ad-copy-size": `${adTextSize}px`,
+  } as CSSProperties;
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -69,16 +87,16 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
       </div>
 
       {activeAd ? (
-        <article className="ad-slide" key={activeAd.id} aria-roledescription="إعلان" aria-label={`الإعلان ${activeIndex + 1} من ${ads.length}`}>
+        <article className="ad-slide" key={activeAd.id} aria-roledescription="إعلان" aria-label={`الإعلان ${activeIndex + 1} من ${ads.length}`} style={adStyle}>
           <div className="ad-slide-copy">
             <span className="ad-slide-approved"><BadgeCheck /> إعلان معتمد</span>
             <h3>{activeAd.businessName}</h3>
-            <p>{activeAd.text}</p>
+            <p><HighlightedAdText text={activeAd.text} word={activeAd.highlightWord ?? ""}/></p>
             <a className="ad-slide-contact" href={whatsappUrl(activeAd.phone)} target="_blank" rel="noopener noreferrer">
               <MessageCircle /> تواصل عبر واتساب <span dir="ltr">{activeAd.phone}</span>
             </a>
           </div>
-          <div className="ad-slide-art" aria-hidden="true"><span><Sparkles /></span><small>نشاط من جنزور</small></div>
+          <div className="ad-slide-art" aria-hidden="true"><span><CategoryIcon icon={adIcon} size={58}/></span><small>نشاط من جنزور</small></div>
         </article>
       ) : (
         <div className="ad-slide ad-slide-empty">

@@ -15,8 +15,41 @@ export type ServiceRecord = {
 };
 export type AdRecord = {
   id: string; businessName: string; text: string; phone: string; status: string;
+  backgroundColor: string; icon: string; textSize: number; highlightWord: string;
   price: number; paid: boolean; expiresAt: string | null; createdAt: string;
 };
+export const adBackgroundOptions = [
+  { color: "#e6f3ff", label: "أزرق سماوي" },
+  { color: "#fff1d8", label: "ذهبي هادئ" },
+  { color: "#e9f8ef", label: "أخضر فاتح" },
+  { color: "#f5eaff", label: "بنفسجي فاتح" },
+  { color: "#fff0f1", label: "وردي فاتح" },
+  { color: "#e6f6f5", label: "فيروزي فاتح" },
+  { color: "#f0f3ff", label: "أزرق بنفسجي" },
+  { color: "#fcf1e5", label: "كريمي" },
+] as const;
+export const adIconOptions = [
+  { icon: "Store", label: "محل" },
+  { icon: "Wrench", label: "مهنة" },
+  { icon: "Stethoscope", label: "طب" },
+  { icon: "FlaskConical", label: "معمل" },
+  { icon: "GraduationCap", label: "تعليم" },
+  { icon: "ShoppingBasket", label: "تسوق" },
+  { icon: "Utensils", label: "طعام" },
+  { icon: "Sparkles", label: "خدمات" },
+] as const;
+export function getContrastTextColor(hexColor: string) {
+  const match = /^#?([0-9a-f]{6})$/i.exec(hexColor);
+  if (!match) return "#173b55";
+  const luminance = (hex: string) => {
+    const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
+    const [red, green, blue] = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2);
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  };
+  const backgroundLuminance = luminance(match[1]);
+  const darkLuminance = luminance("173b55");
+  return 1.05 / (backgroundLuminance + 0.05) > (backgroundLuminance + 0.05) / (darkLuminance + 0.05) ? "#ffffff" : "#173b55";
+}
 export type MemberRole = "member" | "moderator";
 export type MemberRecord = { id: string; name: string; username: string; phone: string; role: MemberRole; active: boolean; createdAt: string };
 export type NotificationRecord = { id: string; type: string; title: string; message: string; entityId: string; read: boolean; createdAt: string };
@@ -113,7 +146,7 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   shops: [["groceries", "البقالة والسوبر ماركت", "ShoppingBasket"], ["pharmacies", "الصيدليات", "Pill"], ["clothing", "الملابس", "Shirt"], ["stationery", "المكتبات والأدوات المدرسية", "BookOpen"], ["appliances", "الأجهزة الكهربائية", "Tv"], ["food", "المطاعم والمأكولات", "Utensils"], ["mobile-shops", "الموبايلات والكمبيوتر", "Smartphone"]],
   teachers: [["arabic", "اللغة العربية", "BookOpen"], ["english", "اللغة الإنجليزية", "Languages"], ["math", "الرياضيات", "Calculator"], ["science", "العلوم والكيمياء والفيزياء", "FlaskConical"], ["social-studies", "الدراسات والتاريخ والجغرافيا", "Globe"]],
   charities: [["charitable-associations", "الجمعيات الأهلية", "HandHeart"], ["orphan-care", "رعاية الأيتام", "Heart"], ["community-support", "التكافل والمساعدات", "UsersRound"]],
-  "other-services": [["law", "المحاماة والاستشارات", "Scale"], ["transport", "النقل والمواصلات", "Truck"], ["cameras", "كام��رات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["cleaning", "النظافة والخدمات المنزلية", "Sparkles"], ["other", "خدمات متنوعة", "Ellipsis"]],
+  "other-services": [["law", "المحاماة والاستشارات", "Scale"], ["transport", "النقل والمواصلات", "Truck"], ["cameras", "كاميرات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["cleaning", "النظافة والخدمات المنزلية", "Sparkles"], ["other", "خدمات متنوعة", "Ellipsis"]],
 };
 export const iconNames = ["Wrench", "Stethoscope", "Store", "GraduationCap", "HandHeart", "Grid2X2", "Hammer", "Droplets", "Zap", "Anvil", "Paintbrush", "BrickWall", "PanelsTopLeft", "Snowflake", "Cog", "Armchair", "Baby", "Smile", "HeartPulse", "Bone", "Sparkles", "Eye", "Activity", "ShoppingBasket", "Pill", "Shirt", "BookOpen", "Tv", "Utensils", "Smartphone", "Languages", "Calculator", "FlaskConical", "Globe", "Heart", "UsersRound", "Scale", "Truck", "Cctv", "Sun", "Ellipsis"];
 export const initialCategories: CategoryRecord[] = roots.flatMap(([id, name, color, icon, description], sortOrder) => [
