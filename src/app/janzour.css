@@ -598,7 +598,7 @@
 .directory-section-heading p{margin-top:2px!important;color:#7189a1!important}
 .directory-section-heading .section-count{border-color:#dceafa;background:#f1f8ff;color:#3974a9;font-weight:700}
 .directory-main .providers-section{position:relative;margin-top:29px;border-top:0;padding-top:25px}
-.directory-main .providers-section::before{content:"";position:absolute;top:0;right:0;left:0;height:1px;background:linear-gradient(to left,#1687d5 0 42px,#b7ccdf 42px 100%)}
+.directory-main .providers-section::before{content:"";position:absolute;top:0;right:0;left:0;height:1px;background:linear-gradient(to left,#1687d5 0 42px,#8fa8c0 42px 100%)}
 .directory-main .providers-section::after{content:"";position:absolute;top:-3px;right:35px;width:7px;height:7px;border:1px solid #1687d5;border-radius:50%;background:#fff}
 .directory-main .providers-section .section-heading{margin-bottom:17px}
 @media(max-width:520px){.directory-section-heading{min-height:64px;gap:8px;padding:9px 11px 10px 9px;margin-bottom:14px;border-radius:12px}.directory-section-heading h2{gap:7px;font-size:15px}.directory-section-heading h2>svg{width:31px;height:31px;padding:6px}.directory-section-heading p{font-size:10px!important;line-height:1.7}.directory-section-heading .section-count{font-size:9px;padding:3px 7px}.directory-main .providers-section{margin-top:22px;padding-top:20px}}
