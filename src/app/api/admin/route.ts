@@ -146,9 +146,20 @@ export async function DELETE(request: Request) {
   try {
     const role = await guard(request);
     const body = objectInput(await request.json());
-    const { type } = body;
-    if (role === "moderator" && type !== "category") denyModerator();
-    if (type === "category") {
+    const { type, action } = body;
+    const bulkNotificationAction = type === "notification" && (action === "delete-all" || action === "delete-selected");
+    if (role === "moderator" && type !== "category" && !bulkNotificationAction) denyModerator();
+    if (bulkNotificationAction) {
+      if (action === "delete-all") {
+        if (role === "moderator") await db.delete(notifications).where(inArray(notifications.type, ["service", "ad"]));
+        else await db.delete(notifications);
+      } else {
+        if (!Array.isArray(body.ids) || body.ids.length === 0 || body.ids.length > 200) throw new InputError("اختار إشعارًا واحدًا على الأقل للحذف.");
+        const ids = [...new Set(body.ids.map(uuid))];
+        const condition = inArray(notifications.id, ids);
+        await db.delete(notifications).where(role === "moderator" ? and(condition, inArray(notifications.type, ["service", "ad"])) : condition);
+      }
+    } else if (type === "category") {
       const id = cleanText(body.id, 60);
       const children = await db.select({ total: count() }).from(directoryCategories).where(eq(directoryCategories.parentId, id));
       const attached = await db.select({ total: count() }).from(services).where(eq(services.category, id));
