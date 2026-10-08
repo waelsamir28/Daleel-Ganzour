@@ -5,13 +5,14 @@ import { ChevronDown } from "lucide-react";
 
 type Option = { value: string; label: string };
 
-export default function SearchDropdown({ name, value, options, onChange, icon, disabled = false }: {
+export default function SearchDropdown({ name, value, options, onChange, icon, disabled = false, className = "" }: {
   name: string;
   value: string;
   options: Option[];
   onChange: (value: string) => void;
   icon: ReactNode;
   disabled?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const id = useId();
@@ -52,7 +53,7 @@ export default function SearchDropdown({ name, value, options, onChange, icon, d
     items[next]?.focus();
   }
 
-  return <div className={`search-select-wrap${open ? " is-open" : ""}`} ref={root} onKeyDown={moveFocus}
+  return <div className={`search-select-wrap${className ? ` ${className}` : ""}${open ? " is-open" : ""}`} ref={root} onKeyDown={moveFocus}
     onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false); }}>
     <span className="search-select-icon" aria-hidden="true">{icon}</span>
     <button type="button" ref={trigger} className="search-select-trigger" role="combobox" aria-label={name}

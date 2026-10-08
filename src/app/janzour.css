@@ -1,5 +1,5 @@
 /* Janzour directory: hierarchy, independent membership and editable administration. */
-.hero-with-banner{background:transparent;color:var(--navy)}
+.hero-with-banner{background:transparent;color:var(--navy);overflow:visible}
 .hero-with-banner .hero-glow,.hero-with-banner .hero-skyline{display:none}
 .hero-banner-wrap{position:relative;z-index:2;width:90%;max-width:1240px;margin:16px auto 0;line-height:0}
 .hero-banner-wrap img{display:block;width:100%;height:auto;object-fit:contain;border-radius:22px;box-shadow:0 14px 32px #126fa821}
@@ -25,7 +25,7 @@
 .search-select-menu [aria-selected="true"]{background:#dcf2ff;color:#075ba4;font-weight:900}
 @keyframes search-menu-enter{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:860px){.hero-with-banner .hero-search{grid-template-columns:minmax(160px,1fr) repeat(2,minmax(120px,1fr)) 102px}}
-@media(max-width:700px){.hero-with-banner .hero-search{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:7px}.hero-with-banner .search-input-wrap{grid-column:1/-1;border:0;padding-inline:10px}.hero-with-banner .search-select-wrap{min-width:0}.hero-with-banner .search-button{grid-column:1/-1;min-height:43px}.search-select-trigger{font-size:11px}.search-select-icon{display:none}.search-select-menu{width:max(100%,200px)}}
+@media(max-width:700px){.hero-with-banner .hero-search{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:7px}.hero-with-banner .search-input-wrap{grid-column:1/-1;border:0;padding-inline:10px}.hero-with-banner .search-select-wrap{min-width:0}.hero-with-banner .search-button{grid-column:1/-1;min-height:43px}.search-select-trigger{font-size:11px}.search-select-icon{display:none}.search-select-menu{width:max(100%,200px)}.hero-with-banner .area-select .search-select-menu{right:auto;left:0}}
 @media(prefers-reduced-motion:reduce){.search-select-menu{animation:none}.search-select-chevron,.search-select-menu [role="option"]{transition:none}}
 .hero-with-banner .search-button{border:1px solid #084c91;border-radius:10px;background:#075fa7;color:#fff;transition:background-color .23s ease,box-shadow .23s ease,transform .23s ease}
 .hero-with-banner .search-button:hover{background:#014e90;box-shadow:0 8px 16px #07508c52;transform:translateY(-2px)}
