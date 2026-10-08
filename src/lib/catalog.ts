@@ -40,14 +40,14 @@ export function isAdImageUrl(value: string) {
   } catch { return false; }
 }
 export const adBackgroundOptions = [
-  { color: "#e6f3ff", label: "أزرق سماوي" },
-  { color: "#fff1d8", label: "ذهبي هادئ" },
-  { color: "#e9f8ef", label: "أخضر فاتح" },
-  { color: "#f5eaff", label: "بنفسجي فاتح" },
-  { color: "#fff0f1", label: "وردي فاتح" },
-  { color: "#e6f6f5", label: "فيروزي فاتح" },
-  { color: "#f0f3ff", label: "أزرق بنفسجي" },
-  { color: "#fcf1e5", label: "كريمي" },
+  { color: "#ccecff", label: "أزرق سماوي" },
+  { color: "#ffe5b4", label: "ذهبي مشرق" },
+  { color: "#cdf5dc", label: "أخضر نعناعي" },
+  { color: "#eddcff", label: "بنفسجي فاتح" },
+  { color: "#ffdbe6", label: "وردي زاهي" },
+  { color: "#c9f3f0", label: "فيروزي فاتح" },
+  { color: "#e0e4ff", label: "أزرق بنفسجي" },
+  { color: "#ffe4c9", label: "خوخي" },
 ] as const;
 export const adIconOptions = [
   { icon: "Store", label: "محل" },
