@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { BadgeCheck, ChevronLeft, ChevronRight, MessageCircle, Sparkles } from "lucide-react";
-import { AdvertisingIcon, CategoryIcon, HighlightedAdText } from "@/components/ui";
-import { adBackgroundOptions, adIconOptions, getContrastTextColor, whatsappUrl, type AdRecord, type SiteSettings } from "@/lib/catalog";
+import { ChevronLeft, ChevronRight, Pause, Play, Sparkles } from "lucide-react";
+import AdSlide from "@/components/ad-slide";
+import { AdvertisingIcon } from "@/components/ui";
+import { AD_SLIDE_DURATION_MS, adBackgroundOptions, adIconOptions, getAdMotion, getContrastTextColor, type AdRecord, type SiteSettings } from "@/lib/catalog";
 
 export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[]; settings: SiteSettings; onBook: () => void }) {
   const [slideIndex, setSlideIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [manuallyPaused, setManuallyPaused] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const activeIndex = ads.length ? slideIndex % ads.length : 0;
   const activeAd = ads[activeIndex];
+  const animated = getAdMotion(activeAd?.motion) !== "static";
+  const paused = hovered || focused || manuallyPaused;
   const resolvedAdBackgrounds = ads.reduce<string[]>((backgrounds, ad, index) => {
     const customColor = typeof ad.backgroundColor === "string" && /^#[0-9a-f]{6}$/i.test(ad.backgroundColor) ? ad.backgroundColor : "";
     const preferredColor = adBackgroundOptions[index % adBackgroundOptions.length].color;
@@ -47,10 +52,10 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
   }, []);
 
   useEffect(() => {
-    if (ads.length < 2 || paused || reducedMotion || !pageVisible) return;
-    const timer = window.setInterval(() => setSlideIndex((index) => (index + 1) % ads.length), 6500);
+    if (ads.length < 2 || animated || paused || reducedMotion || !pageVisible) return;
+    const timer = window.setInterval(() => setSlideIndex((index) => (index + 1) % ads.length), AD_SLIDE_DURATION_MS);
     return () => window.clearInterval(timer);
-  }, [ads.length, pageVisible, paused, reducedMotion]);
+  }, [activeAd?.id, ads.length, animated, pageVisible, paused, reducedMotion]);
 
   function moveSlide(direction: -1 | 1) {
     if (!ads.length) return;
@@ -62,11 +67,11 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
       className="ad-carousel"
       aria-label="إعلانات الأنشطة في جنزور"
       aria-roledescription="عارض إعلانات"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
+      onPointerEnter={(event) => { if (event.pointerType === "mouse") setHovered(true); }}
+      onPointerLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocused(true)}
       onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
       }}
     >
       <div className="ad-carousel-header">
@@ -77,27 +82,20 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
             <h2>إعلانات جنزور</h2>
           </div>
         </div>
-        {ads.length > 1 && (
+        {(ads.length > 1 || animated) && (
           <div className="ad-carousel-controls" aria-label="التنقل بين الإعلانات">
+            {!reducedMotion && <button type="button" className="ad-motion-toggle" onClick={() => setManuallyPaused((value) => !value)} aria-label={manuallyPaused ? "تشغيل حركة الإعلانات" : "إيقاف حركة الإعلانات"} aria-pressed={manuallyPaused}>{manuallyPaused ? <Play/> : <Pause/>}</button>}
+            {ads.length > 1 && <>
             <button type="button" onClick={() => moveSlide(-1)} aria-label="الإعلان السابق"><ChevronRight /></button>
             <span dir="ltr">{String(activeIndex + 1).padStart(2, "0")} / {String(ads.length).padStart(2, "0")}</span>
             <button type="button" onClick={() => moveSlide(1)} aria-label="الإعلان التالي"><ChevronLeft /></button>
+            </>}
           </div>
         )}
       </div>
 
       {activeAd ? (
-        <article className="ad-slide" key={activeAd.id} aria-roledescription="إعلان" aria-label={`الإعلان ${activeIndex + 1} من ${ads.length}`} style={adStyle}>
-          <div className="ad-slide-copy">
-            <span className="ad-slide-approved"><BadgeCheck /> إعلان معتمد</span>
-            <h3>{activeAd.businessName}</h3>
-            <p><HighlightedAdText text={activeAd.text} word={activeAd.highlightWord ?? ""}/></p>
-            <a className="ad-slide-contact" href={whatsappUrl(activeAd.phone)} target="_blank" rel="noopener noreferrer">
-              <MessageCircle /> تواصل عبر واتساب <span dir="ltr">{activeAd.phone}</span>
-            </a>
-          </div>
-          <div className="ad-slide-art" aria-hidden="true"><span><CategoryIcon icon={adIcon} size={58}/></span><small>نشاط من جنزور</small></div>
-        </article>
+        <AdSlide key={activeAd.id} ad={activeAd} icon={adIcon} style={adStyle} label={`الإعلان ${activeIndex + 1} من ${ads.length}`} paused={paused || reducedMotion || !pageVisible} onCycle={() => { if (ads.length > 1 && !paused && !reducedMotion && pageVisible) moveSlide(1); }}/>
       ) : (
         <div className="ad-slide ad-slide-empty">
           <div className="ad-slide-copy">
@@ -123,4 +121,3 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
     </section>
   );
 }
-

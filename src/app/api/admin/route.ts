@@ -5,7 +5,7 @@ import { advertisements, directoryAreas, directoryCategories, directorySettings,
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { getAdminDirectory, getSettings } from "@/lib/directory";
 import { adInput, apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
-import { adIconOptions } from "@/lib/catalog";
+import { adIconOptions, adMotionOptions, isAdImageUrl } from "@/lib/catalog";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +31,11 @@ async function adValues(values: Record<string, unknown>) {
   const backgroundColor = cleanText(values.backgroundColor ?? "", 7), icon = cleanText(values.icon ?? "", 40);
   const textSize = integerInput(values.textSize ?? 17, 14, 30, "حجم نص الإعلان");
   const highlightWord = cleanText(values.highlightWord ?? "", 60);
+  const motion = values.motion ?? "static";
+  if (values.imageUrl !== undefined && typeof values.imageUrl !== "string") throw new InputError("رابط الصورة يجب أن يكون نصًا.");
+  const imageUrl = typeof values.imageUrl === "string" ? values.imageUrl.trim() : "";
+  if (!adMotionOptions.some((option) => option.id === motion)) throw new InputError("اختار نوع حركة صحيحًا للإعلان.");
+  if (!isAdImageUrl(imageUrl)) throw new InputError("استخدم رابط صورة آمنًا يبدأ بـ https:// أو مسار صورة داخل الموقع، بحد أقصى 1000 حرف.");
   if (!/^#[0-9a-f]{6}$/i.test(backgroundColor)) throw new InputError("اختار لون خلفية صحيحًا للإعلان.");
   if (!adIconOptions.some((option) => option.icon === icon)) throw new InputError("اختار أيقونة صحيحة للإعلان.");
   if (highlightWord && (/[\s]/u.test(highlightWord) || !basics.text.includes(highlightWord))) throw new InputError("الكلمة البارزة يجب أن تكون كلمة واحدة موجودة في نص الإعلان.");
@@ -39,7 +44,7 @@ async function adValues(values: Record<string, unknown>) {
   let expiresAt: Date | null = null;
   if (typeof values.expiresAt === "string" && values.expiresAt) { expiresAt = new Date(values.expiresAt); if (Number.isNaN(expiresAt.getTime())) throw new InputError("تاريخ انتهاء الإعلان غير صحيح."); }
   else if (values.expiresAt === undefined && status === "approved") expiresAt = new Date(Date.now() + settings.adDays * 86400000);
-  return { ...basics, backgroundColor, icon, textSize, highlightWord, status, paid, expiresAt, price: integerInput(values.price ?? settings.adPrice, 0, 100000, "سعر الإعلان") };
+  return { ...basics, backgroundColor, icon, textSize, highlightWord, motion: String(motion), imageUrl, status, paid, expiresAt, price: integerInput(values.price ?? settings.adPrice, 0, 100000, "سعر الإعلان") };
 }
 export async function GET() {
   try { const role = await guard(); return Response.json(await getAdminDirectory(role)); }
