@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { ChevronLeft, ChevronRight, Pause, Play, Sparkles } from "lucide-react";
+import { ChevronLeft, Pause, Play, Sparkles } from "lucide-react";
 import AdSlide from "@/components/ad-slide";
 import { AdvertisingIcon } from "@/components/ui";
 import { AD_SLIDE_DURATION_MS, adBackgroundOptions, adIconOptions, getAdMotion, getContrastTextColor, type AdRecord, type SiteSettings } from "@/lib/catalog";
@@ -57,16 +57,16 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
     return () => window.clearInterval(timer);
   }, [activeAd?.id, ads.length, animated, pageVisible, paused, reducedMotion]);
 
-  function moveSlide(direction: -1 | 1) {
+  function moveSlide() {
     if (!ads.length) return;
-    setSlideIndex((index) => (index + direction + ads.length) % ads.length);
+    setSlideIndex((index) => (index + 1) % ads.length);
   }
 
   return (
     <section
-      className="ad-carousel"
+      className="ad-carousel ad-showcase"
       aria-label="إعلانات الأنشطة في جنزور"
-      aria-roledescription="عارض إعلانات"
+      aria-roledescription="لوحة إعلانات متحركة"
       onPointerEnter={(event) => { if (event.pointerType === "mouse") setHovered(true); }}
       onPointerLeave={() => setHovered(false)}
       onFocusCapture={() => setFocused(true)}
@@ -79,23 +79,19 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
           <span className="ad-carousel-mark" aria-hidden="true"><AdvertisingIcon /></span>
           <div>
             <span className="ad-carousel-eyebrow">من أهل القرية.. لأهل القرية</span>
-            <h2>إعلانات جنزور</h2>
+            <h2>مساحة عروض جنزور</h2>
           </div>
         </div>
         {(ads.length > 1 || animated) && (
-          <div className="ad-carousel-controls" aria-label="التنقل بين الإعلانات">
+          <div className="ad-carousel-controls" aria-label="التحكم في عرض الإعلانات">
             {!reducedMotion && <button type="button" className="ad-motion-toggle" onClick={() => setManuallyPaused((value) => !value)} aria-label={manuallyPaused ? "تشغيل حركة الإعلانات" : "إيقاف حركة الإعلانات"} aria-pressed={manuallyPaused}>{manuallyPaused ? <Play/> : <Pause/>}</button>}
-            {ads.length > 1 && <>
-            <button type="button" onClick={() => moveSlide(-1)} aria-label="الإعلان السابق"><ChevronRight /></button>
-            <span dir="ltr">{String(activeIndex + 1).padStart(2, "0")} / {String(ads.length).padStart(2, "0")}</span>
-            <button type="button" onClick={() => moveSlide(1)} aria-label="الإعلان التالي"><ChevronLeft /></button>
-            </>}
+            {ads.length > 1 && <span dir="ltr">{String(activeIndex + 1).padStart(2, "0")} / {String(ads.length).padStart(2, "0")}</span>}
           </div>
         )}
       </div>
 
-      {activeAd ? (
-        <AdSlide key={activeAd.id} ad={activeAd} icon={adIcon} style={adStyle} label={`الإعلان ${activeIndex + 1} من ${ads.length}`} paused={paused || reducedMotion || !pageVisible} onCycle={() => { if (ads.length > 1 && !paused && !reducedMotion && pageVisible) moveSlide(1); }}/>
+      <div className="ad-showcase-stage">{activeAd ? (
+        <AdSlide key={activeAd.id} ad={activeAd} icon={adIcon} style={adStyle} label={`الإعلان ${activeIndex + 1} من ${ads.length}`} paused={paused || reducedMotion || !pageVisible} onCycle={() => { if (ads.length > 1 && !paused && !reducedMotion && pageVisible) moveSlide(); }}/>
       ) : (
         <div className="ad-slide ad-slide-empty">
           <div className="ad-slide-copy">
@@ -105,14 +101,14 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
           </div>
           <div className="ad-slide-art" aria-hidden="true"><span><AdvertisingIcon /></span><small>مساحة نشاطك هنا</small></div>
         </div>
-      )}
+      )}</div>
 
       <div className="ad-carousel-footer">
         <span className="ad-carousel-price">{settings.adPrice} جنيه <span>/ {settings.adDays} أيام</span></span>
         {ads.length > 1 && (
-          <div className="ad-carousel-dots" aria-label="اختيار إعلان">
+          <div className="ad-showcase-tabs" aria-label="اختيار إعلان من لوحة العروض">
             {ads.map((ad, index) => (
-              <button key={ad.id} type="button" className={index === activeIndex ? "is-active" : ""} onClick={() => setSlideIndex(index)} aria-label={`عرض إعلان ${ad.businessName}`} aria-pressed={index === activeIndex} />
+              <button key={ad.id} type="button" className={index === activeIndex ? "is-active" : ""} onClick={() => setSlideIndex(index)} aria-label={`عرض إعلان ${ad.businessName}`} aria-pressed={index === activeIndex}><span>{index + 1}</span><span className="ad-showcase-tab-label">{ad.businessName}</span></button>
             ))}
           </div>
         )}
