@@ -71,8 +71,9 @@
 .site-footer .footer-admin-link:hover{background:transparent;color:#78caff;transform:translateY(-1px);text-decoration:underline;text-underline-offset:5px}
 .site-footer .footer-bottom{min-height:0;border-top:1px solid #ffffff16;color:#a9c5e0;padding-block:7px}
 .site-footer .footer-copyright{color:#a9c5e0;font-size:10px}
+@media(min-width:951px){.site-footer .footer-main{padding-inline-end:max(22px,calc(160px - max(0px,(100vw - 1120px)/2)))}}
 @media(max-width:950px){.site-footer .footer-main{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"brand nav" "contact admin";gap:4px 18px}.site-footer .footer-main nav{justify-content:flex-start}.site-footer .footer-whatsapp,.site-footer .footer-admin-link{justify-self:start}}
-@media(max-width:600px){.site-footer .footer-main{grid-template-areas:"brand brand" "nav nav" "contact admin";justify-items:stretch;gap:6px 12px;padding-block:12px}.site-footer .footer-brand-lockup{justify-content:center;text-align:center}.site-footer .footer-brand-copy strong{font-size:15px}.site-footer .footer-brand-copy span{font-size:10px}.site-footer .footer-main nav{justify-content:center;gap:0 10px}.site-footer .footer-main nav a,.site-footer .footer-main nav button{flex-basis:calc((100% - 20px)/3)}.site-footer .footer-bottom{padding-inline:16px}}
+@media(max-width:600px){.site-footer .footer-main{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"brand brand" "nav nav" "contact admin";justify-items:stretch;gap:6px 12px;padding-block:12px}.site-footer .footer-brand-lockup{justify-content:center;text-align:center}.site-footer .footer-brand-copy strong{font-size:15px}.site-footer .footer-brand-copy span{font-size:10px}.site-footer .footer-main nav{justify-content:center;gap:0 10px}.site-footer .footer-main nav a,.site-footer .footer-main nav button{flex-basis:calc((100% - 20px)/3)}.site-footer .footer-bottom{padding-inline:16px}}
 @media(prefers-reduced-motion:reduce){.site-footer .footer-main nav a,.site-footer .footer-main nav button,.site-footer .footer-whatsapp,.site-footer .footer-admin-link{transition:none;transform:none}}
 .header-inner{gap:20px}
 .header-actions{gap:12px}
