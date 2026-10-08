@@ -50,28 +50,30 @@
 @media(max-width:700px){.provider-card .provider-phone{font-size:14px}.hero-with-banner .hero-trust>span:last-child{display:flex}.hero-with-banner .hero-trust>span{font-size:10px}}
 @media(max-width:530px){.site-header .auth-links .register-link{padding:7px}.site-header .auth-links .register-link>span{display:none}}
 @media(prefers-reduced-motion:reduce){.site-header .add-service-header:hover,.site-header .add-service-header:active,.hero-with-banner .search-button:hover,.hero-with-banner .search-button:active,.site-header a:active,.site-header button:active,.button:active{transform:none}}
-.site-footer{background:linear-gradient(140deg,#67cdf7 0%,#42b9ef 57%,#36aae8 100%);color:#103f68}
-.site-footer .footer-main{display:grid;grid-template-columns:minmax(185px,.8fr) minmax(320px,1.65fr) minmax(180px,.9fr);grid-template-areas:"brand nav contact" "brand nav admin";align-items:center;gap:9px 20px;padding-top:27px;padding-bottom:25px}
-.site-footer .footer-brand-lockup{grid-area:brand;padding-inline:6px;align-self:center}
-.site-footer .footer-brand-copy{white-space:normal;gap:6px}
-.site-footer .footer-brand-copy strong{color:#073c70;font-size:21px;font-weight:900;line-height:1.6}
-.site-footer .footer-brand-copy span{color:#15517c;font-size:12px;line-height:1.8}
-.site-footer .footer-main nav{grid-area:nav;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;font-size:12px}
-.site-footer .footer-main nav a,.site-footer .footer-main nav button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:41px;padding:7px 9px;border:1px solid #ffffffd4;border-radius:11px;background:#fffffff0;color:#135789;font-size:12px;font-weight:800;white-space:nowrap;box-shadow:0 4px 10px #116fa31a;transition:background-color .22s,transform .22s,box-shadow .22s,border-color .22s,color .22s}
-.site-footer .footer-main nav a:hover,.site-footer .footer-main nav button:hover{border-color:#e6f7ff;background:#e4f7ff;color:#094c85;box-shadow:0 9px 14px #116fa32a;transform:translateY(-3px)}
-.site-footer .footer-main nav svg{flex:none;color:#0878c8}
-.site-footer .footer-whatsapp{grid-area:contact;justify-self:stretch;background:#fff;border-color:#ceefff;color:#07587e;box-shadow:0 5px 15px #117cb526}
-.site-footer .footer-whatsapp:hover{background:#ecfbf4;border-color:#9feac9}
-.site-footer .footer-whatsapp small{color:#417492}
-.site-footer .footer-whatsapp strong{color:#104969;font-size:16px}
-.site-footer .footer-admin-link{grid-area:admin;justify-self:stretch;border-color:#effaff;background:#1178ba;color:#fff;box-shadow:0 5px 13px #1678ac2e}
-.site-footer .footer-admin-link svg:first-child{color:#fff}
-.site-footer .footer-admin-link:hover{background:#075e9a;border-color:#fff;color:#fff}
-.site-footer .footer-bottom{border-top:1px solid #ffffffba;color:#124b77;padding-block:13px}
-.site-footer .footer-copyright{color:#124b77}
-@media(max-width:950px){.site-footer .footer-main{grid-template-columns:1fr 1fr;grid-template-areas:"brand contact" "nav nav" "admin admin";gap:14px}.site-footer .footer-whatsapp{justify-self:end;min-width:200px}.site-footer .footer-admin-link{justify-self:center;min-width:200px}.site-footer .footer-main nav{grid-template-columns:repeat(5,minmax(0,1fr))}}
-@media(max-width:600px){.site-footer .footer-main{grid-template-columns:1fr;grid-template-areas:"brand" "nav" "contact" "admin";justify-items:stretch;padding-top:24px}.site-footer .footer-brand-lockup{justify-content:center;text-align:center}.site-footer .footer-main nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.site-footer .footer-main nav a,.site-footer .footer-main nav button{font-size:11px}.site-footer .footer-whatsapp,.site-footer .footer-admin-link{justify-self:stretch;min-width:0}.site-footer .footer-bottom{padding-inline:16px}}
-@media(prefers-reduced-motion:reduce){.site-footer .footer-main nav a,.site-footer .footer-main nav button{transition:none;transform:none}}
+.site-footer{background:#102c4e;color:#e1edf9}
+.site-footer .footer-main{display:grid;grid-template-columns:minmax(170px,.9fr) minmax(260px,1.7fr) auto auto;grid-template-areas:"brand nav contact admin";align-items:center;gap:18px;padding-block:14px}
+.site-footer .footer-brand-lockup{grid-area:brand;padding:0;align-self:center}
+.site-footer .footer-brand-copy{white-space:normal;gap:2px}
+.site-footer .footer-brand-copy strong{color:#fff;font-size:16px;font-weight:800;line-height:1.5}
+.site-footer .footer-brand-copy span{color:#a9c5e0;font-size:11px;line-height:1.6}
+.site-footer .footer-main nav{grid-area:nav;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px 16px;font-size:11px}
+.site-footer .footer-main nav a,.site-footer .footer-main nav button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:32px;padding:4px 0;border:0;border-radius:0;background:transparent;color:#c7def3;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:none;transition:color .2s ease,transform .2s ease}
+.site-footer .footer-main nav a:hover,.site-footer .footer-main nav button:hover{background:transparent;color:#78caff;box-shadow:none;transform:translateY(-1px);text-decoration:underline;text-underline-offset:5px}
+.site-footer .footer-main nav svg{flex:none;width:14px;height:14px;color:currentColor}
+.site-footer .footer-whatsapp{grid-area:contact;justify-self:end;gap:7px;padding:4px 0;min-width:0;border:0;border-radius:0;background:transparent;color:#d6e8f8;box-shadow:none;transition:color .2s ease,transform .2s ease}
+.site-footer .footer-whatsapp>span{width:18px;height:18px;border:0;border-radius:0;background:transparent;color:#65d9ad}
+.site-footer .footer-whatsapp>span svg{width:18px;height:18px}
+.site-footer .footer-whatsapp:hover{background:transparent;color:#78caff;transform:translateY(-1px)}
+.site-footer .footer-whatsapp small{color:#a9c5e0;font-size:10px}
+.site-footer .footer-whatsapp strong{color:inherit;font-size:13px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.site-footer .footer-admin-link{grid-area:admin;justify-self:end;gap:5px;min-height:32px;min-width:0;padding:4px 0;border:0;border-radius:0;background:transparent;color:#c7def3;font-size:11px;font-weight:700;box-shadow:none;transition:color .2s ease,transform .2s ease}
+.site-footer .footer-admin-link svg:first-child{color:#a9c5e0}
+.site-footer .footer-admin-link:hover{background:transparent;color:#78caff;transform:translateY(-1px);text-decoration:underline;text-underline-offset:5px}
+.site-footer .footer-bottom{min-height:0;border-top:1px solid #ffffff16;color:#a9c5e0;padding-block:7px}
+.site-footer .footer-copyright{color:#a9c5e0;font-size:10px}
+@media(max-width:950px){.site-footer .footer-main{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"brand nav" "contact admin";gap:4px 18px}.site-footer .footer-main nav{justify-content:flex-start}.site-footer .footer-whatsapp,.site-footer .footer-admin-link{justify-self:start}}
+@media(max-width:600px){.site-footer .footer-main{grid-template-areas:"brand brand" "nav nav" "contact admin";justify-items:stretch;gap:6px 12px;padding-block:12px}.site-footer .footer-brand-lockup{justify-content:center;text-align:center}.site-footer .footer-brand-copy strong{font-size:15px}.site-footer .footer-brand-copy span{font-size:10px}.site-footer .footer-main nav{justify-content:center;gap:0 10px}.site-footer .footer-main nav a,.site-footer .footer-main nav button{flex-basis:calc((100% - 20px)/3)}.site-footer .footer-bottom{padding-inline:16px}}
+@media(prefers-reduced-motion:reduce){.site-footer .footer-main nav a,.site-footer .footer-main nav button,.site-footer .footer-whatsapp,.site-footer .footer-admin-link{transition:none;transform:none}}
 .header-inner{gap:20px}
 .header-actions{gap:12px}
 .main-nav{gap:23px}
