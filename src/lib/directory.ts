@@ -26,6 +26,8 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS icon varchar(40) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS text_size integer NOT NULL DEFAULT 17`);
       await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS highlight_word varchar(60) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS motion varchar(12) NOT NULL DEFAULT 'static'`);
+      await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS image_url varchar(1000) NOT NULL DEFAULT ''`);
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoNothing();
       if (!marker.length) return;

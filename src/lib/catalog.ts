@@ -16,8 +16,26 @@ export type ServiceRecord = {
 export type AdRecord = {
   id: string; businessName: string; text: string; phone: string; status: string;
   backgroundColor: string; icon: string; textSize: number; highlightWord: string;
+  motion: string; imageUrl: string;
   price: number; paid: boolean; expiresAt: string | null; createdAt: string;
 };
+export const AD_SLIDE_DURATION_MS = 6500;
+export const adMotionOptions = [
+  { id: "static", label: "ثابت (كاروسيل عادي)" },
+  { id: "left", label: "متحرك لليسار" },
+  { id: "right", label: "متحرك لليمين" },
+  { id: "fade", label: "ظهور واختفاء هادئ" },
+] as const;
+export type AdMotion = typeof adMotionOptions[number]["id"];
+export function isAdImageUrl(value: string) {
+  if (!value) return true;
+  if (value.length > 1000 || /[\s\\]/u.test(value)) return false;
+  if (value.startsWith("/") && !value.startsWith("//")) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password;
+  } catch { return false; }
+}
 export const adBackgroundOptions = [
   { color: "#e6f3ff", label: "أزرق سماوي" },
   { color: "#fff1d8", label: "ذهبي هادئ" },

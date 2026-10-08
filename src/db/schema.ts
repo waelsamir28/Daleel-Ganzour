@@ -28,6 +28,8 @@ export const advertisements = pgTable("directory_advertisements", {
   icon: varchar("icon", { length: 40 }).notNull().default(""),
   textSize: integer("text_size").notNull().default(17),
   highlightWord: varchar("highlight_word", { length: 60 }).notNull().default(""),
+  motion: varchar("motion", { length: 12 }).notNull().default("static"),
+  imageUrl: varchar("image_url", { length: 1000 }).notNull().default(""),
   status: varchar("status", { length: 20 }).notNull().default("pending"),
   price: integer("price").notNull().default(50),
   paid: boolean("paid").notNull().default(false),
