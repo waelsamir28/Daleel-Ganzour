@@ -10,11 +10,6 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
-export function HighlightedAdText({ text, word }: { text: string; word: string }) {
-  const start = word ? text.indexOf(word) : -1;
-  if (start < 0) return <>{text}</>;
-  return <>{text.slice(0, start)}<strong className="ad-highlight-word">{word}</strong>{text.slice(start + word.length)}</>;
-}
 export function Logo({ compact = false, footer = false, name = defaultSettings.siteName }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
   return <Link href="/" className={`brand brand-logo-only ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
     {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -38,10 +38,10 @@ try {
     const saved = (await api("/api/advertisements", "GET", undefined, false)).data.ads.find((ad) => ad.id === original.id);
     assert.equal(saved.motion, motion); assert.equal(saved.imageUrl, imageUrl);
     const html = await (await fetch(base)).text();
-    assert.ok(html.includes(`ad-motion-${motion}`));
+    assert.ok(html.includes(`data-ad-id="${original.id}"`));
     if (imageUrl) assert.ok(html.includes(`src="${imageUrl}"`));
   }
-  console.log("PASS: all four motion styles and optional images persist and render in the public carousel");
+  console.log("PASS: all four legacy motion values persist and optional images render in the premium banner");
 
   for (const invalid of [
     { motion: "invalid" }, { motion: 5 }, { imageUrl: 5 },

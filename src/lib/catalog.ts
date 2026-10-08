@@ -18,10 +18,34 @@ export type AdRecord = {
   backgroundColor: string; icon: string; textSize: number; highlightWord: string;
   motion: string; imageUrl: string;
   price: number; paid: boolean; expiresAt: string | null; createdAt: string;
+  name: string; categoryId: string; adType: AdType; placement: AdPlacement;
+  videoUrl: string; destinationUrl: string; whatsappPhone: string; offerText: string;
+  startsAt: string | null; priority: number; campaignStatus: "active" | "paused";
+  impressions: number; clicks: number;
 };
-export const AD_SLIDE_DURATION_MS = 6500;
+export const adTypeOptions = [{ id: "banner", label: "بانر" }, { id: "card", label: "كارت" }, { id: "video", label: "فيديو" }] as const;
+export const adPlacementOptions = [{ id: "hero", label: "البانر الرئيسي" }, { id: "inline", label: "وسط نتائج الأقسام" }, { id: "sponsored", label: "معلنين مميزين" }] as const;
+export type AdType = typeof adTypeOptions[number]["id"];
+export type AdPlacement = typeof adPlacementOptions[number]["id"];
+export function isAdActive(ad: Pick<AdRecord, "status" | "paid" | "campaignStatus" | "startsAt" | "expiresAt">, now = Date.now()) {
+  const start = ad.startsAt ? Date.parse(ad.startsAt) : null, end = ad.expiresAt ? Date.parse(ad.expiresAt) : null;
+  return ad.status === "approved" && ad.paid && ad.campaignStatus !== "paused"
+    && (start === null || Number.isFinite(start) && start <= now)
+    && (end === null || Number.isFinite(end) && end > now);
+}
+export function selectAds(ads: AdRecord[], placement: AdPlacement, categoryId = "", catalog: CategoryRecord[] = [], now = Date.now()) {
+  return ads.filter((ad) => {
+    if ((ad.placement || "hero") !== placement || !isAdActive(ad, now)) return false;
+    if (placement !== "inline") return true;
+    if (!categoryId || !ad.categoryId) return false;
+    const requested = catalog.find((c) => c.id === categoryId), target = catalog.find((c) => c.id === ad.categoryId);
+    return ad.categoryId === categoryId || requested?.parentId === ad.categoryId || target?.parentId === categoryId;
+  }).sort((a, b) => (b.priority || 0) - (a.priority || 0) || b.createdAt.localeCompare(a.createdAt));
+}
+export function adCtr(impressions: number, clicks: number) { return impressions > 0 ? clicks / impressions * 100 : 0; }
+export const HERO_AD_DURATION_MS = 5000;
 export const adMotionOptions = [
-  { id: "static", label: "ثابت (كاروسيل عادي)" },
+  { id: "static", label: "ثابت" },
   { id: "left", label: "متحرك لليسار" },
   { id: "right", label: "متحرك لليمين" },
   { id: "fade", label: "ظهور واختفاء هادئ" },
@@ -38,6 +62,11 @@ export function isAdImageUrl(value: string) {
     const url = new URL(value);
     return url.protocol === "https:" && !url.username && !url.password;
   } catch { return false; }
+}
+export function isAdVideoUrl(value: string) {
+  if (!value) return true;
+  if (!isAdImageUrl(value)) return false;
+  try { return /\.(mp4|webm|ogg)$/i.test(new URL(value, "https://directory.local").pathname); } catch { return false; }
 }
 export const adBackgroundOptions = [
   { color: "#ccecff", label: "أزرق سماوي" },
