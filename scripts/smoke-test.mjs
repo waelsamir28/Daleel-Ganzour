@@ -1,4 +1,9 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import ts from "typescript";
+const source = await readFile(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
+const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext } }).outputText;
+const { initialCategories, areas, defaultSettings } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
 const base = process.env.TEST_BASE_URL || "http://localhost:3000";
 class Client {
   cookies = new Map();
@@ -16,24 +21,24 @@ const serviceValues = { name: "اختبار آلي - حرفي جنزور", categ
 try {
   assert.equal((await visitor.api("/api/health")).data.ok, true);
   const initial = (await visitor.api("/api/services")).data;
-  assert.equal(initial.categories.filter((category) => !category.parentId).length, 6);
-  assert.equal(initial.areas.length, 7);
-  assert.equal(initial.settings.siteName, "دليل المهن والخدمات بقرية جنزور");
+  assert.deepEqual(initial.categories.filter((category) => !category.parentId).map((category) => category.id).sort(), initialCategories.filter((category) => !category.parentId).map((category) => category.id).sort());
+  assert.deepEqual(initial.areas.map((area) => area.name).sort(), [...areas].sort());
+  assert.equal(initial.settings.siteName, defaultSettings.siteName);
   assert.ok(initial.areas.every((area) => area.name.startsWith("جنزور /")));
   assert.equal((await visitor.api("/api/admin")).response.status, 401);
   assert.equal((await visitor.api("/api/admin/notifications")).response.status, 401);
   const guestAdmin = await visitor.api("/admin"); assert.equal(guestAdmin.response.status, 307); assert.equal(guestAdmin.response.headers.get("location"), "/login");
   const publicHtml = (await visitor.api("/")).data; assert.ok(!publicHtml.includes('href="/admin"'));
   assert.equal((await visitor.api("/api/auth", "POST", { action: "register", username: "admin", name: "اختبار", phone: "01012345678", password: "admin", confirmPassword: "admin" })).response.status, 400);
-  console.log("PASS: six primary categories, seven Janzour addresses; admin is hidden and protected");
+  console.log("PASS: seeded primary categories and Janzour addresses; admin is hidden and protected");
   const registration = await member.api("/api/auth", "POST", { action: "register", name: "عضو اختبار جنزور", username: `qa.${suffix}`, phone: "01012345678", password: "test-pass-123", confirmPassword: "test-pass-123", role: "admin" });
   assert.equal(registration.response.status, 201); assert.equal(registration.data.role, "member");
   const viewer = (await member.api("/api/auth")).data.viewer; assert.equal(viewer.role, "member"); memberId = viewer.id;
   const afterMember = (await visitor.api("/api/services")).data;
   assert.equal(afterMember.memberCount, initial.memberCount + 1); assert.equal(afterMember.services.length, initial.services.length);
   assert.ok(!JSON.stringify(afterMember).includes('"passwordHash"')); assert.ok(!afterMember.members);
-  assert.equal((await member.api("/api/admin")).response.status, 401);
-  assert.equal((await member.api("/api/admin", "PATCH", { type: "settings", values: initial.settings })).response.status, 401);
+  assert.equal((await member.api("/api/admin")).response.status, 403);
+  assert.equal((await member.api("/api/admin", "PATCH", { type: "settings", values: initial.settings })).response.status, 403);
   const memberAdmin = await member.api("/admin"); assert.equal(memberAdmin.response.headers.get("location"), "/account");
   await member.api("/api/auth", "DELETE"); assert.equal((await member.api("/api/auth")).data.viewer.role, "guest");
   assert.equal((await member.api("/api/auth", "POST", { action: "login", username: `qa.${suffix}`, password: "test-pass-123" })).response.status, 200);

@@ -5,6 +5,7 @@ import PwaInstall from "@/components/pwa-install";
 import RouteTransition from "@/components/route-transition";
 import "./globals.css";
 import "./janzour.css";
+import "./advertising.css";
 
 export const metadata: Metadata = {
   title: "دليل المهن والخدمات بقرية جنزور",
@@ -13,8 +14,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "دليل جنزور", statusBarStyle: "default" },
   icons: {
-    icon: [{ url: "/images/logo-janzour.png", type: "image/png" }],
-    apple: [{ url: "/images/logo-janzour.png", type: "image/png" }],
+    icon: [{ url: "/favicon.png?v=3", type: "image/png", sizes: "48x48" }, { url: "/icon-192.png?v=3", type: "image/png", sizes: "192x192" }],
+    apple: [{ url: "/apple-touch-icon.png?v=3", type: "image/png", sizes: "180x180" }],
   },
 };
 

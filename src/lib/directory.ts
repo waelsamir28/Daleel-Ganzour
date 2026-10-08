@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, count, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { advertisements, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
-import { areas, defaultSettings, initialCategories, sampleServices, type AdRecord, type AdminDirectory, type CategoryRecord, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { areas, defaultSettings, initialCategories, sampleServices, adTypeOptions, adPlacementOptions, type AdRecord, type AdminDirectory, type CategoryRecord, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
@@ -28,6 +28,25 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS highlight_word varchar(60) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS motion varchar(12) NOT NULL DEFAULT 'static'`);
       await tx.execute(sql`ALTER TABLE directory_advertisements ADD COLUMN IF NOT EXISTS image_url varchar(1000) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_advertisements
+        ADD COLUMN IF NOT EXISTS name varchar(160) NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS category_id varchar(60) NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS ad_type varchar(12) NOT NULL DEFAULT 'banner',
+        ADD COLUMN IF NOT EXISTS placement varchar(12) NOT NULL DEFAULT 'hero',
+        ADD COLUMN IF NOT EXISTS video_url varchar(1000) NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS destination_url varchar(1000) NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS whatsapp_phone varchar(24) NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS offer_text varchar(100) NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS starts_at timestamptz,
+        ADD COLUMN IF NOT EXISTS priority integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS campaign_status varchar(12) NOT NULL DEFAULT 'active',
+        ADD COLUMN IF NOT EXISTS impressions integer NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS clicks integer NOT NULL DEFAULT 0`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_advertisement_events (
+        ad_id uuid NOT NULL REFERENCES directory_advertisements(id) ON DELETE CASCADE,
+        event_id uuid NOT NULL, event_type varchar(12) NOT NULL, action varchar(12) NOT NULL DEFAULT '',
+        created_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (ad_id, event_id))`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_ad_events_created_idx ON directory_advertisement_events(created_at)`);
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoNothing();
       if (!marker.length) return;
@@ -58,7 +77,15 @@ export async function getSettings(): Promise<SiteSettings> {
   try { const saved = JSON.parse(row.value) as Partial<SiteSettings>; return { ...defaultSettings, ...saved, marqueeTextColor: !saved.marqueeBackgroundColor && saved.marqueeTextColor === "#745827" ? defaultSettings.marqueeTextColor : saved.marqueeTextColor ?? defaultSettings.marqueeTextColor }; } catch { return defaultSettings; }
 }
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord { return { ...item, createdAt: item.createdAt.toISOString() }; }
-export function serializeAd(item: typeof advertisements.$inferSelect): AdRecord { return { ...item, createdAt: item.createdAt.toISOString(), expiresAt: item.expiresAt?.toISOString() ?? null }; }
+export function serializeAd(item: typeof advertisements.$inferSelect, publicView = false): AdRecord {
+  return { ...item, name: publicView ? "" : item.name || item.businessName,
+    impressions: publicView ? 0 : item.impressions, clicks: publicView ? 0 : item.clicks,
+    adType: adTypeOptions.find((o) => o.id === item.adType)?.id ?? "banner",
+    placement: adPlacementOptions.find((o) => o.id === item.placement)?.id ?? "hero",
+    campaignStatus: item.campaignStatus === "paused" ? "paused" : "active",
+    startsAt: item.startsAt?.toISOString() ?? null,
+    createdAt: item.createdAt.toISOString(), expiresAt: item.expiresAt?.toISOString() ?? null };
+}
 export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
 async function getCatalog() {
   await ensureSeed();
@@ -77,9 +104,9 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
   const ids = visibleCategories.filter((category) => category.parentId).map((category) => category.id);
   const [providers, ads] = await Promise.all([
     ids.length ? db.select().from(services).where(and(eq(services.status, "approved"), inArray(services.category, ids))).orderBy(desc(services.featured), asc(services.id)) : Promise.resolve([]),
-    db.select().from(advertisements).where(and(eq(advertisements.status, "approved"), eq(advertisements.paid, true), or(isNull(advertisements.expiresAt), gt(advertisements.expiresAt, new Date())))).orderBy(desc(advertisements.createdAt)),
+    db.select().from(advertisements).where(and(eq(advertisements.status, "approved"), eq(advertisements.paid, true), eq(advertisements.campaignStatus, "active"), or(isNull(advertisements.startsAt), sql`${advertisements.startsAt} <= now()`), or(isNull(advertisements.expiresAt), gt(advertisements.expiresAt, new Date())))).orderBy(desc(advertisements.priority), desc(advertisements.createdAt)),
   ]);
-  return { ...catalog, categories: visibleCategories, services: providers.map(serializeService), ads: ads.map(serializeAd) };
+  return { ...catalog, categories: visibleCategories, services: providers.map(serializeService), ads: ads.filter((ad) => !ad.categoryId || visibleCategories.some((c) => c.id === ad.categoryId)).map((ad) => serializeAd(ad, true)) };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
@@ -90,5 +117,5 @@ export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): 
     role === "admin" ? db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, ["service", "ad"])).orderBy(desc(notifications.createdAt)).limit(200),
     role === "admin" ? db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, ["service", "ad"]))),
   ]);
-  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), ads: ads.map(serializeAd), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
+  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), ads: ads.map((ad) => serializeAd(ad)), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
 }

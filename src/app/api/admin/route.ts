@@ -3,9 +3,9 @@ import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { advertisements, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
-import { getAdminDirectory, getSettings } from "@/lib/directory";
+import { ensureSeed, getAdminDirectory, getSettings } from "@/lib/directory";
 import { adInput, apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
-import { adIconOptions, adMotionOptions, isAdImageUrl } from "@/lib/catalog";
+import { adIconOptions, adMotionOptions, adTypeOptions, adPlacementOptions, isAdImageUrl, isAdVideoUrl } from "@/lib/catalog";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ function uuid(value: unknown) { if (!validId(value)) throw new InputError("مع�
 async function guard(request?: Request): Promise<"admin" | "moderator"> {
   if (request && !sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
   const viewer = await getViewer();
-  if (viewer.role === "admin" || viewer.role === "moderator") return viewer.role;
+  if (viewer.role === "admin" || viewer.role === "moderator") { await ensureSeed(); return viewer.role; }
   throw new InputError(viewer.role === "member" ? "صلاحياتك لا تسمح بفتح لوحة الإدارة." : "يرجى تسجيل الدخول إلى لوحة الإدارة.", viewer.role === "member" ? 403 : 401);
 }
 function denyModerator() { throw new InputError("هذا الإجراء متاح للأدمن فقط.", 403); }
@@ -28,7 +28,7 @@ async function categoryParent(parentId: string | null, id?: string) {
 }
 async function adValues(values: Record<string, unknown>) {
   const basics = adInput(values), settings = await getSettings();
-  const backgroundColor = cleanText(values.backgroundColor ?? "", 7), icon = cleanText(values.icon ?? "", 40);
+  const backgroundColor = cleanText(values.backgroundColor || "#ccecff", 7), icon = cleanText(values.icon || "Store", 40);
   const textSize = integerInput(values.textSize ?? 17, 14, 30, "حجم نص الإعلان");
   const highlightWord = cleanText(values.highlightWord ?? "", 60);
   const motion = values.motion ?? "static";
@@ -41,10 +41,40 @@ async function adValues(values: Record<string, unknown>) {
   if (highlightWord && (/[\s]/u.test(highlightWord) || !basics.text.includes(highlightWord))) throw new InputError("الكلمة البارزة يجب أن تكون كلمة واحدة موجودة في نص الإعلان.");
   const status = statusInput(values.status ?? "pending"), paid = values.paid === true;
   if (status === "approved" && !paid) throw new InputError("أكد استلام المقابل قبل نشر الإعلان.");
+  const name = cleanText(values.name ?? basics.businessName, 160), categoryId = cleanText(values.categoryId ?? "", 60);
+  const adType = values.adType ?? "banner", placement = values.placement ?? "hero", campaignStatus = values.campaignStatus ?? "active";
+  if (!name || !adTypeOptions.some((o) => o.id === adType) || !adPlacementOptions.some((o) => o.id === placement) || typeof campaignStatus !== "string" || !["active", "paused"].includes(campaignStatus)) throw new InputError("أدخل اسم الإعلان واختر نوعه ومكانه وحالته.");
+  if (placement === "inline" && !categoryId) throw new InputError("إعلان النتائج يحتاج تحديد قسم أو تخصص.");
+  if (categoryId) {
+    const [category] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, categoryId)).limit(1);
+    if (!category) throw new InputError("قسم الإعلان غير موجود.");
+  }
+  function urlField(key: string) {
+    if (values[key] !== undefined && typeof values[key] !== "string") throw new InputError("الرابط يجب أن يكون نصًا.");
+    const value = typeof values[key] === "string" ? values[key].trim() : "";
+    if (!isAdImageUrl(value)) throw new InputError("استخدم رابط https آمنًا أو مسارًا داخل الموقع (بحد أقصى 1000 حرف).");
+    return value;
+  }
+  const videoUrl = urlField("videoUrl"), destinationUrl = urlField("destinationUrl"), whatsappPhone = cleanPhone(values.whatsappPhone ?? "");
+  if (placement === "sponsored" && !destinationUrl) throw new InputError("أضف رابط صفحة المعلن لزر عرض التفاصيل في المعلنين المميزين.");
+  if (!isAdVideoUrl(videoUrl) || adType === "video" && !videoUrl) throw new InputError("إعلان الفيديو يحتاج رابط ملف mp4 أو webm أو ogg.");
+  if (whatsappPhone && !validPhone(whatsappPhone)) throw new InputError("رقم واتساب غير صحيح.");
+  const startsAt = parseAdDate(values.startsAt, "بداية"), offerText = cleanText(values.offerText ?? "", 100);
   let expiresAt: Date | null = null;
-  if (typeof values.expiresAt === "string" && values.expiresAt) { expiresAt = new Date(values.expiresAt); if (Number.isNaN(expiresAt.getTime())) throw new InputError("تاريخ انتهاء الإعلان غير صحيح."); }
-  else if (values.expiresAt === undefined && status === "approved") expiresAt = new Date(Date.now() + settings.adDays * 86400000);
-  return { ...basics, backgroundColor, icon, textSize, highlightWord, motion: String(motion), imageUrl, status, paid, expiresAt, price: integerInput(values.price ?? settings.adPrice, 0, 100000, "سعر الإعلان") };
+  expiresAt = parseAdDate(values.expiresAt, "نهاية");
+  if (values.expiresAt === undefined && status === "approved") expiresAt = new Date(Math.max(Date.now(), startsAt?.getTime() ?? 0) + settings.adDays * 86400000);
+  if (startsAt && expiresAt && expiresAt <= startsAt) throw new InputError("نهاية الإعلان يجب أن تكون بعد بدايته.");
+  return { ...basics, name, categoryId, adType: String(adType), placement: String(placement), campaignStatus: String(campaignStatus),
+    videoUrl, destinationUrl, whatsappPhone, offerText, startsAt, priority: integerInput(values.priority ?? 0, 0, 1000, "الأولوية"),
+    backgroundColor, icon, textSize, highlightWord, motion: String(motion), imageUrl, status, paid, expiresAt, price: integerInput(values.price ?? settings.adPrice, 0, 100000, "سعر حجز الإعلان") };
+}
+function parseAdDate(value: unknown, label: string) {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,3})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value)) throw new InputError(`تاريخ ${label} الإعلان غير صحيح.`);
+  const date = new Date(value);
+  const calendarDay = new Date(`${value.slice(0, 10)}T00:00:00Z`);
+  if (!Number.isFinite(date.getTime()) || date.getUTCFullYear() < 1 || !Number.isFinite(calendarDay.getTime()) || calendarDay.toISOString().slice(0, 10) !== value.slice(0, 10)) throw new InputError(`تاريخ ${label} الإعلان غير صحيح.`);
+  return date;
 }
 export async function GET() {
   try { const role = await guard(); return Response.json(await getAdminDirectory(role)); }
@@ -133,8 +163,11 @@ export async function PATCH(request: Request) {
       if (action === "edit") await db.update(advertisements).set(await adValues(objectInput(body.values))).where(eq(advertisements.id, id));
       else if (action === "approve") {
         const settings = await getSettings();
-        await db.update(advertisements).set({ status: "approved", paid: true, expiresAt: new Date(Date.now() + settings.adDays * 86400000) }).where(eq(advertisements.id, id));
+        const expiresAt = existing.expiresAt ?? (existing.name ? null : new Date(Math.max(Date.now(), existing.startsAt?.getTime() ?? 0) + settings.adDays * 86400000));
+        if (expiresAt && expiresAt.getTime() <= Date.now()) throw new InputError("الإعلان منتهي. عدّل تاريخ النهاية قبل تفعيله.");
+        await db.update(advertisements).set({ status: "approved", paid: true, expiresAt }).where(eq(advertisements.id, id));
       } else if (action === "reject") await db.update(advertisements).set({ status: "rejected" }).where(eq(advertisements.id, id));
+      else if (action === "pause" || action === "resume") await db.update(advertisements).set({ campaignStatus: action === "pause" ? "paused" : "active" }).where(eq(advertisements.id, id));
       else throw new InputError("إجراء غير صحيح.");
     } else if (type === "member") {
       const id = uuid(body.id), values = objectInput(body.values);

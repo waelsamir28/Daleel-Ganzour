@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, primaryKey } from "drizzle-orm/pg-core";
 
 export const services = pgTable("directory_services", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -30,12 +30,33 @@ export const advertisements = pgTable("directory_advertisements", {
   highlightWord: varchar("highlight_word", { length: 60 }).notNull().default(""),
   motion: varchar("motion", { length: 12 }).notNull().default("static"),
   imageUrl: varchar("image_url", { length: 1000 }).notNull().default(""),
+  name: varchar("name", { length: 160 }).notNull().default(""),
+  categoryId: varchar("category_id", { length: 60 }).notNull().default(""),
+  adType: varchar("ad_type", { length: 12 }).notNull().default("banner"),
+  placement: varchar("placement", { length: 12 }).notNull().default("hero"),
+  videoUrl: varchar("video_url", { length: 1000 }).notNull().default(""),
+  destinationUrl: varchar("destination_url", { length: 1000 }).notNull().default(""),
+  whatsappPhone: varchar("whatsapp_phone", { length: 24 }).notNull().default(""),
+  offerText: varchar("offer_text", { length: 100 }).notNull().default(""),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  priority: integer("priority").notNull().default(0),
+  campaignStatus: varchar("campaign_status", { length: 12 }).notNull().default("active"),
+  impressions: integer("impressions").notNull().default(0),
+  clicks: integer("clicks").notNull().default(0),
   status: varchar("status", { length: 20 }).notNull().default("pending"),
   price: integer("price").notNull().default(50),
   paid: boolean("paid").notNull().default(false),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const advertisementEvents = pgTable("directory_advertisement_events", {
+  adId: uuid("ad_id").notNull().references(() => advertisements.id, { onDelete: "cascade" }),
+  eventId: uuid("event_id").notNull(),
+  eventType: varchar("event_type", { length: 12 }).notNull(),
+  action: varchar("action", { length: 12 }).notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [primaryKey({ columns: [table.adId, table.eventId] }), index("directory_ad_events_created_idx").on(table.createdAt)]);
 
 export const directoryCategories = pgTable("directory_categories", {
   id: varchar("id", { length: 60 }).primaryKey(),
