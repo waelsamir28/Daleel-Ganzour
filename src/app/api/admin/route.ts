@@ -32,6 +32,7 @@ async function adValues(values: Record<string, unknown>) {
   const textSize = integerInput(values.textSize ?? 17, 14, 30, "حجم نص الإعلان");
   const highlightWord = cleanText(values.highlightWord ?? "", 60);
   const motion = values.motion ?? "static";
+  if (values.imageUrl !== undefined && typeof values.imageUrl !== "string") throw new InputError("رابط الصورة يجب أن يكون نصًا.");
   const imageUrl = typeof values.imageUrl === "string" ? values.imageUrl.trim() : "";
   if (!adMotionOptions.some((option) => option.id === motion)) throw new InputError("اختار نوع حركة صحيحًا للإعلان.");
   if (!isAdImageUrl(imageUrl)) throw new InputError("استخدم رابط صورة آمنًا يبدأ بـ https:// أو مسار صورة داخل الموقع، بحد أقصى 1000 حرف.");

@@ -27,6 +27,9 @@ export const adMotionOptions = [
   { id: "fade", label: "ظهور واختفاء هادئ" },
 ] as const;
 export type AdMotion = typeof adMotionOptions[number]["id"];
+export function getAdMotion(value: unknown): AdMotion {
+  return adMotionOptions.find(({ id }) => id === value)?.id ?? "static";
+}
 export function isAdImageUrl(value: string) {
   if (!value) return true;
   if (value.length > 1000 || /[\s\\]/u.test(value)) return false;

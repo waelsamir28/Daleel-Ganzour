@@ -3,7 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import { BadgeCheck, MessageCircle } from "lucide-react";
 import { CategoryIcon, HighlightedAdText } from "@/components/ui";
-import { AD_SLIDE_DURATION_MS, adMotionOptions, isAdImageUrl, whatsappUrl, type AdRecord } from "@/lib/catalog";
+import { AD_SLIDE_DURATION_MS, getAdMotion, isAdImageUrl, whatsappUrl, type AdRecord } from "@/lib/catalog";
 
 type AdSlideProps = {
   ad: Pick<AdRecord, "businessName" | "text" | "phone" | "highlightWord"> & Partial<Pick<AdRecord, "motion" | "imageUrl">>;
@@ -26,7 +26,7 @@ function AdArtwork({ imageUrl, icon }: { imageUrl: string; icon: string }) {
 }
 
 export default function AdSlide({ ad, icon, style, label, paused = false, preview = false, onCycle }: AdSlideProps) {
-  const motion = adMotionOptions.find(({ id }) => id === ad.motion)?.id ?? "static";
+  const motion = getAdMotion(ad.motion);
   const imageUrl = ad.imageUrl && isAdImageUrl(ad.imageUrl) ? ad.imageUrl : "";
   return <article
     className={`ad-slide ad-motion-${motion}${preview ? " ad-design-preview-card" : ""}`}

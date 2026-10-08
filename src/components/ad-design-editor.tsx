@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { Pause, Play } from "lucide-react";
-import { adBackgroundOptions, adIconOptions, adMotionOptions, getContrastTextColor, isAdImageUrl, type AdMotion } from "@/lib/catalog";
+import { adBackgroundOptions, adIconOptions, adMotionOptions, getAdMotion, getContrastTextColor, isAdImageUrl, type AdMotion } from "@/lib/catalog";
 import { CategoryIcon } from "@/components/ui";
 import AdSlide from "@/components/ad-slide";
 
@@ -24,7 +24,7 @@ export default function AdDesignEditor({ businessName, text, defaultIndex, initi
   const [icon, setIcon] = useState(initialIcon || adIconOptions[paletteIndex % adIconOptions.length].icon);
   const [textSize, setTextSize] = useState(Math.min(30, Math.max(14, initialTextSize || 17)));
   const [highlightWord, setHighlightWord] = useState(initialHighlightWord);
-  const [motion, setMotion] = useState<AdMotion>(adMotionOptions.find(({ id }) => id === initialMotion)?.id ?? "static");
+  const [motion, setMotion] = useState<AdMotion>(getAdMotion(initialMotion));
   const [imageUrl, setImageUrl] = useState(initialImageUrl);
   const [previewPaused, setPreviewPaused] = useState(false);
   const validImage = isAdImageUrl(imageUrl.trim());

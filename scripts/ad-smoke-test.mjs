@@ -44,7 +44,7 @@ try {
   console.log("PASS: all four motion styles and optional images persist and render in the public carousel");
 
   for (const invalid of [
-    { motion: "invalid" }, { motion: 5 },
+    { motion: "invalid" }, { motion: 5 }, { imageUrl: 5 },
     ...["javascript:alert(1)", "data:image/svg+xml,test", "http://example.com/a.png", "//example.com/a.png", "/\\example.com/a.png", "https://user:password@example.com/a.png", `https://example.com/${"a".repeat(1000)}`].map((imageUrl) => ({ imageUrl })),
     { status: "approved", paid: false },
   ]) {

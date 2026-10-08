@@ -4,7 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { ChevronLeft, ChevronRight, Pause, Play, Sparkles } from "lucide-react";
 import AdSlide from "@/components/ad-slide";
 import { AdvertisingIcon } from "@/components/ui";
-import { AD_SLIDE_DURATION_MS, adBackgroundOptions, adIconOptions, adMotionOptions, getContrastTextColor, type AdRecord, type SiteSettings } from "@/lib/catalog";
+import { AD_SLIDE_DURATION_MS, adBackgroundOptions, adIconOptions, getAdMotion, getContrastTextColor, type AdRecord, type SiteSettings } from "@/lib/catalog";
 
 export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[]; settings: SiteSettings; onBook: () => void }) {
   const [slideIndex, setSlideIndex] = useState(0);
@@ -15,7 +15,7 @@ export default function AdCarousel({ ads, settings, onBook }: { ads: AdRecord[];
   const [reducedMotion, setReducedMotion] = useState(false);
   const activeIndex = ads.length ? slideIndex % ads.length : 0;
   const activeAd = ads[activeIndex];
-  const animated = adMotionOptions.some(({ id }) => id !== "static" && id === activeAd?.motion);
+  const animated = getAdMotion(activeAd?.motion) !== "static";
   const paused = hovered || focused || manuallyPaused;
   const resolvedAdBackgrounds = ads.reduce<string[]>((backgrounds, ad, index) => {
     const customColor = typeof ad.backgroundColor === "string" && /^#[0-9a-f]{6}$/i.test(ad.backgroundColor) ? ad.backgroundColor : "";
