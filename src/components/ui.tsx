@@ -12,8 +12,8 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
 }
 export function Logo({ compact = false, footer = false, name = defaultSettings.siteName }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
   return <Link href="/" className={`brand brand-logo-only ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
-    {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src="/images/logo-janzour.png" width="56" height="84" alt="" className="brand-symbol"/>
+    {/* Logo removed. When the new logo is ready, replace this span with <img className="brand-symbol" .../>. */}
+    <span className="brand-symbol brand-logo-slot" aria-hidden="true"/>
   </Link>;
 }
 export function AdvertisingIcon({ className = "" }: { className?: string }) {

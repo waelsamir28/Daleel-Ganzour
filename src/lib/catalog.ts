@@ -13,6 +13,14 @@ export type ServiceRecord = {
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
   emergency: boolean; rating: string; reviews: number; createdAt: string;
 };
+
+// A provider counts as new in the directory for this many days after it was created.
+export const NEW_SERVICE_DAYS = 30;
+export function isNewService(service: Pick<ServiceRecord, "createdAt">, now = Date.now()) {
+  const age = now - Date.parse(service.createdAt);
+  return Number.isFinite(age) && age >= 0 && age < NEW_SERVICE_DAYS * 24 * 60 * 60 * 1000;
+}
+
 export type AdRecord = {
   id: string; businessName: string; text: string; phone: string; status: string;
   backgroundColor: string; icon: string; textSize: number; highlightWord: string;

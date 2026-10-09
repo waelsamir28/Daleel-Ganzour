@@ -1,0 +1,380 @@
+/* Admin-only refinements (mobile and tablet first).
+   Loaded only by /admin (see page.tsx). Every selector is scoped to .admin-shell,
+   so the public home page and its shared components keep their existing styles. */
+
+/* 1) Width and horizontal overflow.
+   Root cause: the list containers are auto-sized grids. One unbreakable word (a long URL or a long name)
+   sets the minimum width of the single grid track, so the card, and then the whole page, grows wider than the screen.
+   Fix: fixed track width (minmax(0,1fr)) plus allowing long words to wrap. */
+.admin-shell,
+.admin-shell .admin-main,
+.admin-shell .admin-content {
+  min-width: 0;
+  max-width: 100%;
+}
+.admin-shell :where(.admin-service-list, .admin-ad-list, .admin-member-list, .notifications-list, .campaign-management) {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.admin-shell :where(.admin-service-row, .admin-ad-row, .admin-member-row, .notification-row, .address-management-row, .category-management-group, .category-management-row, .admin-service-summary, .admin-service-name, .admin-row-actions, .campaign-admin-actions, .campaign-admin-info, .admin-card-footer) {
+  min-width: 0;
+  max-width: 100%;
+}
+.admin-shell :where(h1, h2, h3, p, blockquote, span, strong, small, a, label, li, dt, dd, td, th) {
+  overflow-wrap: anywhere;
+}
+
+/* 1b) Overflow guard. If anything inside the admin is still wider than the screen, clip it here instead of letting the whole page scroll sideways.
+   clip (unlike hidden) does not create a scroll container, so sticky bars keep working. Fixed dialogs are not clipped by it. */
+.admin-shell {
+  overflow-x: clip;
+}
+
+/* 2) Statistics cards (phones and tablets only; desktop is unchanged) */
+@media (max-width: 850px) {
+  .admin-shell .admin-stats {
+    gap: 10px;
+    margin: 14px 0 12px;
+  }
+  .admin-shell .admin-stat {
+    font-variant-numeric: tabular-nums;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 98px;
+    padding: 13px 12px 13px 14px;
+    border-radius: 15px;
+  }
+  .admin-shell .admin-stat .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+  }
+  .admin-shell .admin-stat .stat-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+  .admin-shell .admin-stat div {
+    gap: 3px;
+  }
+  .admin-shell .admin-stat div > strong {
+    order: -1;
+    font-size: 22px;
+    line-height: 1.1;
+  }
+  .admin-shell .admin-stat div > span {
+    color: #3f5f6e;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.5;
+  }
+  .admin-shell .admin-stat small {
+    color: #7d929b;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+}
+@media (max-width: 390px) {
+  .admin-shell .admin-stat {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 8px;
+    min-height: 96px;
+    padding: 11px 10px;
+  }
+  .admin-shell .admin-stat .stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+  .admin-shell .admin-stat .stat-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .admin-shell .admin-stat div > strong {
+    font-size: 20px;
+  }
+  .admin-shell .admin-stat div > span {
+    font-size: 10.5px;
+  }
+  .admin-shell .admin-stat small {
+    font-size: 9.5px;
+  }
+}
+
+/* 3) Request and ad cards on phones: a short summary, then one primary action and a "إجراءات" button */
+/* Desktop keeps the inline buttons; the mobile footer is hidden there. */
+.admin-shell .admin-card-footer {
+  display: none;
+}
+
+@media (max-width: 850px) {
+  .admin-shell .admin-service-row,
+  .admin-shell .admin-ad-row,
+  .admin-shell .admin-member-row {
+    gap: 10px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+  .admin-shell .admin-service-summary {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 10px;
+  }
+  .admin-shell .admin-category-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+  .admin-shell .admin-service-name > div:first-child {
+    gap: 5px 6px;
+  }
+  .admin-shell .admin-service-name h3 {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .admin-shell .admin-service-name > p {
+    gap: 5px;
+    margin-top: 5px;
+  }
+  .admin-shell .admin-service-name > p > span,
+  .admin-shell .admin-service-name > p > a {
+    padding: 2px 7px;
+    border-radius: 7px;
+    background: #f4f8f8;
+    font-size: 10px;
+  }
+  .admin-shell .admin-date {
+    padding-top: 2px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .admin-shell .admin-service-description {
+    padding-right: 50px;
+    font-size: 11px;
+    line-height: 1.85;
+  }
+  .admin-shell .admin-row-actions,
+  .admin-shell .campaign-admin-actions {
+    display: none;
+  }
+  .admin-shell .admin-card-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #e8eff0;
+  }
+  .admin-shell .admin-card-footer > :only-child {
+    grid-column: 1 / -1;
+  }
+  .admin-shell .admin-card-footer > .button {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+  .admin-shell .admin-card-footer .admin-card-menu-button {
+    gap: 6px;
+    min-width: 112px;
+    min-height: 44px;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  .admin-shell .admin-ad-title {
+    gap: 8px;
+  }
+  .admin-shell .admin-ad-title > div {
+    flex: 1 1 100%;
+  }
+  .admin-shell .admin-ad-title h3 {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .admin-shell .admin-ad-title p {
+    font-size: 10px;
+  }
+  .admin-shell .admin-ad-row blockquote {
+    padding: 9px 11px;
+    font-size: 12px;
+    line-height: 1.85;
+  }
+  .admin-shell .campaign-admin-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .admin-shell .campaign-admin-info > span {
+    min-width: 0;
+    padding: 6px 8px;
+    background: #f4f8f8;
+    line-height: 1.6;
+  }
+  .admin-shell .campaign-admin-info > span:first-child {
+    grid-column: 1 / -1;
+  }
+  .admin-shell .campaign-ad-metrics > span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 8px 9px;
+    font-size: 10px;
+  }
+  .admin-shell .campaign-ad-metrics strong {
+    font-size: 15px;
+  }
+}
+
+/* Search box: on phones the toolbar stacks in a column, so the desktop flex-basis (240px) became a 240px-tall box. */
+@media (max-width: 600px) {
+  .admin-shell .admin-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-shell .admin-search {
+    flex: 0 0 auto;
+  }
+}
+
+/* 4) Mobile action sheet (bottom sheet). Opened by "إجراءات" on a card; never shown on desktop. */
+.admin-shell .admin-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(10, 30, 42, .42);
+}
+.admin-shell .admin-sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 560px);
+  max-height: min(86dvh, 640px);
+  padding: 8px 16px calc(14px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  background: #fff;
+  box-shadow: 0 -14px 40px rgba(10, 30, 42, .22);
+  color: #17344d;
+  animation: admin-sheet-up .2s ease-out;
+}
+@keyframes admin-sheet-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.admin-shell .admin-sheet::before {
+  content: "";
+  align-self: center;
+  width: 44px;
+  height: 5px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background: #d3dfe3;
+}
+.admin-shell .admin-sheet-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e6eef0;
+}
+.admin-shell .admin-sheet-heading > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.admin-shell .admin-sheet-heading > div > span {
+  color: #6f8791;
+  font-size: 11px;
+  font-weight: 700;
+}
+.admin-shell .admin-sheet-heading h2 {
+  color: #17344d;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.admin-shell .admin-sheet-heading p {
+  color: #718892;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.admin-shell .admin-sheet-close {
+  flex: none;
+}
+.admin-shell .admin-sheet-actions {
+  display: grid;
+  gap: 6px;
+  min-height: 0;
+  margin-top: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.admin-shell .admin-sheet-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 9px 12px;
+  border: 1px solid #e1e9eb;
+  border-radius: 13px;
+  background: #fff;
+  color: #24475a;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: right;
+}
+.admin-shell .admin-sheet-action:hover {
+  background: #f4f9f9;
+}
+.admin-shell .admin-sheet-action:focus-visible {
+  outline: 3px solid #48afa5;
+  outline-offset: 2px;
+}
+.admin-shell .admin-sheet-action-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: #edf6f5;
+  color: #167276;
+}
+.admin-shell .admin-sheet-action.is-success .admin-sheet-action-icon {
+  background: #e8f5ef;
+  color: #168462;
+}
+.admin-shell .admin-sheet-action.is-danger {
+  color: #b8474d;
+}
+.admin-shell .admin-sheet-action.is-danger .admin-sheet-action-icon {
+  background: #fff1f0;
+  color: #c65250;
+}
+.admin-shell .admin-sheet-action.is-amber .admin-sheet-action-icon {
+  background: #fff5df;
+  color: #9f7120;
+}
+@media (min-width: 640px) {
+  .admin-shell .admin-sheet-overlay {
+    align-items: center;
+    padding: 16px;
+  }
+  .admin-shell .admin-sheet {
+    border-radius: 20px;
+  }
+  .admin-shell .admin-sheet::before {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .admin-sheet {
+    animation: none;
+  }
+}
