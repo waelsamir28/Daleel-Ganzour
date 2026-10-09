@@ -1,6 +1,12 @@
 import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+
+// Custom dropdowns (SelectField) replace native selects: open the combobox, then click the option by its value.
+async function pickValue(page, combobox, value) {
+  await combobox.click();
+  await page.locator(`[role="option"][data-value="${value}"]`).click();
+}
 const base = process.env.TEST_BASE_URL || "http://localhost:3000";
 fs.mkdirSync(".qa", { recursive: true });
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
@@ -49,7 +55,7 @@ try {
   await expect(page.locator(".provider-card")).toHaveCount(1);
   await page.reload({ waitUntil: "networkidle" });
   await expect(page.getByRole("button", { name: "إزالة كهربائي منازل من المفضلة", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("combobox", { name: "اختر العنوان", exact: true }).selectOption("جنزور / بجوار مكتبة الجمال");
+  await pickValue(page, page.getByRole("combobox", { name: "اختر العنوان", exact: true }), "جنزور / بجوار مكتبة الجمال");
   await page.getByRole("searchbox").fill("نجاره"); await page.getByRole("button", { name: "ابحث الآن", exact: true }).click();
   await expect(page.locator(".provider-card h3")).toHaveText("أحمد للنجارة والديكور");
   await page.getByRole("button", { name: "مسح الفلاتر", exact: true }).click();
@@ -68,9 +74,9 @@ try {
   await page.getByRole("button", { name: "أضف مهنتك", exact: true }).click();
   const form = page.getByRole("dialog");
   await form.locator("[name=name]").fill(serviceName);
-  await form.getByRole("combobox", { name: /التصنيف الرئيسي/ }).selectOption("crafts");
-  await form.locator("[name=category]").selectOption("carpentry");
-  await form.locator("[name=area]").selectOption("عنوان آخر");
+  await pickValue(page, form.getByRole("combobox", { name: /التصنيف الرئيسي/ }), "crafts");
+  await pickValue(page, form.locator(".ui-select:has([name=category]) [role=combobox]"), "carpentry");
+  await pickValue(page, form.locator(".ui-select:has([name=area]) [role=combobox]"), "عنوان آخر");
   await expect(form.locator("[name=address]")).toBeVisible();
   await form.locator("[name=address]").fill("جنزور / بجوار مدرسة اختبار الواجهة");
   await form.locator("[name=phone]").fill("01012345678");

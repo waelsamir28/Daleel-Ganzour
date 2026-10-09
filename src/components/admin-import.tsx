@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { AlertCircle, Check, CircleCheck, FileSpreadsheet, LoaderCircle, Upload } from "lucide-react";
 import type { AdminDirectory } from "@/lib/catalog";
+import SelectField from "@/components/select-field";
 
 type ImportRow = { rowNumber: number; name: string; contactName: string; phone: string; phoneSecondary: string; profession: string; categoryLabel: string; categoryId: string; categoryName: string; categoryParentId: string; rootName: string; newSpecialty: boolean; address: string; description: string; error: string | null };
 type ImportResult = { rows: ImportRow[]; total: number; readyCount: number; importedCount?: number; newSpecialtyCount?: number; error?: string };
@@ -54,8 +55,8 @@ export default function AdminImport({ data, onImported }: { data: AdminDirectory
   return <div className="admin-import">
     <div className="admin-import-intro"><span className="admin-import-icon"><FileSpreadsheet size={24}/></span><div><h3>استيراد بيانات المهن من ملف Excel</h3><p>كل صف يُربط بتخصصه وقسمه الرئيسي. التخصصات الجديدة تُضاف تحت القسم المكتوب في الملف، والوصف الفارغ يُنشأ بصياغة تناسب المهنة وتختلف من شخص لآخر. تراجع البيانات قبل الاستيراد، ثم تذهب كلها للمراجعة قبل ظهورها للزوار.</p></div></div>
     <div className="admin-import-settings">
-      <label>التخصص الافتراضي عند ترك المهنة فارغة<select value={category} onChange={(event) => setCategory(event.target.value)}>{specialties.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      <label>العنوان الافتراضي عند ترك العنوان فارغًا<select value={area} onChange={(event) => setArea(event.target.value)}>{data.areas.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select></label>
+      <label>التخصص الافتراضي عند ترك المهنة فارغة<SelectField value={category} onChange={(event) => setCategory(event.target.value)}>{specialties.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</SelectField></label>
+      <label>العنوان الافتراضي عند ترك العنوان فارغًا<SelectField value={area} onChange={(event) => setArea(event.target.value)}>{data.areas.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</SelectField></label>
     </div>
     <div className="admin-import-upload"><label htmlFor="admin-excel-file">ملف Excel <span>ارفع ملف ‎.xlsx حتى 4 ميجابايت، بحد أقصى 500 صف.</span></label><input ref={fileInput} id="admin-excel-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setResult(null); setMessage(null); }}/>{file && <p className="admin-import-filename"><FileSpreadsheet size={16}/>{file.name}</p>}</div>
     <div className="admin-import-format"><strong>ترتيب الأعمدة في الصف الأول</strong><p>الاسم | رقم التليفون | رقم التليفون 1 | المهنة | التصنيف | العنوان | وصف الخدمة</p><small>الهاتف الثاني والعنوان والوصف اختياريون. «التصنيف» يحدد القسم الرئيسي مثل «أطباء»، و«المهنة» تحدد التخصص مثل «مسالك بولية». إذا لم يكن التخصص موجودًا، يُضاف تحت القسم بعد مراجعة المعاينة. الوصف الفارغ يُنشأ تلقائيًا لكل مهنة؛ وملف المعامل القديم ما زال مدعومًا.</small></div>
