@@ -953,3 +953,35 @@
 /* Logo placeholders: the logo was removed, but the space stays so the new logo can go in the same place. */
 .brand-logo-slot{display:block;background:transparent;border:0;box-shadow:none;padding:0}
 .login-logo-slot{display:block;aspect-ratio:1055/1491;height:auto}
+
+
+/* ---- Admin mobile polish (option C), bulk actions on new requests, share buttons ---- */
+.category-group-toggle{display:none}
+.admin-select-check{position:absolute;inset-inline-start:0;top:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.admin-select-check input,.admin-select-all input{width:18px;height:18px;accent-color:#0876ce;cursor:pointer}
+.admin-shell .admin-service-row.has-select{position:relative;padding-inline-start:48px}
+.admin-service-row.is-selected{border-color:#0876ce;box-shadow:0 0 0 2px rgba(8,118,206,.14)}
+.admin-bulk-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 14px;margin-bottom:12px;padding:10px 12px;border:1px solid #d6e6f4;border-radius:12px;background:#f5faff}
+.admin-select-all{display:inline-flex;align-items:center;gap:8px;min-height:40px;font-size:13px;font-weight:700;color:#245b86;cursor:pointer}
+.admin-bulk-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#2a6a99}
+.confirm-approve-icon{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;margin-bottom:12px;border-radius:50%;background:#e8f7ef;color:#1d8a4f}
+.provider-share-button{display:flex;align-items:center;justify-content:center;width:25px;height:25px;border:1px solid #e8edf5;border-radius:50%;color:#2b6f9d;background:#fff;transition:background .2s,border-color .2s}
+.provider-share-button:hover{background:#eef7ff;border-color:#bfdcf3}
+.provider-card-top .provider-share-button{margin-inline-start:auto}
+.modal-body .detail-utility-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.modal-body .detail-share{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:0;border-radius:10px;background:#f3f8fc;color:#245b86;cursor:pointer}
+@media(max-width:600px){
+  .admin-shell .icon-button{width:44px;height:44px}
+  .admin-shell .button-small{min-height:44px}
+  .admin-shell .notification-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .admin-shell .notification-tools>.button{width:100%;justify-content:center}
+  .admin-shell .notification-tools>.button:first-child,.admin-shell .notification-tools>.button:last-child:nth-child(even){grid-column:1/-1}
+  .admin-shell .address-management-row>.admin-delete{margin-inline-start:12px}
+  .category-management-heading .category-management-actions{flex-basis:100%;justify-content:flex-start;flex-wrap:wrap}
+  .admin-shell .admin-bulk-actions{width:100%}
+  .admin-shell .admin-bulk-actions>.button{flex:1 1 auto;justify-content:center;white-space:nowrap}
+  .category-group-toggle{display:flex;align-items:center;justify-content:center;gap:7px;width:calc(100% - 28px);min-height:44px;margin:0 14px 12px;border:1px dashed #b9d4ea;border-radius:10px;background:#f7fbff;color:#2a6a99;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+  .category-group-toggle svg{transition:transform .2s ease}
+  .category-management-group[data-open="true"] .category-group-toggle svg{transform:rotate(180deg)}
+  .category-management-group[data-open="false"] .specialties-management-list{display:none}
+}
