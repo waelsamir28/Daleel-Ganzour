@@ -508,6 +508,7 @@
 .admin-sidebar nav button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:9px 11px;border-radius:11px;text-align:right;font-size:12px;font-weight:700}
 .admin-sidebar nav button>svg{flex:none}
 .admin-sidebar nav button>span{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;margin-inline-start:auto;padding:0 6px;border-radius:999px;background:#ffffff16;color:inherit;font-size:10px}
+.admin-sidebar-menu{display:contents}
 .admin-sidebar-bottom{display:grid;gap:5px;margin-top:auto;padding-top:13px;border-top:1px solid rgba(255,255,255,.1)}
 .admin-sidebar-bottom>a,.admin-sidebar-bottom>button{display:flex;align-items:center;gap:9px;min-height:40px;padding:7px 9px;border-radius:9px;color:#c1d2d9;text-align:right;font-size:11px;font-weight:700}
 .admin-sidebar-bottom>a>svg:last-child{margin-inline-start:auto}
@@ -568,7 +569,7 @@
 .admin-empty{margin-top:8px}
 .admin-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:17px;color:#81959e;font-size:10px}
 .admin-footer span{display:inline-flex;align-items:center;gap:5px}
-.admin-toast{position:fixed;z-index:100;inset-inline:50% auto;bottom:22px;display:flex;align-items:center;gap:10px;width:max-content;max-width:min(560px,calc(100vw - 30px));padding:12px 14px;border:1px solid #d9eae5;border-radius:13px;background:#fff;color:#267764;box-shadow:0 12px 32px rgba(23,59,92,.14);font-size:12px;line-height:1.8;transform:translateX(50%)}
+.admin-toast{position:fixed;z-index:210;inset-inline:50% auto;bottom:22px;display:flex;align-items:center;gap:10px;width:max-content;max-width:min(560px,calc(100vw - 30px));padding:12px 14px;border:1px solid #d9eae5;border-radius:13px;background:#fff;color:#267764;box-shadow:0 12px 32px rgba(23,59,92,.14);font-size:12px;line-height:1.8;transform:translateX(50%)}
 .admin-toast>span{flex:1;min-width:0}
 .admin-toast>button{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:7px}
 .admin-toast.toast-error{border-color:#f2d4d5;color:#bd4e55}
@@ -648,19 +649,23 @@
   .directory-layout{gap:17px;padding-top:20px}
   .provider-grid,.main-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
   .admin-shell{display:block}
-  .admin-sidebar{position:sticky;inset:auto;top:0;z-index:80;display:grid!important;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:8px 10px;width:100%;height:auto;max-height:calc(100dvh - 16px);padding:9px 14px;overflow-y:auto;border-radius:0 0 15px 15px}
+  .admin-sidebar{position:sticky;inset:auto;top:0;z-index:80;display:grid!important;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:8px 10px;width:100%;height:auto;padding:9px 14px;overflow:visible;border-radius:0 0 15px 15px}
   .admin-sidebar>.brand{grid-column:1;align-self:center;width:38px;margin:0}
   .admin-sidebar>.brand .brand-symbol{width:38px;height:54px}
-  .admin-sidebar-label{grid-column:2;margin:0;font-size:11px;line-height:1.6}
-  .admin-mobile-menu-toggle{grid-column:3;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:7px 10px;border:1px solid #ffffff24;border-radius:10px;background:#ffffff0d;color:#e7f3f3;font-size:11px;font-weight:800;white-space:nowrap}
+  .admin-sidebar-label{display:none}
+  .admin-mobile-menu-toggle{grid-column:2/-1;display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:6px 12px;border:1px solid #ffffff24;border-radius:12px;background:#ffffff0d;color:#e7f3f3;text-align:right}
+  .admin-mobile-menu-toggle>span{display:grid;flex:1;min-width:0;gap:1px;font-size:13px;font-weight:900}
+  .admin-mobile-menu-toggle>span>small{color:#a5c2c7;font-size:10px;font-weight:700;line-height:1.5}
+  .admin-mobile-menu-toggle>span>strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:1.5}
+  .admin-mobile-menu-toggle>svg{flex:none}
   .admin-mobile-menu-toggle>svg:last-child{transition:transform .18s}
   .admin-sidebar-open .admin-mobile-menu-toggle>svg:last-child{transform:rotate(-90deg)}
-  .admin-sidebar nav{display:none;grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:2px 0 0}
-  .admin-sidebar-open nav{display:grid}
-  .admin-sidebar nav button{min-height:42px;padding:8px 9px;font-size:11px}
-  .admin-sidebar-bottom{display:none;grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:4px;padding-top:8px}
-  .admin-sidebar-open .admin-sidebar-bottom{display:grid}
-  .admin-sidebar-bottom>a,.admin-sidebar-bottom>button{justify-content:center;gap:5px;padding:6px 5px;font-size:9px}
+  .admin-sidebar-menu{display:none}
+  .admin-sidebar-open .admin-sidebar-menu{display:grid;position:absolute;top:calc(100% + 8px);right:12px;left:12px;z-index:90;gap:8px;max-height:calc(100dvh - 96px);overflow-y:auto;overscroll-behavior:contain;padding:10px;border:1px solid #ffffff1f;border-radius:16px;background:linear-gradient(165deg,#153b50 0%,#0d2639 100%);box-shadow:0 18px 40px rgba(7,25,36,.38)}
+  .admin-sidebar nav{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin:0}
+  .admin-sidebar nav button{min-height:44px;padding:9px 11px;font-size:12px}
+  .admin-sidebar-bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:0;padding-top:8px}
+  .admin-sidebar-bottom>a,.admin-sidebar-bottom>button{justify-content:center;gap:5px;min-height:44px;padding:6px 5px;font-size:10px}
   .admin-sidebar-bottom>a>svg:last-child{display:none}
   .admin-main{width:100%!important;min-height:0;margin-right:0!important;padding:18px 16px 22px}
   .admin-topbar{gap:12px}
@@ -834,3 +839,99 @@
   .login-form-panel{padding-inline:18px}
 }
 @media(prefers-reduced-motion:reduce){.admin-public-header>a:last-child,.login-input,.settings-editor .field>input,.settings-editor .field>select,.settings-editor .field>textarea{transition:none}}
+
+/* Home header on small phones (max 560px). The five links were always shown in one row, which pushed the header
+   up to 150px past the screen edge. They now open from the menu button the markup already had (menuOpen -> nav-open).
+   Wider screens keep the inline row, so tablet and desktop are unchanged. */
+@media (max-width: 560px) {
+  .site-header .mobile-menu-button { display: inline-flex; flex: none; width: 40px; height: 40px; align-items: center; justify-content: center; border: 1px solid #dceafa; border-radius: 11px; background: #fff; color: #1b5a8f; }
+  .site-header .main-nav { display: none; position: absolute; top: calc(100% - 1px); right: 0; left: 0; z-index: 60; flex-direction: column; align-items: stretch; gap: 2px; height: auto; padding: 8px 12px 12px; background: #fff; border-bottom: 1px solid #dceafa; box-shadow: 0 16px 28px rgba(21, 63, 104, .14); }
+  .site-header .main-nav.nav-open { display: flex; }
+  .site-header .main-nav > a, .site-header .main-nav > button { justify-content: flex-start; width: 100%; min-height: 44px; padding: 10px 12px; font-size: 14px; }
+}
+
+/* Shared dialog (ui.tsx Modal). It had no CSS, so the home dialogs and the admin editors rendered inline at the bottom of the page. */
+.modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(16, 39, 61, .46); }
+.modal-panel { position: relative; display: flex; flex-direction: column; box-sizing: border-box; width: min(100%, 560px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: hidden; border-radius: 20px; background: #fff; color: #173b61; box-shadow: 0 24px 60px rgba(10, 33, 56, .28); text-align: right; }
+.modal-panel.modal-wide { width: min(100%, 940px); }
+.modal-heading { display: flex; flex: none; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid #e3edf7; }
+.modal-heading > div { min-width: 0; }
+.modal-heading h2 { color: #173b61; font-size: 18px; font-weight: 900; line-height: 1.5; overflow-wrap: anywhere; }
+.modal-heading p { margin-top: 4px; color: #6f8498; font-size: 12px; font-weight: 600; line-height: 1.7; }
+.modal-close { flex: none; color: #5d7388; }
+.modal-close:hover { background: #eef5fc; color: #173b61; }
+.modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 18px 20px 22px; }
+@media (max-width: 600px) {
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-panel, .modal-panel.modal-wide { width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 22px 22px 0 0; }
+  .modal-body { padding: 16px 16px 22px; }
+}
+
+/* Dialog content. The forms and detail cards inside Modal had no CSS (only the login, registration and settings pages did).
+   Everything here is scoped to .modal-body, so those pages keep their own styles. */
+.modal-body .request-form,
+.modal-body .management-form { display: grid; gap: 14px; }
+.modal-body .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.modal-body .field { display: block; min-width: 0; color: #365a73; font-size: 12px; font-weight: 800; line-height: 1.6; }
+.modal-body .field > input,
+.modal-body .field > select,
+.modal-body .field > textarea,
+.modal-body .location-picker > input { display: block; box-sizing: border-box; width: 100%; margin-top: 6px; min-width: 0; min-height: 45px; padding: 10px 12px; border: 1px solid #d5e2ec; border-radius: 10px; background: #fcfdff; color: #173b61; font-size: 13px; font-weight: 600; }
+.modal-body .field > textarea { min-height: 96px; resize: vertical; line-height: 1.7; }
+.modal-body .field > input:focus,
+.modal-body .field > select:focus,
+.modal-body .field > textarea:focus,
+.modal-body .location-picker > input:focus { outline: 0; border-color: #69aade; background: #fff; box-shadow: 0 0 0 3px #e1f1fc; }
+.modal-body .field > input::placeholder,
+.modal-body .field > textarea::placeholder,
+.modal-body .location-picker > input::placeholder { color: #9aafc1; font-weight: 500; }
+.modal-body .required { color: #d0474f; }
+.modal-body .character-count { display: block; color: #7c8fa0; font-size: 11px; font-weight: 700; text-align: start; }
+.modal-body .checkbox-field { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 10px 12px; border: 1px solid #e0eaf2; border-radius: 10px; background: #f8fbfd; color: #486a81; font-size: 12px; font-weight: 700; line-height: 1.6; }
+.modal-body .checkbox-field input { flex: none; width: 17px; height: 17px; margin: 0; accent-color: #0782bd; }
+.modal-body .editor-checkboxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.modal-body .form-notice { display: flex; align-items: flex-start; gap: 9px; padding: 11px 12px; border: 1px solid #d7eaf6; border-radius: 10px; background: #f2f9fd; color: #47718e; font-size: 12px; line-height: 1.8; }
+.modal-body .form-notice svg { flex: none; margin-top: 3px; color: #2788bb; }
+.modal-body .form-notice.notice-amber { border-color: #f1dca4; background: #fff9e8; color: #7a5a10; }
+.modal-body .form-notice.notice-amber svg { color: #c48a12; }
+.modal-body .form-error { padding: 9px 11px; border: 1px solid #f3d3d3; border-radius: 9px; background: #fff5f5; color: #b94343; font-size: 12px; font-weight: 700; line-height: 1.7; }
+.modal-body .form-error:empty { display: none; }
+.modal-body .form-submit { justify-self: start; min-height: 46px; padding-inline: 22px; }
+.modal-body .form-footnote { color: #6f8498; font-size: 11px; font-weight: 600; line-height: 1.7; }
+.modal-body .address-fields { display: grid; gap: 13px; }
+.modal-body .custom-location-form { display: flex; align-items: flex-end; gap: 10px; margin-top: 4px; }
+.modal-body .custom-location-form > label { flex: 1; }
+.modal-body .location-picker { display: grid; gap: 12px; }
+.modal-body .ad-plan { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #dbeaf6; border-radius: 12px; background: #f6fbff; }
+.modal-body .ad-plan > div:not(.ad-plan-price) { display: grid; gap: 3px; min-width: 0; }
+.modal-body .ad-plan-price { display: grid; gap: 2px; margin-inline-start: auto; text-align: start; color: #173b61; font-size: 12px; font-weight: 700; }
+.modal-body .ad-plan-price strong { color: #0a5fb4; font-size: 18px; font-weight: 900; }
+.modal-body .ad-plan-price small { font-size: 11px; font-weight: 700; }
+.modal-body .success-state { display: grid; justify-items: center; gap: 10px; padding: 12px 4px 4px; text-align: center; }
+.modal-body .success-state h3 { color: #173b61; font-size: 18px; font-weight: 900; line-height: 1.5; }
+.modal-body .success-state p { color: #5f7a90; font-size: 13px; line-height: 1.8; }
+.modal-body .success-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: #e7f8ef; color: #09a85a; }
+.modal-body .reference-number { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 10px; background: #f1f7fc; color: #173b61; font-size: 13px; font-weight: 900; }
+.modal-body .text-button { color: #0876e1; font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.modal-body .contact-content { display: grid; justify-items: center; gap: 12px; padding: 4px 0 2px; text-align: center; }
+.modal-body .contact-illustration { display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, #e7f3ff, #d3eaff); color: #0876e1; }
+.modal-body .contact-content h3 { color: #173b61; font-size: 19px; font-weight: 900; line-height: 1.5; }
+.modal-body .contact-content > p { max-width: 390px; color: #5f7a90; font-size: 13px; line-height: 1.8; }
+.modal-body .contact-content > .button { width: 100%; max-width: 320px; min-height: 46px; }
+.modal-body .service-details { display: grid; justify-items: center; gap: 12px; text-align: center; }
+.modal-body .service-details h3 { color: #173b61; font-size: 20px; font-weight: 900; line-height: 1.5; }
+.modal-body .details-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.modal-body .details-badges > span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; background: #eef6fd; color: #245b86; font-size: 12px; font-weight: 800; }
+.modal-body .details-badges .detail-verified { background: #e8f8ef; color: #17784a; }
+.modal-body .details-badges .detail-emergency { background: #fdeeee; color: #b93a43; }
+.modal-body .service-details > .form-notice { width: 100%; text-align: start; }
+.modal-body .detail-description { max-width: 460px; color: #4c6b81; font-size: 13px; line-height: 1.9; }
+.modal-body .detail-address { display: inline-flex; align-items: center; gap: 6px; color: #5f7a90; font-size: 13px; font-weight: 700; }
+.modal-body .detail-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
+.modal-body .detail-actions .button { min-height: 44px; }
+.modal-body .detail-favorite { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 8px 14px; border-radius: 10px; background: #f3f8fc; color: #245b86; font-size: 13px; font-weight: 800; }
+@media (max-width: 600px) {
+  .modal-body .form-row,
+  .modal-body .editor-checkboxes { grid-template-columns: minmax(0, 1fr); }
+  .modal-body .form-submit { justify-self: stretch; }
+}
