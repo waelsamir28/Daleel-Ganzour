@@ -91,7 +91,7 @@ img,svg{vertical-align:middle}
  .directory-section-heading{position:relative}
  .directory-section-heading:before{display:none}
  .directory-section-heading>div{padding-inline:0;background:transparent}
- .directory-section-heading h2{width:max-content;max-width:100%;padding:7px 17px;border:1px solid #b9d1e5;border-radius:999px;background:linear-gradient(135deg,#17679c,#124b7a);box-shadow:0 5px 13px #124b7a26,inset 0 1px 0 #ffffff33;color:#fff}
+ .directory-section-heading h2{width:max-content;max-width:100%;padding:7px 17px;border:1px solid #b9d1e5;border-radius:999px;background:linear-gradient(135deg,#17679c,#124b7a);box-shadow:0 5px 13px #124b7a26,inset 0 1px 0 #ffffff33;color:#ffffff}
  .directory-section-heading h2>svg{width:30px;height:30px;padding:5px;color:#fff;background:linear-gradient(145deg,#20b9e8,#0876c9);border-radius:10px;filter:drop-shadow(0 3px 2px #062f571f)}
  .section-heading p{color:var(--muted);font-size:12px;margin-top:5px;padding-inline:16px}
   .section-count{font-size:11px;background:#f3f7fc;border:1px solid #e8eff6;color:#8094ae;padding:3px 9px;border-radius:30px;white-space:nowrap}
