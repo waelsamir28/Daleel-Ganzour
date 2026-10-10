@@ -32,11 +32,6 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
   if (!address) address = area;
   return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true };
 }
-export function adInput(body: Record<string, unknown>) {
-  const businessName = cleanText(body.businessName, 160), text = cleanText(body.text, 300), phone = cleanPhone(body.phone);
-  if (businessName.length < 3 || text.length < 10 || !validPhone(phone)) throw new InputError("أدخل اسم النشاط ونص الإعلان ورقم هاتف مصري صحيح.");
-  return { businessName, text, phone };
-}
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);
   const parentId = cleanText(body.parentId, 60) || null;
@@ -49,8 +44,6 @@ export function settingsInput(body: Record<string, unknown>): SiteSettings {
   const textKeys = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright"] as const;
   for (const key of textKeys) { const value = cleanText(body[key], key === "contactText" ? 500 : 240); if (!value) throw new InputError("حقول نصوص الموقع مطلوبة."); next[key] = value; }
   next.phone = cleanPhone(body.phone); if (!validPhone(next.phone)) throw new InputError("رقم تواصل المكتب غير صحيح.");
-  next.adPrice = integerInput(body.adPrice, 1, 100000, "سعر الإعلان");
-  next.adDays = integerInput(body.adDays, 1, 365, "مدة الإعلان");
   next.showEmergency = body.showEmergency === true;
   return next;
 }

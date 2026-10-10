@@ -37,11 +37,6 @@ export default function SettingsEditor({ settings, onSave }: SettingsEditorProps
     <label className="field">رقم تواصل المكتب / واتساب<input name="phone" defaultValue={settings.phone} type="tel" dir="ltr" required maxLength={16}/></label>
     <label className="checkbox-field"><input name="showEmergency" type="checkbox" defaultChecked={settings.showEmergency}/> إظهار خدمات وشريط الطوارئ</label>
 
-    <div className="settings-section-heading"><h3>حجز الإعلانات</h3><p>السعر والمدة المعتمدان عند حجز إعلان مع مكتب الجمال.</p></div>
-    <div className="settings-ad-grid">
-      <label className="field">سعر الحجز بالجنيه<input name="adPrice" type="number" defaultValue={settings.adPrice} min={1} max={100000} required/></label>
-      <label className="field">مدة الإعلان بالأيام<input name="adDays" type="number" defaultValue={settings.adDays} min={1} max={365} required/></label>
-    </div>
     <button className="button button-primary form-submit" type="submit" disabled={busy}>{busy ? <LoaderCircle size={18} className="spin"/> : <Save size={18}/>} {busy ? "جاري الحفظ..." : "حفظ الإعدادات"}</button>
     {saved && <p className="form-success" role="status">تم حفظ إعدادات الموقع بنجاح.</p>}
   </form>;

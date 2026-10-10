@@ -141,18 +141,27 @@ type ProviderCardProps = {
   onShare: (service: ServiceRecord) => void;
   onToggleFavorite: (id: string) => void;
 };
-// Tapping anywhere on the card opens the details overlay; calling happens inside the overlay only.
+// Card layout: 54px category icon, red name, blue specialty, five gold stars, blue address,
+// favourite above share on the left, and a light-blue call strip with the number and an "اتصال" button.
+// Tapping anywhere on the card — including that button — opens the details overlay; calling happens there only.
 function ProviderCard({ service, category, favorite, onOpen, onShare, onToggleFavorite }: ProviderCardProps) {
   return <article className="provider-card" data-service-id={service.id} role="button" tabIndex={0} aria-label={`عرض تفاصيل ${service.name}`} style={categoryTheme(category)} onClick={() => onOpen(service)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen(service); } }}>
     <div className="provider-card-main">
-      <h3 className="provider-name">{service.name}</h3>
-      <span className="provider-phones"><span className="provider-phone"><Phone size={14}/><span dir="ltr">{service.phone}</span></span>{service.phoneSecondary && <span className="provider-phone provider-phone-extra"><Phone size={14}/><span dir="ltr">{service.phoneSecondary}</span></span>}</span>
-      <span className="provider-address"><MapPin size={13}/>{service.address || service.area}</span>
+      <span className="provider-card-icon" aria-hidden="true"><CategoryIcon icon={category.icon} size={26}/></span>
+      <div className="provider-card-copy">
+        <h3 className="provider-name">{service.name}</h3>
+        <span className="provider-specialty">{category.name}</span>
+        <ProviderRating value={service.rating} reviews={service.reviews}/>
+        <span className="provider-address"><MapPin size={13}/>{service.address || service.area}</span>
+      </div>
+      <div className="provider-card-side">
+        <button type="button" className={`favorite-button ${favorite ? "is-favorite" : ""}`} onClick={(event) => { event.stopPropagation(); onToggleFavorite(service.id); }} aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`} aria-pressed={favorite}><Heart size={16} fill={favorite ? "currentColor" : "none"}/></button>
+        <button type="button" className="provider-share-button" onClick={(event) => { event.stopPropagation(); onShare(service); }} aria-label={`مشاركة ${service.name}`} title="مشاركة"><Share2 size={15}/></button>
+      </div>
     </div>
-    <div className="provider-card-actions">
-      <button type="button" className="provider-share-button" onClick={(event) => { event.stopPropagation(); onShare(service); }} aria-label={`مشاركة ${service.name}`} title="مشاركة"><Share2 size={15}/></button>
-      <button type="button" className={`favorite-button ${favorite ? "is-favorite" : ""}`} onClick={(event) => { event.stopPropagation(); onToggleFavorite(service.id); }} aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`} aria-pressed={favorite}><Heart size={16} fill={favorite ? "currentColor" : "none"}/></button>
-      <span className="provider-card-icon" aria-hidden="true"><CategoryIcon icon={category.icon} size={22}/></span>
+    <div className="provider-call-strip">
+      <span className="provider-call-number"><Phone size={15}/><span dir="ltr">{service.phone}</span></span>
+      <span className="provider-call-button"><PhoneCall size={15}/>اتصال</span>
     </div>
     {isNewService(service) && <span className="new-flag">جديد</span>}
   </article>;

@@ -6,7 +6,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --test scripts/ad-design.test.mjs",
+    "test": "node --test scripts/catalog.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

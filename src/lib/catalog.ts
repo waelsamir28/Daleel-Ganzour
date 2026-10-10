@@ -1,6 +1,5 @@
 export const OFFICE_PHONE = "01222355769";
 export const OFFICE_WHATSAPP = "https://wa.me/201222355769";
-export const AD_PRICE = 50;
 export const OTHER_ADDRESS = "عنوان آخر";
 
 export type CategoryRecord = {
@@ -21,93 +20,6 @@ export function isNewService(service: Pick<ServiceRecord, "createdAt">, now = Da
   return Number.isFinite(age) && age >= 0 && age < NEW_SERVICE_DAYS * 24 * 60 * 60 * 1000;
 }
 
-export type AdRecord = {
-  id: string; businessName: string; text: string; phone: string; status: string;
-  backgroundColor: string; icon: string; textSize: number; highlightWord: string;
-  motion: string; imageUrl: string;
-  price: number; paid: boolean; expiresAt: string | null; createdAt: string;
-  name: string; categoryId: string; adType: AdType; placement: AdPlacement;
-  videoUrl: string; destinationUrl: string; whatsappPhone: string; offerText: string;
-  startsAt: string | null; priority: number; campaignStatus: "active" | "paused";
-  impressions: number; clicks: number;
-};
-export const adTypeOptions = [{ id: "banner", label: "بانر" }, { id: "card", label: "كارت" }, { id: "video", label: "فيديو" }] as const;
-export const adPlacementOptions = [{ id: "hero", label: "البانر الرئيسي" }, { id: "inline", label: "وسط نتائج الأقسام" }, { id: "sponsored", label: "معلنين مميزين" }] as const;
-export type AdType = typeof adTypeOptions[number]["id"];
-export type AdPlacement = typeof adPlacementOptions[number]["id"];
-export function isAdActive(ad: Pick<AdRecord, "status" | "paid" | "campaignStatus" | "startsAt" | "expiresAt">, now = Date.now()) {
-  const start = ad.startsAt ? Date.parse(ad.startsAt) : null, end = ad.expiresAt ? Date.parse(ad.expiresAt) : null;
-  return ad.status === "approved" && ad.paid && ad.campaignStatus !== "paused"
-    && (start === null || Number.isFinite(start) && start <= now)
-    && (end === null || Number.isFinite(end) && end > now);
-}
-export function selectAds(ads: AdRecord[], placement: AdPlacement, categoryId = "", catalog: CategoryRecord[] = [], now = Date.now()) {
-  return ads.filter((ad) => {
-    if ((ad.placement || "hero") !== placement || !isAdActive(ad, now)) return false;
-    if (placement !== "inline") return true;
-    if (!categoryId || !ad.categoryId) return false;
-    const requested = catalog.find((c) => c.id === categoryId), target = catalog.find((c) => c.id === ad.categoryId);
-    return ad.categoryId === categoryId || requested?.parentId === ad.categoryId || target?.parentId === categoryId;
-  }).sort((a, b) => (b.priority || 0) - (a.priority || 0) || b.createdAt.localeCompare(a.createdAt));
-}
-export function adCtr(impressions: number, clicks: number) { return impressions > 0 ? clicks / impressions * 100 : 0; }
-export const HERO_AD_DURATION_MS = 5000;
-export const adMotionOptions = [
-  { id: "static", label: "ثابت" },
-  { id: "left", label: "متحرك لليسار" },
-  { id: "right", label: "متحرك لليمين" },
-  { id: "fade", label: "ظهور واختفاء هادئ" },
-] as const;
-export type AdMotion = typeof adMotionOptions[number]["id"];
-export function getAdMotion(value: unknown): AdMotion {
-  return adMotionOptions.find(({ id }) => id === value)?.id ?? "static";
-}
-export function isAdImageUrl(value: string) {
-  if (!value) return true;
-  if (value.length > 1000 || /[\s\\]/u.test(value)) return false;
-  if (value.startsWith("/") && !value.startsWith("//")) return true;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" && !url.username && !url.password;
-  } catch { return false; }
-}
-export function isAdVideoUrl(value: string) {
-  if (!value) return true;
-  if (!isAdImageUrl(value)) return false;
-  try { return /\.(mp4|webm|ogg)$/i.test(new URL(value, "https://directory.local").pathname); } catch { return false; }
-}
-export const adBackgroundOptions = [
-  { color: "#ccecff", label: "أزرق سماوي" },
-  { color: "#ffe5b4", label: "ذهبي مشرق" },
-  { color: "#cdf5dc", label: "أخضر نعناعي" },
-  { color: "#eddcff", label: "بنفسجي فاتح" },
-  { color: "#ffdbe6", label: "وردي زاهي" },
-  { color: "#c9f3f0", label: "فيروزي فاتح" },
-  { color: "#e0e4ff", label: "أزرق بنفسجي" },
-  { color: "#ffe4c9", label: "خوخي" },
-] as const;
-export const adIconOptions = [
-  { icon: "Store", label: "محل" },
-  { icon: "Wrench", label: "مهنة" },
-  { icon: "Stethoscope", label: "طب" },
-  { icon: "FlaskConical", label: "معمل" },
-  { icon: "GraduationCap", label: "تعليم" },
-  { icon: "ShoppingBasket", label: "تسوق" },
-  { icon: "Utensils", label: "طعام" },
-  { icon: "Sparkles", label: "خدمات" },
-] as const;
-export function getContrastTextColor(hexColor: string) {
-  const match = /^#?([0-9a-f]{6})$/i.exec(hexColor);
-  if (!match) return "#173b55";
-  const luminance = (hex: string) => {
-    const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
-    const [red, green, blue] = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2);
-    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
-  };
-  const backgroundLuminance = luminance(match[1]);
-  const darkLuminance = luminance("173b55");
-  return 1.05 / (backgroundLuminance + 0.05) > (backgroundLuminance + 0.05) / (darkLuminance + 0.05) ? "#ffffff" : "#173b55";
-}
 export type MemberRole = "member" | "moderator";
 export type MemberRecord = { id: string; name: string; username: string; phone: string; role: MemberRole; active: boolean; createdAt: string };
 export type NotificationRecord = { id: string; type: string; title: string; message: string; entityId: string; read: boolean; createdAt: string };
@@ -115,10 +27,10 @@ export type Viewer = { role: "guest" | "member" | "moderator" | "admin"; id?: st
 export type SiteSettings = {
   siteName: string; heroSubtitle: string; heroEyebrow: string; tagline: string;
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;
-  phone: string; adPrice: number; adDays: number; showEmergency: boolean;
+  phone: string; showEmergency: boolean;
 };
 export type PublicDirectory = {
-  services: ServiceRecord[]; ads: AdRecord[]; categories: CategoryRecord[];
+  services: ServiceRecord[]; categories: CategoryRecord[];
   areas: AreaRecord[]; settings: SiteSettings; memberCount: number; previewMode?: boolean;
 };
 export type AdminDirectory = PublicDirectory & { members: MemberRecord[]; notifications: NotificationRecord[]; notificationUnread: number };
@@ -129,10 +41,20 @@ export const defaultSettings: SiteSettings = {
   heroEyebrow: "دليل أهل جنزور", tagline: "بسهولة • بسرعة • بثقة",
   benefitsHeading: "ليه تختار دليل قرية جنزور؟",
   benefitsText: "دليل يجمع أهل القرية.. ويوصّل كل خدمة لأصحابها",
-  contactText: "لحجز إعلان، متابعة طلب إضافة مهنة، أو أي استفسار عن الدليل، تواصل مع مكتب الجمال مباشرة.",
+  contactText: "لمتابعة طلب إضافة مهنة، أو أي استفسار عن الدليل، تواصل مع مكتب الجمال مباشرة.",
   copyright: "جميع الحقوق محفوظة لمكتب الجمال للدعاية والإعلان.", phone: OFFICE_PHONE,
-  adPrice: AD_PRICE, adDays: 7, showEmergency: true,
+  showEmergency: true,
 };
+
+// Settings rows saved by older releases still carry advertising fields (adPrice, adDays, marquee*).
+// Only the current keys are ever served, so removed settings cannot leak back to the client.
+export const settingsTextKeys = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright", "phone"] as const;
+export function sanitizeSettings(saved: Record<string, unknown>): SiteSettings {
+  const next: SiteSettings = { ...defaultSettings };
+  for (const key of settingsTextKeys) { const value = saved[key]; if (typeof value === "string" && value.trim()) next[key] = value; }
+  if (typeof saved.showEmergency === "boolean") next.showEmergency = saved.showEmergency;
+  return next;
+}
 
 export const areas = ["جنزور / الناحية الشرقية", "جنزور / الناحية الغربية", "جنزور / بجوار المسجد البحري", "جنزور / شارع حسيب", "جنزور / السوق القديم", "جنزور / بجوار مكتبة الجمال", "جنزور / شارع السويقة"];
 
