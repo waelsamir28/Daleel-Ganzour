@@ -50,6 +50,11 @@
 .site-header a:active,.site-header button:active,.button:active,.add-service-quick-link:active{transform:translateY(1px) scale(.97)}
 .footer-whatsapp strong{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
 .contact-number{font-size:28px;font-variant-numeric:tabular-nums}
+.floating-whatsapp{position:fixed;z-index:70;left:22px;bottom:22px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 18px;border:1px solid #2ada31;border-radius:999px;background:#39ff14;color:#123b15;font-size:14px;font-weight:900;box-shadow:0 7px 20px #21d93655;transition:background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease,transform .2s ease}
+.floating-whatsapp:hover{border-color:#00a843;background:#00c853;color:#fff;box-shadow:0 9px 24px #00b84a66;transform:translateY(-2px)}
+.floating-whatsapp:active{transform:translateY(1px)}
+.floating-whatsapp svg{flex:none}
+@media(max-width:520px){.floating-whatsapp{left:14px;bottom:14px;padding:10px 14px;font-size:13px}}
 @media(max-width:700px){.hero-with-banner .hero-trust>span:last-child{display:flex}.hero-with-banner .hero-trust>span{font-size:10px}}
 @media(max-width:530px){.site-header .auth-links .register-link{padding:7px}.site-header .auth-links .register-link>span{display:none}}
 @media(prefers-reduced-motion:reduce){.site-header .add-service-header:hover,.site-header .add-service-header:active,.hero-with-banner .search-button:hover,.hero-with-banner .search-button:active,.site-header a:active,.site-header button:active,.button:active{transform:none}}
