@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { advertisements, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
 import { areas, defaultSettings, initialCategories, sampleServices, adTypeOptions, adPlacementOptions, type AdRecord, type AdminDirectory, type CategoryRecord, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
@@ -74,7 +74,7 @@ export async function getSettings(): Promise<SiteSettings> {
   await ensureSeed();
   const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "site_config"));
   if (!row) return defaultSettings;
-  try { const saved = JSON.parse(row.value) as Partial<SiteSettings>; return { ...defaultSettings, ...saved, marqueeTextColor: !saved.marqueeBackgroundColor && saved.marqueeTextColor === "#745827" ? defaultSettings.marqueeTextColor : saved.marqueeTextColor ?? defaultSettings.marqueeTextColor }; } catch { return defaultSettings; }
+  try { const saved = JSON.parse(row.value) as Partial<SiteSettings>; return { ...defaultSettings, ...saved }; } catch { return defaultSettings; }
 }
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord { return { ...item, createdAt: item.createdAt.toISOString() }; }
 export function serializeAd(item: typeof advertisements.$inferSelect, publicView = false): AdRecord {
@@ -102,11 +102,8 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
   const visibleRoots = catalog.categories.filter((category) => !category.parentId && category.active).map((category) => category.id);
   const visibleCategories = catalog.categories.filter((category) => category.active && (!category.parentId || visibleRoots.includes(category.parentId)));
   const ids = visibleCategories.filter((category) => category.parentId).map((category) => category.id);
-  const [providers, ads] = await Promise.all([
-    ids.length ? db.select().from(services).where(and(eq(services.status, "approved"), inArray(services.category, ids))).orderBy(desc(services.featured), asc(services.id)) : Promise.resolve([]),
-    db.select().from(advertisements).where(and(eq(advertisements.status, "approved"), eq(advertisements.paid, true), eq(advertisements.campaignStatus, "active"), or(isNull(advertisements.startsAt), sql`${advertisements.startsAt} <= now()`), or(isNull(advertisements.expiresAt), gt(advertisements.expiresAt, new Date())))).orderBy(desc(advertisements.priority), desc(advertisements.createdAt)),
-  ]);
-  return { ...catalog, categories: visibleCategories, services: providers.map(serializeService), ads: ads.filter((ad) => !ad.categoryId || visibleCategories.some((c) => c.id === ad.categoryId)).map((ad) => serializeAd(ad, true)) };
+  const providers = ids.length ? await db.select().from(services).where(and(eq(services.status, "approved"), inArray(services.category, ids))).orderBy(desc(services.featured), asc(services.id)) : [];
+  return { ...catalog, categories: visibleCategories, services: providers.map(serializeService), ads: [] };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();

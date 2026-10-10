@@ -30,10 +30,8 @@
 .site-header .add-service-header:active{background:#063963;transform:translateY(1px) scale(.97)}
 .add-service-quick-link{background:#086ba8!important;color:#fff!important;animation:none!important}
 .add-service-quick-link .quick-icon{background:#075181!important;color:#fff!important}
-.advertising-book{color:#fff;animation:none!important;transition:background-color .2s,transform .2s,box-shadow .2s}
-.advertising-book:hover{transform:translateY(-2px);box-shadow:0 7px 14px #9f261f33}
-.site-header a:active,.site-header button:active,.button:active,.advertising-book:active,.add-service-quick-link:active{transform:translateY(1px) scale(.97)}
-.detail-actions a[href^="tel:"],.footer-whatsapp strong{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
+.site-header a:active,.site-header button:active,.button:active,.add-service-quick-link:active{transform:translateY(1px) scale(.97)}
+.footer-whatsapp strong{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
 .contact-number{font-size:28px;font-variant-numeric:tabular-nums}
 @media(max-width:700px){.hero-with-banner .hero-trust>span:last-child{display:flex}.hero-with-banner .hero-trust>span{font-size:10px}}
 @media(max-width:530px){.site-header .auth-links .register-link{padding:7px}.site-header .auth-links .register-link>span{display:none}}
@@ -106,28 +104,11 @@
 .category-page-hero .hero-copy{padding-block:26px 30px}
 .category-page-hero .hero-subtitle{font-size:15px}
 .category-page-hero .hero-trust{color:#000}
-.advertising-strip{background:var(--ticker-background,#0e0f11);border:1px solid color-mix(in srgb,var(--ticker-background,#0e0f11) 72%,white);border-radius:16px;box-shadow:0 7px 16px #1229440c;overflow:hidden}
-.advertising-inner{height:69px;gap:17px;padding:9px 13px;overflow:hidden;border-radius:16px}
-.advertising-label{background:linear-gradient(145deg,#ffbe57 0%,#ff932c 48%,#f27b12 100%);color:#613300;display:flex;align-items:center;gap:1px;padding:0 12px 0 6px;border:1px solid #ffca7680;border-radius:12px;position:relative;overflow:hidden}
-.advertising-label:after{content:"";position:absolute;inset:1px 2px 21px;border-radius:9px;background:linear-gradient(180deg,#ffffff25,transparent);pointer-events:none;z-index:-1}
-.advertising-label>strong{display:block;font-size:14px;white-space:nowrap;font-weight:800;text-shadow:0 1px 0 #ffd19b}
-.advertising-3d-icon{width:62px;height:57px;flex-shrink:0;filter:drop-shadow(0 3px 2px #a7533521)}
-.advertising-label>.advertising-3d-icon{width:54px;height:52px;filter:drop-shadow(0 3px 2px #ac3c1535);margin-left:-2px;margin-top:-5px}
-.marquee-window{align-self:center;line-height:2.1}
-.marquee-group a{font-size:13px;color:var(--ticker-text-color,#dee0e6)}
-.marquee-group a strong{color:var(--ticker-text-color,#ffc378);font-weight:900}
-.ticker-star{color:#ff9b39}
-.ticker-separator{color:color-mix(in srgb,var(--ticker-text-color,#ffc378) 44%,white)}
-.ticker-phone{color:var(--ticker-text-color,#ffc378);font-size:12px}
-.ticker-fallback{color:var(--ticker-text-color,#f0ece6);font-size:13px}
-.advertising-book{border:1px solid #c42025;background:#dc262b;color:#fff;font-size:12px;padding:6px 10px;border-radius:8px;gap:5px}
-.advertising-book:hover{background:#b91c22;color:#fff}
 .add-service-quick-link{color:#fff!important;background:#086ba8!important;border-radius:10px;font-weight:800!important}
 .add-service-quick-link .quick-icon{color:#fff!important;background:#075181!important}
 .login-art>img.login-portrait-image,.login-art>.login-logo-slot{mix-blend-mode:screen}
 .login-promo-banner{display:block;width:calc(100% + 34px)!important;max-width:none!important;height:auto!important;aspect-ratio:8/3;object-fit:cover!important;mask-image:none!important;border-radius:0!important}
 @media(max-width:700px){.login-layout{grid-template-columns:1fr;width:calc(100% - 28px);margin:12px auto 24px;min-height:0}.admin-public-header{height:76px}.login-art{padding:24px 22px 20px}.login-art>img.login-portrait-image,.login-art>.login-logo-slot{width:120px;height:auto}.login-art-caption{padding:7px 11px;font-size:10px}.login-form-panel{padding:28px 24px 30px}.login-lock{width:54px;height:54px;margin-bottom:14px}.login-form-panel>p{margin-bottom:21px}}
-@media(max-width:700px) and (hover:none){.marquee-window:hover .marquee-track:not(.marquee-motion-static),.marquee-window:focus-within .marquee-track:not(.marquee-motion-static){animation-play-state:paused}}
 @media(prefers-reduced-motion:reduce){.add-service-header{animation:none;will-change:auto}}
 .main-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
 .main-category-grid .category-tile{min-height:155px;border-radius:18px;padding:17px 9px;gap:12px}
@@ -159,13 +140,6 @@
 .community-card h2{font-size:13px;font-weight:800}
 .community-card p{font-size:11px;line-height:1.9;color:#7d98b1;margin:8px 0 13px}
 .community-card .button{font-size:11px;padding:8px 13px;border-radius:8px}
-.sidebar-ad{min-height:189px}
-.sidebar-ad h2{font-size:21px}
-.sidebar-ad p{font-size:11px;max-width:155px}
-.sidebar-ad>button{font-size:10px}
-.sidebar-ad-price{font-size:10px;margin-top:6px}
-.sidebar-ad-art{position:absolute;left:-3px;bottom:8px;width:73px;height:72px;transform:rotate(-10deg);opacity:.95}
-.ad-plan>.advertising-3d-icon{width:60px;height:56px}
 .address-fields{display:flex;flex-direction:column;gap:13px}
 .custom-address-field{background:#f6faff;border:1px solid #e2edf9;padding:12px;border-radius:9px;animation:modal-in .18s ease}
 .custom-address-field input{background:#fff!important;min-height:40px}
@@ -272,10 +246,6 @@
 .settings-editor .field>input,.settings-editor .field>textarea{font-size:13px}
 .settings-save-row{display:flex;align-items:center;gap:16px;margin-top:2px;flex-wrap:wrap}
 .settings-saved{display:flex;align-items:center;gap:5px;font-size:12px;color:#23a071}
-.ad-settings-preview{display:flex;align-items:center;gap:16px;min-height:67px;padding:8px 13px;border-radius:12px;background:var(--ticker-background,#101113);border:1px solid color-mix(in srgb,var(--ticker-background,#101113) 70%,white)}
-.ad-settings-preview>span{background:linear-gradient(135deg,#ffc060,#f88623);border-radius:9px;color:#5e310c;display:flex;align-items:center;gap:1px;height:42px;padding:0 10px 0 3px;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
-.ad-settings-preview .advertising-3d-icon{width:49px;height:49px}
-.ad-settings-preview p{color:var(--preview-text,#d5d2ce);font-size:12px;line-height:2;white-space:nowrap}
 .editor-checkboxes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .editor-checkboxes .checkbox-field{font-size:12px}
 .color-editor{display:flex;align-items:center;gap:13px;margin-top:6px;border:1px solid #e0e8f3;padding:7px 11px;border-radius:9px;background:#fbfdff;min-height:45px}
@@ -315,7 +285,7 @@
 @media(max-width:850px){.main-nav{gap:11px}.auth-links>a:first-child>span{display:none}}
 @media(max-width:700px){.header-inner{height:80px;gap:9px}.header-inner>.brand{min-width:0;flex:1}.header-inner .brand-copy{min-width:0}.header-inner .brand-copy strong{white-space:normal;line-height:1.4}}
 @media(max-width:390px){.header-inner{padding-inline:13px;gap:7px}.header-actions{gap:5px}.header-inner .brand-symbol{width:29px;height:39px}.header-inner .brand-copy strong{font-size:14px}.header-inner .brand-copy>span{font-size:8px}}
-@media(prefers-reduced-motion:reduce){.custom-address-field{animation:none}.marquee-track{animation:none;transform:none}}
+@media(prefers-reduced-motion:reduce){.custom-address-field{animation:none}}
 
 .site-header{background:linear-gradient(110deg,#fff 0%,#f8fbff 58%,#eff7ff 100%);border-top:3px solid #1682d7;border-bottom:1px solid #dceafa;box-shadow:0 8px 24px rgba(21,63,104,.04)}
 .header-inner{height:80px;gap:19px}
@@ -468,14 +438,6 @@
 .quick-pink{background:#fff0f5;color:#de5b82}
 .add-service-quick-link{border-color:#0b68a4!important}
 .community-card{height:100%;box-shadow:0 8px 22px rgba(23,66,101,.04)}
-.sidebar-ad{position:relative;min-height:190px;overflow:hidden;padding:17px 15px;border:1px solid #d6e8f5;border-radius:16px;background:linear-gradient(145deg,#127db7,#07548d);color:#fff;box-shadow:0 9px 22px rgba(13,83,132,.13)}
-.sidebar-ad-pill{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid #ffffff45;border-radius:999px;background:#ffffff18;color:#e2f6ff;font-size:10px;font-weight:800}
-.sidebar-ad h2{position:relative;z-index:1;margin-top:10px;color:#fff;font-size:19px;font-weight:900}
-.sidebar-ad p{position:relative;z-index:1;margin-top:3px;color:#d3efff;font-size:11px;line-height:1.8}
-.sidebar-ad>button{position:relative;z-index:2;display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:7px 10px;border:1px solid #ffffff50;border-radius:9px;background:#ffffff17;color:#fff;font-size:11px;font-weight:800}
-.sidebar-ad>button:hover{background:#ffffff2b}
-.sidebar-ad-price{position:relative;z-index:1;display:block;margin-top:8px;color:#d6efff;font-size:10px}
-.sidebar-ad-art{color:#ffffffb8}
 .verified-card{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #dcefe8;border-radius:14px;background:linear-gradient(135deg,#f0faf5,#fff);color:#16846b}
 .verified-card>svg{flex:none;color:#159579}
 .verified-card>div{display:grid;gap:3px}
@@ -664,9 +626,7 @@
   .quick-links-card>button{min-height:49px;gap:6px;padding:6px;font-size:10px}
   .quick-icon{width:33px;height:33px}
   .quick-icon svg{width:21px;height:21px}
-  .community-card,.sidebar-ad{padding:14px 11px}
-  .sidebar-ad h2{font-size:16px}
-  .sidebar-ad-art{width:61px;height:60px}
+  .community-card{padding:14px 11px}
   .main-category-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
   .admin-main{padding:14px 12px 20px}
   .admin-topbar{align-items:flex-start;flex-wrap:wrap;padding:15px 13px;margin-bottom:14px}
@@ -834,6 +794,8 @@
 
 /* Shared dialog (ui.tsx Modal). It had no CSS, so the home dialogs and the admin editors rendered inline at the bottom of the page. */
 .modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(16, 39, 61, .46); }
+/* The custom-address field animates in with modal-in; the keyframes live next to the modal styles. */
+@keyframes modal-in{from{opacity:0;transform:translateY(-6px) scale(.985)}to{opacity:1;transform:none}}
 .modal-panel { position: relative; display: flex; flex-direction: column; box-sizing: border-box; width: min(100%, 560px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: hidden; border-radius: 20px; background: #fff; color: #173b61; box-shadow: 0 24px 60px rgba(10, 33, 56, .28); text-align: right; }
 .modal-panel.modal-wide { width: min(100%, 940px); }
 .modal-heading { display: flex; flex: none; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid #e3edf7; }
@@ -884,11 +846,6 @@
 .modal-body .custom-location-form { display: flex; align-items: flex-end; gap: 10px; margin-top: 4px; }
 .modal-body .custom-location-form > label { flex: 1; }
 .modal-body .location-picker { display: grid; gap: 12px; }
-.modal-body .ad-plan { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #dbeaf6; border-radius: 12px; background: #f6fbff; }
-.modal-body .ad-plan > div:not(.ad-plan-price) { display: grid; gap: 3px; min-width: 0; }
-.modal-body .ad-plan-price { display: grid; gap: 2px; margin-inline-start: auto; text-align: start; color: #173b61; font-size: 12px; font-weight: 700; }
-.modal-body .ad-plan-price strong { color: #0a5fb4; font-size: 18px; font-weight: 900; }
-.modal-body .ad-plan-price small { font-size: 11px; font-weight: 700; }
 .modal-body .success-state { display: grid; justify-items: center; gap: 10px; padding: 12px 4px 4px; text-align: center; }
 .modal-body .success-state h3 { color: #173b61; font-size: 18px; font-weight: 900; line-height: 1.5; }
 .modal-body .success-state p { color: #5f7a90; font-size: 13px; line-height: 1.8; }
@@ -900,17 +857,39 @@
 .modal-body .contact-content h3 { color: #173b61; font-size: 19px; font-weight: 900; line-height: 1.5; }
 .modal-body .contact-content > p { max-width: 390px; color: #5f7a90; font-size: 13px; line-height: 1.8; }
 .modal-body .contact-content > .button { width: 100%; max-width: 320px; min-height: 46px; }
-.modal-body .service-details { display: grid; justify-items: center; gap: 12px; text-align: center; }
-.modal-body .service-details h3 { color: #173b61; font-size: 20px; font-weight: 900; line-height: 1.5; }
-.modal-body .details-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+/* Provider details overlay: tinted hero, status chips, data table, call actions, about and utilities. */
+.modal-body .service-details { display: grid; gap: 14px; text-align: start; }
+.modal-body .service-details h3 { color: #173b61; font-size: 20px; font-weight: 900; line-height: 1.5; overflow-wrap: anywhere; }
+.modal-body .detail-hero { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px solid color-mix(in srgb, var(--cat, #0876e1) 18%, #fff); border-radius: 16px; background: linear-gradient(135deg, var(--cat-light, #eaf5ff), #fff 78%); }
+.modal-body .detail-hero .service-art { flex: none; width: 96px; height: 86px; margin: 0; }
+.modal-body .detail-hero-copy { display: grid; gap: 5px; justify-items: start; min-width: 0; }
+.modal-body .detail-hero-category { display: inline-flex; align-items: center; gap: 6px; color: var(--cat, #0876e1); font-size: 12px; font-weight: 800; }
+.modal-body .details-badges { display: flex; flex-wrap: wrap; gap: 7px; }
 .modal-body .details-badges > span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; background: #eef6fd; color: #245b86; font-size: 12px; font-weight: 800; }
+.modal-body .details-badges .detail-verified { background: #eafaf1; color: #12794c; }
 .modal-body .details-badges .detail-emergency { background: #fdeeee; color: #b93a43; }
+.modal-body .details-badges .detail-featured { background: #fff6e2; color: #9a6b00; }
 .modal-body .service-details > .form-notice { width: 100%; text-align: start; }
-.modal-body .detail-description { max-width: 460px; color: #4c6b81; font-size: 13px; line-height: 1.9; }
-.modal-body .detail-address { display: inline-flex; align-items: center; gap: 6px; color: #5f7a90; font-size: 13px; font-weight: 700; }
-.modal-body .detail-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
-.modal-body .detail-actions .button { min-height: 44px; }
+.modal-body .detail-data { display: grid; margin: 0; padding: 3px 14px; border: 1px solid #e5eef8; border-radius: 12px; background: #fafcff; }
+.modal-body .detail-data > div { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid #e8eef7; }
+.modal-body .detail-data > div:last-child { border-bottom: 0; }
+.modal-body .detail-data dt { flex: none; color: #8ba1b8; font-size: 12px; font-weight: 700; }
+.modal-body .detail-data dd { display: inline-flex; align-items: center; gap: 6px; min-width: 0; margin: 0; color: #2c5573; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.modal-body .detail-data dd svg { flex: none; color: #8fb4d2; }
+.modal-body .detail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.modal-body .detail-actions .button { flex: 1 1 150px; min-height: 46px; }
+.modal-body .detail-about { display: grid; gap: 5px; padding: 12px 14px; border: 1px solid #e7eef7; border-radius: 12px; background: #f8fbff; }
+.modal-body .detail-about h4 { margin: 0; color: #173b61; font-size: 13px; font-weight: 900; }
+.modal-body .detail-about p { color: #4c6b81; font-size: 13px; line-height: 1.9; }
 .modal-body .detail-favorite { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 8px 14px; border-radius: 10px; background: #f3f8fc; color: #245b86; font-size: 13px; font-weight: 800; }
+.modal-body .detail-favorite:hover { background: #fff0f3; color: #d33a5c; }
+.modal-body .detail-share:hover { background: #e6f2fd; color: #0876e1; }
+@media (max-width: 600px) {
+  .modal-body .detail-hero { gap: 10px; padding: 12px; }
+  .modal-body .detail-hero .service-art { width: 78px; height: 72px; }
+  .modal-body .service-details h3 { font-size: 18px; }
+  .modal-body .detail-actions .button { flex: 1 1 100%; }
+}
 @media (max-width: 600px) {
   .modal-body .form-row,
   .modal-body .editor-checkboxes { grid-template-columns: minmax(0, 1fr); }
@@ -1003,19 +982,21 @@
 @keyframes ui-option-in{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.ui-select,.ui-select-chevron,.ui-select-menu,.ui-select-option,.ui-select-option::before,.ui-select-option::after,.ui-select-check{transition:none!important;animation:none!important}}
 
-/* ===== Round 4: compact provider cards =====
-   One rounded rectangle per provider: name and phone on the start side, actions and category icon on the far end. */
+/* ===== Round 5: clickable provider cards =====
+   One rounded rectangle per provider: name, a green phone capsule and an address line under it.
+   Tapping anywhere on the card opens the details overlay, so calling happens inside the overlay only. */
 .provider-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
-.provider-card{position:relative;display:flex;align-items:center;gap:10px;min-width:0;min-height:84px;padding:12px 12px 12px 14px;background:linear-gradient(120deg,#fff 55%,#f7fbff);border:1px solid #d8e9f7;border-radius:16px;box-shadow:0 1px 2px #0b3d6b0a;transition:box-shadow .25s ease,transform .25s ease,border-color .25s ease}
+.provider-card{position:relative;display:flex;align-items:center;gap:10px;min-width:0;min-height:84px;padding:12px 12px 12px 14px;background:linear-gradient(120deg,#fff 55%,#f7fbff);border:1px solid #d8e9f7;border-radius:16px;box-shadow:0 1px 2px #0b3d6b0a;cursor:pointer;text-align:start;transition:box-shadow .25s ease,transform .25s ease,border-color .25s ease}
 .provider-card:hover{box-shadow:0 14px 26px -18px #0a5fa8b3;transform:translateY(-2px);border-color:#b7d8f4}
+.provider-card:focus-visible{outline:3px solid #73bdff;outline-offset:3px}
 .provider-card-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:7px}
-.provider-card h3{margin:0;min-width:0;max-width:100%;font-size:15px;font-weight:800;line-height:1.4;color:#163f66}
-.provider-name-button{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:start;overflow-wrap:anywhere;cursor:pointer;transition:color .2s ease}
-.provider-name-button:hover{color:#0a64bb}
-.provider-name-button:focus-visible{outline:2px solid #2b8fe0;outline-offset:3px;border-radius:4px}
+.provider-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;margin:0;font-size:15px;font-weight:800;line-height:1.4;color:#163f66;overflow-wrap:anywhere;transition:color .2s ease}
+.provider-card:hover .provider-name{color:#0a64bb}
 .provider-phones{display:flex;flex-wrap:wrap;gap:6px;max-width:100%}
-.provider-phone{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:5px 12px;border:1px solid #bfdcf6;border-radius:999px;background:linear-gradient(110deg,#ecf6ff,#dcefff);color:#0b5fae;font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.2px;text-decoration:none;transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .2s ease}
-.provider-phone:hover{background:linear-gradient(110deg,#0876e1,#075db7);border-color:#075db7;color:#fff;box-shadow:0 10px 18px -12px #075db7;transform:translateY(-1px)}
+.provider-phone{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:4px 12px;border:1px solid #b4e5c8;border-radius:999px;background:linear-gradient(110deg,#ecfbf2,#d6f4e3);color:#11764a;font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.2px}
+.provider-phone svg{flex:none;color:#17a05f}
+.provider-address{display:inline-flex;align-items:center;gap:5px;max-width:100%;color:#5f7a90;font-size:11px;font-weight:600;line-height:1.6;overflow-wrap:anywhere}
+.provider-address svg{flex:none;color:#8fb4d2}
 .provider-card-actions{flex:none;display:flex;align-items:center;gap:6px}
 .provider-share-button,.favorite-button{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid #e1ebf5;border-radius:50%;background:#fff;cursor:pointer;transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .2s ease}
 .provider-share-button{color:#2b6f9d}
@@ -1025,9 +1006,24 @@
 .favorite-button:hover{transform:translateY(-2px)}
 .provider-card-icon{flex:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:14px;color:var(--cat,#0876e1);background:var(--cat-light,#eaf5ff);border:1px solid color-mix(in srgb,var(--cat,#0876e1) 22%,#fff);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 .provider-card:hover .provider-card-icon{transform:rotate(-6deg) scale(1.05)}
+/* Rating: five gold stars plus the stored score, shared by the card and the details overlay. */
+.provider-rating{display:inline-flex;align-items:center;gap:5px;color:#6f8498;font-size:11px;font-weight:800}
+.provider-rating strong{color:#173b61;font-size:12px;font-weight:900;font-variant-numeric:tabular-nums}
+.rating-stars{display:inline-flex;gap:1px;color:#dce6f0}
+.rating-stars .is-on{color:#f5a623}
 .new-flag{position:absolute;top:-9px;inset-inline-end:12px;z-index:2;display:inline-flex;align-items:center;padding:3px 13px 3px 10px;border-radius:3px;background:linear-gradient(135deg,#ff5a5f,#e0212f);color:#fff;font-size:11px;font-weight:900;line-height:1.5;letter-spacing:.2px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%);box-shadow:0 6px 12px -6px #e0212fa6;transform-origin:right center;animation:new-flag-wave 2.6s ease-in-out infinite;pointer-events:none}
 @keyframes new-flag-wave{0%,100%{transform:skewY(0deg)}25%{transform:skewY(-5deg) scaleX(.97)}50%{transform:skewY(0deg)}75%{transform:skewY(4deg) scaleX(1.02)}}
-@media (max-width:420px){.provider-card{min-height:78px;padding:11px 10px 11px 12px;gap:8px}.provider-card h3{font-size:14px}.provider-card-icon{width:40px;height:40px;border-radius:12px}.provider-share-button,.favorite-button{width:34px;height:34px}.provider-phone{font-size:12.5px;padding:4px 10px}}
-@media (prefers-reduced-motion:reduce){.new-flag{animation:none}.provider-card,.provider-card:hover,.provider-card-icon,.provider-share-button:hover,.provider-phone:hover{transform:none!important}}
+
+/* Compact emergency box: red gradient strip with a white "show the numbers" button. */
+.emergency-strip{position:relative;display:flex;align-items:center;gap:14px;overflow:hidden;margin-top:22px;padding:14px 18px;border-radius:14px;background:linear-gradient(110deg,#ff5f52,#e0202f 62%,#c8102e);box-shadow:0 10px 24px -14px #c8102e;color:#fff}
+.emergency-strip-icon{display:grid;place-items:center;flex:none;width:46px;height:46px;border:1px solid #ffffff33;border-radius:13px;background:#ffffff21;color:#fff}
+.emergency-strip-copy{flex:1 1 auto;min-width:0}
+.emergency-strip-copy h2{font-size:16px;font-weight:900;line-height:1.6}
+.emergency-strip-copy p{margin-top:2px;color:#ffd9d5;font-size:11px;font-weight:500;line-height:1.7}
+.emergency-strip-button{flex:none;display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:9px 18px;border-radius:11px;background:#fff;color:#c8102e;font-size:13px;font-weight:900;box-shadow:0 6px 14px -8px #5c0713;transition:transform .2s ease,box-shadow .2s ease}
+.emergency-strip-button:hover{transform:translateY(-2px);box-shadow:0 10px 18px -10px #5c0713}
+@media (max-width:600px){.emergency-strip{flex-wrap:wrap;gap:10px;padding:13px 14px}.emergency-strip-copy{flex:1 1 100%}.emergency-strip-button{width:100%;justify-content:center}}
+@media (max-width:420px){.provider-card{min-height:78px;padding:11px 10px 11px 12px;gap:8px}.provider-name{font-size:14px}.provider-card-icon{width:40px;height:40px;border-radius:12px}.provider-share-button,.favorite-button{width:34px;height:34px}.provider-phone{font-size:12.5px;padding:4px 10px}}
+@media (prefers-reduced-motion:reduce){.new-flag{animation:none}.provider-card,.provider-card:hover,.provider-card-icon,.provider-share-button:hover,.favorite-button:hover,.emergency-strip-button:hover{transform:none!important}}
 /* Admin toolbar dropdowns: keep the desktop widths close to the native selects they replaced. */
 @media (min-width:901px){.admin-toolbar .ui-select{min-width:170px}}

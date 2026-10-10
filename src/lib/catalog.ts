@@ -112,60 +112,10 @@ export type MemberRole = "member" | "moderator";
 export type MemberRecord = { id: string; name: string; username: string; phone: string; role: MemberRole; active: boolean; createdAt: string };
 export type NotificationRecord = { id: string; type: string; title: string; message: string; entityId: string; read: boolean; createdAt: string };
 export type Viewer = { role: "guest" | "member" | "moderator" | "admin"; id?: string; name?: string; username?: string };
-export const marqueeMotionOptions = [
-  { id: "right", label: "انسيابي لليمين" },
-  { id: "left", label: "انسيابي لليسار" },
-  { id: "bounce", label: "ذهاب وعودة" },
-  { id: "fade", label: "ظهور واختفاء" },
-  { id: "wave", label: "موجة متحركة" },
-  { id: "float", label: "طفو وانسياب" },
-  { id: "pulse", label: "نبض وانسياب" },
-  { id: "glow", label: "توهج متحرك" },
-  { id: "blur", label: "ضباب وانسياب" },
-  { id: "static", label: "ثابت بدون حركة" },
-] as const;
-export const marqueeEmojis = ["📢", "⚡", "💪", "📱", "❓", "🥰", "😉", "♥️", "🎯", "❤️‍🔥", "😀", "💥", "💯", "💋", "💗", "🌹", "🔥", "🎉", "🎈", "🎁", "🏆", "☎️", "📌", "🔊", "🚬", "❌", "📳"] as const;
-export const marqueeIconOptions = [{ icon: "Sparkles", label: "لمعة" }] as const;
-export const marqueeTextColors = [
-  { color: "#745827", label: "ذهبي داكن" },
-  { color: "#155e91", label: "أزرق" },
-  { color: "#16734a", label: "أخضر" },
-  { color: "#a43f60", label: "وردي" },
-  { color: "#5d48a1", label: "بنفسجي" },
-  { color: "#27384a", label: "كحلي" },
-  { color: "#f0ece6", label: "عاجي فاتح" },
-  { color: "#ffffff", label: "أبيض" },
-  { color: "#ffd88a", label: "ذهبي فاتح" },
-] as const;
-export const marqueeIconColors = [
-  { color: "#e6a329", label: "ذهبي" },
-  { color: "#1684d4", label: "أزرق" },
-  { color: "#20a66d", label: "أخضر" },
-  { color: "#e75d83", label: "وردي" },
-  { color: "#8561d5", label: "بنفسجي" },
-  { color: "#13a0a0", label: "فيروزي" },
-] as const;
-export const marqueeBackgroundColors = [
-  { color: "#0e0f11", label: "أسود" },
-  { color: "#173453", label: "أزرق داكن" },
-  { color: "#174437", label: "أخضر داكن" },
-  { color: "#49365d", label: "بنفسجي داكن" },
-  { color: "#71404c", label: "خمري" },
-  { color: "#fff6e8", label: "كريمي" },
-  { color: "#eaf4ff", label: "أزرق فاتح" },
-  { color: "#eaf7ef", label: "أخضر فاتح" },
-  { color: "#fff0f4", label: "وردي فاتح" },
-  { color: "#f2efff", label: "بنفسجي فاتح" },
-] as const;
 export type SiteSettings = {
   siteName: string; heroSubtitle: string; heroEyebrow: string; tagline: string;
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;
-  phone: string; adPrice: number; adDays: number; marqueeEnabled: boolean; marqueeSpeed: number;
-  marqueeMotion: typeof marqueeMotionOptions[number]["id"]; marqueeTextColor: typeof marqueeTextColors[number]["color"];
-  marqueeNameColor: typeof marqueeTextColors[number]["color"];
-  marqueeIcon: string; marqueeIconColor: string;
-  marqueeBackgroundColor: typeof marqueeBackgroundColors[number]["color"];
-  marqueeFallback: string; showEmergency: boolean;
+  phone: string; adPrice: number; adDays: number; showEmergency: boolean;
 };
 export type PublicDirectory = {
   services: ServiceRecord[]; ads: AdRecord[]; categories: CategoryRecord[];
@@ -181,9 +131,7 @@ export const defaultSettings: SiteSettings = {
   benefitsText: "دليل يجمع أهل القرية.. ويوصّل كل خدمة لأصحابها",
   contactText: "لحجز إعلان، متابعة طلب إضافة مهنة، أو أي استفسار عن الدليل، تواصل مع مكتب الجمال مباشرة.",
   copyright: "جميع الحقوق محفوظة لمكتب الجمال للدعاية والإعلان.", phone: OFFICE_PHONE,
-  adPrice: AD_PRICE, adDays: 7, marqueeEnabled: true, marqueeSpeed: 38,
-  marqueeMotion: "right", marqueeTextColor: "#ffffff", marqueeNameColor: "#ffd88a", marqueeIcon: "Sparkles", marqueeIconColor: "#e6a329", marqueeBackgroundColor: "#0e0f11",
-  marqueeFallback: "مساحتك الإعلانية هنا.. خلّي شغلك يوصل لكل أهل جنزور مع مكتب الجمال", showEmergency: true,
+  adPrice: AD_PRICE, adDays: 7, showEmergency: true,
 };
 
 export const areas = ["جنزور / الناحية الشرقية", "جنزور / الناحية الغربية", "جنزور / بجوار المسجد البحري", "جنزور / شارع حسيب", "جنزور / السوق القديم", "جنزور / بجوار مكتبة الجمال", "جنزور / شارع السويقة"];

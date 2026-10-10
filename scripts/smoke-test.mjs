@@ -16,7 +16,7 @@ class Client {
 }
 const visitor = new Client(), member = new Client(), admin = new Client();
 const suffix = Date.now().toString(36);
-let serviceId, adId, memberId, rootId, specialtyId, areaId, savedSettings;
+let serviceId, memberId, rootId, specialtyId, areaId, savedSettings;
 const serviceValues = { name: "اختبار آلي - حرفي جنزور", category: "carpentry", area: "عنوان آخر", address: "جنزور / بجوار مدرسة الاختبار", phone: "01012345678", description: "بيانات اختبار للتحقق من مراجعة المهنة والعنوان الآخر قبل موافقة الإدارة.", emergency: true };
 try {
   assert.equal((await visitor.api("/api/health")).data.ok, true);
@@ -24,13 +24,20 @@ try {
   assert.deepEqual(initial.categories.filter((category) => !category.parentId).map((category) => category.id).sort(), initialCategories.filter((category) => !category.parentId).map((category) => category.id).sort());
   assert.deepEqual(initial.areas.map((area) => area.name).sort(), [...areas].sort());
   assert.equal(initial.settings.siteName, defaultSettings.siteName);
+  assert.deepEqual(initial.ads, [], "the public directory no longer serves advertisements");
+  assert.deepEqual(Object.keys(initial.settings).filter((key) => key.startsWith("marquee")), [], "no marquee settings remain");
+  assert.equal((await visitor.api("/api/advertisements")).response.status, 404);
+  assert.equal((await visitor.api("/api/advertisements/events", "POST", { adId: "10000000-0000-4000-8000-000000000001", eventId: "10000000-0000-4000-8000-000000000002", eventType: "impression" })).response.status, 404);
+  const publicMarkup = (await visitor.api("/")).data;
+  for (const marker of ["hero-advertisements", "advertising-strip", "marquee-track", "featured-advertisers"]) assert.ok(!publicMarkup.includes(marker), `${marker} removed from the public pages`);
+  assert.ok(publicMarkup.includes("emergency-strip") && publicMarkup.includes("عرض الأرقام"), "compact emergency box renders");
   assert.ok(initial.areas.every((area) => area.name.startsWith("جنزور /")));
   assert.equal((await visitor.api("/api/admin")).response.status, 401);
   assert.equal((await visitor.api("/api/admin/notifications")).response.status, 401);
   const guestAdmin = await visitor.api("/admin"); assert.equal(guestAdmin.response.status, 307); assert.equal(guestAdmin.response.headers.get("location"), "/login");
   const publicHtml = (await visitor.api("/")).data; assert.ok(!publicHtml.includes('href="/admin"'));
   assert.equal((await visitor.api("/api/auth", "POST", { action: "register", username: "admin", name: "اختبار", phone: "01012345678", password: "admin", confirmPassword: "admin" })).response.status, 400);
-  console.log("PASS: seeded primary categories and Janzour addresses; admin is hidden and protected");
+  console.log("PASS: seeded categories and Janzour addresses; public advertising removed; admin is hidden and protected");
   const registration = await member.api("/api/auth", "POST", { action: "register", name: "عضو اختبار جنزور", username: `qa.${suffix}`, phone: "01012345678", password: "test-pass-123", confirmPassword: "test-pass-123", role: "admin" });
   assert.equal(registration.response.status, 201); assert.equal(registration.data.role, "member");
   const viewer = (await member.api("/api/auth")).data.viewer; assert.equal(viewer.role, "member"); memberId = viewer.id;
@@ -74,24 +81,17 @@ try {
   assert.ok((await visitor.api("/api/services")).data.areas.some((area) => area.name === `جنزور / عنوان معدل ${suffix}`));
   console.log("PASS: dynamic category and specialty pages, safe deletion, hide/show and editable addresses");
   savedSettings = (await admin.api("/api/admin")).data.settings;
-  const revised = { ...savedSettings, heroSubtitle: "وصف اختبار قابل للتعديل", adPrice: 65, adDays: 3, marqueeSpeed: 20 };
+  const revised = { ...savedSettings, heroSubtitle: "وصف اختبار قابل للتعديل", adPrice: 65, adDays: 3 };
   assert.equal((await admin.api("/api/admin", "PATCH", { type: "settings", values: revised })).response.status, 200);
   assert.equal((await visitor.api("/api/services")).data.settings.heroSubtitle, revised.heroSubtitle);
-  result = await visitor.api("/api/advertisements", "POST", { businessName: "إعلان اختبار جنزور", text: "إعلان اختبار للتحقق من المراجعة وتأكيد الدفع والإعدادات المحفوظة.", phone: "01222355769", paid: true, status: "approved", price: 0 }); assert.equal(result.response.status, 201); adId = result.data.id;
-  const pendingAd = (await admin.api("/api/admin")).data.ads.find((ad) => ad.id === adId); assert.equal(pendingAd.price, 65); assert.equal(pendingAd.paid, false);
-  assert.ok(!(await visitor.api("/api/advertisements")).data.ads.some((ad) => ad.id === adId));
-  await admin.api("/api/admin", "PATCH", { type: "ad", id: adId, action: "approve" });
-  const activeAd = (await visitor.api("/api/advertisements")).data.ads.find((ad) => ad.id === adId); assert.equal(activeAd.paid, true); assert.ok(new Date(activeAd.expiresAt).getTime() - Date.now() > 2.9 * 86400000);
-  await admin.api("/api/admin", "PATCH", { type: "settings", values: { ...revised, marqueeEnabled: false } });
-  assert.equal((await visitor.api("/api/services")).data.settings.marqueeEnabled, false);
   const crossOrigin = await admin.api("/api/admin", "PATCH", { type: "settings", values: revised }, "https://not-allowed.example"); assert.equal(crossOrigin.response.status, 403);
   await admin.api("/api/admin", "PATCH", { type: "member", id: memberId, values: { active: false } });
   assert.equal((await member.api("/api/auth")).data.viewer.role, "guest");
-  console.log("PASS: editable site content and advertising price/duration/speed; payment gating, CSRF and member suspension");
+  console.log("PASS: editable site content and booking price/duration; CSRF protection and member suspension");
 } finally {
   await admin.api("/api/auth", "POST", { action: "login", username: "admin", password: "admin" });
   if (savedSettings) await admin.api("/api/admin", "PATCH", { type: "settings", values: savedSettings });
-  for (const [type, id] of [["service", serviceId], ["ad", adId], ["member", memberId], ["category", specialtyId], ["category", rootId], ["area", areaId]]) if (id) await admin.api("/api/admin", "DELETE", { type, id });
+  for (const [type, id] of [["service", serviceId], ["member", memberId], ["category", specialtyId], ["category", rootId], ["area", areaId]]) if (id) await admin.api("/api/admin", "DELETE", { type, id });
   await admin.api("/api/auth", "DELETE"); assert.equal((await admin.api("/api/admin")).response.status, 401);
   console.log("PASS: test data cleaned up, defaults restored and logout revokes access");
 }
