@@ -20,7 +20,7 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
 
   if (hidden) return null;
   return <div className={`splash-screen ${leaving ? "is-leaving" : ""}`} aria-hidden="true">
-    <span className="splash-icon">📍</span>
+    <img className="splash-icon" src="/images/logo-daleel-transparent.png" alt=""/>
     <strong className="splash-title">دليل جنزور</strong>
     <span className="splash-tagline">{tagline}</span>
     <span className="splash-dots"><i/><i/><i/></span>

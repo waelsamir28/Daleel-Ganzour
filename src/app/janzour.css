@@ -1,9 +1,9 @@
 /* Janzour directory: hierarchy, independent membership and editable administration. */
-/* Splash screen (mounted by the root layout): navy gradient cover with a glassy pin, the site name,
-   the tagline and loading dots. It fades out after about a second and unmounts itself. */
+/* Splash screen (mounted by the root layout): navy gradient cover with the site logo, name,
+   tagline and loading dots. It fades out after about a second and unmounts itself. */
 .splash-screen{position:fixed;inset:0;z-index:90;display:grid;place-content:center;justify-items:center;gap:14px;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#14406b 0%,#0d2a49 46%,#061729 100%);opacity:1;transition:opacity .48s ease,visibility .48s ease}
 .splash-screen.is-leaving{opacity:0;visibility:hidden;pointer-events:none}
-.splash-icon{display:grid;place-items:center;width:96px;height:96px;border:1px solid #ffffff2e;border-radius:28px;background:linear-gradient(150deg,#ffffff30,#ffffff10);backdrop-filter:blur(8px);box-shadow:0 22px 44px -22px #000c,inset 0 1px 0 #ffffff40;font-size:44px;line-height:1;animation:splash-float 2.4s ease-in-out infinite}
+.splash-icon{display:block;width:clamp(180px,34vw,250px);height:auto;max-height:38vh;object-fit:contain;border:0;border-radius:0;background:transparent;backdrop-filter:none;box-shadow:none;animation:splash-float 2.4s ease-in-out infinite}
 .splash-title{color:#fff;font-size:30px;font-weight:900;letter-spacing:.2px;text-shadow:0 10px 26px #0009}
 .splash-tagline{max-width:330px;color:#c7dcf3;font-size:13px;font-weight:600;line-height:1.9;text-align:center}
 .splash-dots{display:inline-flex;gap:7px}
@@ -12,7 +12,7 @@
 .splash-dots i:nth-child(3){animation-delay:.32s}
 @keyframes splash-dot{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
 @keyframes splash-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-@media (max-width:420px){.splash-icon{width:82px;height:82px;border-radius:24px;font-size:37px}.splash-title{font-size:25px}.splash-tagline{font-size:12px}}
+@media (max-width:420px){.splash-icon{width:clamp(170px,54vw,220px);height:auto}.splash-title{font-size:25px}.splash-tagline{font-size:12px}}
 @media (prefers-reduced-motion:reduce){.splash-icon,.splash-dots i{animation:none}.splash-screen{transition:opacity .2s linear,visibility .2s linear}}
 .hero-with-banner{background:transparent;color:var(--navy);overflow:visible}
 .hero-with-banner .hero-glow,.hero-with-banner .hero-skyline{display:none}
@@ -55,7 +55,8 @@
 /* Footer (RTL). Row 1: contact (left), copyright (centre). Row 2: brand group (right), links (left). */
 .site-footer .footer-main{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:". copy contact" "group . links";align-items:center;gap:12px 24px;padding-block:16px}
 .site-footer .footer-brand-group{grid-area:group;justify-self:start;display:flex;align-items:center;gap:16px;min-width:0}
-.site-footer .footer-brand-lockup{padding:0;min-width:0}
+.site-footer .footer-brand-lockup{display:flex;align-items:center;gap:12px;padding:0;min-width:0}
+.site-footer .footer-brand-lockup img{display:block;width:64px;height:64px;object-fit:contain;flex:none}
 .site-footer .footer-brand-copy{display:grid;justify-items:center;gap:3px;text-align:center;white-space:normal}
 .site-footer .footer-brand-copy strong{color:#fff;font-size:16px;font-weight:800;line-height:1.5}
 .site-footer .footer-brand-copy span{color:#a9c5e0;font-size:11px;line-height:1.6}
@@ -904,8 +905,6 @@
   .modal-body .confirmation-buttons { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Logo placeholders: the logo was removed, but the space stays so the new logo can go in the same place. */
-.brand-logo-slot{display:block;background:transparent;border:0;box-shadow:none;padding:0}
 .login-logo-slot{display:block;aspect-ratio:1055/1491;height:auto}
 
 

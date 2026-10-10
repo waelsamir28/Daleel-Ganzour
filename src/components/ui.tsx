@@ -13,8 +13,7 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
 }
 export function Logo({ compact = false, footer = false, name = defaultSettings.siteName }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
   return <Link href="/" className={`brand brand-logo-only ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
-    {/* Logo removed. When the new logo is ready, replace this span with <img className="brand-symbol" .../>. */}
-    <span className="brand-symbol brand-logo-slot" aria-hidden="true"/>
+    <img className="brand-symbol" src="/images/logo-daleel-transparent.png" alt=""/>
   </Link>;
 }
 export function ServiceArt({ category, item }: { category: string; item?: CategoryRecord }) {
