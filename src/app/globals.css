@@ -88,11 +88,11 @@ img,svg{vertical-align:middle}
 .section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
  .section-heading h2{font-size:19px;font-weight:800;display:flex;align-items:center;gap:9px;line-height:1.7}
  .section-heading h2>svg{flex-shrink:0}
- .directory-section-heading{position:relative;isolation:isolate}
- .directory-section-heading:before{content:"";position:absolute;inset-inline:0;top:22px;height:1px;background:linear-gradient(90deg,transparent,#c8dfef 16%,#c8dfef 84%,transparent);z-index:-1}
- .directory-section-heading>div{padding-inline:18px;background:#fff}
- .directory-section-heading h2{width:max-content;max-width:100%;padding:5px 16px;border:1px solid #cfe4f2;border-radius:999px;background:linear-gradient(135deg,#fff,#f2f9fd);box-shadow:0 4px 12px #126ba20d;color:#174c70}
- .directory-section-heading h2>svg{color:#1681b9}
+ .directory-section-heading{position:relative}
+ .directory-section-heading:before{display:none}
+ .directory-section-heading>div{padding-inline:0;background:transparent}
+ .directory-section-heading h2{width:max-content;max-width:100%;padding:7px 17px;border:1px solid #b9d1e5;border-radius:999px;background:linear-gradient(135deg,#17679c,#124b7a);box-shadow:0 5px 13px #124b7a26,inset 0 1px 0 #ffffff33;color:#fff}
+ .directory-section-heading h2>svg{width:30px;height:30px;padding:5px;color:#fff;background:linear-gradient(145deg,#20b9e8,#0876c9);border-radius:10px;filter:drop-shadow(0 3px 2px #062f571f)}
  .section-heading p{color:var(--muted);font-size:12px;margin-top:5px;padding-inline:16px}
   .section-count{font-size:11px;background:#f3f7fc;border:1px solid #e8eff6;color:#8094ae;padding:3px 9px;border-radius:30px;white-space:nowrap}
 .category-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px 14px}
