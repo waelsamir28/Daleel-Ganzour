@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 // The splash lives in the root layout, which Next.js mounts only on a full page load — never on a
 // client-side navigation — so it appears when the site is opened and stays out of the way afterwards.
@@ -20,7 +21,7 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
 
   if (hidden) return null;
   return <div className={`splash-screen ${leaving ? "is-leaving" : ""}`} aria-hidden="true">
-    <span className="splash-icon">📍</span>
+    <Image className="splash-icon" src="/images/logo-daleel-transparent.png" alt="" width={250} height={250} priority sizes="(max-width: 420px) 54vw, 250px"/>
     <strong className="splash-title">دليل جنزور</strong>
     <span className="splash-tagline">{tagline}</span>
     <span className="splash-dots"><i/><i/><i/></span>
