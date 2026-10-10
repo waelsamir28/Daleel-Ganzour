@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import "@fontsource/tajawal/arabic.css";
-import "@fontsource/tajawal/latin.css";
+import "@fontsource/cairo/400.css";
+import "@fontsource/cairo/500.css";
+import "@fontsource/cairo/600.css";
+import "@fontsource/cairo/700.css";
+import "@fontsource/cairo/800.css";
+import "@fontsource/cairo/900.css";
 import PwaInstall from "@/components/pwa-install";
 import RouteTransition from "@/components/route-transition";
 import SplashScreen from "@/components/splash-screen";
