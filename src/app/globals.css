@@ -86,12 +86,15 @@ img,svg{vertical-align:middle}
 .directory-main{min-width:0}
 .directory-sidebar{display:flex;flex-direction:column;gap:15px;min-width:0}
 .section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
-.section-heading h2{font-size:19px;font-weight:800;display:flex;align-items:center;gap:9px;line-height:1.7}
-.section-heading h2>svg{flex-shrink:0}
-.directory-section-heading h2{color:#174c70}
-.directory-section-heading h2>svg{color:#1681b9}
-.section-heading p{color:var(--muted);font-size:12px;margin-top:1px}
-.section-count{font-size:11px;background:#f3f7fc;border:1px solid #e8eff6;color:#8094ae;padding:3px 9px;border-radius:30px;white-space:nowrap}
+ .section-heading h2{font-size:19px;font-weight:800;display:flex;align-items:center;gap:9px;line-height:1.7}
+ .section-heading h2>svg{flex-shrink:0}
+ .directory-section-heading{position:relative;isolation:isolate}
+ .directory-section-heading:before{content:"";position:absolute;inset-inline:0;top:22px;height:1px;background:linear-gradient(90deg,transparent,#c8dfef 16%,#c8dfef 84%,transparent);z-index:-1}
+ .directory-section-heading>div{padding-inline:18px;background:#fff}
+ .directory-section-heading h2{width:max-content;max-width:100%;padding:5px 16px;border:1px solid #cfe4f2;border-radius:999px;background:linear-gradient(135deg,#fff,#f2f9fd);box-shadow:0 4px 12px #126ba20d;color:#174c70}
+ .directory-section-heading h2>svg{color:#1681b9}
+ .section-heading p{color:var(--muted);font-size:12px;margin-top:5px;padding-inline:16px}
+  .section-count{font-size:11px;background:#f3f7fc;border:1px solid #e8eff6;color:#8094ae;padding:3px 9px;border-radius:30px;white-space:nowrap}
 .category-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px 14px}
 .category-tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;background:var(--category-light);border:1px solid color-mix(in srgb,var(--category-color) 10%,transparent);border-radius:14px;padding:14px 12px;min-width:0;transition:transform .18s,box-shadow .18s,border-color .18s}
 .category-tile:hover{transform:translateY(-4px);box-shadow:0 7px 18px color-mix(in srgb,var(--category-color) 12%,transparent);border-color:color-mix(in srgb,var(--category-color) 40%,transparent)}
