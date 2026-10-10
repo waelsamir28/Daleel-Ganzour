@@ -426,13 +426,14 @@
 @media(max-width:760px){.admin-sidebar{background:linear-gradient(165deg,#153b50 0%,#102f43 100%);box-shadow:0 12px 28px rgba(16,43,58,.12)}.admin-sidebar-label{color:#a5c2c7}.admin-topbar{padding:19px 16px}.admin-topbar h1{font-size:28px}.admin-content-heading{flex-wrap:wrap}.admin-review-notice{flex-wrap:wrap}} 
 @media(max-width:420px){.admin-topbar{padding:16px 12px}.admin-stat{min-height:118px;padding:12px 8px}.admin-content{padding:17px 11px}}
 @media(prefers-reduced-motion:reduce){.admin-sidebar nav button,.admin-sidebar-bottom>a,.admin-sidebar-bottom>button,.admin-notification-button,.admin-stat,.admin-service-row,.admin-row-actions .button-small,.admin-shell .button{transition:none!important}}
-.directory-section-heading{position:relative;overflow:hidden;min-height:70px;padding:10px 14px 12px 12px;margin-bottom:16px;border:1px solid #e3edf7;border-radius:14px;background:linear-gradient(135deg,#f9fcff,#f1f8ff)}
-.directory-section-heading::before{content:"";position:absolute;right:0;top:12px;bottom:12px;width:3px;border-radius:3px 0 0 3px;background:linear-gradient(180deg,#0786dc,#12a78e)}
-.directory-section-heading::after{content:"";position:absolute;right:14px;bottom:0;width:54px;height:2px;border-radius:2px 2px 0 0;background:linear-gradient(90deg,#0b83d5,#14a88d)}
+.directory-section-heading{position:relative;overflow:hidden;min-height:70px;padding:10px 14px 12px 12px;margin-bottom:16px;border:1px solid #d8eafb;border-radius:18px;background:linear-gradient(135deg,#f5faff,#eaf5ff);box-shadow:0 6px 18px #174b7a0c}
+.directory-section-heading::before{content:"";position:absolute;right:0;top:12px;bottom:12px;width:4px;border-radius:4px 0 0 4px;background:linear-gradient(180deg,#12a8de,#0876d1)}
+.directory-section-heading::after{content:"";position:absolute;right:14px;bottom:0;width:54px;height:2px;border-radius:2px 2px 0 0;background:linear-gradient(90deg,#0b83d5,#14a8de)}
 .directory-section-heading>div:first-child{min-width:0}
-.directory-section-heading h2{color:#ffffff}
-.directory-section-heading h2>svg{width:34px;height:34px;padding:7px;border:1px solid #d9eafa;border-radius:11px;background:linear-gradient(145deg,#f4faff,#eaf5ff);color:#0878c9}
-.directory-section-heading p{margin-top:2px!important;color:#7189a1!important}
+.directory-section-heading h2{padding:6px 13px 7px;border:1px solid #ffffff40;border-radius:14px;background:linear-gradient(135deg,#0986d5,#075db7);box-shadow:0 4px 11px #075db729;color:#fff}
+.directory-section-heading h2:after{display:none}
+.directory-section-heading h2>svg{width:34px;height:34px;padding:7px;border:1px solid #ffffff4d;border-radius:11px;background:linear-gradient(145deg,#ffffff40,#ffffff1a);color:#fff}
+.directory-section-heading p{margin-top:2px!important;color:#5f7891!important}
 .directory-section-heading .section-count{border-color:#dceafa;background:#f1f8ff;color:#3974a9;font-weight:700}
 .directory-main .providers-section{position:relative;margin-top:29px;border-top:0;padding-top:25px}
 .directory-main .providers-section::before{content:"";position:absolute;top:0;right:0;left:0;height:1px;background:linear-gradient(to left,#1687d5 0 42px,#8fa8c0 42px 100%)}
