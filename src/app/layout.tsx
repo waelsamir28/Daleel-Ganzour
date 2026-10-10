@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "@fontsource/cairo/arabic.css";
 import PwaInstall from "@/components/pwa-install";
 import RouteTransition from "@/components/route-transition";
+import SplashScreen from "@/components/splash-screen";
 import "./globals.css";
 import "./janzour.css";
-import "./advertising.css";
 
 export const metadata: Metadata = {
   title: "دليل المهن والخدمات بقرية جنزور",
@@ -26,5 +26,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return <html lang="ar" dir="rtl"><body><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
+  return <html lang="ar" dir="rtl"><body><SplashScreen /><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
 }

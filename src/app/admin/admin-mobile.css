@@ -12,11 +12,11 @@
   min-width: 0;
   max-width: 100%;
 }
-.admin-shell :where(.admin-service-list, .admin-ad-list, .admin-member-list, .notifications-list, .campaign-management) {
+.admin-shell :where(.admin-service-list, .admin-member-list, .notifications-list) {
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
-.admin-shell :where(.admin-service-row, .admin-ad-row, .admin-member-row, .notification-row, .address-management-row, .category-management-group, .category-management-row, .admin-service-summary, .admin-service-name, .admin-row-actions, .campaign-admin-actions, .campaign-admin-info, .admin-card-footer) {
+.admin-shell :where(.admin-service-row, .admin-member-row, .notification-row, .address-management-row, .category-management-group, .category-management-row, .admin-service-summary, .admin-service-name, .admin-row-actions, .admin-card-footer) {
   min-width: 0;
   max-width: 100%;
 }
@@ -102,7 +102,7 @@
   }
 }
 
-/* 3) Request and ad cards on phones: a short summary, then one primary action and a "إجراءات" button */
+/* 3) Request cards on phones: a short summary, then one primary action and a "إجراءات" button */
 /* Desktop keeps the inline buttons; the mobile footer is hidden there. */
 .admin-shell .admin-card-footer {
   display: none;
@@ -110,7 +110,6 @@
 
 @media (max-width: 850px) {
   .admin-shell .admin-service-row,
-  .admin-shell .admin-ad-row,
   .admin-shell .admin-member-row {
     gap: 10px;
     padding: 12px;
@@ -156,9 +155,6 @@
     line-height: 1.85;
   }
   .admin-shell .admin-row-actions,
-  .admin-shell .campaign-admin-actions {
-    display: none;
-  }
   .admin-shell .admin-card-footer {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -181,48 +177,6 @@
     min-height: 44px;
     padding: 9px 12px;
     font-size: 12px;
-  }
-  .admin-shell .admin-ad-title {
-    gap: 8px;
-  }
-  .admin-shell .admin-ad-title > div {
-    flex: 1 1 100%;
-  }
-  .admin-shell .admin-ad-title h3 {
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  .admin-shell .admin-ad-title p {
-    font-size: 10px;
-  }
-  .admin-shell .admin-ad-row blockquote {
-    padding: 9px 11px;
-    font-size: 12px;
-    line-height: 1.85;
-  }
-  .admin-shell .campaign-admin-info {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .admin-shell .campaign-admin-info > span {
-    min-width: 0;
-    padding: 6px 8px;
-    background: #f4f8f8;
-    line-height: 1.6;
-  }
-  .admin-shell .campaign-admin-info > span:first-child {
-    grid-column: 1 / -1;
-  }
-  .admin-shell .campaign-ad-metrics > span {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
-    padding: 8px 9px;
-    font-size: 10px;
-  }
-  .admin-shell .campaign-ad-metrics strong {
-    font-size: 15px;
   }
 }
 

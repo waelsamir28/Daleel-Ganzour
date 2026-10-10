@@ -2,7 +2,7 @@ import "server-only";
 import { databaseConfigured, db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { defaultSettings, iconNames, marqueeBackgroundColors, marqueeMotionOptions, marqueeTextColors, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
+import { defaultSettings, iconNames, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
 
@@ -32,11 +32,6 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
   if (!address) address = area;
   return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true };
 }
-export function adInput(body: Record<string, unknown>) {
-  const businessName = cleanText(body.businessName, 160), text = cleanText(body.text, 300), phone = cleanPhone(body.phone);
-  if (businessName.length < 3 || text.length < 10 || !validPhone(phone)) throw new InputError("أدخل اسم النشاط ونص الإعلان ورقم هاتف مصري صحيح.");
-  return { businessName, text, phone };
-}
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);
   const parentId = cleanText(body.parentId, 60) || null;
@@ -46,21 +41,10 @@ export function categoryInput(body: Record<string, unknown>) {
 }
 export function settingsInput(body: Record<string, unknown>): SiteSettings {
   const next = { ...defaultSettings };
-  const textKeys = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright", "marqueeFallback"] as const;
-  for (const key of textKeys) { const value = cleanText(body[key], key === "contactText" || key === "marqueeFallback" ? 500 : 240); if (!value) throw new InputError("حقول نصوص الموقع مطلوبة."); next[key] = value; }
+  const textKeys = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright"] as const;
+  for (const key of textKeys) { const value = cleanText(body[key], key === "contactText" ? 500 : 240); if (!value) throw new InputError("حقول نصوص الموقع مطلوبة."); next[key] = value; }
   next.phone = cleanPhone(body.phone); if (!validPhone(next.phone)) throw new InputError("رقم تواصل المكتب غير صحيح.");
-  next.adPrice = integerInput(body.adPrice, 1, 100000, "سعر الإعلان");
-  next.adDays = integerInput(body.adDays, 1, 365, "مدة الإعلان");
-  next.marqueeSpeed = integerInput(body.marqueeSpeed, 10, 120, "مدة حركة الشريط");
-  if (typeof body.marqueeMotion !== "string" || !marqueeMotionOptions.some(({ id }) => id === body.marqueeMotion)) throw new InputError("اختار نوع حركة صحيح للشريط.");
-  if (typeof body.marqueeTextColor !== "string" || !marqueeTextColors.some(({ color }) => color === body.marqueeTextColor)) throw new InputError("اختار لونًا من لوحة الألوان.");
-  if (typeof body.marqueeNameColor !== "string" || !marqueeTextColors.some(({ color }) => color === body.marqueeNameColor)) throw new InputError("اختار لونًا صحيحًا لاسم النشاط.");
-  if (typeof body.marqueeBackgroundColor !== "string" || !marqueeBackgroundColors.some(({ color }) => color === body.marqueeBackgroundColor)) throw new InputError("اختار لونًا صحيحًا لخلفية الشريط.");
-  next.marqueeMotion = body.marqueeMotion as SiteSettings["marqueeMotion"];
-  next.marqueeTextColor = body.marqueeTextColor as SiteSettings["marqueeTextColor"];
-  next.marqueeNameColor = body.marqueeNameColor as SiteSettings["marqueeNameColor"];
-  next.marqueeBackgroundColor = body.marqueeBackgroundColor as SiteSettings["marqueeBackgroundColor"];
-  next.marqueeEnabled = body.marqueeEnabled === true; next.showEmergency = body.showEmergency === true;
+  next.showEmergency = body.showEmergency === true;
   return next;
 }
 export function apiError(error: unknown) {
