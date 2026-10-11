@@ -15,7 +15,7 @@ function availabilityInput(action: unknown, current = { availableNow: false, ava
 
 export const dynamic = "force-dynamic";
 const statusInput = (value: unknown) => {
-  if (typeof value !== "string" || !["pending", "approved", "rejected"].includes(value)) throw new InputError("حالة غير صحيحة.");
+  if (typeof value !== "string" || !["pending", "approved", "rejected", "needs-info"].includes(value)) throw new InputError("حالة غير صحيحة.");
   return value;
 };
 function uuid(value: unknown) { if (!validId(value)) throw new InputError("معرّف غير صحيح."); return value; }
@@ -65,7 +65,7 @@ export async function PATCH(request: Request) {
     const body = objectInput(await request.json());
     const { type, action } = body;
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
-    const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "sold", "filled"].includes(String(action)));
+    const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "sold", "filled"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
@@ -103,11 +103,18 @@ export async function PATCH(request: Request) {
       if (!existing) throw new InputError("الخدمة غير موجودة.", 404);
       if (action === "edit") {
         const values = objectInput(body.values), basics = await serviceInput(values, true), status = statusInput(values.status);
-        await db.update(services).set({ ...basics, ...availabilityInput(values.availabilityAction, existing), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: typeof values.demo === "boolean" ? values.demo : existing.demo }).where(eq(services.id, id));
+        const reviewNote = cleanText(values.reviewNote || existing.reviewNote, 1000);
+        if ((status === "rejected" || status === "needs-info") && reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوبة.");
+        await db.update(services).set({ ...basics, ...availabilityInput(values.availabilityAction, existing), status, reviewNote: status === "approved" || status === "pending" ? "" : reviewNote, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: typeof values.demo === "boolean" ? values.demo : existing.demo }).where(eq(services.id, id));
       } else if (action === "approve") {
         await serviceInput({ ...existing }, false);
-        await db.update(services).set({ status: "approved", verified: true }).where(eq(services.id, id));
-      } else if (action === "reject") await db.update(services).set({ status: "rejected", verified: false, featured: false }).where(eq(services.id, id));
+        await db.update(services).set({ status: "approved", verified: true, reviewNote: "" }).where(eq(services.id, id));
+      } else if (action === "reject" || action === "request-info") {
+        const reviewNote = cleanText(body.reviewNote ?? "", 1000);
+        if (reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوب استكمالها.");
+        if (action === "request-info" && existing.status === "approved") throw new InputError("طلب الاستكمال متاح للطلبات غير المنشورة فقط.");
+        await db.update(services).set({ status: action === "reject" ? "rejected" : "needs-info", reviewNote, verified: false, featured: false }).where(eq(services.id, id));
+      }
       else if (action === "feature" && existing.status === "approved") await db.update(services).set({ featured: !existing.featured }).where(eq(services.id, id));
       else throw new InputError("إجراء غير صحيح. لا يمكن تمييز خدمة قبل نشرها.");
     } else if (type === "community") {

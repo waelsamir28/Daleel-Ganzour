@@ -106,7 +106,9 @@ export default function AdminPanel({ initialData, initialTab, username = "admin"
     finally { setBusy(null); }
   }
   async function change(id: string, kind: EntityKind, action: string) {
-    const ok = await mutate("PATCH", { id, type: kind, action }, action === "approve" ? "تمت الموافقة، والخدمة ظهرت في الدليل." : action === "feature" ? "تم تحديث تمييز الخدمة." : "تم إيقاف النشر وتحديث الطلب.");
+    const reviewNote = action === "reject" && kind === "service" ? window.prompt("سبب الرفض أو إيقاف النشر (يظهر لصاحب رابط المتابعة):") : undefined;
+    if (action === "reject" && kind === "service" && !reviewNote?.trim()) return;
+    const ok = await mutate("PATCH", { id, type: kind, action, reviewNote }, action === "approve" ? "تمت الموافقة، والخدمة ظهرت في الدليل." : action === "feature" ? "تم تحديث تمييز الخدمة." : "تم إيقاف النشر وتحديث الطلب.");
     if (ok) setConfirmation(null);
   }
   async function changeCommunityListing(listing: CommunityListingRecord, action: "approve" | "reject" | "sold" | "filled") {
@@ -118,12 +120,14 @@ export default function AdminPanel({ initialData, initialTab, username = "admin"
   }
   const visibleSelectedIds = selectedServiceIds.filter((id) => filteredServices.some((service) => service.id === id));
   async function runBulkServiceAction(action: "approve" | "reject", ids: string[]) {
+    const reviewNote = action === "reject" ? window.prompt("سبب الرفض للمهن المحددة (يظهر لصاحب رابط المتابعة):") : undefined;
+    if (action === "reject" && !reviewNote?.trim()) return;
     setBusy("bulk"); setBulkServiceAction(null);
     let done = 0, failed = 0, latest = null as AdminDirectory | null;
     try {
       for (const id of ids) {
         try {
-          const response = await fetch("/api/admin", { method: "PATCH", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, type: "service", action }) });
+          const response = await fetch("/api/admin", { method: "PATCH", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, type: "service", action, reviewNote }) });
           if (response.status === 401 || response.status === 403) { window.location.assign(response.status === 401 ? "/login" : "/account"); break; }
           const result = await response.json();
           if (!response.ok) { failed += 1; continue; }
@@ -194,6 +198,7 @@ export default function AdminPanel({ initialData, initialTab, username = "admin"
     {bulkServiceAction && <Modal title={bulkServiceAction.action === "approve" ? "نشر المهن المحددة؟" : "رفض المهن المحددة؟"} onClose={() => setBulkServiceAction(null)}><div className="confirmation-content"><span className={bulkServiceAction.action === "approve" ? "confirm-approve-icon" : "confirm-delete-icon"}>{bulkServiceAction.action === "approve" ? <Check size={32}/> : <X size={32}/>}</span><h3>{bulkServiceAction.ids.length} مهنة</h3><p>{bulkServiceAction.action === "approve" ? "هتظهر في الدليل للزوار فور الموافقة." : "هتتشال من ظهور الزوار، وتفضل محفوظة في قسم الطلبات."}</p><div className="confirmation-buttons"><button className={bulkServiceAction.action === "approve" ? "button button-success" : "button button-danger"} disabled={busy === "bulk"} onClick={() => void runBulkServiceAction(bulkServiceAction.action, bulkServiceAction.ids)}>{busy === "bulk" ? <LoaderCircle size={18} className="spin"/> : bulkServiceAction.action === "approve" ? <Check size={18}/> : <X size={18}/>} {bulkServiceAction.action === "approve" ? "نعم، انشر" : "نعم، ارفض"}</button><button className="button button-soft" onClick={() => setBulkServiceAction(null)}>إلغاء</button></div></div></Modal>}{bulkDeleteConfirmation && <Modal title="حذف الإشعارات؟" onClose={() => setBulkDeleteConfirmation(null)}><div className="confirmation-content"><span className="confirm-delete-icon"><Trash2 size={32}/></span><h3>{bulkDeleteConfirmation.deleteAll ? "كل الإشعارات" : `${bulkDeleteConfirmation.ids.length} إشعار`}</h3><p>الحذف نهائي ولا يمكن التراجع عنه.</p><div className="confirmation-buttons"><button className="button button-danger" disabled={busy === "saving"} onClick={() => void deleteBulkNotifications()}>{busy === "saving" ? <LoaderCircle size={18} className="spin"/> : <Trash2 size={18}/>} {bulkDeleteConfirmation.deleteAll ? "نعم، احذف الكل" : "نعم، احذف المحدد"}</button><button className="button button-soft" onClick={() => setBulkDeleteConfirmation(null)}>إلغاء</button></div></div></Modal>}
   {serviceMenu && <AdminActionSheet title={serviceMenu.title} subtitle={serviceMenu.subtitle} items={serviceMenu.items} onClose={() => setServiceMenu(null)}/>}
     {!isModerator && <AppointmentAdmin/>}
+    {tab === "requests" && <section className="admin-content"><h2>طلب استكمال البيانات</h2>{data.services.filter((service) => service.status !== "approved").map((service) => <article key={service.id}><strong>{service.name}</strong><p>{service.status === "needs-info" ? "بانتظار استكمال صاحب الطلب" : "طلب غير منشور"}</p><button className="button button-soft" onClick={async () => { const reviewNote = window.prompt("ما البيانات المطلوب استكمالها؟ ستظهر لصاحب الرابط الخاص."); if (reviewNote?.trim()) await mutate("PATCH", { id: service.id, type: "service", action: "request-info", reviewNote }, "تم طلب استكمال البيانات."); }}>طلب استكمال</button></article>)}</section>}
     {(tab === "directory" || tab === "requests") && <section className="admin-content"><h2>استكمال بيانات المهن</h2>{data.services.filter((service) => missingServiceData(service).length > 0).map((service) => <article key={service.id}><strong>{service.name}</strong><p>ناقص: {missingServiceData(service).join("، ")}</p>{!isModerator && <button className="button button-soft" onClick={() => setEditing({ kind: "service", item: service })}>استكمال البيانات</button>}</article>)}</section>}
   </div>;
 }
