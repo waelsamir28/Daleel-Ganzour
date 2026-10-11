@@ -846,7 +846,20 @@
 .modal-body .success-state h3 { color: #173b61; font-size: 18px; font-weight: 900; line-height: 1.5; }
 .modal-body .success-state p { color: #5f7a90; font-size: 13px; line-height: 1.8; }
 .modal-body .success-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: #e7f8ef; color: #09a85a; }
-.modal-body .reference-number { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 10px; background: #f1f7fc; color: #173b61; font-size: 13px; font-weight: 900; }
+	.modal-body .reference-number { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 10px; background: #f1f7fc; color: #173b61; font-size: 13px; font-weight: 900; }
+
+/* Targeted visual refinements */
+.hero-with-banner .hero-search{background:rgba(57,185,243,.24)}
+.hero-with-banner .search-input-wrap input{background:rgba(8,118,225,.01)}
+.hero-with-banner .hero-trust>span:last-of-type{flex-direction:column;font-weight:700}
+.hero-with-banner .hero-trust .search-add-service{gap:4px;font-size:18px}
+.directory-section-heading{text-align:center}
+.site-footer .footer-brand-lockup img{border-radius:12px}
+.site-footer .footer-main{font-family:inherit;text-align:left}
+.site-footer .footer-copyright{font-family:inherit}
+.site-header .header-inner{display:unset}
+.site-header .auth-links>a:first-child{justify-content:center;flex-direction:column}
+.site-header .auth-links .register-link{flex-direction:column}
 .modal-body .text-button { color: #0876e1; font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .modal-body .contact-content { display: grid; justify-items: center; gap: 12px; padding: 4px 0 2px; text-align: center; }
 .modal-body .contact-illustration { display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, #e7f3ff, #d3eaff); color: #0876e1; }
@@ -983,14 +996,14 @@
    category-coloured icon square, favourite above share on the left, and a light-blue call strip.
    The whole card (including the call button) opens the details overlay; calling happens there only. */
 .provider-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
-.provider-card{position:relative;display:grid;gap:10px;min-width:0;padding:14px;border:2px solid #1c5daa;border-radius:16px;background:#fff;box-shadow:0 2px 10px #1c5daa14;cursor:pointer;text-align:start;transition:box-shadow .25s ease,transform .25s ease}
-.provider-card:hover{box-shadow:0 16px 30px -18px #1c5daab3;transform:translateY(-2px)}
+.provider-card{position:relative;display:grid;gap:10px;min-width:0;padding:14px;border:2px solid #b9ddec;border-radius:16px;background:#fff;box-shadow:0 2px 10px #1c5daa14;cursor:pointer;text-align:start;transition:border-color .25s ease,box-shadow .25s ease,transform .25s ease}
+.provider-card:hover{border-color:#62b7dc;box-shadow:0 16px 30px -18px #1c5daab3;transform:translateY(-2px)}
 .provider-card:focus-visible{outline:3px solid #73bdff;outline-offset:3px}
 .provider-card-main{display:flex;align-items:flex-start;gap:12px;min-width:0}
 .provider-card-icon{flex:none;display:grid;place-items:center;width:54px;height:54px;border-radius:16px;color:#fff;background:linear-gradient(140deg,var(--cat,#0876e1),color-mix(in srgb,var(--cat,#0876e1) 60%,#0b2d52));box-shadow:0 10px 18px -12px color-mix(in srgb,var(--cat,#0876e1) 85%,#000);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
 .provider-card:hover .provider-card-icon{transform:rotate(-6deg) scale(1.04)}
 .provider-card-copy{flex:1 1 auto;min-width:0;display:grid;gap:5px;justify-items:start}
-.provider-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;margin:0;color:#b42318;font-size:16px;font-weight:900;line-height:1.45;overflow-wrap:anywhere}
+.provider-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;margin:0;color:#e86007;font-size:16px;font-weight:900;line-height:1.45;overflow-wrap:anywhere}
 .provider-specialty{display:inline-flex;align-items:center;max-width:100%;color:#1c5daa;font-size:12px;font-weight:800;line-height:1.6;overflow-wrap:anywhere}
 .provider-rating{display:inline-flex;align-items:center;gap:5px;color:#6f8498;font-size:11px;font-weight:800}
 .provider-rating strong{color:#173b61;font-size:12px;font-weight:900;font-variant-numeric:tabular-nums}
