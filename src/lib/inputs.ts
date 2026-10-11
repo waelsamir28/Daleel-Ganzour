@@ -31,10 +31,10 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
   if (!area) throw new InputError("اختار العنوان.");
   if (!address) address = area;
   const hours = cleanText(body.hours ?? "", 120), menuUrl = cleanText(body.menuUrl ?? "", 500), menuWhatsapp = cleanPhone(body.menuWhatsapp ?? "");
-  let workingHours, serviceItems;
-  try { workingHours = parseWorkingHours(admin ? body.workingHours : undefined); serviceItems = parseServiceItems(admin ? body.serviceItems : undefined); }
+  let workingHours, serviceItems, subSpecialties;
+  try { workingHours = parseWorkingHours(admin ? body.workingHours : undefined); serviceItems = parseServiceItems(admin ? body.serviceItems : undefined); subSpecialties = parseServiceItems(admin ? body.subSpecialties : undefined); }
   catch (error) { throw new InputError(error instanceof Error ? error.message : "مواعيد العمل غير صحيحة."); }
-  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, hours, menuUrl, menuWhatsapp, ...(admin ? { workingHours, serviceItems } : {}) };
+  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, hours, menuUrl, menuWhatsapp, ...(admin ? { workingHours, serviceItems, subSpecialties, neededRank: integerInput(body.neededRank ?? 0, 0, 1000, "ترتيب الأكثر احتياجًا") } : {}) };
 }
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);
@@ -52,8 +52,8 @@ export function settingsInput(body: Record<string, unknown>): SiteSettings {
   return next;
 }
 export function apiError(error: unknown) {
-  if (!databaseConfigured) return Response.json({ error: "الحفظ غير متاح في وضع المعاينة دون قاعدة بيانات." }, { status: 503 });
   if (error instanceof InputError) return Response.json({ error: error.message }, { status: error.status });
+  if (!databaseConfigured) return Response.json({ error: "الحفظ غير متاح في وضع المعاينة دون قاعدة بيانات." }, { status: 503 });
   if (error instanceof SyntaxError) return Response.json({ error: "بيانات الطلب غير صحيحة." }, { status: 400 });
   console.error("Directory request failed", error);
   return Response.json({ error: "تعذر تنفيذ الطلب. حاول مرة أخرى." }, { status: 500 });

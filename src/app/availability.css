@@ -12,3 +12,5 @@
 .specialty-suggestions { padding-block: 12px; }
 .specialty-suggestions a { margin: 4px; }
 .detail-service-items li { margin-block: 10px; overflow-wrap: anywhere; }
+.most-needed button { margin: 4px; white-space: normal; }
+.reference-number { overflow-wrap: anywhere; }
