@@ -21,6 +21,15 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+self.addEventListener("push", (event) => {
+  const data = event.data ? event.data.json() : { title: "تنبيه من دليل جنزور", body: "لديك تحديث جديد لأهل القرية." };
+  event.waitUntil(self.registration.showNotification(data.title || "تنبيه من دليل جنزور", { body: data.body || "لديك تحديث جديد.", icon: "/icon-192.png", badge: "/icon-192.png", dir: "rtl", lang: "ar" }));
+});
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => clients[0]?.focus() || self.clients.openWindow("/")));
+});
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET" || request.mode !== "navigate") return;
