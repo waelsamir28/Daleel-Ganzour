@@ -147,6 +147,13 @@ export function getCategory(id: string, catalog: CategoryRecord[] = initialCateg
 export function normalizeSearch(value: string) {
   return value.toLowerCase().normalize("NFKC").replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه");
 }
+// Daily labor is scoped to demolition and breaking, sand/cement staging, and general helper work.
+// Painting (نقاشة) and ceramics/tiles (سيراميك) each keep their own crafts section in the directory,
+// so a labor submission advertising those trades is redirected there instead of being published.
+const laborTradeExclusions = /نقاش|دهان|صبغ|سيراميك|بلاط|رخام/;
+export function isOutsideLaborScope(...values: string[]) {
+  return values.some((value) => laborTradeExclusions.test(normalizeSearch(value)));
+}
 export function whatsappUrl(phone: string, message?: string) {
   const digits = phone.replace(/\D/g, "");
   const number = digits.startsWith("0") ? `20${digits.slice(1)}` : digits;

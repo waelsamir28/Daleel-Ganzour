@@ -83,9 +83,14 @@ try {
   assert.equal(approvedCommunity.data.communityListings.find((listing) => listing.id === communityId).status, "approved");
   const publicCommunity = (await visitor.api("/api/community")).data.listings.find((listing) => listing.id === communityId);
   assert.equal(publicCommunity.status, "approved"); assert.equal(publicCommunity.type, "property");
+  // «تم البيع» closes a property ad, «تم شغل الوظيفة» is reserved for job ads, and both hide the listing publicly.
+  assert.equal((await admin.api("/api/admin", "PATCH", { type: "community", id: communityId, action: "filled" })).response.status, 400);
+  const soldCommunity = await admin.api("/api/admin", "PATCH", { type: "community", id: communityId, action: "sold" });
+  assert.equal(soldCommunity.data.communityListings.find((listing) => listing.id === communityId).status, "sold");
+  assert.ok(!(await visitor.api("/api/community")).data.listings.some((listing) => listing.id === communityId), "a sold property hides from the public listings");
   await admin.api("/api/admin", "PATCH", { type: "community", id: communityId, action: "reject" });
   assert.ok(!(await visitor.api("/api/community")).data.listings.some((listing) => listing.id === communityId), "management can unpublish a listing");
-  console.log("PASS: community submissions stay private until approval, notify management, and can be unpublished");
+  console.log("PASS: community submissions stay private until approval, notify management, close as sold, and can be unpublished");
 
   const categoryValues = { name: "قسم اختبار", color: "#ff941f", icon: "Wrench", description: "تصنيف مؤقت لاختبار إدارة الموقع", sortOrder: 20, active: true, slug: `qa-${suffix}` };
   let result = await admin.api("/api/admin", "POST", { type: "category", values: categoryValues }); assert.equal(result.response.status, 201); rootId = result.data.categories.find((category) => category.id === categoryValues.slug).id;

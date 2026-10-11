@@ -25,7 +25,7 @@ const memberName = "عضو اختبار الواجهة";
 const communityPosts = [
   { type: "property", title: `عقار اختبار ${suffix}`, description: "شقة اختبار للتأكد من المراجعة وعرض بيانات العقار في سوق جنزور بعد الموافقة.", profession: "", price: "١٬٢٠٠٬٠٠٠ جنيه" },
   { type: "job", title: `وظيفة اختبار ${suffix}`, description: "فرصة عمل تجريبية للتأكد من وصول الإعلان للمراجعة ثم ظهوره على الرئيسية.", profession: "", price: "راتب مجزي" },
-  { type: "labor", title: `عامل اختبار ${suffix}`, description: "خبرة في صيانة المنازل والأعمال اليومية.", profession: "سباك" },
+  { type: "labor", title: `عامل اختبار ${suffix}`, description: "خبرة في الهدم والتكسير وتشوين الرمل والأسمنت والأعمال المساعدة.", profession: "عامل هدم وتكسير" },
 ];
 try {
   // Expected counts come from the API so the assertions follow the seeded catalogue instead of hardcoding it.
@@ -272,16 +272,47 @@ try {
   await page.goto(base, { waitUntil: "networkidle" }); await settle(page);
   const floating = page.locator(".community-floating-ad");
   await expect(floating).toBeVisible();
-  await expect(floating.locator("h3")).toHaveText(communityPosts[1].title);
-  await floating.getByRole("button", { name: "إغلاق الإعلان الحالي", exact: true }).click();
-  await expect(floating.locator("h3")).toHaveText(communityPosts[0].title);
-  await floating.getByRole("button", { name: "إغلاق الإعلان الحالي", exact: true }).click();
-  while (await floating.count()) await floating.getByRole("button", { name: "إغلاق الإعلان الحالي", exact: true }).click();
+  // The floating announcement opens at the top of the page, near the header notifications area.
+  const floatingBox = await floating.boundingBox();
+  assert.ok(floatingBox && floatingBox.y < 430, `the floating ad sits at the top of the page (y=${floatingBox?.y})`);
+  await page.screenshot({ path: ".qa/janzour-floating-ad.png" });
+  // Approved property/job ads rotate automatically with a fade; the close button dismisses whichever ad is showing.
+  for (let step = 0; step < 4 && (await floating.count()) > 0; step += 1) {
+    const title = (await floating.locator("h3").innerText()).trim();
+    await floating.getByRole("button", { name: "إغلاق الإعلان الحالي", exact: true }).click();
+    await page.waitForFunction((current) => {
+      const heading = document.querySelector(".community-floating-ad h3");
+      return !heading || heading.textContent.trim() !== current;
+    }, title, { timeout: 5000 });
+  }
+  await expect(floating).toHaveCount(0, { timeout: 5000 });
   await page.locator(".market-category-labor").click();
   const workerCard = page.locator(".worker-card").filter({ hasText: communityPosts[2].title });
   await expect(workerCard).toBeVisible();
-  await expect(workerCard).toContainText("سباك"); await expect(workerCard).toContainText("01012345678");
-  console.log("PASS: management approval publishes the right cards and the floating-ad queue advances on close");
+  await expect(workerCard).toContainText("عامل هدم وتكسير"); await expect(workerCard).toContainText("01012345678");
+  // Daily labor is scoped to demolition, breaking, sand/cement staging and helper work — not painting or ceramics.
+  await expect(page.locator(".market-labor-scope")).toContainText("الهدم والتكسير");
+  console.log("PASS: management approval publishes the right cards and the top floating ad rotates and closes");
+
+  // «تم البيع» and «تم شغل الوظيفة» close property/job ads from the admin panel and hide them from the public.
+  await pickValue(admin, admin.getByRole("combobox", { name: "حالة إعلان المجتمع" }), "approved");
+  for (const [post, button] of [[communityPosts[0], "تم البيع"], [communityPosts[1], "تم شغل الوظيفة"]]) {
+    const row = admin.locator(".admin-community-row").filter({ hasText: post.title });
+    await expect(row).toBeVisible();
+    await row.getByRole("button", { name: button, exact: true }).click();
+    await expect(row).toHaveCount(0);
+  }
+  const closed = await (await guestContext.request.get(`${base}/api/community`)).json();
+  assert.equal(closed.listings.find((item) => item.title === communityPosts[0].title), undefined, "a sold property leaves the public listings");
+  assert.equal(closed.listings.find((item) => item.title === communityPosts[1].title), undefined, "a filled job leaves the public listings");
+  await page.evaluate(() => sessionStorage.clear());
+  await page.goto(base, { waitUntil: "networkidle" }); await settle(page);
+  await page.locator(".market-category-labor").click();
+  await expect(page.locator(".worker-card").filter({ hasText: communityPosts[2].title })).toBeVisible({ timeout: 8000 });
+  await page.locator(".market-category-property").click();
+  await expect(page.locator(".listing-card").filter({ hasText: communityPosts[0].title })).toHaveCount(0);
+  await expect(page.locator(".community-floating-ad")).toHaveCount(0);
+  console.log("PASS: sold property and filled job ads disappear from the public site");
   await admin.screenshot({ path: ".qa/janzour-admin.png", fullPage: true });
   await page.bringToFront();
   await page.getByRole("button", { name: "أضف مهنتك", exact: true }).click();
