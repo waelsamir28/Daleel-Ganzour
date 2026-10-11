@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { db, databaseConfigured } from "@/db";
 import { communityComplaints, communityListings, notifications, pushSubscriptions } from "@/db/schema";
+import { isOutsideLaborScope } from "@/lib/catalog";
 import { ensureSeed } from "@/lib/directory";
 import { apiError, objectInput } from "@/lib/inputs";
 import { sameOrigin } from "@/lib/auth";
@@ -34,6 +35,11 @@ export async function POST(request: Request) {
     const detailsValid = type === "labor" ? profession.length >= 2 : description.length >= 8;
     if (!validType || title.length < 3 || !detailsValid || !validPhone(phone) || (whatsapp && !validPhone(whatsapp))) {
       return Response.json({ message: type === "labor" ? "اكتب اسم العامل ومهنته ورقم هاتف صحيح." : "أكمل عنوان الإعلان وتفاصيله، وأدخل رقم هاتف صحيح." }, { status: 400 });
+    }
+    // Daily labor is for demolition, breaking, sand/cement staging and helper work only;
+    // painters and tile fitters belong to their own crafts sections in the directory.
+    if (type === "labor" && isOutsideLaborScope(profession, description)) {
+      return Response.json({ message: "العمالة اليومية مخصصة للهدم والتكسير وتشوين الرمل والأسمنت والأعمال المساعدة. النقاشة والسيراميك لهما قسم خاص في دليل الحرفيين، أضف مهنتك هناك." }, { status: 400 });
     }
 
     const created = await db.transaction(async (tx) => {

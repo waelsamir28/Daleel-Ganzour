@@ -58,7 +58,7 @@ export async function PATCH(request: Request) {
     const role = await guard(request);
     const body = objectInput(await request.json());
     const { type, action } = body;
-    const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && (action === "approve" || action === "reject"));
+    const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "sold", "filled"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
@@ -109,7 +109,14 @@ export async function PATCH(request: Request) {
       if (!existing) throw new InputError("إعلان المجتمع غير موجود.", 404);
       if (action === "approve") await db.update(communityListings).set({ status: "approved" }).where(eq(communityListings.id, id));
       else if (action === "reject") await db.update(communityListings).set({ status: "rejected" }).where(eq(communityListings.id, id));
-      else throw new InputError("الإجراء غير صحيح.");
+      // "تم البيع" closes a property ad and "تم شغل الوظيفة" closes a job ad; both hide the listing from the public.
+      else if (action === "sold") {
+        if (existing.type !== "property") throw new InputError("زر «تم البيع» متاح لإعلانات العقارات فقط.");
+        await db.update(communityListings).set({ status: "sold" }).where(eq(communityListings.id, id));
+      } else if (action === "filled") {
+        if (existing.type !== "job") throw new InputError("زر «تم شغل الوظيفة» متاح لإعلانات الوظائف فقط.");
+        await db.update(communityListings).set({ status: "filled" }).where(eq(communityListings.id, id));
+      } else throw new InputError("الإجراء غير صحيح.");
     } else if (type === "member") {
       const id = uuid(body.id), values = objectInput(body.values);
       const [existing] = await db.select().from(members).where(eq(members.id, id));
@@ -122,7 +129,7 @@ export async function PATCH(request: Request) {
       await db.update(members).set({ name, phone, role: requestedRole, active }).where(eq(members.id, id));
       if (!active) await db.delete(memberSessions).where(eq(memberSessions.memberId, id));
     } else throw new InputError("نوع التعديل غير صحيح.");
-    if ((type === "service" || type === "community") && (action === "approve" || action === "reject")) {
+    if ((type === "service" || type === "community") && ["approve", "reject", "sold", "filled"].includes(String(action))) {
       await db.update(notifications).set({ read: true }).where(and(eq(notifications.entityId, uuid(body.id)), eq(notifications.type, type === "service" ? "service" : "community")));
     }
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) });

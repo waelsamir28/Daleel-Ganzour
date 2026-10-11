@@ -1,13 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { BriefcaseBusiness, Building2, Check, ChevronLeft, Hammer, HeartHandshake, MapPin, Megaphone, Phone, Send, ShieldCheck, UserRound, X } from "lucide-react";
 import { whatsappUrl, type CommunityListingRecord, type CommunityListingType } from "@/lib/catalog";
 
 type Listing = CommunityListingRecord;
 const dismissalKey = "janzour-community-announcements-dismissed";
+// The floating announcement rotates automatically every 10 seconds, fading out then in.
+const ANNOUNCEMENT_ROTATE_MS = 10000;
+const ANNOUNCEMENT_FADE_MS = 300;
+const laborScopeNote = "العمالة اليومية مخصصة للهدم والتكسير وتشوين الرمل والأسمنت والأعمال المساعدة، وليست للنقاشة والسيراميك.";
 const categories: Array<{ id: Listing["type"]; title: string; description: string; icon: typeof Hammer }> = [
-  { id: "labor", title: "عمالة يومية", description: "أهل الصنعة والخبرة.. تواصل مباشر مع العامل", icon: Hammer },
+  { id: "labor", title: "عمالة يومية", description: "هدم وتكسير وتشوين رمل وأسمنت وأعمال مساعدة.. تواصل مباشر مع العامل", icon: Hammer },
   { id: "property", title: "عقارات بدون وسطاء", description: "بيع وإيجار مباشر من أصحاب العقارات", icon: Building2 },
   { id: "job", title: "وظائف جنزور", description: "فرص عمل لأهل جنزور والمناطق القريبة", icon: BriefcaseBusiness },
 ];
@@ -23,6 +27,10 @@ export default function CommunityMarket() {
       return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
     } catch { return []; }
   });
+  const [announcementIndex, setAnnouncementIndex] = useState(0);
+  const [announcementLeaving, setAnnouncementLeaving] = useState(false);
+  const adFadeTimer = useRef(0);
+  const adRotateTimer = useRef(0);
   const [formType, setFormType] = useState<CommunityListingType | null>(null);
   const [notice, setNotice] = useState("");
   const [noticeIsError, setNoticeIsError] = useState(false);
@@ -54,7 +62,23 @@ export default function CommunityMarket() {
     () => listings.filter((item) => item.type !== "labor" && !dismissed.includes(item.id)),
     [listings, dismissed],
   );
-  const announcement = announcementQueue[0];
+  const announcement = announcementQueue.length ? announcementQueue[announcementIndex % announcementQueue.length] : undefined;
+
+  useEffect(() => () => { window.clearTimeout(adFadeTimer.current); window.clearTimeout(adRotateTimer.current); }, []);
+  useEffect(() => {
+    // The floating ad cycles through the approved property/job announcements: fade out, switch, fade in.
+    if (announcementQueue.length < 2) return;
+    const timer = window.setInterval(() => {
+      if (document.hidden) return;
+      setAnnouncementLeaving(true);
+      window.clearTimeout(adRotateTimer.current);
+      adRotateTimer.current = window.setTimeout(() => {
+        setAnnouncementIndex((current) => current + 1);
+        setAnnouncementLeaving(false);
+      }, ANNOUNCEMENT_FADE_MS);
+    }, ANNOUNCEMENT_ROTATE_MS);
+    return () => { window.clearInterval(timer); window.clearTimeout(adRotateTimer.current); };
+  }, [announcementQueue.length]);
 
   function openAdForm(type: "property" | "job" = active === "job" ? "job" : "property") {
     setNotice("");
@@ -67,11 +91,17 @@ export default function CommunityMarket() {
   }
 
   function closeAnnouncement(id: string) {
-    setDismissed((current) => {
-      const next = [...new Set([...current, id])];
-      try { sessionStorage.setItem(dismissalKey, JSON.stringify(next)); } catch { /* Closing still works for this render. */ }
-      return next;
-    });
+    // The close button stays per announcement: fade the card out first, then dismiss it for this session.
+    setAnnouncementLeaving(true);
+    window.clearTimeout(adFadeTimer.current);
+    adFadeTimer.current = window.setTimeout(() => {
+      setDismissed((current) => {
+        const next = [...new Set([...current, id])];
+        try { sessionStorage.setItem(dismissalKey, JSON.stringify(next)); } catch { /* Closing still works for this render. */ }
+        return next;
+      });
+      setAnnouncementLeaving(false);
+    }, ANNOUNCEMENT_FADE_MS);
   }
 
   async function submitListing(event: FormEvent<HTMLFormElement>) {
@@ -175,7 +205,7 @@ export default function CommunityMarket() {
 
       {formType && <form className="market-form" onSubmit={(event) => void submitListing(event)}>
         <div className="market-form-heading">
-          <div><strong>{formType === "labor" ? "سجّل بياناتك في العمالة اليومية" : "إعلان جديد لسوق جنزور"}</strong><span>سيصل للإدارة للمراجعة قبل ظهوره للناس.</span></div>
+          <div><strong>{formType === "labor" ? "سجّل بياناتك في العمالة اليومية" : "إعلان جديد لسوق جنزور"}</strong><span>{formType === "labor" ? laborScopeNote : "سيصل للإدارة للمراجعة قبل ظهوره للناس."}</span></div>
           <button type="button" className="market-form-close" onClick={closeAdForm} aria-label="إغلاق نموذج الإعلان"><X size={18}/></button>
         </div>
         {formType !== "labor" && <div className="market-form-types" role="group" aria-label="نوع الإعلان">
@@ -184,7 +214,7 @@ export default function CommunityMarket() {
         </div>}
         <div className="market-form-grid">
           <label>{formType === "labor" ? "اسم العامل" : "عنوان الإعلان"}<input name="title" required minLength={3} maxLength={160} placeholder={formType === "labor" ? "الاسم كما تحب أن يظهر" : formType === "property" ? "مثال: شقة للبيع في جنزور" : "مثال: مطلوب عامل أو موظف"}/></label>
-          {formType === "labor" && <label>المهنة<input name="profession" required minLength={2} maxLength={120} placeholder="مثال: نقاش، كهربائي، سباك"/></label>}
+          {formType === "labor" && <label>المهنة<input name="profession" required minLength={2} maxLength={120} placeholder="مثال: عامل هدم وتكسير، تشوين رمل وأسمنت، عامل مساعد"/></label>}
           <label className="market-form-wide">{formType === "labor" ? "تفاصيل إضافية (اختياري)" : "تفاصيل الإعلان"}<textarea name="description" required={formType !== "labor"} minLength={formType === "labor" ? undefined : 8} maxLength={2000} placeholder={formType === "labor" ? "الخبرة أو الخدمات المتاحة" : "اكتب التفاصيل المهمة بوضوح"}/></label>
           <label>رقم الهاتف<input name="phone" required inputMode="tel" autoComplete="tel" placeholder="01xxxxxxxxx"/></label>
           <label>واتساب (اختياري)<input name="whatsapp" inputMode="tel" placeholder="لو مختلف عن رقم الهاتف"/></label>
@@ -201,6 +231,7 @@ export default function CommunityMarket() {
           <div><span className="section-kicker">{typeLabels[active]}</span><h3>{active === "labor" ? "أهل الخبرة في جنزور" : active === "property" ? "عقارات معروضة من أصحابها" : "فرص عمل متاحة"}</h3></div>
           <span>{visible.length} {active === "labor" ? "عامل" : "إعلان"} منشور</span>
         </div>
+        {active === "labor" && <p className="market-labor-scope"><Hammer size={14}/>{laborScopeNote} للنقاشة والسيراميك تصفح قسم الحرفيين في الدليل.</p>}
         {visible.length ? <div className="listing-grid">
           {visible.map((item) => active === "labor" ? <article className="worker-card" key={item.id}>
             <div className="worker-card-header"><span className="worker-avatar"><UserRound size={24}/></span><div><h4>{item.title}</h4><strong className="worker-profession">{item.profession || item.description || "عامل يومي"}</strong></div></div>
@@ -231,14 +262,14 @@ export default function CommunityMarket() {
       </form>}
     </section>
 
-    {announcement && <aside className="community-floating-ad" aria-label="إعلان عقار أو وظيفة معتمد" aria-live="polite">
+    {announcement && <aside key={announcement.id} className={`community-floating-ad${announcementLeaving ? " is-leaving" : ""}`} aria-label="إعلان عقار أو وظيفة معتمد" aria-live="polite">
       <div className="community-floating-ad-top"><span><Megaphone size={16}/>إعلان معتمد من إدارة جنزور</span><button type="button" onClick={() => closeAnnouncement(announcement.id)} aria-label="إغلاق الإعلان الحالي"><X size={18}/></button></div>
       <span className={`community-floating-type is-${announcement.type}`}>{typeLabels[announcement.type]}</span>
       <h3>{announcement.title}</h3>
       <p>{announcement.description}</p>
       <div className="community-floating-meta">{announcement.area && <span><MapPin size={14}/>{announcement.area}</span>}{announcement.price && <strong>{announcement.price}</strong>}</div>
       <div className="community-floating-actions"><a href={`tel:${announcement.phone}`}><Phone size={15}/>اتصال</a><a href={whatsappUrl(announcement.whatsapp || announcement.phone, `مرحبًا، بخصوص: ${announcement.title}`)} target="_blank" rel="noreferrer">تواصل واتساب</a></div>
-      {announcementQueue.length > 1 && <small className="community-floating-queue"><Check size={13}/>{announcementQueue.length} إعلانات بانتظار العرض؛ أغلق الحالي لعرض التالي</small>}
+      {announcementQueue.length > 1 && <small className="community-floating-queue"><Check size={13}/>{announcementQueue.length} إعلانات معتمدة تتبدل تلقائيًا كل ١٠ ثوانٍ، ويمكنك إغلاق أي إعلان</small>}
     </aside>}
   </>;
 }

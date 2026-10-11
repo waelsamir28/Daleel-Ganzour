@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -40,6 +40,22 @@ test("normalizes Arabic search text before comparing it", () => {
   // Search stays accent-insensitive in both directions, so a plain query finds a decorated record.
   assert.equal(normalizeSearch("أحمد"), normalizeSearch("احمد"));
   assert.ok(normalizeSearch("جمعية الأورمان").includes(normalizeSearch("جمعيه")));
+});
+
+test("keeps daily labor scoped to demolition, staging and helper work", () => {
+  // Painting and ceramics keep their own crafts sections, so labor ads for those trades are redirected.
+  assert.equal(isOutsideLaborScope("نقاش"), true);
+  assert.equal(isOutsideLaborScope("نقاشة"), true);
+  assert.equal(isOutsideLaborScope("النقاشة والدهانات"), true);
+  assert.equal(isOutsideLaborScope("فني سيراميك"), true);
+  assert.equal(isOutsideLaborScope("تركيب بلاط"), true);
+  // Demolition, breaking, sand/cement staging and general helper work are the intended scope.
+  assert.equal(isOutsideLaborScope("عامل هدم وتكسير"), false);
+  assert.equal(isOutsideLaborScope("تشوين رمل وأسمنت"), false);
+  assert.equal(isOutsideLaborScope("أعمال مساعدة"), false);
+  // The description is checked along with the profession, and empty values never match.
+  assert.equal(isOutsideLaborScope("عامل يومي", "خبرة في دهان الحوائط"), true);
+  assert.equal(isOutsideLaborScope("", ""), false);
 });
 
 test("builds Egyptian WhatsApp links with an optional encoded message", () => {
