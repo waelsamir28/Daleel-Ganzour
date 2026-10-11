@@ -24,6 +24,9 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_url text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_whatsapp varchar(24) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_community_listings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), type varchar(20) NOT NULL, title varchar(160) NOT NULL, description text NOT NULL, phone varchar(24) NOT NULL, whatsapp varchar(24) NOT NULL DEFAULT '', area varchar(100) NOT NULL DEFAULT '', price varchar(80) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_community_complaints (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name varchar(120) NOT NULL, phone varchar(24) NOT NULL, message text NOT NULL, status varchar(20) NOT NULL DEFAULT 'new', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_push_subscriptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), endpoint text NOT NULL UNIQUE, subscription text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
       // Advertising was removed from the product: clean the legacy tables and their notifications
