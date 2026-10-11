@@ -846,7 +846,20 @@
 .modal-body .success-state h3 { color: #173b61; font-size: 18px; font-weight: 900; line-height: 1.5; }
 .modal-body .success-state p { color: #5f7a90; font-size: 13px; line-height: 1.8; }
 .modal-body .success-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: #e7f8ef; color: #09a85a; }
-.modal-body .reference-number { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 10px; background: #f1f7fc; color: #173b61; font-size: 13px; font-weight: 900; }
+	.modal-body .reference-number { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 10px; background: #f1f7fc; color: #173b61; font-size: 13px; font-weight: 900; }
+
+/* Targeted visual refinements */
+.hero-with-banner .hero-search{background:rgba(57,185,243,.24)}
+.hero-with-banner .search-input-wrap input{background:rgba(8,118,225,.01)}
+.hero-with-banner .hero-trust>span:last-of-type{flex-direction:column;font-weight:700}
+.hero-with-banner .hero-trust .search-add-service{gap:4px;font-size:18px}
+.directory-section-heading{text-align:center}
+.site-footer .footer-brand-lockup img{border-radius:12px}
+.site-footer .footer-main{font-family:inherit;text-align:left}
+.site-footer .footer-copyright{font-family:inherit}
+.site-header .header-inner{display:unset}
+.site-header .auth-links>a:first-child{justify-content:center;flex-direction:column}
+.site-header .auth-links .register-link{flex-direction:column}
 .modal-body .text-button { color: #0876e1; font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .modal-body .contact-content { display: grid; justify-items: center; gap: 12px; padding: 4px 0 2px; text-align: center; }
 .modal-body .contact-illustration { display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, #e7f3ff, #d3eaff); color: #0876e1; }
