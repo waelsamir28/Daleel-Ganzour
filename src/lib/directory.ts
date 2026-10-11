@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
 import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSettings, type AdminDirectory, type CategoryRecord, type CommunityListingType, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
@@ -90,13 +90,13 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
-  const reviewNotificationTypes = ["service", "community"];
+  const reviewNotificationTypes = ["service"];
   const [providers, communityRows, memberRows, notificationRows, unreadTotal] = await Promise.all([
     db.select().from(services).orderBy(desc(services.createdAt)),
-    db.select().from(communityListings).orderBy(desc(communityListings.createdAt)),
+    Promise.resolve([] as (typeof communityListings.$inferSelect)[]),
     role === "admin" ? db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, role: members.role, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)) : Promise.resolve([]),
-    role === "admin" ? db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, reviewNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200),
-    role === "admin" ? db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, reviewNotificationTypes))),
+    role === "admin" ? db.select().from(notifications).where(ne(notifications.type, "community")).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, reviewNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200),
+    role === "admin" ? db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), ne(notifications.type, "community"))) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, reviewNotificationTypes))),
   ]);
   return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
 }

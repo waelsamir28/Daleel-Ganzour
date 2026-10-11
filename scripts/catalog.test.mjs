@@ -11,6 +11,27 @@ const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, wh
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
 
+test("removes the market and lost-and-found sections from the directory", () => {
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  for (const marker of ["CommunityMarket", "community-market", "community-alerts", "أمانات ومفقودات جنزور"]) {
+    assert.ok(!directory.includes(marker), `${marker} is removed`);
+  }
+});
+
+test("retired market endpoints return gone without accessing the database", async () => {
+  const route = readFileSync(new URL("../src/app/api/community/route.ts", import.meta.url), "utf8");
+  const parsed = ts.createSourceFile("route.ts", route, ts.ScriptTarget.Latest, true);
+  for (const method of ["GET", "POST"]) {
+    const handler = parsed.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === method);
+    assert.ok(handler, `${method} has a retirement handler`);
+    const { outputText } = ts.transpileModule(handler.getText(parsed).replace("export ", ""), {
+      compilerOptions: { target: ts.ScriptTarget.ES2020 },
+    });
+    const response = await new Function(`${outputText}; return ${method}();`)();
+    assert.equal(response.status, 410);
+  }
+});
+
 test("flags a provider as new for exactly thirty days after it was created", () => {
   assert.equal(NEW_SERVICE_DAYS, 30);
   const at = (days) => ({ createdAt: new Date(now - days * DAY).toISOString() });

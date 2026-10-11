@@ -58,6 +58,7 @@ export async function PATCH(request: Request) {
     const role = await guard(request);
     const body = objectInput(await request.json());
     const { type, action } = body;
+    if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
     const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "sold", "filled"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {

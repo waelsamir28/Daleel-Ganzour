@@ -18,7 +18,9 @@ type Confirmation = { id: string; kind: EntityKind; action: "delete"; label: str
 
 export default function AdminPanel({ initialData, initialTab, username = "admin", role = "admin" }: { initialData: AdminDirectory; initialTab?: string; username?: string; role?: "admin" | "moderator" }) {
   const isModerator = role === "moderator";
-  const visibleTabs = isModerator ? tabs.filter((item) => ["requests", "community", "directory", "categories", "notifications"].includes(item.id)) : tabs;
+  // Community listings are retired; keep legacy records out of the navigation.
+  const activeTabs = tabs.filter((item) => item.id !== "community");
+  const visibleTabs = isModerator ? activeTabs.filter((item) => ["requests", "directory", "categories", "notifications"].includes(item.id)) : activeTabs;
   const starting = visibleTabs.some((tab) => tab.id === initialTab) ? initialTab as Tab : "requests";
   const [data, setData] = useState(initialData), [tab, setTab] = useState<Tab>(starting), [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

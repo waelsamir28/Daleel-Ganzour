@@ -1,61 +1,22 @@
-import { desc, eq } from "drizzle-orm";
 import { db, databaseConfigured } from "@/db";
-import { communityComplaints, communityListings, notifications, pushSubscriptions } from "@/db/schema";
-import { isOutsideLaborScope } from "@/lib/catalog";
+import { communityComplaints, pushSubscriptions } from "@/db/schema";
 import { ensureSeed } from "@/lib/directory";
 import { apiError, objectInput } from "@/lib/inputs";
 import { sameOrigin } from "@/lib/auth";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
-const listingTypes = ["labor", "property", "job"] as const;
-const listingTypeLabels = { labor: "عامل يومي", property: "عقار", job: "وظيفة" } as const;
 function text(value: unknown, max: number) { return cleanText(value ?? "", max); }
 
+// Retired market endpoints cannot publish or accept new listings.
 export async function GET() {
-  try {
-    if (!databaseConfigured) return Response.json({ listings: [] });
-    await ensureSeed();
-    const listings = await db.select().from(communityListings).where(eq(communityListings.status, "approved")).orderBy(desc(communityListings.createdAt)).limit(100);
-    return Response.json({ listings });
-  } catch (error) { return apiError(error); }
+  return Response.json({ message: "تم إلغاء سوق جنزور المجتمعي." }, { status: 410 });
+}
+export async function POST() {
+  return Response.json({ message: "تم إلغاء سوق جنزور المجتمعي." }, { status: 410 });
 }
 
-export async function POST(request: Request) {
-  if (!sameOrigin(request)) return Response.json({ message: "طلب غير مسموح." }, { status: 403 });
-  if (rateLimit(request, "community-listing", 8)) return Response.json({ message: "وصلت لعدد الطلبات المسموح. حاول مرة أخرى بعد ١٥ دقيقة." }, { status: 429 });
-  try {
-    if (!databaseConfigured) return Response.json({ message: "الخدمة ستتاح بعد ربط قاعدة البيانات." }, { status: 503 });
-    await ensureSeed();
-    const body = objectInput(await request.json());
-    const type = text(body.type, 20), title = text(body.title, 160), profession = text(body.profession, 120);
-    const description = text(body.description, 2000), phone = cleanPhone(body.phone), whatsapp = cleanPhone(body.whatsapp ?? "");
-    const area = text(body.area, 100), price = text(body.price, 80);
-    const validType = listingTypes.includes(type as (typeof listingTypes)[number]);
-    const detailsValid = type === "labor" ? profession.length >= 2 : description.length >= 8;
-    if (!validType || title.length < 3 || !detailsValid || !validPhone(phone) || (whatsapp && !validPhone(whatsapp))) {
-      return Response.json({ message: type === "labor" ? "اكتب اسم العامل ومهنته ورقم هاتف صحيح." : "أكمل عنوان الإعلان وتفاصيله، وأدخل رقم هاتف صحيح." }, { status: 400 });
-    }
-    // Daily labor is for demolition, breaking, sand/cement staging and helper work only;
-    // painters and tile fitters belong to their own crafts sections in the directory.
-    if (type === "labor" && isOutsideLaborScope(profession, description)) {
-      return Response.json({ message: "العمالة اليومية مخصصة للهدم والتكسير وتشوين الرمل والأسمنت والأعمال المساعدة. النقاشة والسيراميك لهما قسم خاص في دليل الحرفيين، أضف مهنتك هناك." }, { status: 400 });
-    }
-
-    const created = await db.transaction(async (tx) => {
-      const [listing] = await tx.insert(communityListings).values({ type, title, profession: type === "labor" ? profession : "", description, phone, whatsapp, area, price, status: "pending" }).returning();
-      await tx.insert(notifications).values({
-        type: "community",
-        title: "إعلان مجتمعي جديد بانتظار المراجعة",
-        message: `${listingTypeLabels[type as keyof typeof listingTypeLabels]}: ${title}. راجع البيانات قبل النشر.`,
-        entityId: listing.id,
-      });
-      return listing;
-    });
-    return Response.json({ id: created.id, status: created.status, message: "وصل إعلانك للإدارة للمراجعة. سيظهر في القسم المناسب بعد الموافقة." }, { status: 201 });
-  } catch (error) { return apiError(error); }
-}
-
+// Keep unrelated notification subscriptions and contact messages available.
 export async function PUT(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
   try {
