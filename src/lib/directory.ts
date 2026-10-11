@@ -7,7 +7,7 @@ import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSett
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
   return {
-    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, availableNow: service.emergency, hours: "8 صباحًا - 10 مساءً", menuUrl: "", menuWhatsapp: "", demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
+    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, availableNow: false, availableUntil: null, workingHours: [], hours: "8 صباحًا - 10 مساءً", menuUrl: "", menuWhatsapp: "", demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
     categories: initialCategories,
     areas: areas.map((name, sortOrder) => ({ id: `preview-area-${sortOrder + 1}`, name, sortOrder })),
     settings: defaultSettings,
@@ -21,6 +21,8 @@ export async function ensureSeed() {
     seedPromise = db.transaction(async (tx) => {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS available_now boolean NOT NULL DEFAULT false`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS available_until timestamptz`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS working_hours jsonb NOT NULL DEFAULT '[]'::jsonb`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_url text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_whatsapp varchar(24) NOT NULL DEFAULT ''`);
@@ -68,7 +70,9 @@ export async function getSettings(): Promise<SiteSettings> {
   if (!row) return defaultSettings;
   try { return sanitizeSettings(JSON.parse(row.value) as Record<string, unknown>); } catch { return defaultSettings; }
 }
-export function serializeService(item: typeof services.$inferSelect): ServiceRecord { return { ...item, createdAt: item.createdAt.toISOString() }; }
+export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
+  return { ...item, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
+}
 export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
 async function getCatalog() {
   await ensureSeed();

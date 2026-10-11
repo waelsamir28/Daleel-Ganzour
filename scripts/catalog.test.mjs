@@ -11,6 +11,36 @@ const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, wh
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
 
+test("availability lasts four hours, expires at the boundary, and only renews explicitly", () => {
+  const { availabilityUpdate, isAvailableNow } = catalog;
+  const active = availabilityUpdate("activate", { availableNow: false, availableUntil: null }, now);
+  assert.equal(active.availableUntil.getTime(), now + 4 * 60 * 60 * 1000);
+  const record = { ...active, availableUntil: active.availableUntil.toISOString() };
+  assert.equal(isAvailableNow(record, now), true);
+  assert.equal(isAvailableNow(record, active.availableUntil.getTime() - 1), true);
+  assert.equal(isAvailableNow(record, active.availableUntil.getTime()), false);
+  assert.equal(isAvailableNow({ availableNow: true, availableUntil: null }, now), false);
+  assert.equal(isAvailableNow({ availableNow: true, availableUntil: "invalid" }, now), false);
+  assert.equal(availabilityUpdate("keep", active, now + 1000), active);
+  assert.equal(availabilityUpdate(undefined, active), active);
+  assert.deepEqual(availabilityUpdate("stop", active), { availableNow: false, availableUntil: null });
+  assert.throws(() => availabilityUpdate("invalid", active));
+});
+
+test("weekly hours validate all seven days and support holidays and overnight shifts", () => {
+  const { parseWorkingHours } = catalog;
+  const days = Array.from({ length: 7 }, () => ({ closed: false, opens: "09:00", closes: "17:00" }));
+  days[5] = { closed: true, opens: "", closes: "" };
+  days[6] = { closed: false, opens: "20:00", closes: "02:00" };
+  assert.deepEqual(parseWorkingHours(days), days);
+  assert.deepEqual(parseWorkingHours(undefined), []);
+  assert.throws(() => parseWorkingHours(days.slice(1)));
+  assert.throws(() => parseWorkingHours("bad"));
+  for (const opens of ["24:00", "9:00", "12:60", "17:00"]) {
+    assert.throws(() => parseWorkingHours([{ closed: false, opens, closes: "17:00" }, ...days.slice(1)]));
+  }
+});
+
 test("removes the market and lost-and-found sections from the directory", () => {
   const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
   for (const marker of ["CommunityMarket", "community-market", "community-alerts", "أمانات ومفقودات جنزور"]) {

@@ -11,6 +11,7 @@ import RouteTransition from "@/components/route-transition";
 import SplashScreen from "@/components/splash-screen";
 import "./globals.css";
 import "./janzour.css";
+import "./availability.css";
 
 export const metadata: Metadata = {
   title: "دليل المهن والخدمات بقرية جنزور",
