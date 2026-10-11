@@ -14,7 +14,7 @@ async function admin() {
 export async function GET() {
   try {
     await admin();
-    const items = await db.select({ id: appointmentRequests.id, name: appointmentRequests.name, phone: appointmentRequests.phone, preference: appointmentRequests.preference, status: appointmentRequests.status, serviceName: services.name })
+    const items = await db.select({ id: appointmentRequests.id, name: appointmentRequests.name, phone: appointmentRequests.phone, preference: appointmentRequests.preference, status: appointmentRequests.status, serviceName: services.name, serviceId: appointmentRequests.serviceId, createdAt: appointmentRequests.createdAt })
       .from(appointmentRequests).innerJoin(services, eq(services.id, appointmentRequests.serviceId)).orderBy(desc(appointmentRequests.createdAt)).limit(200);
     return Response.json({ items }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error); }

@@ -20,6 +20,7 @@ export const services = pgTable("directory_services", {
   serviceItems: jsonb("service_items").$type<string[]>().notNull().default([]),
   subSpecialties: jsonb("sub_specialties").$type<string[]>().notNull().default([]),
   neededRank: integer("needed_rank").notNull().default(0),
+  reviewNote: text("review_note").notNull().default(""),
   hours: varchar("hours", { length: 120 }).notNull().default(""),
   menuUrl: text("menu_url").notNull().default(""),
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),

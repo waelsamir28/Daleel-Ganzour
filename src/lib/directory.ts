@@ -26,6 +26,7 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS service_items jsonb NOT NULL DEFAULT '[]'::jsonb`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS sub_specialties jsonb NOT NULL DEFAULT '[]'::jsonb`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS needed_rank integer NOT NULL DEFAULT 0`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS review_note text NOT NULL DEFAULT ''`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_submission_tracking (token_hash varchar(64) PRIMARY KEY, service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_appointment_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, name varchar(120) NOT NULL, phone varchar(24) NOT NULL, preference varchar(240) NOT NULL, status varchar(20) NOT NULL DEFAULT 'waiting', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
@@ -76,7 +77,8 @@ export async function getSettings(): Promise<SiteSettings> {
   try { return sanitizeSettings(JSON.parse(row.value) as Record<string, unknown>); } catch { return defaultSettings; }
 }
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
-  return { ...item, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
+  const { reviewNote: _privateNote, ...publicItem } = item;
+  return { ...publicItem, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
 async function getCatalog() {

@@ -11,6 +11,21 @@ const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, wh
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
 
+test("private review notes are excluded from public serialization", () => {
+  const source = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(source.includes("reviewNote: _privateNote"));
+  assert.ok(source.includes("...publicItem"));
+});
+
+test("completion updates only needs-info requests and returns them to pending transactionally", () => {
+  const source = readFileSync(new URL("../src/app/api/submission-completion/route.ts", import.meta.url), "utf8");
+  assert.ok(source.includes('eq(services.status, "needs-info")'));
+  assert.ok(source.includes('status: "pending"'));
+  assert.ok(source.includes("db.transaction"));
+  assert.ok(source.includes('createHash("sha256")'));
+  assert.ok(source.includes("409"));
+});
+
 test("missing-data indicator identifies optional information without requiring a second phone", () => {
   const service = { address: "", hours: "", workingHours: [], serviceItems: [], subSpecialties: [] };
   assert.deepEqual(catalog.missingServiceData(service), ["العنوان", "مواعيد العمل", "الخدمات التفصيلية", "التخصصات الفرعية"]);
