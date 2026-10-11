@@ -17,6 +17,7 @@ export const services = pgTable("directory_services", {
   availableNow: boolean("available_now").notNull().default(false),
   availableUntil: timestamp("available_until", { withTimezone: true }),
   workingHours: jsonb("working_hours").$type<WorkingHours>().notNull().default([]),
+  serviceItems: jsonb("service_items").$type<string[]>().notNull().default([]),
   hours: varchar("hours", { length: 120 }).notNull().default(""),
   menuUrl: text("menu_url").notNull().default(""),
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),

@@ -2,6 +2,27 @@ export const OFFICE_PHONE = "01222355769";
 export const OFFICE_WHATSAPP = "https://wa.me/201222355769";
 export const OTHER_ADDRESS = "عنوان آخر";
 
+export function parseServiceItems(value: unknown): string[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > 20) throw new Error("أدخل حتى ٢٠ خدمة تفصيلية.");
+  return [...new Set(value.map((item) => {
+    if (typeof item !== "string" || !item.trim() || item.trim().length > 100) throw new Error("كل خدمة يجب أن تكون نصًا من ١ إلى ١٠٠ حرف.");
+    return item.trim();
+  }))];
+}
+
+export function serviceWhatsappMessage(service: { name: string }, specialty: string, selectedArea = "", selectedService = "") {
+  return `مرحبًا ${service.name}، وصلت إليك من دليل جنزور. محتاج ${selectedService || specialty}${selectedArea ? ` في ${selectedArea}` : ""}. هل الخدمة متاحة؟`;
+}
+
+export function suggestSpecialties(query: string, catalog: CategoryRecord[], providers: { category: string }[], rootId?: string) {
+  const words = normalizeSearch(query).split(/\s+/).filter((word) => word.length > 1);
+  return catalog.filter((item) => item.active && item.parentId && (!rootId || item.parentId === rootId) && providers.some((service) => service.category === item.id))
+    .map((item) => ({ item, score: words.reduce((score, word) => score + (normalizeSearch(`${item.name} ${item.description}`).includes(word) ? 1 : 0), 0) }))
+    .sort((a, b) => b.score - a.score || a.item.sortOrder - b.item.sortOrder)
+    .slice(0, 3).map(({ item }) => item);
+}
+
 export const AVAILABILITY_HOURS = 4;
 export const WEEK_DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"] as const;
 export type WorkingDay = { closed: boolean; opens: string; closes: string };
@@ -39,7 +60,7 @@ export type AreaRecord = { id: string; name: string; sortOrder: number };
 export type ServiceRecord = {
   id: string; name: string; category: string; area: string; address: string; phone: string; phoneSecondary: string;
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
-  emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
+  emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
 };
 
 // A provider counts as new in the directory for this many days after it was created.
