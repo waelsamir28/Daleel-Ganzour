@@ -859,9 +859,23 @@
 .site-footer .footer-brand-lockup img{border-radius:12px}
 .site-footer .footer-main{font-family:inherit;text-align:left}
 .site-footer .footer-copyright{font-family:inherit}
-.site-header .header-inner{display:unset}
-.site-header .auth-links>a:first-child{justify-content:center;flex-direction:column}
-.site-header .auth-links .register-link{flex-direction:column}
+/* Header: keep nav (right) and actions (left) on one centred row; auth links show icon beside the label. */
+.site-header .header-inner{display:flex;align-items:center;justify-content:space-between}
+.site-header .main-nav{flex:1;min-width:0}
+.site-header .header-actions{flex:none}
+.site-header .auth-links>a:first-child,.site-header .auth-links .register-link{flex-direction:row;align-items:center;justify-content:center;gap:6px;line-height:1.4}
+.site-header .auth-links .register-link{border:1px solid #075fa7;background:#075fa7;color:#fff;transition:background .18s,border-color .18s,color .18s}
+.site-header .auth-links .register-link svg{color:currentColor}
+.site-header .auth-links .register-link:hover{background:#064b86;border-color:#064b86;color:#fff}
+/* "أضف مهنتك" buttons: same blue as "عضوية جديدة", darker blue on hover. */
+.site-header .add-service-header,.hero-with-banner .hero-trust .search-add-service{border:1px solid #075fa7;background:#075fa7;color:#fff;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s}
+.site-header .add-service-header:hover,.hero-with-banner .hero-trust .search-add-service:hover{background:#064b86;border-color:#064b86;color:#fff}
+.hero-with-banner .hero-trust .search-add-service{box-shadow:0 7px 16px #075fa72e}
+.hero-with-banner .hero-trust .search-add-service:hover{box-shadow:0 8px 18px #064b8640}
+.add-service-quick-link{background:#075fa7!important;border-color:#075fa7!important}
+.add-service-quick-link:hover{background:#064b86!important;border-color:#064b86!important}
+.add-service-quick-link .quick-icon{background:#064b86!important}
+.add-service-quick-link:hover .quick-icon{background:#053d6e!important}
 .modal-body .text-button { color: #0876e1; font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .modal-body .contact-content { display: grid; justify-items: center; gap: 12px; padding: 4px 0 2px; text-align: center; }
 .modal-body .contact-illustration { display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, #e7f3ff, #d3eaff); color: #0876e1; }
