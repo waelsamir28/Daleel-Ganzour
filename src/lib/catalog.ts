@@ -23,6 +23,11 @@ export function isNewService(service: Pick<ServiceRecord, "createdAt">, now = Da
 export type MemberRole = "member" | "moderator";
 export type MemberRecord = { id: string; name: string; username: string; phone: string; role: MemberRole; active: boolean; createdAt: string };
 export type NotificationRecord = { id: string; type: string; title: string; message: string; entityId: string; read: boolean; createdAt: string };
+export type CommunityListingType = "labor" | "property" | "job";
+export type CommunityListingRecord = {
+  id: string; type: CommunityListingType; title: string; profession: string; description: string;
+  phone: string; whatsapp: string; area: string; price: string; status: string; createdAt: string;
+};
 export type Viewer = { role: "guest" | "member" | "moderator" | "admin"; id?: string; name?: string; username?: string };
 export type SiteSettings = {
   siteName: string; heroSubtitle: string; heroEyebrow: string; tagline: string;
@@ -33,7 +38,7 @@ export type PublicDirectory = {
   services: ServiceRecord[]; categories: CategoryRecord[];
   areas: AreaRecord[]; settings: SiteSettings; memberCount: number; previewMode?: boolean;
 };
-export type AdminDirectory = PublicDirectory & { members: MemberRecord[]; notifications: NotificationRecord[]; notificationUnread: number };
+export type AdminDirectory = PublicDirectory & { members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",

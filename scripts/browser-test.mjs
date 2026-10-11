@@ -19,8 +19,14 @@ const page = await guestContext.newPage(), admin = await adminContext.newPage(),
 const errors = []; for (const target of [page, admin, member]) target.on("pageerror", (error) => errors.push(error.message));
 const suffix = Date.now().toString(36);
 let serviceId, memberId, moderatorId, rootId, specialtyId, savedSettings;
+const communityIds = [];
 const serviceName = "اختبار واجهة - نجار جنزور";
 const memberName = "عضو اختبار الواجهة";
+const communityPosts = [
+  { type: "property", title: `عقار اختبار ${suffix}`, description: "شقة اختبار للتأكد من المراجعة وعرض بيانات العقار في سوق جنزور بعد الموافقة.", profession: "", price: "١٬٢٠٠٬٠٠٠ جنيه" },
+  { type: "job", title: `وظيفة اختبار ${suffix}`, description: "فرصة عمل تجريبية للتأكد من وصول الإعلان للمراجعة ثم ظهوره على الرئيسية.", profession: "", price: "راتب مجزي" },
+  { type: "labor", title: `عامل اختبار ${suffix}`, description: "خبرة في صيانة المنازل والأعمال اليومية.", profession: "سباك" },
+];
 try {
   // Expected counts come from the API so the assertions follow the seeded catalogue instead of hardcoding it.
   const baseline = await (await guestContext.request.get(`${base}/api/services`)).json();
@@ -53,6 +59,9 @@ try {
   await page.evaluate(() => document.fonts.ready);
   await expect(page.locator(".main-category-grid .category-tile")).toHaveCount(rootIds.length);
   await expect(page.locator(".provider-card")).toHaveCount(homeCards);
+  await expect(page.getByRole("heading", { name: "سوق جنزور المجتمعي", exact: true })).toBeVisible();
+  await expect(page.locator(".market-category-card")).toHaveCount(3);
+  await expect(page.getByRole("button", { name: /أنشئ إعلانًا عن عقار أو وظيفة/ })).toBeVisible();
   assert.equal(await page.evaluate(() => getComputedStyle(document.body).fontSize), "15px");
   // Every public advertising surface is gone: carousel, strip, sponsored grid, sidebar card and ad links.
   for (const selector of [".hero-advertisements", ".advertising-strip", ".marquee-track", ".featured-advertisers", ".sidebar-ad", ".home-advertising", ".campaign-card", ".campaign-management", ".admin-ad-row"]) {
@@ -61,7 +70,29 @@ try {
   await expect(page.getByRole("button", { name: "الإعلانات", exact: true })).toHaveCount(0);
   await expect(page.locator('.header-inner a[href="/admin"]')).toHaveCount(0);
   await page.screenshot({ path: ".qa/janzour-home-desktop.png", fullPage: true });
-  console.log("PASS: home renders the catalogue with no public advertising surface");
+  console.log("PASS: home shows the village directory and the three community-market categories without paid-ad surfaces");
+
+  // Each community submission is held for management review; workers have a separate name/profession form.
+  for (const post of communityPosts) {
+    await page.locator(`.market-category-${post.type}`).click();
+    if (post.type === "labor") await page.getByRole("button", { name: "أضف بيانات عامل يومي", exact: true }).click();
+    else await page.getByRole("button", { name: /أنشئ إعلانًا عن عقار أو وظيفة/ }).click();
+    const form = page.locator(".market-form");
+    await expect(form).toBeVisible();
+    await form.locator('[name="title"]').fill(post.title);
+    await form.locator('[name="description"]').fill(post.description);
+    if (post.type === "labor") await form.locator('[name="profession"]').fill(post.profession);
+    await form.locator('[name="phone"]').fill("01012345678");
+    await form.locator('[name="area"]').fill("جنزور / السوق القديم");
+    if (post.price) await form.locator('[name="price"]').fill(post.price);
+    const posted = page.waitForResponse((response) => response.url().endsWith("/api/community") && response.request().method() === "POST");
+    await form.getByRole("button", { name: "إرسال للمراجعة", exact: true }).click();
+    const result = await posted;
+    assert.equal(result.status(), 201, `community ${post.type} submission is accepted for review`);
+    communityIds.push((await result.json()).id);
+    await expect(page.locator(".community-notice")).toContainText("وصل إعلانك للإدارة للمراجعة");
+  }
+  console.log("PASS: property, job and daily-worker forms submit as pending community listings");
 
   // Card palette: 2px blue frame, red name, blue specialty and address, five gold stars, a 54px
   // category-coloured icon square, favourite above share on the left, and a light-blue call strip.
@@ -217,17 +248,40 @@ try {
   await admin.getByRole("button", { name: "تسجيل الدخول", exact: true }).click();
   await admin.getByRole("heading", { name: /أهلًا بيك، يا مدير الدليل/ }).waitFor();
   await settle(admin);
-  // Advertising is gone from the dashboard: no tab, no stat card, no campaign rows, and the API rejects it.
+  // Community classifieds have a moderation queue; legacy paid-advertising endpoints and campaigns remain absent.
   const adminTabs = await admin.locator(".admin-sidebar nav button").allInnerTexts();
-  assert.ok(!adminTabs.some((label) => label.includes("إعلان")), `no advertising tab, got ${adminTabs.join(" | ")}`);
-  assert.deepEqual(adminTabs.map((label) => label.replace(/\s*\d+\s*$/, "").trim()), ["طلبات المهن", "الدليل المنشور", "استيراد Excel", "التصنيفات والتخصصات", "عناوين جنزور", "أعضاء الموقع", "الإشعارات", "إعدادات الموقع"]);
-  assert.ok(!(await admin.locator(".admin-stats").innerText()).includes("إعلان"), "no advertising stat card");
+  assert.deepEqual(adminTabs.map((label) => label.replace(/\s*\d+\s*$/, "").trim()), ["طلبات المهن", "إعلانات المجتمع", "الدليل المنشور", "استيراد Excel", "التصنيفات والتخصصات", "عناوين جنزور", "أعضاء الموقع", "الإشعارات", "إعدادات الموقع"]);
+  assert.ok(!(await admin.locator(".admin-stats").innerText()).includes("إعلان"), "community moderation is a separate tab, not a paid-ad stat card");
   await expect(admin.locator(".campaign-management")).toHaveCount(0);
   for (const request of [
     adminContext.request.post(`${base}/api/admin`, { data: { type: "ad", values: { businessName: "إعلان", text: "نص", phone: "01012345678" } } }),
     adminContext.request.patch(`${base}/api/admin`, { data: { type: "ad", id: "10000000-0000-4000-8000-000000000001", action: "approve" } }),
     adminContext.request.delete(`${base}/api/admin`, { data: { type: "ad", id: "10000000-0000-4000-8000-000000000001" } }),
-  ]) assert.equal((await request).status(), 400, "the admin API rejects advertising requests");
+  ]) assert.equal((await request).status(), 400, "the admin API rejects paid-advertising requests");
+  await admin.locator(".admin-sidebar nav").getByRole("button", { name: /إعلانات المجتمع/ }).click();
+  await admin.getByRole("button", { name: "تحديث", exact: true }).click();
+  for (const post of communityPosts) {
+    const row = admin.locator(".admin-community-row").filter({ hasText: post.title });
+    await expect(row).toBeVisible();
+    await row.getByRole("button", { name: "موافقة ونشر", exact: true }).click();
+    await expect(row).toHaveCount(0);
+  }
+  const reviewed = await (await guestContext.request.get(`${base}/api/community`)).json();
+  for (const post of communityPosts) assert.equal(reviewed.listings.find((item) => item.title === post.title)?.status, "approved");
+  await admin.screenshot({ path: ".qa/janzour-admin-community.png", fullPage: true });
+  await page.goto(base, { waitUntil: "networkidle" }); await settle(page);
+  const floating = page.locator(".community-floating-ad");
+  await expect(floating).toBeVisible();
+  await expect(floating.locator("h3")).toHaveText(communityPosts[1].title);
+  await floating.getByRole("button", { name: "إغلاق الإعلان الحالي", exact: true }).click();
+  await expect(floating.locator("h3")).toHaveText(communityPosts[0].title);
+  await floating.getByRole("button", { name: "إغلاق الإعلان الحالي", exact: true }).click();
+  while (await floating.count()) await floating.getByRole("button", { name: "إغلاق الإعلان الحالي", exact: true }).click();
+  await page.locator(".market-category-labor").click();
+  const workerCard = page.locator(".worker-card").filter({ hasText: communityPosts[2].title });
+  await expect(workerCard).toBeVisible();
+  await expect(workerCard).toContainText("سباك"); await expect(workerCard).toContainText("01012345678");
+  console.log("PASS: management approval publishes the right cards and the floating-ad queue advances on close");
   await admin.screenshot({ path: ".qa/janzour-admin.png", fullPage: true });
   await page.bringToFront();
   await page.getByRole("button", { name: "أضف مهنتك", exact: true }).click();
@@ -309,7 +363,7 @@ try {
   await admin.screenshot({ path: ".qa/janzour-admin-members.png", fullPage: true });
   console.log("PASS: independent member signup, correct member count, member directory separation and admin denial");
 
-  // A moderator sees four sections only: requests, published directory, categories and notifications.
+  // A moderator can review both professional requests and community-market listings, but not admin-only sections.
   const moderatorContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const moderator = await moderatorContext.newPage();
   moderator.on("pageerror", (error) => errors.push(error.message));
@@ -319,12 +373,12 @@ try {
   await moderator.goto(`${base}/admin`, { waitUntil: "networkidle" });
   await settle(moderator);
   const moderatorTabs = await moderator.locator(".admin-sidebar nav button").allInnerTexts();
-  assert.deepEqual(moderatorTabs.map((label) => label.replace(/\s*\d+\s*$/, "").trim()), ["طلبات المهن", "الدليل المنشور", "التصنيفات والتخصصات", "الإشعارات"]);
+  assert.deepEqual(moderatorTabs.map((label) => label.replace(/\s*\d+\s*$/, "").trim()), ["طلبات المهن", "إعلانات المجتمع", "الدليل المنشور", "التصنيفات والتخصصات", "الإشعارات"]);
   await expect(moderator.locator(".admin-shell-moderator")).toBeVisible();
   assert.ok(!(await moderator.locator(".admin-content").innerText()).includes("إعلان"), "the moderator dashboard never mentions advertising");
   await moderator.screenshot({ path: ".qa/janzour-admin-moderator.png", fullPage: true });
   await moderatorContext.request.delete(`${base}/api/auth`); await moderatorContext.close();
-  console.log("PASS: moderator dashboard is limited to requests, directory, categories and notifications");
+  console.log("PASS: moderator can review marketplace posts while admin-only sections remain restricted");
 
   for (const width of [1440, 1024, 768, 390, 360]) {
     await page.setViewportSize({ width, height: 900 }); await page.goto(base, { waitUntil: "networkidle" });
@@ -351,7 +405,7 @@ try {
 } finally {
   await adminContext.request.post(`${base}/api/auth`, { data: { action: "login", username: "admin", password: "admin" } });
   if (savedSettings) await adminContext.request.patch(`${base}/api/admin`, { data: { type: "settings", values: savedSettings } });
-  for (const [type, id] of [["service", serviceId], ["member", memberId], ["member", moderatorId], ["category", specialtyId], ["category", rootId]]) if (id) await adminContext.request.delete(`${base}/api/admin`, { data: { type, id } });
+  for (const [type, id] of [["service", serviceId], ["member", memberId], ["member", moderatorId], ["category", specialtyId], ["category", rootId], ...communityIds.map((id) => ["community", id])]) if (id) await adminContext.request.delete(`${base}/api/admin`, { data: { type, id } });
   await adminContext.request.delete(`${base}/api/auth`); await memberContext.request.delete(`${base}/api/auth`); await browser.close();
   console.log("Cleaned up UI test records and restored settings.");
 }
