@@ -83,6 +83,7 @@ export const communityListings = pgTable("directory_community_listings", {
   id: uuid("id").defaultRandom().primaryKey(),
   type: varchar("type", { length: 20 }).notNull(),
   title: varchar("title", { length: 160 }).notNull(),
+  profession: varchar("profession", { length: 120 }).notNull().default(""),
   description: text("description").notNull(),
   phone: varchar("phone", { length: 24 }).notNull(),
   whatsapp: varchar("whatsapp", { length: 24 }).notNull().default(""),

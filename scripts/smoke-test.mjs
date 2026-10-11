@@ -16,7 +16,7 @@ class Client {
 }
 const visitor = new Client(), member = new Client(), admin = new Client();
 const suffix = Date.now().toString(36);
-let serviceId, memberId, rootId, specialtyId, areaId, savedSettings;
+let serviceId, communityId, memberId, rootId, specialtyId, areaId, savedSettings;
 const serviceValues = { name: "اختبار آلي - حرفي جنزور", category: "carpentry", area: "عنوان آخر", address: "جنزور / بجوار مدرسة الاختبار", phone: "01012345678", description: "بيانات اختبار للتحقق من مراجعة المهنة والعنوان الآخر قبل موافقة الإدارة.", emergency: true };
 try {
   assert.equal((await visitor.api("/api/health")).data.ok, true);
@@ -30,6 +30,7 @@ try {
   assert.equal((await visitor.api("/api/advertisements/events", "POST", { adId: "10000000-0000-4000-8000-000000000001", eventId: "10000000-0000-4000-8000-000000000002", eventType: "impression" })).response.status, 404);
   const publicMarkup = (await visitor.api("/")).data;
   for (const marker of ["hero-advertisements", "advertising-strip", "marquee-track", "featured-advertisers"]) assert.ok(!publicMarkup.includes(marker), `${marker} removed from the public pages`);
+  assert.ok(publicMarkup.includes("سوق جنزور المجتمعي"), "the community market is part of the homepage");
   assert.ok(publicMarkup.includes("emergency-strip") && publicMarkup.includes("عرض الأرقام"), "compact emergency box renders");
   assert.ok(initial.areas.every((area) => area.name.startsWith("جنزور /")));
   assert.equal((await visitor.api("/api/admin")).response.status, 401);
@@ -37,7 +38,7 @@ try {
   const guestAdmin = await visitor.api("/admin"); assert.equal(guestAdmin.response.status, 307); assert.equal(guestAdmin.response.headers.get("location"), "/login");
   const publicHtml = (await visitor.api("/")).data; assert.ok(!publicHtml.includes('href="/admin"'));
   assert.equal((await visitor.api("/api/auth", "POST", { action: "register", username: "admin", name: "اختبار", phone: "01012345678", password: "admin", confirmPassword: "admin" })).response.status, 400);
-  console.log("PASS: seeded categories and Janzour addresses; public advertising removed; admin is hidden and protected");
+  console.log("PASS: seeded categories and Janzour addresses; community market is public; paid-ad tools remain removed; admin is protected");
   const registration = await member.api("/api/auth", "POST", { action: "register", name: "عضو اختبار جنزور", username: `qa.${suffix}`, phone: "01012345678", password: "test-pass-123", confirmPassword: "test-pass-123", role: "admin" });
   assert.equal(registration.response.status, 201); assert.equal(registration.data.role, "member");
   const viewer = (await member.api("/api/auth")).data.viewer; assert.equal(viewer.role, "member"); memberId = viewer.id;
@@ -67,6 +68,25 @@ try {
   await admin.api("/api/admin", "PATCH", { id: serviceId, type: "service", action: "edit", values: { ...serviceValues, name: "اختبار آلي - بيانات معدلة", status: "approved", verified: true, featured: true, demo: false } });
   assert.equal((await visitor.api("/api/services")).data.services.find((service) => service.id === serviceId).name, "اختبار آلي - بيانات معدلة");
   console.log("PASS: other-address validation, moderation, persistent notifications and editable service records");
+
+  const communityValues = { type: "property", title: `عقار اختبار ${suffix}`, description: "إعلان اختبار للتأكد من وصول العقار للمراجعة قبل عرضه على أهل جنزور.", profession: "", phone: "01012345678", whatsapp: "", area: "جنزور / السوق القديم", price: "قابل للتفاوض" };
+  assert.equal((await visitor.api("/api/community", "POST", communityValues, "https://not-allowed.example")).response.status, 403);
+  const communitySubmission = await visitor.api("/api/community", "POST", communityValues);
+  assert.equal(communitySubmission.response.status, 201); assert.equal(communitySubmission.data.status, "pending"); communityId = communitySubmission.data.id;
+  assert.ok(!(await visitor.api("/api/community")).data.listings.some((listing) => listing.id === communityId), "a pending property stays private");
+  const pendingCommunity = (await admin.api("/api/admin")).data;
+  const communityNotice = pendingCommunity.notifications.find((notification) => notification.entityId === communityId);
+  assert.ok(communityNotice && communityNotice.type === "community" && !communityNotice.read);
+  assert.equal(pendingCommunity.communityListings.find((listing) => listing.id === communityId).status, "pending");
+  const approvedCommunity = await admin.api("/api/admin", "PATCH", { type: "community", id: communityId, action: "approve" });
+  assert.equal(approvedCommunity.response.status, 200);
+  assert.equal(approvedCommunity.data.communityListings.find((listing) => listing.id === communityId).status, "approved");
+  const publicCommunity = (await visitor.api("/api/community")).data.listings.find((listing) => listing.id === communityId);
+  assert.equal(publicCommunity.status, "approved"); assert.equal(publicCommunity.type, "property");
+  await admin.api("/api/admin", "PATCH", { type: "community", id: communityId, action: "reject" });
+  assert.ok(!(await visitor.api("/api/community")).data.listings.some((listing) => listing.id === communityId), "management can unpublish a listing");
+  console.log("PASS: community submissions stay private until approval, notify management, and can be unpublished");
+
   const categoryValues = { name: "قسم اختبار", color: "#ff941f", icon: "Wrench", description: "تصنيف مؤقت لاختبار إدارة الموقع", sortOrder: 20, active: true, slug: `qa-${suffix}` };
   let result = await admin.api("/api/admin", "POST", { type: "category", values: categoryValues }); assert.equal(result.response.status, 201); rootId = result.data.categories.find((category) => category.id === categoryValues.slug).id;
   result = await admin.api("/api/admin", "POST", { type: "category", values: { ...categoryValues, name: "تخصص اختبار", parentId: rootId, slug: `qa-specialty-${suffix}` } }); assert.equal(result.response.status, 201); specialtyId = result.data.categories.find((category) => category.id === `qa-specialty-${suffix}`).id;
@@ -102,7 +122,7 @@ try {
 } finally {
   await admin.api("/api/auth", "POST", { action: "login", username: "admin", password: "admin" });
   if (savedSettings) await admin.api("/api/admin", "PATCH", { type: "settings", values: savedSettings });
-  for (const [type, id] of [["service", serviceId], ["member", memberId], ["category", specialtyId], ["category", rootId], ["area", areaId]]) if (id) await admin.api("/api/admin", "DELETE", { type, id });
+  for (const [type, id] of [["service", serviceId], ["community", communityId], ["member", memberId], ["category", specialtyId], ["category", rootId], ["area", areaId]]) if (id) await admin.api("/api/admin", "DELETE", { type, id });
   await admin.api("/api/auth", "DELETE"); assert.equal((await admin.api("/api/admin")).response.status, 401);
   console.log("PASS: test data cleaned up, defaults restored and logout revokes access");
 }

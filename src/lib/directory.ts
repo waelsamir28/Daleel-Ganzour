@@ -1,8 +1,8 @@
 import "server-only";
 import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
-import { directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
-import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSettings, type AdminDirectory, type CategoryRecord, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
+import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSettings, type AdminDirectory, type CategoryRecord, type CommunityListingType, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
@@ -24,7 +24,8 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_url text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_whatsapp varchar(24) NOT NULL DEFAULT ''`);
-      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_community_listings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), type varchar(20) NOT NULL, title varchar(160) NOT NULL, description text NOT NULL, phone varchar(24) NOT NULL, whatsapp varchar(24) NOT NULL DEFAULT '', area varchar(100) NOT NULL DEFAULT '', price varchar(80) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_community_listings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), type varchar(20) NOT NULL, title varchar(160) NOT NULL, profession varchar(120) NOT NULL DEFAULT '', description text NOT NULL, phone varchar(24) NOT NULL, whatsapp varchar(24) NOT NULL DEFAULT '', area varchar(100) NOT NULL DEFAULT '', price varchar(80) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`ALTER TABLE directory_community_listings ADD COLUMN IF NOT EXISTS profession varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_community_complaints (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name varchar(120) NOT NULL, phone varchar(24) NOT NULL, message text NOT NULL, status varchar(20) NOT NULL DEFAULT 'new', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_push_subscriptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), endpoint text NOT NULL UNIQUE, subscription text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
@@ -89,11 +90,13 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
-  const [providers, memberRows, notificationRows, unreadTotal] = await Promise.all([
+  const reviewNotificationTypes = ["service", "community"];
+  const [providers, communityRows, memberRows, notificationRows, unreadTotal] = await Promise.all([
     db.select().from(services).orderBy(desc(services.createdAt)),
+    db.select().from(communityListings).orderBy(desc(communityListings.createdAt)),
     role === "admin" ? db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, role: members.role, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)) : Promise.resolve([]),
-    role === "admin" ? db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(eq(notifications.type, "service")).orderBy(desc(notifications.createdAt)).limit(200),
-    role === "admin" ? db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), eq(notifications.type, "service"))),
+    role === "admin" ? db.select().from(notifications).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, reviewNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200),
+    role === "admin" ? db.select({ total: count() }).from(notifications).where(eq(notifications.read, false)) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, reviewNotificationTypes))),
   ]);
-  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
+  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
 }

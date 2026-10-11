@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, services } from "@/db/schema";
+import { communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
@@ -58,14 +58,14 @@ export async function PATCH(request: Request) {
     const role = await guard(request);
     const body = objectInput(await request.json());
     const { type, action } = body;
-    const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || (type === "service" && (action === "approve" || action === "reject"));
+    const moderatorAllowed = type === "category" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && (action === "approve" || action === "reject"));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
       await db.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(settings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(settings) } });
     } else if (type === "notification") {
-      if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), eq(notifications.type, "service")) : eq(notifications.read, false));
-      else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), eq(notifications.type, "service")) : eq(notifications.id, uuid(body.id)));
+      if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), inArray(notifications.type, ["service", "community"])) : eq(notifications.read, false));
+      else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), inArray(notifications.type, ["service", "community"])) : eq(notifications.id, uuid(body.id)));
       else throw new InputError("إجراء غير صحيح.");
     } else if (type === "category") {
       const id = cleanText(body.id, 60), values = categoryInput(objectInput(body.values));
@@ -103,6 +103,13 @@ export async function PATCH(request: Request) {
       } else if (action === "reject") await db.update(services).set({ status: "rejected", verified: false, featured: false }).where(eq(services.id, id));
       else if (action === "feature" && existing.status === "approved") await db.update(services).set({ featured: !existing.featured }).where(eq(services.id, id));
       else throw new InputError("إجراء غير صحيح. لا يمكن تمييز خدمة قبل نشرها.");
+    } else if (type === "community") {
+      const id = uuid(body.id);
+      const [existing] = await db.select().from(communityListings).where(eq(communityListings.id, id));
+      if (!existing) throw new InputError("إعلان المجتمع غير موجود.", 404);
+      if (action === "approve") await db.update(communityListings).set({ status: "approved" }).where(eq(communityListings.id, id));
+      else if (action === "reject") await db.update(communityListings).set({ status: "rejected" }).where(eq(communityListings.id, id));
+      else throw new InputError("الإجراء غير صحيح.");
     } else if (type === "member") {
       const id = uuid(body.id), values = objectInput(body.values);
       const [existing] = await db.select().from(members).where(eq(members.id, id));
@@ -115,8 +122,8 @@ export async function PATCH(request: Request) {
       await db.update(members).set({ name, phone, role: requestedRole, active }).where(eq(members.id, id));
       if (!active) await db.delete(memberSessions).where(eq(memberSessions.memberId, id));
     } else throw new InputError("نوع التعديل غير صحيح.");
-    if (type === "service" && (action === "approve" || action === "reject")) {
-      await db.update(notifications).set({ read: true }).where(eq(notifications.entityId, uuid(body.id)));
+    if ((type === "service" || type === "community") && (action === "approve" || action === "reject")) {
+      await db.update(notifications).set({ read: true }).where(and(eq(notifications.entityId, uuid(body.id)), eq(notifications.type, type === "service" ? "service" : "community")));
     }
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
@@ -130,13 +137,13 @@ export async function DELETE(request: Request) {
     if (role === "moderator" && type !== "category" && !bulkNotificationAction) denyModerator();
     if (bulkNotificationAction) {
       if (action === "delete-all") {
-        if (role === "moderator") await db.delete(notifications).where(eq(notifications.type, "service"));
+        if (role === "moderator") await db.delete(notifications).where(inArray(notifications.type, ["service", "community"]));
         else await db.delete(notifications);
       } else {
         if (!Array.isArray(body.ids) || body.ids.length === 0 || body.ids.length > 200) throw new InputError("اختار إشعارًا واحدًا على الأقل للحذف.");
         const ids = [...new Set(body.ids.map(uuid))];
         const condition = inArray(notifications.id, ids);
-        await db.delete(notifications).where(role === "moderator" ? and(condition, eq(notifications.type, "service")) : condition);
+        await db.delete(notifications).where(role === "moderator" ? and(condition, inArray(notifications.type, ["service", "community"])) : condition);
       }
     } else if (type === "category") {
       const id = cleanText(body.id, 60);
@@ -153,10 +160,11 @@ export async function DELETE(request: Request) {
     } else {
       const id = uuid(body.id);
       if (type === "service") await db.delete(services).where(eq(services.id, id));
+      else if (type === "community") await db.delete(communityListings).where(eq(communityListings.id, id));
       else if (type === "member") await db.delete(members).where(eq(members.id, id));
       else if (type === "notification") await db.delete(notifications).where(eq(notifications.id, id));
       else throw new InputError("نوع الحذف غير صحيح.");
-      if (["service", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
+      if (["service", "community", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
     }
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
