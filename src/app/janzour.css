@@ -983,8 +983,8 @@
    category-coloured icon square, favourite above share on the left, and a light-blue call strip.
    The whole card (including the call button) opens the details overlay; calling happens there only. */
 .provider-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:14px}
-.provider-card{position:relative;display:grid;gap:10px;min-width:0;padding:14px;border:2px solid #1c5daa;border-radius:16px;background:#fff;box-shadow:0 2px 10px #1c5daa14;cursor:pointer;text-align:start;transition:box-shadow .25s ease,transform .25s ease}
-.provider-card:hover{box-shadow:0 16px 30px -18px #1c5daab3;transform:translateY(-2px)}
+.provider-card{position:relative;display:grid;gap:10px;min-width:0;padding:14px;border:2px solid #b9ddec;border-radius:16px;background:#fff;box-shadow:0 2px 10px #1c5daa14;cursor:pointer;text-align:start;transition:border-color .25s ease,box-shadow .25s ease,transform .25s ease}
+.provider-card:hover{border-color:#62b7dc;box-shadow:0 16px 30px -18px #1c5daab3;transform:translateY(-2px)}
 .provider-card:focus-visible{outline:3px solid #73bdff;outline-offset:3px}
 .provider-card-main{display:flex;align-items:flex-start;gap:12px;min-width:0}
 .provider-card-icon{flex:none;display:grid;place-items:center;width:54px;height:54px;border-radius:16px;color:#fff;background:linear-gradient(140deg,var(--cat,#0876e1),color-mix(in srgb,var(--cat,#0876e1) 60%,#0b2d52));box-shadow:0 10px 18px -12px color-mix(in srgb,var(--cat,#0876e1) 85%,#000);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
