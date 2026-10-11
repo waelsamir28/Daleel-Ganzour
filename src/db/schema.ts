@@ -23,7 +23,7 @@ export const directoryCategories = pgTable("directory_categories", {
   id: varchar("id", { length: 60 }).primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   parentId: varchar("parent_id", { length: 60 }),
-  description: varchar("description", { length: 240 }).notNull().default(""),
+  description: text("description").notNull().default(""),
   color: varchar("color", { length: 7 }).notNull().default("#0876e1"),
   icon: varchar("icon", { length: 40 }).notNull().default("Wrench"),
   sortOrder: integer("sort_order").notNull().default(0),

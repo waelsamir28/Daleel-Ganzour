@@ -21,6 +21,7 @@ export async function ensureSeed() {
     seedPromise = db.transaction(async (tx) => {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
+      await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
       // Advertising was removed from the product: clean the legacy tables and their notifications
       // so existing databases are tidied up as soon as this release is deployed.
       await tx.execute(sql`DROP TABLE IF EXISTS directory_advertisement_events`);
