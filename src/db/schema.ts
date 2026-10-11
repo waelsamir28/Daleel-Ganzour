@@ -18,6 +18,8 @@ export const services = pgTable("directory_services", {
   availableUntil: timestamp("available_until", { withTimezone: true }),
   workingHours: jsonb("working_hours").$type<WorkingHours>().notNull().default([]),
   serviceItems: jsonb("service_items").$type<string[]>().notNull().default([]),
+  subSpecialties: jsonb("sub_specialties").$type<string[]>().notNull().default([]),
+  neededRank: integer("needed_rank").notNull().default(0),
   hours: varchar("hours", { length: 120 }).notNull().default(""),
   menuUrl: text("menu_url").notNull().default(""),
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),
@@ -110,5 +112,20 @@ export const pushSubscriptions = pgTable("directory_push_subscriptions", {
   id: uuid("id").defaultRandom().primaryKey(),
   endpoint: text("endpoint").notNull().unique(),
   subscription: text("subscription").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const submissionTracking = pgTable("directory_submission_tracking", {
+  tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
+  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+});
+
+export const appointmentRequests = pgTable("directory_appointment_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 120 }).notNull(),
+  phone: varchar("phone", { length: 24 }).notNull(),
+  preference: varchar("preference", { length: 240 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("waiting"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

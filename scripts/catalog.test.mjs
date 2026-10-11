@@ -11,6 +11,20 @@ const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, wh
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
 
+test("missing-data indicator identifies optional information without requiring a second phone", () => {
+  const service = { address: "", hours: "", workingHours: [], serviceItems: [], subSpecialties: [] };
+  assert.deepEqual(catalog.missingServiceData(service), ["العنوان", "مواعيد العمل", "الخدمات التفصيلية", "التخصصات الفرعية"]);
+  assert.deepEqual(catalog.missingServiceData({ ...service, address: "جنزور", hours: "٩ - ٥", serviceItems: ["صيانة"], subSpecialties: ["منازل"] }), []);
+});
+
+test("tracking page queries a hashed private token and does not select phone data", () => {
+  const page = readFileSync(new URL("../src/app/track/[token]/page.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes('createHash("sha256")'));
+  assert.ok(page.includes("index: false"));
+  assert.ok(!page.includes("services.phone"));
+  assert.ok(page.includes("notFound()"));
+});
+
 test("validates detailed service lists and removes duplicate entries", () => {
   assert.deepEqual(catalog.parseServiceItems([" صيانة ", "تركيب", "صيانة"]), ["صيانة", "تركيب"]);
   assert.deepEqual(catalog.parseServiceItems(undefined), []);

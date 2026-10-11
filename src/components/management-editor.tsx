@@ -22,6 +22,7 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
     try {
       if (editing.kind === "service") values.workingHours = JSON.parse(String(form.get("workingHours") ?? "[]"));
       if (editing.kind === "service") values.serviceItems = String(form.get("serviceItems") ?? "").split("\n").map((item) => item.trim()).filter(Boolean);
+      if (editing.kind === "service") values.subSpecialties = String(form.get("subSpecialties") ?? "").split("\n").map((item) => item.trim()).filter(Boolean);
       if (!(await onSave(values))) setError("لم يتم الحفظ. راجع رسالة الخطأ وصحّح البيانات.");
     }
     catch { setError("تعذر حفظ البيانات. حاول مرة أخرى."); }
@@ -32,6 +33,8 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
     {editing.kind === "service" && <>
       <label className="field">متاح الآن<SelectField name="availabilityAction" defaultValue="keep"><option value="keep">بدون تغيير</option><option value="activate">تفعيل أو تجديد لمدة ٤ ساعات</option><option value="stop">إيقاف الآن</option></SelectField><small className="input-help">تنتهي الحالة تلقائيًا. حفظ بيانات أخرى لا يجددها.</small>{record.availableUntil && <small>موعد الانتهاء: {new Date(record.availableUntil).toLocaleString("ar-EG", { timeZone: "Africa/Cairo" })} (بتوقيت جنزور)</small>}</label>
       <WorkingHoursEditor initial={record.workingHours ?? []}/>
+      <label className="field">التخصصات الفرعية<textarea name="subSpecialties" defaultValue={record.subSpecialties?.join("\n")} rows={3} maxLength={2020}/><small>تخصص في كل سطر، حتى ٢٠ تخصصًا.</small></label>
+      <label className="field">ترتيب الأكثر احتياجًا<input name="neededRank" type="number" min={0} max={1000} defaultValue={record.neededRank ?? 0}/><small>٠ للاستبعاد؛ الرقم الأصغر يظهر أولًا.</small></label>
       <label className="field">الخدمات التفصيلية<textarea name="serviceItems" defaultValue={record.serviceItems?.join("\n")} rows={5} maxLength={2020} placeholder={"صيانة\nتركيب\nكشف"}/><small>خدمة واحدة في كل سطر، حتى ٢٠ خدمة، و١٠٠ حرف لكل خدمة.</small></label>
       <label className="field">مواعيد العمل النصية (عند عدم تحديد جدول)<input name="hours" defaultValue={record.hours} maxLength={120}/></label>
     </>}
