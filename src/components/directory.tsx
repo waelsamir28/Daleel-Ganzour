@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ArrowLeft, CheckCircle2, ChevronLeft, CirclePlus, Clipboard, ClipboardCheck, Crown, Grid2X2, Heart, LogOut, MapPin, MapPinned, Menu, MessageCircle, Phone, PhoneCall, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronLeft, CirclePlus, Clipboard, ClipboardCheck, Crown, Grid2X2, Heart, LogOut, MapPin, MapPinned, Menu, MessageCircle, Phone, PhoneCall, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, UserPlus, UserRound, UsersRound, X } from "lucide-react";
 import { getCategory, isNewService, normalizeSearch, OTHER_ADDRESS, whatsappUrl, type CategoryRecord, type PublicDirectory, type ServiceRecord, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import SelectField from "@/components/select-field";
@@ -26,6 +26,7 @@ function categoryTheme(item: CategoryRecord) {
 
 export default function Directory({ initialData, viewer, rootId, specialtyId, initialFavorites = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; initialFavorites?: boolean }) {
   const [data, setData] = useState(initialData), [modal, setModal] = useState<ModalName>(null), [detail, setDetail] = useState<ServiceRecord | null>(null);
+  const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
   const [queryDraft, setQueryDraft] = useState(""), [query, setQuery] = useState(""), [rootFilter, setRootFilter] = useState(rootId ?? "");
   const [area, setArea] = useState(""), [customAddress, setCustomAddress] = useState(""), [emergency, setEmergency] = useState(false);
@@ -85,6 +86,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   function showEmergency() { setModal("emergency"); setMenuOpen(false); }
   function clearFilters() { setRootFilter(rootId ?? ""); setArea(""); setCustomAddress(""); setQuery(""); setQueryDraft(""); setEmergency(false); setView("all"); setShowAll(Boolean(specialtyId)); }
   async function logout() { setLogoutError(""); try { const response = await fetch("/api/auth", { method: "DELETE" }); if (!response.ok) throw new Error(); window.location.assign("/"); } catch { setLogoutError("تعذر تسجيل الخروج. حاول مرة أخرى."); } }
+  async function requestServiceUpdate() { if (!detail) return; setUpdateMessage(""); const response = await fetch("/api/service-updates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ serviceId: detail.id, phone: updatePhone, note: updateNote }) }); const result = await response.json(); setUpdateMessage(result.message ?? "تعذر إرسال الطلب."); if (response.ok) { setUpdatePhone(""); setUpdateNote(""); } }
   const filteredServices = useMemo(() => services.filter((service) => {
     const item = getCategory(service.category, categories);
     return (!specialtyId || service.category === specialtyId) && (!rootFilter || item.parentId === rootFilter) && (!query || normalizeSearch(`${service.name} ${service.description} ${item.name} ${service.address} ${service.phone} ${service.phoneSecondary}`).includes(normalizeSearch(query))) && (!area || service.area === area) && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress))) && (!emergency || service.emergency) && (view !== "favorites" || favorites.includes(service.id));
@@ -120,7 +122,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         <ServiceArt category={detail.category} item={getCategory(detail.category, categories)}/>
         <div className="detail-hero-copy"><h3>{detail.name}</h3><span className="detail-hero-category"><CategoryIcon icon={getCategory(detail.category, categories).icon} size={14}/>{getCategory(detail.category, categories).name}</span><ProviderRating value={detail.rating} reviews={detail.reviews}/></div>
       </div>
-      <div className="details-badges">{detail.verified && <span className="detail-verified"><ShieldCheck size={14}/>موثقة</span>}{detail.emergency && <span className="detail-emergency"><Siren size={14}/>متاح للطوارئ</span>}{detail.featured && <span className="detail-featured"><Crown size={14}/>خدمة مميزة</span>}{isNewService(detail) && <span className="detail-new"><Sparkles size={14}/>جديد</span>}</div>
+      <div className="details-badges">{detail.verified && <span className="detail-verified"><ShieldCheck size={14}/>تم التحقق بالمعاينة</span>}{detail.availableNow && <span className="detail-open"><span/>متاح الآن</span>}{detail.emergency && <span className="detail-emergency"><Siren size={14}/>متاح للطوارئ</span>}{detail.featured && <span className="detail-featured"><Crown size={14}/>خدمة مميزة</span>}{isNewService(detail) && <span className="detail-new"><Sparkles size={14}/>جديد</span>}</div>
       {detail.demo && <div className="form-notice notice-amber"><span>هذه بطاقة تجريبية لتوضيح شكل الدليل، وليست بيانات مقدم خدمة حقيقي.</span></div>}
       <dl className="detail-data">
         <div><dt>التخصص</dt><dd>{getCategory(detail.category, categories).name}</dd></div>
@@ -129,7 +131,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         {detail.phoneSecondary && <div><dt>هاتف إضافي</dt><dd dir="ltr">{detail.phoneSecondary}</dd></div>}
       </dl>
       <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer"><MessageCircle size={19}/>واتساب</a></div>
+      {detail.hours && <div className="detail-hours"><strong>مواعيد العمل</strong><span>{detail.hours}</span></div>}
+      {detail.menuUrl && <a className="button button-soft detail-menu-button" href={detail.menuUrl} target="_blank" rel="noopener noreferrer">عرض المنيو</a>}
+      <div className="detail-qr"><Image src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`${window.location.origin}${window.location.pathname}?service=${detail.id}`)}`} alt="رمز QR للخدمة" width={140} height={140} unoptimized/><span><QrCode size={16}/>امسح الرمز لفتح كارت الخدمة</span></div>
       <div className="detail-about"><h4>نبذة عن الخدمة</h4><p>{detail.description}</p></div>
+      <div className="detail-update"><h4>هل هذه بياناتك؟</h4><p>حدّث رقم الهاتف أو أضف ملاحظة وسيراجعها فريق الإدارة.</p><input value={updatePhone} onChange={(event) => setUpdatePhone(event.target.value)} placeholder="رقم الهاتف الصحيح" inputMode="tel"/><input value={updateNote} onChange={(event) => setUpdateNote(event.target.value)} placeholder="ملاحظة أو رقم إضافي"/><button type="button" className="button button-soft" onClick={() => void requestServiceUpdate()}>حدّثها الآن</button>{updateMessage && <small>{updateMessage}</small>}</div>
       <div className="detail-utility-row"><button type="button" className="detail-share" onClick={() => void shareService(detail)} aria-label={`مشاركة ${detail.name}`} title="مشاركة"><Share2 size={18}/></button><button type="button" className="detail-favorite" onClick={() => toggleFavorite(detail.id)} aria-pressed={favorites.includes(detail.id)}><Heart size={17} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/>{favorites.includes(detail.id) ? "محفوظ في المفضلة" : "احفظ مقدم الخدمة في المفضلة"}</button></div>
     </div></Modal>}
   </>;

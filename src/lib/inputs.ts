@@ -30,7 +30,8 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
   else if (!selectedArea && !admin) throw new InputError("اختار عنوانًا من عناوين جنزور أو اختار عنوان آخر.");
   if (!area) throw new InputError("اختار العنوان.");
   if (!address) address = area;
-  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true };
+  const hours = cleanText(body.hours ?? "", 120), menuUrl = cleanText(body.menuUrl ?? "", 500), menuWhatsapp = cleanPhone(body.menuWhatsapp ?? "");
+  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, availableNow: body.availableNow === true, hours, menuUrl, menuWhatsapp };
 }
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);
