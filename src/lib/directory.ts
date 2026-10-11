@@ -7,7 +7,7 @@ import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSett
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
   return {
-    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
+    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, availableNow: service.emergency, hours: "8 صباحًا - 10 مساءً", menuUrl: "", menuWhatsapp: "", demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
     categories: initialCategories,
     areas: areas.map((name, sortOrder) => ({ id: `preview-area-${sortOrder + 1}`, name, sortOrder })),
     settings: defaultSettings,
@@ -20,6 +20,10 @@ export async function ensureSeed() {
   if (!seedPromise) {
     seedPromise = db.transaction(async (tx) => {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS available_now boolean NOT NULL DEFAULT false`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_url text NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_whatsapp varchar(24) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
       // Advertising was removed from the product: clean the legacy tables and their notifications
