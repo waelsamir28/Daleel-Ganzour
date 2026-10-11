@@ -11,6 +11,30 @@ const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, wh
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
 
+test("validates detailed service lists and removes duplicate entries", () => {
+  assert.deepEqual(catalog.parseServiceItems([" صيانة ", "تركيب", "صيانة"]), ["صيانة", "تركيب"]);
+  assert.deepEqual(catalog.parseServiceItems(undefined), []);
+  for (const value of ["bad", [""], [42], ["a".repeat(101)], Array(21).fill("صيانة")]) assert.throws(() => catalog.parseServiceItems(value));
+});
+
+test("WhatsApp requests describe the service and only the visitor-selected area", () => {
+  const text = catalog.serviceWhatsappMessage({ name: "أحمد" }, "سباكة", "جنزور / السوق", "كشف تسريب");
+  assert.ok(text.includes("أحمد") && text.includes("كشف تسريب") && text.includes("جنزور / السوق"));
+  assert.ok(!catalog.serviceWhatsappMessage({ name: "أحمد" }, "سباكة").includes(" في "));
+});
+
+test("specialty suggestions rank relevant active specialties with published providers", () => {
+  const items = [
+    { id: "paint", parentId: "crafts", name: "نقاشة", description: "", active: true, sortOrder: 1 },
+    { id: "plumbing", parentId: "crafts", name: "سباكة", description: "كشف تسريب", active: true, sortOrder: 2 },
+    { id: "hidden", parentId: "crafts", name: "تسريب", description: "", active: false, sortOrder: 0 },
+  ];
+  const providers = items.map((item) => ({ category: item.id }));
+  assert.equal(catalog.suggestSpecialties("تسريب", items, providers)[0].id, "plumbing");
+  assert.ok(!catalog.suggestSpecialties("تسريب", items, providers).some((item) => item.id === "hidden"));
+  assert.deepEqual(catalog.suggestSpecialties("تسريب", items, [], "crafts"), []);
+});
+
 test("availability lasts four hours, expires at the boundary, and only renews explicitly", () => {
   const { availabilityUpdate, isAvailableNow } = catalog;
   const active = availabilityUpdate("activate", { availableNow: false, availableUntil: null }, now);

@@ -8,3 +8,7 @@
 .weekly-hours { width: 100%; margin: 0; }
 .weekly-hours > div { display: flex; justify-content: space-between; gap: 12px; padding-block: 7px; }
 .weekly-hours dd { margin: 0; }
+.search-assistance { padding-block: 18px; }
+.specialty-suggestions { padding-block: 12px; }
+.specialty-suggestions a { margin: 4px; }
+.detail-service-items li { margin-block: 10px; overflow-wrap: anywhere; }
