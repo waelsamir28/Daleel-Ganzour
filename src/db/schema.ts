@@ -1,4 +1,5 @@
-import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, jsonb } from "drizzle-orm/pg-core";
+import type { WorkingHours } from "@/lib/catalog";
 
 export const services = pgTable("directory_services", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -14,6 +15,8 @@ export const services = pgTable("directory_services", {
   featured: boolean("featured").notNull().default(false),
   emergency: boolean("emergency").notNull().default(false),
   availableNow: boolean("available_now").notNull().default(false),
+  availableUntil: timestamp("available_until", { withTimezone: true }),
+  workingHours: jsonb("working_hours").$type<WorkingHours>().notNull().default([]),
   hours: varchar("hours", { length: 120 }).notNull().default(""),
   menuUrl: text("menu_url").notNull().default(""),
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),

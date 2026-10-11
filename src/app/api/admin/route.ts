@@ -6,6 +6,12 @@ import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
+import { availabilityUpdate } from "@/lib/catalog";
+
+function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
+  try { return availabilityUpdate(action, current); }
+  catch { throw new InputError("اختار إجراء إتاحة صحيح."); }
+}
 
 export const dynamic = "force-dynamic";
 const statusInput = (value: unknown) => {
@@ -48,7 +54,7 @@ export async function POST(request: Request) {
       if (!inserted.length) throw new InputError("العنوان موجود بالفعل.", 409);
     } else if (body.type === "service") {
       const basics = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
-      await db.insert(services).values({ ...basics, status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false });
+      await db.insert(services).values({ ...basics, ...availabilityInput(values.availabilityAction), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false });
     } else throw new InputError("نوع الإضافة غير صحيح.");
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) }, { status: 201 });
   } catch (error) { return apiError(error); }
@@ -97,7 +103,7 @@ export async function PATCH(request: Request) {
       if (!existing) throw new InputError("الخدمة غير موجودة.", 404);
       if (action === "edit") {
         const values = objectInput(body.values), basics = await serviceInput(values, true), status = statusInput(values.status);
-        await db.update(services).set({ ...basics, status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: typeof values.demo === "boolean" ? values.demo : existing.demo }).where(eq(services.id, id));
+        await db.update(services).set({ ...basics, ...availabilityInput(values.availabilityAction, existing), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: typeof values.demo === "boolean" ? values.demo : existing.demo }).where(eq(services.id, id));
       } else if (action === "approve") {
         await serviceInput({ ...existing }, false);
         await db.update(services).set({ status: "approved", verified: true }).where(eq(services.id, id));

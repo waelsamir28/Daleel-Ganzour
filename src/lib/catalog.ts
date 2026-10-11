@@ -2,6 +2,35 @@ export const OFFICE_PHONE = "01222355769";
 export const OFFICE_WHATSAPP = "https://wa.me/201222355769";
 export const OTHER_ADDRESS = "عنوان آخر";
 
+export const AVAILABILITY_HOURS = 4;
+export const WEEK_DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"] as const;
+export type WorkingDay = { closed: boolean; opens: string; closes: string };
+export type WorkingHours = WorkingDay[];
+
+export function parseWorkingHours(value: unknown): WorkingHours {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || (value.length !== 0 && value.length !== 7)) throw new Error("أدخل مواعيد الأيام السبعة.");
+  return value.map((day) => {
+    if (!day || typeof day !== "object" || typeof day.closed !== "boolean") throw new Error("حدد أيام العمل والإجازات.");
+    if (day.closed) return { closed: true, opens: "", closes: "" };
+    const validTime = (time: unknown) => typeof time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+    if (!validTime(day.opens) || !validTime(day.closes) || day.opens === day.closes) throw new Error("أدخل وقت فتح وإغلاق صحيحين ومختلفين.");
+    return { closed: false, opens: day.opens as string, closes: day.closes as string };
+  });
+}
+
+export function isAvailableNow(service: { availableNow: boolean; availableUntil?: string | null }, now = Date.now()) {
+  return service.availableNow && Boolean(service.availableUntil) && Date.parse(service.availableUntil!) > now;
+}
+
+// Only an explicit activation renews availability; editing other fields preserves the deadline.
+export function availabilityUpdate(action: unknown, current: { availableNow: boolean; availableUntil: Date | null }, now = Date.now()) {
+  if (action === undefined || action === "keep") return current;
+  if (action === "stop") return { availableNow: false, availableUntil: null };
+  if (action === "activate") return { availableNow: true, availableUntil: new Date(now + AVAILABILITY_HOURS * 60 * 60 * 1000) };
+  throw new Error("اختار إجراء إتاحة صحيح.");
+}
+
 export type CategoryRecord = {
   id: string; name: string; parentId: string | null; description: string;
   color: string; light: string; icon: string; sortOrder: number; active: boolean;
@@ -10,7 +39,7 @@ export type AreaRecord = { id: string; name: string; sortOrder: number };
 export type ServiceRecord = {
   id: string; name: string; category: string; area: string; address: string; phone: string; phoneSecondary: string;
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
-  emergency: boolean; availableNow: boolean; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
+  emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
 };
 
 // A provider counts as new in the directory for this many days after it was created.

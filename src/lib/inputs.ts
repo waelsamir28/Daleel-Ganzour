@@ -2,7 +2,7 @@ import "server-only";
 import { databaseConfigured, db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { defaultSettings, iconNames, OTHER_ADDRESS, type SiteSettings } from "@/lib/catalog";
+import { defaultSettings, iconNames, OTHER_ADDRESS, parseWorkingHours, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
 
@@ -31,7 +31,10 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
   if (!area) throw new InputError("اختار العنوان.");
   if (!address) address = area;
   const hours = cleanText(body.hours ?? "", 120), menuUrl = cleanText(body.menuUrl ?? "", 500), menuWhatsapp = cleanPhone(body.menuWhatsapp ?? "");
-  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, availableNow: body.availableNow === true, hours, menuUrl, menuWhatsapp };
+  let workingHours;
+  try { workingHours = parseWorkingHours(admin ? body.workingHours : undefined); }
+  catch (error) { throw new InputError(error instanceof Error ? error.message : "مواعيد العمل غير صحيحة."); }
+  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, hours, menuUrl, menuWhatsapp, ...(admin ? { workingHours } : {}) };
 }
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);
