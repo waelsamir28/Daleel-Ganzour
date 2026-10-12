@@ -1,127 +1,436 @@
 /* الوضع الليلي — زر التبديل في الهيدر يضيف class="dark" على عنصر html،
    والسكربت في layout يطبّق الوضع المحفوظ قبل أول رسم لتجنب الوميض الأبيض. */
-:root { --surface: #fff; --surface-2: #f7faff; --line: #dbe7f3; --text: #173b61; --text-muted: #7087a1; }
-html.dark { --surface: #102034; --surface-2: #0c1a2b; --line: #24405c; --text: #d9e8f7; --text-muted: #8fa9c2; color-scheme: dark; }
-html.dark { background: #0b1626; }
-html.dark body { background: #0b1626; color: #d9e8f7; }
+:root {
+  --surface: #ffffff;
+  --surface-2: #f7faff;
+  --line: #dbe7f3;
+  --text: #173b61;
+  --text-muted: #7087a1;
+}
 
-/* Header and navigation */
-html.dark .site-header { background: linear-gradient(110deg, #0e1d30 0%, #0c1a2b 58%, #0b1727 100%); border-bottom-color: #1d3348; }
-html.dark .main-nav .active { color: #6db8ff; background: #122f4c; }
-html.dark .main-nav > a:hover, html.dark .main-nav > button:hover { background: #122a42; color: #8cc8ff; }
-html.dark .site-header .auth-links > a:first-child { color: #a7c6e2; }
-html.dark .site-header .auth-links > a:first-child:hover { background: #122a42; }
-html.dark .site-header .auth-links .register-link { color: #a7c6e2; }
-html.dark .icon-button:hover { background: #14293f; }
-html.dark .member-account-link, html.dark .admin-link { color: #a7c6e2; }
-html.dark .mobile-menu-button { border-color: #24405c !important; background: #102034 !important; color: #9cc6ec !important; }
-html.dark .theme-toggle { color: #ffd76b; }
+html.dark {
+  --surface: #112238;
+  --surface-2: #0d1b2d;
+  --line: #254363;
+  --text: #eaf3fc;
+  --text-muted: #9eb7cf;
+  --color-canvas: #091321;
+  --color-surface: #112238;
+  --color-surface-soft: #0d1b2d;
+  --color-text: #eaf3fc;
+  --color-text-muted: #9eb7cf;
+  --color-border: #254363;
+  --navy: #e4f0fb;
+  color-scheme: dark;
+  background: #091321;
+}
 
-/* Hero and search */
-html.dark .hero-floating-tag { background: #0f2135ee; color: #bfe0ff; border-color: #24405c; }
-html.dark .hero-with-banner .hero-banner-wrap img { filter: brightness(.42) saturate(.85); }
-html.dark .hero-with-banner .hero-search, html.dark .hero-search { background: #0f2135e0; }
-html.dark .search-input-wrap { background: #0c1a2b; border-color: #24405c; }
-html.dark .search-input-wrap input { background: transparent; color: #d9e8f7; }
-html.dark .search-input-wrap input::placeholder, html.dark input::placeholder { color: #6f8aa5; }
-html.dark .hero-search .ui-select { background: #0c1a2b; border-color: #24405c; color: #d9e8f7; }
-html.dark .hero-custom-address { color: #bfe0ff; }
-html.dark .hero-custom-address input { background: #0c1a2b; border-color: #24405c; color: #d9e8f7; }
-html.dark .hero-trust > span:last-of-type { background: #0f2135; border-color: #24405c; color: #cfe4f7; }
+html.dark body {
+  background: #091321;
+  color: #eaf3fc;
+}
 
-/* Section heading frames */
-html.dark .directory-section-heading { background: linear-gradient(135deg, #101f33, #0d1a2b); border-color: #1e3448; }
-html.dark .directory-section-heading p { color: #8fa9c2 !important; }
-html.dark .directory-section-heading .section-count { border-color: #24405c; background: #122840; color: #8fc3ef; }
-html.dark .directory-section-heading h2 > svg { border-color: #24405c; background: linear-gradient(145deg, #142c44, #0f2236); color: #6db8ff; }
+/* ===== تصميم زر الوضع الليلي الجديد ===== */
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 10px 4px 6px;
+  border: 1px solid #cfe2f4;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f3f9ff, #e4f0fc);
+  color: #17436b;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(14, 56, 98, .08);
+  transition: background .24s ease, border-color .24s ease, color .24s ease, box-shadow .24s ease, transform .18s ease;
+}
 
-/* Category tiles */
-html.dark .category-tile { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; }
-html.dark .category-tile:hover { border-color: #2f537a; box-shadow: 0 10px 24px #01060dcc; }
-html.dark .category-tile strong { color: #dcebf9; }
-html.dark .category-meta { color: #8fa9c2; }
-html.dark .empty-state h3 { color: #dcebf9; }
-html.dark .empty-state p { color: #8fa9c2; }
+.theme-toggle:hover {
+  border-color: #96c3ea;
+  background: linear-gradient(135deg, #eaf4ff, #d9ecff);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(14, 56, 98, .13);
+}
 
-/* Provider cards */
-html.dark .provider-card { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; box-shadow: 0 8px 22px #01060db8; }
-html.dark .provider-card:hover { border-color: #2f537a; }
-html.dark .provider-name { color: #ff9d9d; }
-html.dark .provider-specialty { color: #7fbff5; }
-html.dark .provider-verified { color: #5fd6a5; background: #0d2a1e; }
-html.dark .provider-address { color: #a7bdd2; }
-html.dark .provider-call-strip { background: #0e2438; border-color: #1d3a56; }
-html.dark .provider-call-number { color: #cfe4f7; }
-html.dark .provider-copy-phone { color: #7fbff5; }
-html.dark .provider-call-button { background: linear-gradient(135deg, #0785ee, #0565d6); color: #fff; }
-html.dark .provider-rating strong { color: #ffd76b; }
-html.dark .new-flag { background: #12314e; color: #6db8ff; }
+.theme-toggle-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 24px;
+  padding: 2px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #bfdcf7, #95c3ee);
+  box-shadow: inset 0 1px 3px rgba(11, 44, 77, .18);
+  transition: background .25s ease;
+}
 
-/* Quick services */
-html.dark .quick-links-card { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; box-shadow: none; }
-html.dark .quick-links-card h2 { color: #cfe4f7; }
-html.dark .quick-links-card > button { background: #0d1a2b; border-color: #1e3448; color: #cfe4f7; }
-html.dark .quick-links-card > button:hover { background: #12283e; border-color: #2f537a; }
-html.dark .quick-services-grid > button { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; }
+.theme-toggle-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #f59e0b;
+  box-shadow: 0 2px 5px rgba(10, 32, 58, .22);
+  transform: translateX(0);
+  transition: transform .26s cubic-bezier(.22, 1, .36, 1), background .24s ease, color .24s ease;
+}
 
-/* Filter tags, view-all, demo note, emergency strip */
-html.dark .filter-tags span { background: #122840; border-color: #24405c; color: #bfe0ff; }
+.theme-toggle .icon-moon {
+  display: none;
+}
+
+.theme-toggle .icon-sun {
+  display: block;
+}
+
+.theme-toggle-label {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+html.dark .theme-toggle {
+  border-color: #2f547b;
+  background: linear-gradient(135deg, #152b44, #0f2034);
+  color: #f4f9ff;
+  box-shadow: 0 4px 14px rgba(2, 8, 18, .45);
+}
+
+html.dark .theme-toggle:hover {
+  border-color: #4878ab;
+  background: linear-gradient(135deg, #1b3654, #132840);
+}
+
+html.dark .theme-toggle-track {
+  background: linear-gradient(135deg, #1d4e89, #0e2f56);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, .45);
+}
+
+html.dark .theme-toggle-thumb {
+  transform: translateX(-20px);
+  background: #ffd76b;
+  color: #0e2238;
+  box-shadow: 0 0 10px rgba(255, 215, 107, .55);
+}
+
+html.dark .theme-toggle .icon-sun {
+  display: none;
+}
+
+html.dark .theme-toggle .icon-moon {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .theme-toggle {
+    padding: 4px 6px;
+  }
+  .theme-toggle-label {
+    display: none;
+  }
+}
+
+/* ===== الهيدر والتنقل في الوضع الليلي ===== */
+html.dark .site-header {
+  background: linear-gradient(110deg, #0e1e32 0%, #0c1a2b 58%, #0a1625 100%);
+  border-bottom-color: #1f3750;
+  box-shadow: 0 4px 18px rgba(2, 8, 18, .45);
+}
+html.dark .brand-copy strong { color: #f0f7ff; }
+html.dark .brand-copy > span { color: #6db8ff; }
+html.dark .main-nav > a,
+html.dark .main-nav > button { color: #d5e6f7; }
+html.dark .main-nav .active { color: #7ac2ff; background: #143250; }
+html.dark .main-nav .active:after { background: #5fb3ff; }
+html.dark .main-nav > a:hover,
+html.dark .main-nav > button:hover { background: #132b45; color: #9ad1ff; }
+html.dark .nav-count { background: #173452; color: #9ad1ff; }
+html.dark .site-header .auth-links > a:first-child { color: #c8dff5; }
+html.dark .site-header .auth-links > a:first-child:hover { background: #132b45; }
+html.dark .site-header .auth-links .register-link { background: #142c46; border-color: #294c70; color: #8bc8ff; }
+html.dark .icon-button:hover { background: #152c44; }
+html.dark .member-account-link,
+html.dark .admin-link { color: #c8dff5; }
+html.dark .admin-link svg { background: #152d47; color: #7ac2ff; }
+html.dark .mobile-menu-button { border-color: #284766 !important; background: #112238 !important; color: #b5d8f8 !important; }
+@media (max-width: 560px) {
+  html.dark .site-header .main-nav {
+    background: #0e1e32;
+    border-bottom-color: #233f5d;
+    box-shadow: 0 18px 32px rgba(2, 8, 18, .65);
+  }
+}
+
+/* ===== الهيرو والبحث ===== */
+html.dark .hero-floating-tag { background: #102338f2; color: #d4eaff; border-color: #284766; }
+html.dark .hero-with-banner .hero-banner-wrap img { filter: brightness(.45) saturate(.88); }
+html.dark .hero-with-banner .hero-search,
+html.dark .hero-search { background: rgba(15, 33, 53, .88); border-color: #284766; }
+html.dark .search-input-wrap { background: #0c1a2b; border-color: #284766; }
+html.dark .search-input-wrap input { background: transparent; color: #eef6ff; }
+html.dark .search-input-wrap input::placeholder,
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #7f9bb8; }
+html.dark .hero-search .ui-select { background: #0c1a2b; border-color: #284766; color: #eef6ff; }
+html.dark .hero-custom-address { color: #d4eaff; }
+html.dark .hero-custom-address input { background: #0c1a2b; border-color: #284766; color: #eef6ff; }
+html.dark .hero-trust > span:last-of-type { background: #102338; border-color: #284766; color: #dcebfb; }
+
+/* ===== القوائم المنسدلة الموحدة (SelectField) في الوضع الليلي ===== */
+html.dark .ui-select {
+  background: #0d1c2f;
+  border-color: #284766;
+  color: #eaf3fc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+}
+html.dark .ui-select:hover:not(.is-disabled) {
+  border-color: #467bb0;
+}
+html.dark .ui-select-icon,
+html.dark .ui-select-chevron {
+  color: #7ac2ff;
+}
+html.dark .ui-select-menu {
+  background: linear-gradient(180deg, #12253d, #0d1c2f);
+  border-color: #2b4d70;
+  box-shadow: 0 24px 48px rgba(2, 8, 18, .75);
+  scrollbar-color: #2d5175 transparent;
+}
+html.dark .ui-select-option {
+  color: #dcebfb;
+}
+html.dark .ui-select-option::before {
+  background: linear-gradient(270deg, #193858, #132c47);
+}
+html.dark .ui-select-option:not(.is-disabled):hover,
+html.dark .ui-select-option:not(.is-disabled):focus-visible,
+html.dark .ui-select-option.is-selected {
+  color: #8fd0ff;
+}
+html.dark .ui-select-option.is-selected::before {
+  background: linear-gradient(270deg, #1d4268, #163352);
+}
+html.dark .ui-select-check {
+  color: #7ac2ff;
+}
+html.dark .ui-select-empty {
+  color: #9eb7cf;
+}
+
+/* ===== عناوين الأقسام والتصنيفات ===== */
+html.dark .directory-section-heading { background: linear-gradient(135deg, #112238, #0d1b2d); border-color: #223d59; }
+html.dark .directory-section-heading h2 { color: #f0f7ff !important; }
+html.dark .directory-section-heading p { color: #a8c0d8 !important; }
+html.dark .directory-section-heading .section-count { border-color: #2b4d70; background: #152e48; color: #9ad1ff; }
+html.dark .directory-section-heading h2 > svg { border-color: #2b4d70; background: linear-gradient(145deg, #16314c, #10243a); color: #7ac2ff; }
+
+html.dark .category-tile { background: linear-gradient(145deg, #12243b, #0e1c2f); border-color: #223d59; }
+html.dark .category-tile:hover { border-color: #3b6896; box-shadow: 0 10px 24px #01060dcc; }
+html.dark .category-tile strong,
+html.dark .category-tile h3 { color: #eef6ff !important; }
+html.dark .category-meta,
+html.dark .category-tile p,
+html.dark .category-tile small { color: #a8c0d8 !important; }
+html.dark .empty-state { background: #102136; border-color: #223d59; }
+html.dark .empty-state h3 { color: #eef6ff; }
+html.dark .empty-state p { color: #a8c0d8; }
+
+/* ===== كروت مقدمي الخدمة ===== */
+html.dark .provider-card { background: linear-gradient(145deg, #12243b, #0e1c2f); border-color: #244260; box-shadow: 0 8px 22px #01060db8; }
+html.dark .provider-card:hover { border-color: #3d6d9e; }
+html.dark .provider-name { color: #ffb088; }
+html.dark .provider-specialty { color: #8ac8ff; }
+html.dark .provider-verified { color: #6be3b2; background: #0e2e22; }
+html.dark .provider-address { color: #bed4ea; }
+html.dark .provider-address svg { color: #7ac2ff; }
+html.dark .provider-call-strip { background: #0d2236; border-color: #224160; }
+html.dark .provider-call-number { color: #eaf3fc; }
+html.dark .provider-call-number svg { color: #7ac2ff; }
+html.dark .provider-copy-phone { background: #152e48; color: #8ac8ff; }
+html.dark .provider-copy-phone:hover { background: #1d3e60; }
+html.dark .provider-call-button { background: linear-gradient(135deg, #1088f2, #0765d6); color: #fff; }
+html.dark .provider-rating { color: #a8c0d8; }
+html.dark .provider-rating strong { color: #ffd978; }
+html.dark .rating-stars { color: #29435c; }
+html.dark .provider-share-button,
+html.dark .favorite-button { background: linear-gradient(145deg, #152b44, #102136); border-color: #284766; }
+html.dark .provider-share-button { color: #8ac8ff; }
+html.dark .provider-share-button:hover { background: #1b3858; border-color: #3d6d9e; }
+html.dark .favorite-button { color: #ff758f; }
+html.dark .favorite-button:hover,
+html.dark .favorite-button.is-favorite { background: #2d1422; border-color: #6e2944; }
+html.dark .new-flag { background: linear-gradient(135deg, #ff5a5f, #d91e2b); color: #fff; }
+
+/* ===== الخدمات السريعة والفلاتر والطوارئ ===== */
+html.dark .quick-links-card { background: linear-gradient(145deg, #112238, #0d1b2d); border-color: #223d59; box-shadow: none; }
+html.dark .quick-links-card h2 { color: #eef6ff; }
+html.dark .quick-links-card > button,
+html.dark .quick-services-grid > button { background: linear-gradient(145deg, #12243b, #0e1c2f); border-color: #233f5d; color: #eaf3fc; }
+html.dark .quick-links-card > button:hover,
+html.dark .quick-services-grid > button:hover { background: #17314e; border-color: #3b6896; }
+
+html.dark .filter-tags span { background: #142c46; border-color: #294c70; color: #d4eaff; }
 html.dark .clear-filters { color: #ff9d9d; }
-html.dark .view-all { background: linear-gradient(135deg, #14283e, #0f2032); border-color: #24405c; color: #7fbff5; }
-html.dark .view-all:hover { background: #1a3450; border-color: #2f537a; color: #a5d4ff; }
-html.dark .view-all svg { background: transparent; }
-html.dark .demo-note { background: #251d0c; color: #e8c377; }
-html.dark .emergency-strip { background: linear-gradient(135deg, #2b1113, #200d0f); border-color: #55232a; }
-html.dark .emergency-strip-copy h2 { color: #ffb3b3; }
-html.dark .emergency-strip-copy p { color: #d99a9a; }
-html.dark .emergency-strip-button { background: #e64b59; color: #fff; }
+html.dark .view-all { background: linear-gradient(135deg, #152c44, #102236); border-color: #294c70; color: #8ac8ff; }
+html.dark .view-all:hover { background: #1c3958; border-color: #3d6d9e; color: #b5deff; }
+html.dark .demo-note { background: #261e0d; color: #f2cf83; }
+html.dark .emergency-strip { background: linear-gradient(135deg, #331317, #240d10); border-color: #632830; }
+html.dark .emergency-strip-copy h2 { color: #ffc2c2; }
+html.dark .emergency-strip-copy p { color: #ebb0b0; }
+html.dark .emergency-strip-button { background: #e64b59; color: #fff; border-color: #ff7b86; }
 
-/* Buttons */
-html.dark .button-soft { background: #14293f; border-color: #24405c; color: #7fbff5; }
-html.dark .button-soft:hover { background: #1a3450; }
-html.dark .button-success, html.dark .button-whatsapp { background: #09a85a; color: #fff; }
+/* ===== الأزرار العامة ===== */
+html.dark .button-soft { background: #152c44; border-color: #294c70; color: #8ac8ff; }
+html.dark .button-soft:hover { background: #1c3958; border-color: #3d6d9e; }
+html.dark .button-success,
+html.dark .button-whatsapp { background: #0aa85c; color: #fff; }
+html.dark .button-danger-soft { background: #2d1418; border-color: #5c232c; color: #ff99a2; }
 
-/* Footer */
-html.dark .site-footer { background: #0a1422; border-top-color: #1d3348; color: #9fc3e2; }
-html.dark .footer-brand-copy strong { color: #dcebf9; }
-html.dark .footer-brand-copy span { color: #8fa9c2; }
-html.dark .site-footer nav a, html.dark .site-footer nav button { color: #9fc3e2; }
-html.dark .footer-whatsapp { background: #0f2135; border-color: #24405c; color: #cfe4f7; }
-html.dark .footer-copyright { color: #6f8aa5; }
+/* ===== الفوتر ===== */
+html.dark .site-footer { background: #08111e; border-top-color: #1d3348; color: #b5d4f0; }
+html.dark .footer-brand-copy strong { color: #eef6ff; }
+html.dark .footer-brand-copy span { color: #9eb7cf; }
+html.dark .site-footer nav a,
+html.dark .site-footer nav button { color: #b5d4f0; }
+html.dark .footer-whatsapp { color: #dcebfb; }
+html.dark .footer-copyright { color: #9eb7cf; border-top-color: rgba(255, 255, 255, .08); }
+html.dark .login-footer,
+html.dark .admin-footer { color: #9eb7cf; }
 
-/* Modal and service details */
-html.dark .modal-panel, html.dark .modal-body { background: #0f1e30; color: #d9e8f7; }
-html.dark .modal-body .service-details h3 { color: #ff9d9d; }
-html.dark .detail-hero { border-color: #24405c; background: linear-gradient(135deg, #14293f, #0f2032 78%); }
-html.dark .detail-hero-copy h3 { color: #ffe1e1; }
-html.dark .detail-hero-category { color: #7fbff5; }
-html.dark .details-badges span { background: #122840; }
-html.dark .detail-verified { color: #5fd6a5; background: #0d2a1e !important; }
-html.dark .detail-open { color: #5fd6a5; }
-html.dark .detail-emergency { color: #ff9d9d; background: #2b1417 !important; }
-html.dark .detail-featured { color: #ffd76b; background: #271f0c !important; }
-html.dark .detail-new { color: #6db8ff; background: #12284c !important; }
-html.dark .detail-data dd, html.dark .detail-data dt { color: #cfe4f7; }
-html.dark .detail-hours, html.dark .detail-update, html.dark .detail-qr { background: #122840; border-color: #1e3448; }
-html.dark .detail-hours strong, html.dark .detail-update h4, html.dark .detail-about h4 { color: #dcebf9; }
-html.dark .detail-hours small, html.dark .detail-update p, html.dark .detail-about p, html.dark .detail-qr span { color: #8fa9c2; }
-html.dark .detail-update input, html.dark .member-rating input { background: #0c1a2b; border-color: #24405c; color: #d9e8f7; }
-html.dark .detail-actions { background: #0f1e30; border-top-color: #1d3348; }
-html.dark .detail-service-items li { color: #cfe4f7; }
-html.dark .detail-service-items li a { color: #5fd6a5; }
-html.dark .detail-subspec li { background: #122840; color: #cfe4f7; }
-html.dark .rating-login-hint { color: #8fa9c2; }
-html.dark .rating-login-hint a { color: #7fbff5; }
+/* ===== النوافذ المنبثقة وتفاصيل مقدم الخدمة ===== */
+html.dark .modal-overlay { background: rgba(4, 11, 20, .72); }
+html.dark .modal-overlay.modal-overlay-floating { background: rgba(3, 9, 18, .78); }
+html.dark .modal-panel,
+html.dark .modal-body { background: #102034; color: #eaf3fc; border-color: #254363; }
+html.dark .modal-heading { border-bottom-color: #223d59; }
+html.dark .modal-heading h2 { color: #f0f7ff; }
+html.dark .modal-heading p { color: #9eb7cf; }
+html.dark .modal-close { color: #9eb7cf; }
+html.dark .modal-close:hover { background: #17314e; color: #fff; }
+
+html.dark .modal-body .field { color: #c8dff5; }
+html.dark .modal-body .field > input,
+html.dark .modal-body .field > .ui-select,
+html.dark .modal-body .field > textarea,
+html.dark .modal-body .location-picker > input {
+  background: #0c1a2b;
+  border-color: #284766;
+  color: #eaf3fc;
+}
+html.dark .modal-body .checkbox-field {
+  background: #0d1c2f;
+  border-color: #254363;
+  color: #d4eaff;
+}
+html.dark .modal-body .form-notice {
+  background: #10263e;
+  border-color: #25486e;
+  color: #c8dff5;
+}
+html.dark .modal-body .form-notice.notice-amber {
+  background: #281f0d;
+  border-color: #594318;
+  color: #f5d487;
+}
+html.dark .modal-body .service-details h3 { color: #ffb088; }
+html.dark .detail-hero { border-color: #284766; background: linear-gradient(135deg, #152c44, #0f2032 78%); }
+html.dark .detail-hero-copy h3 { color: #ffe4d6; }
+html.dark .detail-hero-category { color: #8ac8ff; }
+html.dark .details-badges > span { background: #152e48; color: #d4eaff; }
+html.dark .detail-verified { color: #6be3b2 !important; background: #0e2e22 !important; }
+html.dark .detail-open { color: #6be3b2; }
+html.dark .detail-emergency { color: #ff9d9d !important; background: #2e1418 !important; }
+html.dark .detail-featured { color: #ffd76b !important; background: #29200c !important; }
+html.dark .detail-new { color: #7ac2ff !important; background: #132c4c !important; }
+html.dark .modal-body .detail-data { background: #0d1b2d; border-color: #223d59; }
+html.dark .modal-body .detail-data > div { border-bottom-color: #1c344d; }
+html.dark .detail-data dt { color: #9eb7cf; }
+html.dark .detail-data dd { color: #eaf3fc; }
+html.dark .detail-update,
+html.dark .detail-qr,
+html.dark .modal-body .detail-about { background: #132840; border-color: #23415f; }
+html.dark .detail-update h4,
+html.dark .modal-body .detail-about h4 { color: #f0f7ff; }
+html.dark .detail-update p,
+html.dark .modal-body .detail-about p,
+html.dark .detail-qr span { color: #b5cde4; }
+html.dark .detail-update input,
+html.dark .member-rating input { background: #0b1727; border-color: #284766; color: #eaf3fc; }
+html.dark .detail-tools button { background: #132840; border-color: #264666; color: #eaf3fc; }
+html.dark .detail-tools button:hover { background: #193452; border-color: #3d6d9e; }
+html.dark .modal-body .detail-actions { background: #102034; border-top-color: #223d59; }
+html.dark .modal-body .detail-actions .detail-close-button { background: #162d47; border-color: #2b4d70; color: #d4eaff; }
+html.dark .modal-body .detail-actions .detail-close-button:hover { background: #1e3b5c; }
+html.dark .detail-service-items li { color: #dcebfb; }
+html.dark .detail-service-items li a { color: #6be3b2; }
+html.dark .detail-subspec li { background: #142b44; border-color: #264666; color: #dcebfb; }
+html.dark .rating-login-hint { color: #a8c0d8; border-color: #264666; }
+html.dark .rating-login-hint a { color: #8ac8ff; }
+
+/* ===== صفحات الدخول والتسجيل ولوحة الإدارة في الوضع الليلي ===== */
+html.dark .admin-login-page { background: radial-gradient(ellipse at 15% 5%, #122944 0, transparent 42%), #091321; color: #eaf3fc; }
+html.dark .login-layout,
+html.dark .login-form-panel,
+html.dark .member-profile-card { background: #102034; border-color: #233f5d; color: #eaf3fc; }
+html.dark .login-form-panel > p,
+html.dark .login-form-panel .field { color: #b5cde4; }
+html.dark .login-input { background: #0c1a2b; border-color: #284766; color: #9eb7cf; }
+html.dark .login-input > input { color: #eaf3fc; }
+html.dark .admin-public-header > a:last-child { background: #112238; border-color: #254363; color: #b5d8f8; }
+
+html.dark .admin-shell { background: #091321; color: #eaf3fc; }
+html.dark .admin-topbar,
+html.dark .admin-stat,
+html.dark .admin-content,
+html.dark .admin-service-row,
+html.dark .admin-community-row,
+html.dark .category-management-group,
+html.dark .address-management-row,
+html.dark .admin-member-row,
+html.dark .notification-row,
+html.dark .admin-completion-table-wrap {
+  background: #102034;
+  border-color: #223d59;
+  color: #eaf3fc;
+}
+html.dark .admin-topbar h1,
+html.dark .admin-content-heading h2,
+html.dark .admin-service-name h3,
+html.dark .completion-name-cell strong,
+html.dark .category-management-heading h3,
+html.dark .address-management-row h3,
+html.dark .admin-member-row h3,
+html.dark .notification-row h3 { color: #f0f7ff; }
+html.dark .admin-topbar p,
+html.dark .admin-content-heading p,
+html.dark .admin-service-description,
+html.dark .completion-name-cell small { color: #a8c0d8; }
+html.dark .admin-completion-table thead th {
+  background: linear-gradient(180deg, #152b44, #102236);
+  border-color: #254363;
+  color: #dcebfb;
+}
+html.dark .admin-completion-table thead th:nth-child(2),
+html.dark .admin-completion-table tbody td:nth-child(2),
+html.dark .admin-completion-table tbody tr {
+  border-color: #1f3852;
+}
+html.dark .admin-completion-table tbody tr:hover {
+  background: #142942;
+}
+html.dark .completion-name-cell.is-empty,
+html.dark .completion-action-cell.is-empty {
+  background: #0d1b2d;
+}
 
 /* Community lists, filter chips on other pages */
 html.dark .filter-tags .emergency-filter { background: #2b1417; color: #ff9d9d; }
 
 /* Splash overlay behind the app while dark */
-html.dark .splash-screen { background: #0b1626; }
-html.dark .modal-heading { background: #0d1a2b; border-bottom-color: #1d3348; }
-html.dark .modal-heading h2 { color: #dcebf9; }
-html.dark .modal-heading p { color: #8fa9c2; }
-html.dark .modal-close { border-color: #24405c; color: #9fc3e2; }
-
-/* زر الخط الكبير */
-html.dark .font-toggle { color: #9fc3e2; }
+html.dark .splash-screen { background: #091321; }
