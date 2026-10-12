@@ -1,0 +1,124 @@
+/* الوضع الليلي — زر التبديل في الهيدر يضيف class="dark" على عنصر html،
+   والسكربت في layout يطبّق الوضع المحفوظ قبل أول رسم لتجنب الوميض الأبيض. */
+:root { --surface: #fff; --surface-2: #f7faff; --line: #dbe7f3; --text: #173b61; --text-muted: #7087a1; }
+html.dark { --surface: #102034; --surface-2: #0c1a2b; --line: #24405c; --text: #d9e8f7; --text-muted: #8fa9c2; color-scheme: dark; }
+html.dark { background: #0b1626; }
+html.dark body { background: #0b1626; color: #d9e8f7; }
+
+/* Header and navigation */
+html.dark .site-header { background: linear-gradient(110deg, #0e1d30 0%, #0c1a2b 58%, #0b1727 100%); border-bottom-color: #1d3348; }
+html.dark .main-nav .active { color: #6db8ff; background: #122f4c; }
+html.dark .main-nav > a:hover, html.dark .main-nav > button:hover { background: #122a42; color: #8cc8ff; }
+html.dark .site-header .auth-links > a:first-child { color: #a7c6e2; }
+html.dark .site-header .auth-links > a:first-child:hover { background: #122a42; }
+html.dark .site-header .auth-links .register-link { color: #a7c6e2; }
+html.dark .icon-button:hover { background: #14293f; }
+html.dark .member-account-link, html.dark .admin-link { color: #a7c6e2; }
+html.dark .mobile-menu-button { border-color: #24405c !important; background: #102034 !important; color: #9cc6ec !important; }
+html.dark .theme-toggle { color: #ffd76b; }
+
+/* Hero and search */
+html.dark .hero-floating-tag { background: #0f2135ee; color: #bfe0ff; border-color: #24405c; }
+html.dark .hero-with-banner .hero-banner-wrap img { filter: brightness(.42) saturate(.85); }
+html.dark .hero-with-banner .hero-search, html.dark .hero-search { background: #0f2135e0; }
+html.dark .search-input-wrap { background: #0c1a2b; border-color: #24405c; }
+html.dark .search-input-wrap input { background: transparent; color: #d9e8f7; }
+html.dark .search-input-wrap input::placeholder, html.dark input::placeholder { color: #6f8aa5; }
+html.dark .hero-search .ui-select { background: #0c1a2b; border-color: #24405c; color: #d9e8f7; }
+html.dark .hero-custom-address { color: #bfe0ff; }
+html.dark .hero-custom-address input { background: #0c1a2b; border-color: #24405c; color: #d9e8f7; }
+html.dark .hero-trust > span:last-of-type { background: #0f2135; border-color: #24405c; color: #cfe4f7; }
+
+/* Section heading frames */
+html.dark .directory-section-heading { background: linear-gradient(135deg, #101f33, #0d1a2b); border-color: #1e3448; }
+html.dark .directory-section-heading p { color: #8fa9c2 !important; }
+html.dark .directory-section-heading .section-count { border-color: #24405c; background: #122840; color: #8fc3ef; }
+html.dark .directory-section-heading h2 > svg { border-color: #24405c; background: linear-gradient(145deg, #142c44, #0f2236); color: #6db8ff; }
+
+/* Category tiles */
+html.dark .category-tile { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; }
+html.dark .category-tile:hover { border-color: #2f537a; box-shadow: 0 10px 24px #01060dcc; }
+html.dark .category-tile strong { color: #dcebf9; }
+html.dark .category-meta { color: #8fa9c2; }
+html.dark .empty-state h3 { color: #dcebf9; }
+html.dark .empty-state p { color: #8fa9c2; }
+
+/* Provider cards */
+html.dark .provider-card { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; box-shadow: 0 8px 22px #01060db8; }
+html.dark .provider-card:hover { border-color: #2f537a; }
+html.dark .provider-name { color: #ff9d9d; }
+html.dark .provider-specialty { color: #7fbff5; }
+html.dark .provider-verified { color: #5fd6a5; background: #0d2a1e; }
+html.dark .provider-address { color: #a7bdd2; }
+html.dark .provider-call-strip { background: #0e2438; border-color: #1d3a56; }
+html.dark .provider-call-number { color: #cfe4f7; }
+html.dark .provider-copy-phone { color: #7fbff5; }
+html.dark .provider-call-button { background: linear-gradient(135deg, #0785ee, #0565d6); color: #fff; }
+html.dark .provider-rating strong { color: #ffd76b; }
+html.dark .new-flag { background: #12314e; color: #6db8ff; }
+
+/* Quick services */
+html.dark .quick-links-card { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; box-shadow: none; }
+html.dark .quick-links-card h2 { color: #cfe4f7; }
+html.dark .quick-links-card > button { background: #0d1a2b; border-color: #1e3448; color: #cfe4f7; }
+html.dark .quick-links-card > button:hover { background: #12283e; border-color: #2f537a; }
+html.dark .quick-services-grid > button { background: linear-gradient(145deg, #102034, #0d1a2b); border-color: #1e3448; }
+
+/* Filter tags, view-all, demo note, emergency strip */
+html.dark .filter-tags span { background: #122840; border-color: #24405c; color: #bfe0ff; }
+html.dark .clear-filters { color: #ff9d9d; }
+html.dark .view-all { background: linear-gradient(135deg, #14283e, #0f2032); border-color: #24405c; color: #7fbff5; }
+html.dark .view-all:hover { background: #1a3450; border-color: #2f537a; color: #a5d4ff; }
+html.dark .view-all svg { background: transparent; }
+html.dark .demo-note { background: #251d0c; color: #e8c377; }
+html.dark .emergency-strip { background: linear-gradient(135deg, #2b1113, #200d0f); border-color: #55232a; }
+html.dark .emergency-strip-copy h2 { color: #ffb3b3; }
+html.dark .emergency-strip-copy p { color: #d99a9a; }
+html.dark .emergency-strip-button { background: #e64b59; color: #fff; }
+
+/* Buttons */
+html.dark .button-soft { background: #14293f; border-color: #24405c; color: #7fbff5; }
+html.dark .button-soft:hover { background: #1a3450; }
+html.dark .button-success, html.dark .button-whatsapp { background: #09a85a; color: #fff; }
+
+/* Footer */
+html.dark .site-footer { background: #0a1422; border-top-color: #1d3348; color: #9fc3e2; }
+html.dark .footer-brand-copy strong { color: #dcebf9; }
+html.dark .footer-brand-copy span { color: #8fa9c2; }
+html.dark .site-footer nav a, html.dark .site-footer nav button { color: #9fc3e2; }
+html.dark .footer-whatsapp { background: #0f2135; border-color: #24405c; color: #cfe4f7; }
+html.dark .footer-copyright { color: #6f8aa5; }
+
+/* Modal and service details */
+html.dark .modal-panel, html.dark .modal-body { background: #0f1e30; color: #d9e8f7; }
+html.dark .modal-body .service-details h3 { color: #ff9d9d; }
+html.dark .detail-hero { border-color: #24405c; background: linear-gradient(135deg, #14293f, #0f2032 78%); }
+html.dark .detail-hero-copy h3 { color: #ffe1e1; }
+html.dark .detail-hero-category { color: #7fbff5; }
+html.dark .details-badges span { background: #122840; }
+html.dark .detail-verified { color: #5fd6a5; background: #0d2a1e !important; }
+html.dark .detail-open { color: #5fd6a5; }
+html.dark .detail-emergency { color: #ff9d9d; background: #2b1417 !important; }
+html.dark .detail-featured { color: #ffd76b; background: #271f0c !important; }
+html.dark .detail-new { color: #6db8ff; background: #12284c !important; }
+html.dark .detail-data dd, html.dark .detail-data dt { color: #cfe4f7; }
+html.dark .detail-hours, html.dark .detail-update, html.dark .detail-qr { background: #122840; border-color: #1e3448; }
+html.dark .detail-hours strong, html.dark .detail-update h4, html.dark .detail-about h4 { color: #dcebf9; }
+html.dark .detail-hours small, html.dark .detail-update p, html.dark .detail-about p, html.dark .detail-qr span { color: #8fa9c2; }
+html.dark .detail-update input, html.dark .member-rating input { background: #0c1a2b; border-color: #24405c; color: #d9e8f7; }
+html.dark .detail-actions { background: #0f1e30; border-top-color: #1d3348; }
+html.dark .detail-service-items li { color: #cfe4f7; }
+html.dark .detail-service-items li a { color: #5fd6a5; }
+html.dark .detail-subspec li { background: #122840; color: #cfe4f7; }
+html.dark .rating-login-hint { color: #8fa9c2; }
+html.dark .rating-login-hint a { color: #7fbff5; }
+
+/* Community lists, filter chips on other pages */
+html.dark .filter-tags .emergency-filter { background: #2b1417; color: #ff9d9d; }
+
+/* Splash overlay behind the app while dark */
+html.dark .splash-screen { background: #0b1626; }
+html.dark .modal-heading { background: #0d1a2b; border-bottom-color: #1d3348; }
+html.dark .modal-heading h2 { color: #dcebf9; }
+html.dark .modal-heading p { color: #8fa9c2; }
+html.dark .modal-close { border-color: #24405c; color: #9fc3e2; }

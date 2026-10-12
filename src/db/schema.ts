@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import type { WorkingHours } from "@/lib/catalog";
 
 export const services = pgTable("directory_services", {
@@ -25,6 +25,7 @@ export const services = pgTable("directory_services", {
   menuUrl: text("menu_url").notNull().default(""),
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),
   demo: boolean("demo").notNull().default(false),
+  availabilityToken: varchar("availability_token", { length: 40 }).notNull().default(""),
   rating: varchar("rating", { length: 8 }).notNull().default("0"),
   reviews: integer("reviews").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -120,6 +121,16 @@ export const submissionTracking = pgTable("directory_submission_tracking", {
   tokenHash: varchar("token_hash", { length: 64 }).primaryKey(),
   serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
 });
+
+export const serviceRatings = pgTable("directory_service_ratings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+  stars: integer("stars").notNull(),
+  comment: text("comment").notNull().default(""),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("directory_service_ratings_one_per_member").on(table.serviceId, table.memberId)]);
 
 export const appointmentRequests = pgTable("directory_appointment_requests", {
   id: uuid("id").defaultRandom().primaryKey(),

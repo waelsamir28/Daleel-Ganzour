@@ -1,7 +1,7 @@
 import "server-only";
-import { and, asc, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
-import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, services } from "@/db/schema";
+import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services } from "@/db/schema";
 import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSettings, type AdminDirectory, type CategoryRecord, type CommunityListingType, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
@@ -35,6 +35,10 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_community_listings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), type varchar(20) NOT NULL, title varchar(160) NOT NULL, profession varchar(120) NOT NULL DEFAULT '', description text NOT NULL, phone varchar(24) NOT NULL, whatsapp varchar(24) NOT NULL DEFAULT '', area varchar(100) NOT NULL DEFAULT '', price varchar(80) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_community_listings ADD COLUMN IF NOT EXISTS profession varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_community_complaints (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name varchar(120) NOT NULL, phone varchar(24) NOT NULL, message text NOT NULL, status varchar(20) NOT NULL DEFAULT 'new', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS availability_token varchar(40) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`UPDATE directory_services SET availability_token = substr(md5(random()::text || id::text), 1, 32) || substr(md5(random()::text), 1, 8) WHERE availability_token = ''`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_ratings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, member_id uuid NOT NULL REFERENCES directory_members(id) ON DELETE CASCADE, stars integer NOT NULL, comment text NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS directory_service_ratings_one_per_member ON directory_service_ratings (service_id, member_id)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_push_subscriptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), endpoint text NOT NULL UNIQUE, subscription text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
@@ -77,7 +81,7 @@ export async function getSettings(): Promise<SiteSettings> {
   try { return sanitizeSettings(JSON.parse(row.value) as Record<string, unknown>); } catch { return defaultSettings; }
 }
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
-  const { reviewNote: _privateNote, ...publicItem } = item;
+  const { reviewNote: _privateNote, availabilityToken: _privateToken, ...publicItem } = item;
   return { ...publicItem, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
@@ -97,11 +101,24 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
   const visibleCategories = catalog.categories.filter((category) => category.active && (!category.parentId || visibleRoots.includes(category.parentId)));
   const ids = visibleCategories.filter((category) => category.parentId).map((category) => category.id);
   const providers = ids.length ? await db.select().from(services).where(and(eq(services.status, "approved"), inArray(services.category, ids))).orderBy(desc(services.featured), asc(services.id)) : [];
-  return { ...catalog, categories: visibleCategories, services: providers.map(serializeService) };
+  const ratingRows = ids.length ? await db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings).where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, ids))).groupBy(serviceRatings.serviceId) : [];
+  const ratingByService = new Map(ratingRows.map((row) => [row.serviceId, row]));
+  // Approved member ratings blend into the seeded score, weighted by the existing review count.
+  const blended = providers.map((row) => {
+    const record = serializeService(row);
+    const extra = ratingByService.get(row.id);
+    if (extra && extra.total > 0) {
+      const baseScore = Number.parseFloat(record.rating) || 0, total = record.reviews + extra.total;
+      record.rating = total > 0 ? ((baseScore * record.reviews + Number(extra.avgStars ?? 0) * extra.total) / total).toFixed(1) : record.rating;
+      record.reviews = total;
+    }
+    return record;
+  });
+  return { ...catalog, categories: visibleCategories, services: blended };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
-  const reviewNotificationTypes = ["service"];
+  const reviewNotificationTypes = ["service", "rating"];
   const [providers, communityRows, memberRows, notificationRows, unreadTotal] = await Promise.all([
     db.select().from(services).orderBy(desc(services.createdAt)),
     Promise.resolve([] as (typeof communityListings.$inferSelect)[]),
@@ -109,5 +126,6 @@ export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): 
     role === "admin" ? db.select().from(notifications).where(ne(notifications.type, "community")).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, reviewNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200),
     role === "admin" ? db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), ne(notifications.type, "community"))) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, reviewNotificationTypes))),
   ]);
-  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map(serializeService), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
+  const ratingRows = await db.select({ id: serviceRatings.id, serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, status: serviceRatings.status, createdAt: serviceRatings.createdAt, memberName: members.name, serviceName: services.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).innerJoin(services, eq(serviceRatings.serviceId, services.id)).orderBy(desc(serviceRatings.createdAt)).limit(200);
+  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };
 }
