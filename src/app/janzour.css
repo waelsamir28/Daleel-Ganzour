@@ -859,9 +859,6 @@
 .site-footer .footer-brand-lockup img{border-radius:12px}
 .site-footer .footer-main{font-family:inherit;text-align:left}
 .site-footer .footer-copyright{font-family:inherit}
-.site-header .header-inner{display:unset}
-.site-header .auth-links>a:first-child{justify-content:center;flex-direction:column}
-.site-header .auth-links .register-link{flex-direction:column}
 .modal-body .text-button { color: #0876e1; font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 .modal-body .contact-content { display: grid; justify-items: center; gap: 12px; padding: 4px 0 2px; text-align: center; }
 .modal-body .contact-illustration { display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg, #e7f3ff, #d3eaff); color: #0876e1; }
