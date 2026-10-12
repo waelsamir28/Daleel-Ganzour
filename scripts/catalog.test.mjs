@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -254,3 +254,82 @@ test("serves settings without any advertising field", () => {
   // The catalogue module itself exposes no advertising API any more.
   assert.deepEqual(Object.keys(catalog).filter((name) => /advert|campaign|placement|marquee|^ad[A-Z]|Ad[A-Z]|adPrice|adDays/.test(name)), []);
 });
+
+test("colloquial Egyptian synonym dictionary matches everyday queries and specialty suggestions (#6)", () => {
+  const plumber = sampleServices.find((item) => item.category === "plumbing") ?? {
+    id: "p1", name: "سباك محترف", category: "plumbing", area: "وسط البلد", address: "جنزور", phone: "01000000000", phoneSecondary: "", description: "صيانة", subSpecialties: [], serviceItems: [],
+  };
+  assert.equal(matchesServiceQuery(plumber, "السباكة", "حنفية"), true);
+  assert.equal(matchesServiceQuery(plumber, "السباكة", "ماتور مياه"), true);
+  assert.equal(matchesServiceQuery(plumber, "السباكة", "ثلاجة"), false);
+
+  const mockProviders = [{ category: "dentistry" }, { category: "pharmacies" }, { category: "plumbing" }];
+  const toothSuggestions = suggestSpecialties("وجع ضرس", initialCategories, mockProviders);
+  assert.ok(toothSuggestions[0]?.id === "dentistry", "colloquial dental query suggests dentistry");
+
+  const rxSuggestions = suggestSpecialties("روشته دواء", initialCategories, mockProviders);
+  assert.ok(rxSuggestions[0]?.id === "pharmacies", "colloquial rx query suggests pharmacies");
+});
+
+test("automatic trust badges reward complete profiles, community ratings, and active availability (#9)", () => {
+  const completeService = {
+    address: "بجوار المسجد الكبير",
+    description: "عيادة مجهزة بالكامل",
+    serviceItems: ["كشف", "متابعة"],
+    subSpecialties: ["باطنة"],
+    rating: "4.8",
+    reviews: 6,
+    comments: [],
+    featured: true,
+    verified: true,
+    availableNow: true,
+    availableUntil: new Date(now + 3600_000).toISOString(),
+    emergency: true,
+    phoneSecondary: "01200000000",
+  };
+  const badges = getServiceTrustBadges(completeService, now);
+  assert.deepEqual(badges.map((b) => b.id), ["complete-profile", "community-recommended", "fast-response"]);
+
+  const minimalService = {
+    address: "",
+    description: "",
+    serviceItems: [],
+    subSpecialties: [],
+    rating: "3.5",
+    reviews: 1,
+    comments: [],
+    featured: false,
+    verified: false,
+    availableNow: false,
+    availableUntil: null,
+    emergency: false,
+    phoneSecondary: "",
+  };
+  assert.deepEqual(getServiceTrustBadges(minimalService, now), []);
+});
+
+test("on-duty pharmacies, clinics, and emergency services adapt to shift and filter (#2)", () => {
+  const nightTime = new Date(2026, 5, 1, 23, 0, 0).getTime();
+  const fridayTime = new Date(2026, 5, 5, 13, 0, 0).getTime();
+  const dayTime = new Date(2026, 5, 2, 13, 0, 0).getTime();
+
+  assert.equal(getDutyShiftInfo(nightTime).mode, "night");
+  assert.equal(getDutyShiftInfo(fridayTime).mode, "friday");
+  assert.equal(getDutyShiftInfo(dayTime).mode, "day");
+
+  const clinicList = getOnDutyServices(sampleServices, initialCategories, "clinics", dayTime);
+  assert.ok(clinicList.length > 0);
+  assert.ok(clinicList.every((item) => {
+    const parentId = getCategory(item.category, initialCategories).parentId;
+    return parentId === "clinics" || parentId === "labs";
+  }));
+});
+
+test("public utility numbers cover essential Ganzour & national emergency hotlines (#10)", () => {
+  assert.ok(publicUtilityNumbers.length >= 6);
+  const numbers = publicUtilityNumbers.map((item) => item.number);
+  for (const num of ["123", "122", "180", "121", "125", "129"]) {
+    assert.ok(numbers.includes(num), `includes ${num}`);
+  }
+});
+
