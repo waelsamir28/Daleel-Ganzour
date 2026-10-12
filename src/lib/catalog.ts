@@ -66,7 +66,6 @@ export type ServiceRecord = {
 export function missingServiceData(service: ServiceRecord) {
   return [
     !service.address.trim() && "العنوان",
-    !service.hours.trim() && service.workingHours.length !== 7 && "مواعيد العمل",
     !service.serviceItems.length && "الخدمات التفصيلية",
     !service.subSpecialties.length && "التخصصات الفرعية",
   ].filter((item): item is string => typeof item === "string");
@@ -122,6 +121,7 @@ export const settingsTextKeys = ["siteName", "heroSubtitle", "heroEyebrow", "tag
 export function sanitizeSettings(saved: Record<string, unknown>): SiteSettings {
   const next: SiteSettings = { ...defaultSettings };
   for (const key of settingsTextKeys) { const value = saved[key]; if (typeof value === "string" && value.trim()) next[key] = value; }
+  next.copyright = next.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").replace(/\s{2,}/g, " ").trim() || defaultSettings.copyright;
   if (typeof saved.showEmergency === "boolean") next.showEmergency = saved.showEmergency;
   for (const key of ["whatsappAlertsNumber", "whatsappAlertsApiKey"] as const) { const value = saved[key]; if (typeof value === "string") next[key] = value.trim(); }
   return next;

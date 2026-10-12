@@ -1366,9 +1366,6 @@ html.dark .font-toggle { color: #9fc3e2; }
 html.dark .font-toggle:hover { background: #14293f; }
 html.dark .font-toggle[aria-pressed="true"] { background: #14293f; color: #ffd76b; }
 
-/* زر حفظ الرقم — خامس زر في أدوات التفاصيل يمتد بعرض الصف */
-.detail-tools button:nth-child(odd):last-child { grid-column: 1 / -1; }
-
 /* ===== الردود الجاهزة في لوحة الإدارة ===== */
 .admin-replies { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
 .replies-picker { position: sticky; top: 16px; display: grid; gap: 9px; padding: 12px; border: 1px solid #e3edf7; border-radius: 14px; background: #fff; }
@@ -1381,14 +1378,65 @@ html.dark .font-toggle[aria-pressed="true"] { background: #14293f; color: #ffd76
 .replies-empty { margin: 0; color: #8a9fb5; font-size: 12px; text-align: center; }
 .replies-templates { display: grid; gap: 11px; }
 .reply-card { display: grid; gap: 9px; padding: 14px; border: 1px solid #e3edf7; border-radius: 14px; background: #fff; }
+.reply-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .reply-card h3 { margin: 0; color: #173b61; font-size: 14px; font-weight: 800; }
+.reply-edit-icon { color: #1c5daa; border: 1px solid #dce8f5; background: #f5f9fe; }
+.reply-edit-icon:hover { background: #e6f2ff; border-color: #b5d3f2; }
 .reply-card pre { margin: 0; padding: 12px; border: 1px dashed #d9e5f1; border-radius: 11px; background: #f9fcff; color: #315b78; font-family: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.reply-editor { width: 100%; min-height: 115px; margin: 0; padding: 11px 12px; border: 1px solid #8ec2ef; border-radius: 11px; background: #fff; color: #173b61; font-family: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.85; resize: vertical; outline: 0; box-shadow: 0 0 0 3px #e1f1fc; }
 .reply-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .reply-actions .is-copied { border-color: #07934c; color: #0b8f57; }
 @media(max-width:900px) { .admin-replies { grid-template-columns: 1fr; } .replies-picker { position: static; } .replies-provider-list { max-height: 240px; } }
 html.dark .replies-picker, html.dark .reply-card { background: #102034; border-color: #1e3448; }
 html.dark .reply-card pre { background: #0d1a2b; border-color: #24405c; color: #cfe4f7; }
+html.dark .reply-editor { background: #0c1a2b; border-color: #3888d4; color: #e2eefb; box-shadow: 0 0 0 3px #173a5e; }
+html.dark .reply-edit-icon { background: #14293f; border-color: #24405c; color: #7fbff5; }
 html.dark .reply-card h3 { color: #dcebf9; }
 html.dark .replies-provider-list > button { background: #0d1a2b; border-color: #1e3448; }
 html.dark .replies-provider-list > button.is-selected { border-color: #2f7fd4; background: #12283e; }
 html.dark .replies-provider-list strong { color: #dcebf9; }
+
+/* ===== تحديثات: النوافذ العائمة لـ QR وتحديث البيانات + أيقونات المشاركة والمفضلة + زر الإغلاق ===== */
+.modal-overlay.modal-overlay-floating { z-index: 260; background: rgba(9, 24, 40, .58); backdrop-filter: blur(4px); padding: 16px; align-items: center; }
+.modal-panel.modal-floating { width: min(100%, 440px); border-radius: 20px; border: 1px solid #d7e6f5; box-shadow: 0 28px 68px rgba(6, 22, 40, .38); animation: modal-in .22s cubic-bezier(.2, .8, .2, 1); }
+.detail-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.detail-tools button { flex: 1 1 125px; min-height: 44px; }
+.detail-tools button.detail-icon-only { flex: 0 0 44px; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 12px; }
+.modal-body .detail-qr-floating { margin-top: 0; padding: 16px 14px; }
+.modal-body .detail-update-floating { margin-top: 0; padding: 4px 2px 2px; border: 0; background: transparent; gap: 10px; }
+.detail-floating-close { width: 100%; margin-top: 6px; min-height: 42px; }
+.detail-update-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.detail-update-actions .button { flex: 1 1 130px; min-height: 42px; }
+.modal-body .detail-actions .detail-close-button { flex: 0 1 auto; min-width: 105px; border-color: #cfe0f0; background: #f1f7fd; color: #1f4f79; }
+.modal-body .detail-actions .detail-close-button:hover { background: #e3effb; border-color: #accbe7; }
+
+/* ===== جدول طلب استكمال البيانات (٤ أعمدة: الاسم | الإجراء | الاسم | الإجراء) ===== */
+.status-badge.status-needs-info { background: #fff4db; color: #a36500; border: 1px solid #f5d896; }
+.admin-completion-table-wrap { width: 100%; overflow-x: auto; border: 1px solid #dde8f2; border-radius: 15px; background: #fff; box-shadow: 0 4px 16px rgba(18, 55, 88, .04); }
+.admin-completion-table { width: 100%; border-collapse: collapse; min-width: 640px; text-align: right; }
+.admin-completion-table thead th { padding: 12px 14px; border-bottom: 2px solid #dfeaf4; background: linear-gradient(180deg, #f6faff, #eef5fc); color: #173b61; font-size: 12.5px; font-weight: 900; white-space: nowrap; }
+.admin-completion-table thead th:nth-child(2),
+.admin-completion-table tbody td:nth-child(2) { border-inline-end: 2px solid #dfeaf4; width: 1%; white-space: nowrap; text-align: center; }
+.admin-completion-table thead th:nth-child(4),
+.admin-completion-table tbody td:nth-child(4) { width: 1%; white-space: nowrap; text-align: center; }
+.admin-completion-table tbody tr { border-bottom: 1px solid #eaeff5; transition: background .15s ease; }
+.admin-completion-table tbody tr:last-child { border-bottom: 0; }
+.admin-completion-table tbody tr:hover { background: #f9fcff; }
+.admin-completion-table td { padding: 11px 14px; vertical-align: middle; }
+.completion-name-cell strong { display: block; color: #173b61; font-size: 13.5px; font-weight: 800; line-height: 1.5; }
+.completion-name-cell small { display: block; margin-top: 2px; color: #6e8499; font-size: 11px; font-weight: 600; line-height: 1.6; }
+.completion-action-cell .completion-btn { min-height: 36px; padding: 6px 14px; border-radius: 9px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.completion-name-cell.is-empty, .completion-action-cell.is-empty { background: #fbfcfe; }
+
+/* ===== توسيط جملة جميع الحقوق في المنتصف في جميع الصفحات ===== */
+.site-footer .footer-main { grid-template-areas: "group . contact" "links links links" "copy copy copy"; }
+.site-footer .footer-main nav { justify-self: center; justify-content: center; }
+.site-footer .footer-copyright { grid-area: copy; justify-self: center; width: 100%; margin: 4px auto 0; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .1); text-align: center; font-size: 12px; font-weight: 700; }
+@media(max-width:600px) {
+  .site-footer .footer-main { grid-template-areas: "contact" "links" "group" "copy"; }
+  .site-footer .footer-copyright { text-align: center; justify-self: center; }
+}
+.admin-footer { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; width: 100%; margin-top: auto; padding-top: 18px; text-align: center; color: #6f8596; font-size: 11.5px; }
+.admin-footer-copyright { margin: 0; text-align: center; font-weight: 800; color: inherit; }
+.login-footer { display: flex; align-items: center; justify-content: center; width: 100%; margin: auto auto 0; padding: 14px 16px 4px; text-align: center; color: #6d859c; font-size: 12px; font-weight: 700; }
+

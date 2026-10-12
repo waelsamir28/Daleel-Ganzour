@@ -26,10 +26,10 @@ test("completion updates only needs-info requests and returns them to pending tr
   assert.ok(source.includes("409"));
 });
 
-test("missing-data indicator identifies optional information without requiring a second phone", () => {
+test("missing-data indicator identifies optional information without requiring a second phone or working hours", () => {
   const service = { address: "", hours: "", workingHours: [], serviceItems: [], subSpecialties: [] };
-  assert.deepEqual(catalog.missingServiceData(service), ["العنوان", "مواعيد العمل", "الخدمات التفصيلية", "التخصصات الفرعية"]);
-  assert.deepEqual(catalog.missingServiceData({ ...service, address: "جنزور", hours: "٩ - ٥", serviceItems: ["صيانة"], subSpecialties: ["منازل"] }), []);
+  assert.deepEqual(catalog.missingServiceData(service), ["العنوان", "الخدمات التفصيلية", "التخصصات الفرعية"]);
+  assert.deepEqual(catalog.missingServiceData({ ...service, address: "جنزور", serviceItems: ["صيانة"], subSpecialties: ["منازل"] }), []);
 });
 
 test("tracking page queries a hashed private token and does not select phone data", () => {
