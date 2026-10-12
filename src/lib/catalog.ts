@@ -15,10 +15,68 @@ export function serviceWhatsappMessage(service: { name: string }, specialty: str
   return `مرحبًا ${service.name}، وصلت إليك من دليل جنزور. محتاج ${selectedService || specialty}${selectedArea ? ` في ${selectedArea}` : ""}. هل الخدمة متاحة؟`;
 }
 
+export const specialtySynonyms: Record<string, string[]> = {
+  plumbing: ["موتور مياه", "ماتور مياه", "حنفيه", "مواسير", "صرف", "تسريب", "سخان", "فلتر", "بلاعه", "خلاط مياه", "قاعده حمام", "حوض", "سباك"],
+  electricity: ["قفله", "فيشه", "لمبه", "عداد", "كابل", "لوحه", "شورت", "مفتاح كهرباء", "اناره", "نجفه", "سلك", "كهربائي"],
+  carpentry: ["باب خشب", "شباك خشب", "غرفه نوم", "مطبخ خشب", "مفصله", "كالون", "سرير", "دولاب", "نيش", "نجار", "عفش"],
+  metalwork: ["بوابه حديد", "تنده", "كريتال", "لحام", "شباك حديد", "سور حديد", "حداد", "فرم"],
+  painting: ["دهان", "معجون", "بويه", "ورنيش", "رطوبه", "ديكور", "نقاش", "الوان حوائط", "شروخ"],
+  masonry: ["محاره", "مباني", "طوب", "اسمنت", "رمل", "جبس", "بنا", "مبيض محاره", "تشطيب"],
+  tiles: ["سيراميك", "بورسلين", "ارضيات", "حوائط", "رخام", "جرانيت", "درج سلم", "مبلط"],
+  aluminum: ["شباك الوميتال", "مطبخ الوميتال", "تند", "سلك شباك", "قطاع بي اس", "جامبو", "فني الوميتال"],
+  glass: ["مرايا", "زجاج سيكوريت", "بلور", "فاترينه", "قرصه زجاج"],
+  ac: ["تكييف", "فريون", "تبريد", "ثلاجه", "غساله", "ديب فريزر", "سخان غاز", "بوتاجاز", "صيانه اجهزه"],
+  mechanics: ["عربيه", "موتور سياره", "عفشه", "فرامل", "زيت", "كاوتش", "بطاريه", "ميكانيكي", "عطل سياره"],
+  upholstery: ["تنجيد", "ركنه", "انتريه", "صالون", "مراتب", "قماش", "سفنج", "منجد"],
+  family: ["باطنه", "ضغط", "سكر", "قولون", "معده", "كبد", "برد", "سخونيه", "كشف منزلي", "دكتور باطنه"],
+  pediatrics: ["اطفال", "رضع", "حديثي الولاده", "حساسيه صدر", "تطعيم", "سخونيه طفل", "كحه", "نزله معويه", "دكتور اطفال"],
+  dentistry: ["ضرس", "سنان", "اسنان", "تقويم", "حشو عصب", "خلع", "تركيبات", "لثه", "تبييض", "دكتور سنان"],
+  gynecology: ["حمل", "ولاده", "سونار", "متابعه حمل", "نساء", "توليد", "قيصريه", "دكتوره نساء"],
+  orthopedics: ["كسر", "ركبه", "ظهر", "غضروف", "مفاصل", "خشونه", "عمود فقري", "جبس", "دكتور عظام"],
+  dermatology: ["حساسيه", "حبوب", "اكزيما", "بشره", "شعر", "تساقط", "ليزر", "تجميل", "دكتور جلديه"],
+  ophthalmology: ["نظر", "نضاره", "عين", "مياه بيضاء", "شبكيه", "عدسات", "قاع عين", "دكتور عيون", "رمد"],
+  ent: ["انف", "اذن", "حنجره", "لوز", "لحميه", "جيوب انفيه", "سمع", "غسيل اذن", "احتقان"],
+  physiotherapy: ["علاج طبيعي", "تاهيل", "مساج علاجي", "انزلاق", "جلسات كهرباء", "اصابات ملاعب"],
+  "medical-labs": ["تحليل", "تحاليل", "صوره دم", "سكر تراكمي", "وظائف كبد", "وظائف كلي", "مزرعه", "سحب عينه من المنزل", "معمل"],
+  groceries: ["بقاله", "سوبر ماركت", "تموين", "جبنه", "لبن", "زيت", "سكر", "ارز", "خزين البيت", "عطاره"],
+  pharmacies: ["صيدليه", "دواء", "علاج", "حقنه", "قياس ضغط", "قياس سكر", "روشته", "مناوبه", "طوارئ دواء", "لبن اطفال"],
+  clothing: ["هدوم", "ملابس", "عبايات", "احذيه", "شنط", "جهاز عروسه", "ملابس اطفال", "ملابس رجالي", "ملابس حريمي"],
+  stationery: ["مكتبه", "تصوير ورق", "طباعه", "كشاكيل", "اقلام", "ادوات مدرسيه", "مذكرات", "هدايا"],
+  appliances: ["اجهزه كهربائيه", "شاشات", "تلفزيون", "مراوح", "خلاط", "مكواه", "جهاز عروسه كهرباء"],
+  food: ["اكل", "مطعم", "كشري", "مشويات", "فول وطعميه", "كريب", "بيتزا", "ساندوتشات", "حلويات", "مخبز", "فرن عيش", "فطير", "عصير", "كافيه"],
+  "mobile-shops": ["موبايل", "تليفون", "شاشه موبايل", "بطاريه موبايل", "شاحن", "سماعه", "جراب", "كمبيوتر", "لابتوب", "صيانه موبايل", "تحويل كاش", "فودافون كاش"],
+  arabic: ["عربي", "نحو", "قراءه", "تاسيس", "بلاغه", "مدرس عربي"],
+  english: ["انجليزي", "تاسيس انجليزي", "كورس انجليزي", "فونكس", "مدرس انجليزي"],
+  math: ["رياضه", "حساب", "جبر", "هندسه", "احصاء", "ماث", "مدرس رياضه"],
+  science: ["علوم", "كيمياء", "فيزياء", "احياء", "ساينس", "مدرس علوم"],
+  "social-studies": ["دراسات", "تاريخ", "جغرافيا", "فلسفه", "علم نفس", "مدرس دراسات"],
+  law: ["محامي", "قضيه", "عقد", "شهر عقاري", "استشاره قانونيه", "ميراث", "احوال شخصيه"],
+  transport: ["مواصلات", "عربيه", "ميكروباص", "توكتوك", "نقل عفش", "توصيل", "مشوار", "سوزوكي", "ربع نقل"],
+  cameras: ["كاميرات مراقبه", "انتركوم", "انذار", "شبكات", "راوتر", "واي فاي", "دش", "رسيفر"],
+  solar: ["طاقه شمسيه", "الواح شمسيه", "انفرتر", "بطاريات طاقه"],
+  cleaning: ["نظافه", "غسيل سجاد", "تنظيف منازل", "مكافحه حشرات", "رش حشرات"],
+};
+
+export function getSpecialtyKeywords(categoryId: string): string {
+  return (specialtySynonyms[categoryId] ?? []).join(" ");
+}
+
+export function matchesServiceQuery(service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties" | "category" | "address" | "phone" | "phoneSecondary">, categoryName: string, query: string): boolean {
+  const normalizedQuery = normalizeSearch(query.trim());
+  if (!normalizedQuery) return true;
+  const haystack = normalizeSearch(`${service.name} ${service.description} ${(service.serviceItems ?? []).join(" ")} ${(service.subSpecialties ?? []).join(" ")} ${categoryName} ${getSpecialtyKeywords(service.category)} ${service.address} ${service.phone} ${service.phoneSecondary}`);
+  if (haystack.includes(normalizedQuery)) return true;
+  const words = normalizedQuery.split(/\s+/).filter((word) => word.length > 1);
+  return words.length > 1 && words.every((word) => haystack.includes(word));
+}
+
 export function suggestSpecialties(query: string, catalog: CategoryRecord[], providers: { category: string }[], rootId?: string) {
   const words = normalizeSearch(query).split(/\s+/).filter((word) => word.length > 1);
   return catalog.filter((item) => item.active && item.parentId && (!rootId || item.parentId === rootId) && providers.some((service) => service.category === item.id))
-    .map((item) => ({ item, score: words.reduce((score, word) => score + (normalizeSearch(`${item.name} ${item.description}`).includes(word) ? 1 : 0), 0) }))
+    .map((item) => {
+      const searchable = normalizeSearch(`${item.name} ${item.description} ${getSpecialtyKeywords(item.id)}`);
+      return { item, score: words.reduce((score, word) => score + (searchable.includes(word) ? 1 : 0), 0) };
+    })
     .sort((a, b) => b.score - a.score || a.item.sortOrder - b.item.sortOrder)
     .slice(0, 3).map(({ item }) => item);
 }
@@ -70,6 +128,114 @@ export function missingServiceData(service: ServiceRecord) {
     !service.subSpecialties.length && "التخصصات الفرعية",
   ].filter((item): item is string => typeof item === "string");
 }
+
+export type TrustBadge = {
+  id: "complete-profile" | "community-recommended" | "fast-response";
+  label: string;
+  tone: "emerald" | "amber" | "blue";
+};
+
+export function getServiceTrustBadges(
+  service: Pick<ServiceRecord, "address" | "description" | "serviceItems" | "subSpecialties" | "rating" | "reviews" | "comments" | "featured" | "verified" | "availableNow" | "availableUntil" | "emergency" | "phoneSecondary">,
+  now = Date.now(),
+): TrustBadge[] {
+  const badges: TrustBadge[] = [];
+  const isComplete = Boolean(service.address?.trim() && service.description?.trim() && service.serviceItems?.length && service.subSpecialties?.length);
+  if (isComplete) badges.push({ id: "complete-profile", label: "ملف مكتمل ١٠٠٪", tone: "emerald" });
+  const score = Number.parseFloat(service.rating) || 0;
+  const positiveComments = service.comments?.filter((item) => item.stars >= 4).length ?? 0;
+  if ((score >= 4.5 && (service.reviews || 0) >= 3) || positiveComments >= 2 || (service.featured && service.verified)) {
+    badges.push({ id: "community-recommended", label: "موصى به من الأهالي", tone: "amber" });
+  }
+  if ((now > 0 && isAvailableNow(service, now)) || service.emergency || Boolean(service.phoneSecondary?.trim())) {
+    badges.push({ id: "fast-response", label: "استجابة سريعة", tone: "blue" });
+  }
+  return badges;
+}
+
+export type DutyFilter = "all" | "pharmacies" | "clinics" | "emergency";
+export type DutyShiftInfo = {
+  mode: "night" | "friday" | "day";
+  badge: string;
+  title: string;
+  subtitle: string;
+};
+
+export function getDutyShiftInfo(input: Date | number = new Date()): DutyShiftInfo {
+  const date = typeof input === "number" ? new Date(input) : input;
+  const hour = date.getHours();
+  const day = date.getDay();
+  if (hour >= 19 || hour < 7) {
+    return {
+      mode: "night",
+      badge: "مناوبة الليل والطوارئ المسائية",
+      title: "الصيدليات والعيادات والطوارئ المناوبة الآن",
+      subtitle: "قائمة فورية للصيدليات والأطباء وخدمات الطوارئ المتاحة خلال الفترة المسائية والليلية بقرية جنزور",
+    };
+  }
+  if (day === 5) {
+    return {
+      mode: "friday",
+      badge: "مناوبة يوم الجمعة والعطلات",
+      title: "الصيدليات والعيادات المناوبة يوم الجمعة",
+      subtitle: "تواصل مباشر مع الصيدليات والعيادات وخدمات الطوارئ المتاحة اليوم لخدمة أهالي جنزور",
+    };
+  }
+  return {
+    mode: "day",
+    badge: "مناوبة وطوارئ على مدار اليوم",
+    title: "الصيدليات والعيادات والطوارئ المتاحة الآن",
+    subtitle: "وصول سريع للصيدليات والأطباء وخدمات الطوارئ المستعدة لخدمة أهالي جنزور",
+  };
+}
+
+export function getOnDutyServices(
+  services: ServiceRecord[],
+  catalog: CategoryRecord[],
+  filter: DutyFilter = "all",
+  now = Date.now(),
+): ServiceRecord[] {
+  return services
+    .filter((service) => {
+      const category = getCategory(service.category, catalog);
+      const isPharmacy = service.category === "pharmacies";
+      const isClinicOrLab = category.parentId === "clinics" || category.parentId === "labs";
+      const isEmergencyOrAvailable = Boolean(service.emergency) || (now > 0 && isAvailableNow(service, now));
+      if (filter === "pharmacies") return isPharmacy;
+      if (filter === "clinics") return isClinicOrLab;
+      if (filter === "emergency") return isEmergencyOrAvailable;
+      return isPharmacy || isClinicOrLab || isEmergencyOrAvailable;
+    })
+    .sort((a, b) => {
+      const aLive = now > 0 && isAvailableNow(a, now) ? 1 : 0;
+      const bLive = now > 0 && isAvailableNow(b, now) ? 1 : 0;
+      if (bLive !== aLive) return bLive - aLive;
+      if (Number(b.emergency) !== Number(a.emergency)) return Number(b.emergency) - Number(a.emergency);
+      if (Number(b.featured) !== Number(a.featured)) return Number(b.featured) - Number(a.featured);
+      return (Number.parseFloat(b.rating) || 0) - (Number.parseFloat(a.rating) || 0);
+    });
+}
+
+export type PublicUtilityContact = {
+  id: string;
+  name: string;
+  number: string;
+  category: string;
+  detail: string;
+  tone: "red" | "blue" | "amber" | "emerald";
+};
+
+export const publicUtilityNumbers: PublicUtilityContact[] = [
+  { id: "ambulance", name: "الإسعاف والطوارئ الطبية", number: "123", category: "طوارئ طبية", detail: "للحالات الطبية الطارئة ونقل المرضى على مدار ٢٤ ساعة", tone: "red" },
+  { id: "police", name: "شرطة النجدة", number: "122", category: "أمن وبلاغات", detail: "للطوارئ والبلاغات الأمنية العاجلة", tone: "blue" },
+  { id: "fire", name: "المطافئ والحماية المدنية", number: "180", category: "إطفاء وإنقاذ", detail: "للحرائق والإنقاذ والحوادث الطارئة", tone: "amber" },
+  { id: "electricity-emergency", name: "طوارئ الكهرباء", number: "121", category: "مرافق عامة", detail: "الإبلاغ عن أعطال وانقطاع التيار الكهربائي", tone: "amber" },
+  { id: "water-emergency", name: "طوارئ المياه والصرف الصحي", number: "125", category: "مرافق عامة", detail: "بلاغات أعطال وكسور خطوط المياه والصرف", tone: "blue" },
+  { id: "gas-emergency", name: "طوارئ الغاز الطبيعي", number: "129", category: "مرافق عامة", detail: "بلاغات تسريب وأعطال الغاز الطبيعي", tone: "red" },
+  { id: "health-hotline", name: "وزارة الصحة والرعاية الحرجة", number: "105", category: "خدمات صحية", detail: "الاستفسارات الصحية وتنسيق الرعاية المركزة والحضّانات (137)", tone: "emerald" },
+  { id: "cabinet-complaints", name: "شكاوى المرافق والخدمات الحكومية", number: "16528", category: "خدمات عامة", detail: "الخط الساخن لمنظومة الشكاوى الحكومية الموحدة", tone: "emerald" },
+  { id: "daleel-office", name: "خدمة دليل جنزور — مكتب الجمال", number: OFFICE_PHONE, category: "إدارة الدليل", detail: "لإضافة أو تحديث أرقام المهنيين والمرافق بقرية جنزور", tone: "blue" },
+];
 
 // A provider counts as new in the directory for this many days after it was created.
 export const NEW_SERVICE_DAYS = 30;
