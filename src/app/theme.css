@@ -122,3 +122,6 @@ html.dark .modal-heading { background: #0d1a2b; border-bottom-color: #1d3348; }
 html.dark .modal-heading h2 { color: #dcebf9; }
 html.dark .modal-heading p { color: #8fa9c2; }
 html.dark .modal-close { border-color: #24405c; color: #9fc3e2; }
+
+/* زر الخط الكبير */
+html.dark .font-toggle { color: #9fc3e2; }

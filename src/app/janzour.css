@@ -1355,3 +1355,40 @@ html.dark .detail-toprated { background: #271f0c !important; color: #ffd76b; }
 .detail-comments small { color: var(--text-muted, #7087a1); font-size: 11px; font-weight: 600; }
 html.dark .detail-comments li { background: #122840; border-color: #1e3448; }
 html.dark .detail-comments p { color: #cfe4f7; }
+
+/* ===== وضع الخط الكبير (لمعين سنة) — زر بجانب الوضع الليلي في الهيدر ===== */
+html.big-text body { zoom: 1.18; }
+@media(min-width:900px) { html.big-text body { zoom: 1.12; } }
+.font-toggle { color: #174a71; }
+.font-toggle:hover { background: #edf5ff; }
+.font-toggle[aria-pressed="true"] { background: #e4f2ff; color: #086fbd; }
+html.dark .font-toggle { color: #9fc3e2; }
+html.dark .font-toggle:hover { background: #14293f; }
+html.dark .font-toggle[aria-pressed="true"] { background: #14293f; color: #ffd76b; }
+
+/* زر حفظ الرقم — خامس زر في أدوات التفاصيل يمتد بعرض الصف */
+.detail-tools button:nth-child(odd):last-child { grid-column: 1 / -1; }
+
+/* ===== الردود الجاهزة في لوحة الإدارة ===== */
+.admin-replies { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; align-items: start; }
+.replies-picker { position: sticky; top: 16px; display: grid; gap: 9px; padding: 12px; border: 1px solid #e3edf7; border-radius: 14px; background: #fff; }
+.replies-provider-list { display: grid; gap: 6px; max-height: 460px; overflow-y: auto; }
+.replies-provider-list > button { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 7px 9px; border: 1px solid #edf3f9; border-radius: 11px; background: #fff; text-align: right; transition: border-color .18s, background .18s; }
+.replies-provider-list > button:hover { border-color: #b9d8eb; background: #f7fbff; }
+.replies-provider-list > button.is-selected { border-color: #0876e1; background: #f0f8ff; }
+.replies-provider-list strong { display: block; color: #173b61; font-size: 13px; font-weight: 800; }
+.replies-provider-list small { color: #8a9fb5; font-size: 11px; font-weight: 600; }
+.replies-empty { margin: 0; color: #8a9fb5; font-size: 12px; text-align: center; }
+.replies-templates { display: grid; gap: 11px; }
+.reply-card { display: grid; gap: 9px; padding: 14px; border: 1px solid #e3edf7; border-radius: 14px; background: #fff; }
+.reply-card h3 { margin: 0; color: #173b61; font-size: 14px; font-weight: 800; }
+.reply-card pre { margin: 0; padding: 12px; border: 1px dashed #d9e5f1; border-radius: 11px; background: #f9fcff; color: #315b78; font-family: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.reply-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.reply-actions .is-copied { border-color: #07934c; color: #0b8f57; }
+@media(max-width:900px) { .admin-replies { grid-template-columns: 1fr; } .replies-picker { position: static; } .replies-provider-list { max-height: 240px; } }
+html.dark .replies-picker, html.dark .reply-card { background: #102034; border-color: #1e3448; }
+html.dark .reply-card pre { background: #0d1a2b; border-color: #24405c; color: #cfe4f7; }
+html.dark .reply-card h3 { color: #dcebf9; }
+html.dark .replies-provider-list > button { background: #0d1a2b; border-color: #1e3448; }
+html.dark .replies-provider-list > button.is-selected { border-color: #2f7fd4; background: #12283e; }
+html.dark .replies-provider-list strong { color: #dcebf9; }
