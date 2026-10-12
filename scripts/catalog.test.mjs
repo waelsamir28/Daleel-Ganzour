@@ -249,6 +249,7 @@ test("serves settings without any advertising field", () => {
   assert.equal(sanitizeSettings({ siteName: "   ", phone: 12345, showEmergency: "yes" }).siteName, defaultSettings.siteName);
   assert.equal(sanitizeSettings({ phone: 12345 }).phone, defaultSettings.phone);
   assert.equal(sanitizeSettings({ showEmergency: "yes" }).showEmergency, true);
+  assert.equal(sanitizeSettings({ copyright: "© 2026 جميع الحقوق محفوظة — دليل جنزور" }).copyright, "جميع الحقوق محفوظة — دليل جنزور");
   assert.deepEqual(sanitizeSettings({}), defaultSettings);
   // The catalogue module itself exposes no advertising API any more.
   assert.deepEqual(Object.keys(catalog).filter((name) => /advert|campaign|placement|marquee|^ad[A-Z]|Ad[A-Z]|adPrice|adDays/.test(name)), []);
