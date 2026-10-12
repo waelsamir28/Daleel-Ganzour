@@ -5,6 +5,7 @@ import { getPublicDirectory } from "@/lib/directory";
 import { sameOrigin } from "@/lib/auth";
 import { apiError, objectInput, serviceInput } from "@/lib/inputs";
 import { rateLimit } from "@/lib/validation";
+import { sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
 export async function GET() {
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
       await tx.insert(notifications).values({ type: "service", title: "طلب مهنة جديد بانتظارك", message: `${values.name} أرسل طلب إضافة خدمة. راجع البيانات قبل النشر.`, entityId: created.id });
       return created;
     });
+    void sendAdminWhatsappAlert("🔔 طلب مهنة جديد بانتظارك", `${values.name} أرسل طلب إضافة مهنة (${values.category}). راجع البيانات قبل النشر.`);
     return Response.json({ ...service, trackingUrl: `/track/${token}`, message: "وصل طلبك للإدارة ومعاه إشعار. خدمتك مش هتظهر في الدليل إلا بعد الموافقة." }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error); }
 }

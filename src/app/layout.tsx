@@ -12,6 +12,7 @@ import SplashScreen from "@/components/splash-screen";
 import "./globals.css";
 import "./janzour.css";
 import "./availability.css";
+import "./theme.css";
 
 export const metadata: Metadata = {
   title: "دليل المهن والخدمات بقرية جنزور",
@@ -32,5 +33,6 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return <html lang="ar" dir="rtl"><body><SplashScreen /><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
+  // The blocking script applies the saved (or system) theme before first paint to avoid a white flash.
+  return <html lang="ar" dir="rtl"><head><script dangerouslySetInnerHTML={{ __html: `(function(){try{var stored=localStorage.getItem("janzour-theme");var dark=stored?stored==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;if(dark)document.documentElement.classList.add("dark");if(localStorage.getItem("janzour-bigtext")==="1")document.documentElement.classList.add("big-text");}catch(e){}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
 }
