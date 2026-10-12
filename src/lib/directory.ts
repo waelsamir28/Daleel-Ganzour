@@ -1,8 +1,8 @@
 import "server-only";
 import { and, asc, avg, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
-import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services } from "@/db/schema";
-import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSettings, type AdminDirectory, type CategoryRecord, type CommunityListingType, type PublicDirectory, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
+import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSettings, type AdminDirectory, type CategoryRecord, type CommunityListingType, type PublicDirectory, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
@@ -39,6 +39,7 @@ export async function ensureSeed() {
       await tx.execute(sql`UPDATE directory_services SET availability_token = substr(md5(random()::text || id::text), 1, 32) || substr(md5(random()::text), 1, 8) WHERE availability_token = ''`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_ratings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, member_id uuid NOT NULL REFERENCES directory_members(id) ON DELETE CASCADE, stars integer NOT NULL, comment text NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'pending', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE UNIQUE INDEX IF NOT EXISTS directory_service_ratings_one_per_member ON directory_service_ratings (service_id, member_id)`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_specialty_follows (member_id uuid NOT NULL REFERENCES directory_members(id) ON DELETE CASCADE, category_id varchar(60) NOT NULL REFERENCES directory_categories(id) ON DELETE CASCADE, created_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (member_id, category_id))`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_push_subscriptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), endpoint text NOT NULL UNIQUE, subscription text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
@@ -103,6 +104,13 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
   const providers = ids.length ? await db.select().from(services).where(and(eq(services.status, "approved"), inArray(services.category, ids))).orderBy(desc(services.featured), asc(services.id)) : [];
   const ratingRows = ids.length ? await db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings).where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, ids))).groupBy(serviceRatings.serviceId) : [];
   const ratingByService = new Map(ratingRows.map((row) => [row.serviceId, row]));
+  const commentRows = ids.length ? await db.select({ serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, createdAt: serviceRatings.createdAt, memberName: members.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).where(and(eq(serviceRatings.status, "approved"), ne(serviceRatings.comment, ""), inArray(serviceRatings.serviceId, ids))).orderBy(desc(serviceRatings.createdAt)).limit(150) : [];
+  const commentsByService = new Map<string, ServiceComment[]>();
+  for (const row of commentRows) {
+    const list = commentsByService.get(row.serviceId) ?? [];
+    if (list.length < 5) list.push({ stars: row.stars, comment: row.comment, member: row.memberName.trim().split(/\s+/)[0], date: row.createdAt.toISOString() });
+    commentsByService.set(row.serviceId, list);
+  }
   // Approved member ratings blend into the seeded score, weighted by the existing review count.
   const blended = providers.map((row) => {
     const record = serializeService(row);
@@ -112,6 +120,8 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
       record.rating = total > 0 ? ((baseScore * record.reviews + Number(extra.avgStars ?? 0) * extra.total) / total).toFixed(1) : record.rating;
       record.reviews = total;
     }
+    const comments = commentsByService.get(row.id);
+    if (comments?.length) record.comments = comments;
     return record;
   });
   return { ...catalog, categories: visibleCategories, services: blended };

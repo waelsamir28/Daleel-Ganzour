@@ -1314,3 +1314,44 @@ html.dark .admin-rating-row { background: #102034; border-color: #1e3448; }
 html.dark .rating-row-copy h3 { color: #dcebf9; }
 html.dark .rating-row-copy p { color: #8fa9c2; }
 @media(max-width:700px) { .admin-rating-row { flex-direction: column; } .rating-row-actions { width: 100%; } }
+
+/* ===== متابعة التخصصات: زر المتابعة + جرس المتابعة + قائمة الجديد ===== */
+.follow-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border: 1px solid #0876e1; border-radius: 999px; background: linear-gradient(135deg, #0887e8, #0565d6); color: #fff; font-size: 12px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 10px #0876e126; transition: background .18s, box-shadow .18s, transform .18s; }
+.follow-toggle:hover:not(:disabled) { background: linear-gradient(135deg, #1595ff, #0760c9); transform: translateY(-1px); }
+.follow-toggle:active:not(:disabled) { transform: translateY(1px); }
+.follow-toggle.is-on { border-color: #b9d1e5; background: #edf5ff; color: #086dcc; box-shadow: none; }
+.follow-toggle.is-on:hover:not(:disabled) { background: #e0efff; }
+.follow-error { flex-basis: 100%; color: #d64550; font-size: 11px; font-weight: 700; }
+.feed-bell { position: relative; color: #174a71; }
+.feed-bell:hover { background: #edf5ff; }
+.feed-count { position: absolute; top: -4px; inset-inline-start: -4px; display: grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: #e0212f; color: #fff; font-size: 10px; font-weight: 900; box-shadow: 0 0 0 2px #fff; }
+.follow-feed { display: grid; gap: 7px; }
+.follow-feed > button { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 58px; padding: 9px 11px; border: 1px solid #e3edf7; border-radius: 13px; background: var(--surface-2, #f7faff); text-align: right; transition: border-color .18s, background .18s; }
+.follow-feed > button:hover { border-color: #9cc0e2; background: #eff8ff; }
+.follow-feed-copy { flex: 1; min-width: 0; }
+.follow-feed-copy strong { display: block; color: var(--text, #173b61); font-size: 14px; font-weight: 800; }
+.follow-feed-copy span { color: var(--text-muted, #7087a1); font-size: 11.5px; font-weight: 600; }
+.follow-feed > button > small { display: inline-flex; align-items: center; gap: 3px; color: #8a9fb5; font-size: 11px; font-weight: 700; white-space: nowrap; }
+html.dark .follow-toggle.is-on { border-color: #24405c; background: #14293f; color: #7fbff5; }
+html.dark .feed-bell { color: #9fc3e2; }
+html.dark .feed-bell:hover { background: #14293f; }
+html.dark .feed-count { box-shadow: 0 0 0 2px #0e1d30; }
+html.dark .follow-feed > button { background: #0d1a2b; border-color: #1e3448; }
+html.dark .follow-feed > button:hover { background: #12283e; border-color: #2f537a; }
+html.dark .follow-feed-copy strong { color: #dcebf9; }
+html.dark .follow-feed-copy span { color: #8fa9c2; }
+
+/* ===== شارة الأعلى تقييمًا ===== */
+.top-rated-flag { position: absolute; top: -9px; inset-inline-end: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 3px 12px 3px 9px; border-radius: 3px; background: linear-gradient(135deg, #ffc93c, #f59e0b); color: #4a2f00; font-size: 11px; font-weight: 900; line-height: 1.5; letter-spacing: .2px; clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 50%, 100% 100%, 0 100%); box-shadow: 0 6px 12px -6px #f59e0ba6; pointer-events: none; }
+.detail-toprated { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: #fff4d6 !important; color: #a16207; font-size: 11.5px; font-weight: 800; }
+html.dark .detail-toprated { background: #271f0c !important; color: #ffd76b; }
+
+/* ===== آراء الأعضاء داخل التفاصيل ===== */
+.detail-comments h4 { margin: 0 0 8px; color: var(--text, #173b61); font-weight: 900; }
+.detail-comments ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.detail-comments li { display: grid; gap: 4px; padding: 11px 12px; border: 1px solid var(--line, #dbe7f3); border-radius: 12px; background: var(--surface-2, #f7faff); }
+.comment-stars { display: inline-flex; gap: 1px; color: #ffb52e; }
+.detail-comments p { margin: 0; color: var(--text, #173b61); font-size: 13px; font-weight: 600; line-height: 1.7; overflow-wrap: anywhere; }
+.detail-comments small { color: var(--text-muted, #7087a1); font-size: 11px; font-weight: 600; }
+html.dark .detail-comments li { background: #122840; border-color: #1e3448; }
+html.dark .detail-comments p { color: #cfe4f7; }

@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, jsonb, uniqueIndex, primaryKey } from "drizzle-orm/pg-core";
 import type { WorkingHours } from "@/lib/catalog";
 
 export const services = pgTable("directory_services", {
@@ -131,6 +131,12 @@ export const serviceRatings = pgTable("directory_service_ratings", {
   status: varchar("status", { length: 20 }).notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("directory_service_ratings_one_per_member").on(table.serviceId, table.memberId)]);
+
+export const specialtyFollows = pgTable("directory_specialty_follows", {
+  memberId: uuid("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
+  categoryId: varchar("category_id", { length: 60 }).notNull().references(() => directoryCategories.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [primaryKey({ columns: [table.memberId, table.categoryId] })]);
 
 export const appointmentRequests = pgTable("directory_appointment_requests", {
   id: uuid("id").defaultRandom().primaryKey(),

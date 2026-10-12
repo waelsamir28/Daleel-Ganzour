@@ -60,7 +60,7 @@ export type AreaRecord = { id: string; name: string; sortOrder: number };
 export type ServiceRecord = {
   id: string; name: string; category: string; area: string; address: string; phone: string; phoneSecondary: string;
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
-  availabilityToken?: string; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
+  availabilityToken?: string; comments?: ServiceComment[]; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
 };
 
 export function missingServiceData(service: ServiceRecord) {
@@ -92,12 +92,16 @@ export type SiteSettings = {
   siteName: string; heroSubtitle: string; heroEyebrow: string; tagline: string;
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;
   phone: string; showEmergency: boolean;
+  whatsappAlertsNumber: string; whatsappAlertsApiKey: string;
 };
 export type PublicDirectory = {
   services: ServiceRecord[]; categories: CategoryRecord[];
   areas: AreaRecord[]; settings: SiteSettings; memberCount: number; previewMode?: boolean;
 };
 export type RatingRecord = { id: string; serviceId: string; serviceName: string; memberName: string; stars: number; comment: string; status: string; createdAt: string };
+export type ServiceComment = { stars: number; comment: string; member: string; date: string };
+export type FollowFeedItem = { id: string; createdAt: string };
+export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
 export type AdminDirectory = PublicDirectory & { members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
 
 export const defaultSettings: SiteSettings = {
@@ -109,6 +113,7 @@ export const defaultSettings: SiteSettings = {
   contactText: "لمتابعة طلب إضافة مهنة، أو أي استفسار عن الدليل، تواصل مع مكتب الجمال مباشرة.",
   copyright: "جميع الحقوق محفوظة لمكتب الجمال للدعاية والإعلان.", phone: OFFICE_PHONE,
   showEmergency: true,
+  whatsappAlertsNumber: "", whatsappAlertsApiKey: "",
 };
 
 // Settings rows saved by older releases still carry advertising fields (adPrice, adDays, marquee*).
@@ -118,6 +123,7 @@ export function sanitizeSettings(saved: Record<string, unknown>): SiteSettings {
   const next: SiteSettings = { ...defaultSettings };
   for (const key of settingsTextKeys) { const value = saved[key]; if (typeof value === "string" && value.trim()) next[key] = value; }
   if (typeof saved.showEmergency === "boolean") next.showEmergency = saved.showEmergency;
+  for (const key of ["whatsappAlertsNumber", "whatsappAlertsApiKey"] as const) { const value = saved[key]; if (typeof value === "string") next[key] = value.trim(); }
   return next;
 }
 

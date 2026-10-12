@@ -226,13 +226,16 @@ test("keeps sections, specialties and icons coherent", () => {
 });
 
 test("serves settings without any advertising field", () => {
-  const expected = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright", "phone", "showEmergency"];
+  const expected = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright", "phone", "showEmergency", "whatsappAlertsNumber", "whatsappAlertsApiKey"];
   assert.deepEqual(Object.keys(defaultSettings), expected);
-  assert.deepEqual([...settingsTextKeys, "showEmergency"], expected);
+  assert.deepEqual([...settingsTextKeys, "showEmergency", "whatsappAlertsNumber", "whatsappAlertsApiKey"], expected);
   for (const key of ["adPrice", "adDays", "marqueeEnabled"]) assert.equal(key in defaultSettings, false, `${key} is gone`);
   assert.equal(/إعلان/.test(defaultSettings.contactText), false, "the contact text no longer sells advertising");
   assert.equal(defaultSettings.phone, "01222355769");
   assert.equal(defaultSettings.showEmergency, true);
+  // WhatsApp alerts start disabled until the admin saves a number and a CallMeBot key.
+  assert.equal(defaultSettings.whatsappAlertsNumber, "");
+  assert.equal(defaultSettings.whatsappAlertsApiKey, "");
   // Rows written by older releases still carry the removed fields: they are dropped, never served.
   const legacy = { ...defaultSettings, adPrice: 65, adDays: 3, marqueeEnabled: true, marqueeText: "إعلان", paid: true };
   const clean = sanitizeSettings(legacy);

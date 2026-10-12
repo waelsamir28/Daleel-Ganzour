@@ -5,6 +5,7 @@ import { apiError, InputError, integerInput, objectInput } from "@/lib/inputs";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { cleanText, validId } from "@/lib/validation";
 import { eq } from "drizzle-orm";
+import { sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     if (!service || service.status !== "approved") throw new InputError("الخدمة غير متاحة للتقييم.", 404);
     await db.insert(serviceRatings).values({ serviceId, memberId: viewer.id, stars, comment }).onConflictDoUpdate({ target: [serviceRatings.serviceId, serviceRatings.memberId], set: { stars, comment, status: "pending", createdAt: new Date() } });
     await db.insert(notifications).values({ type: "rating", title: `تقييم جديد: ${service.name}`, message: `${stars} من 5 من ${viewer.name}${comment ? ` — ${comment}` : ""}`, entityId: serviceId });
+    void sendAdminWhatsappAlert("⭐ تقييم جديد", `${service.name}: ${stars} من 5 من ${viewer.name}${comment ? ` — ${comment}` : ""}`);
     return Response.json({ ok: true, message: "شكرًا لتقييمك.. هيظهر بعد مراجعة الإدارة." }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
