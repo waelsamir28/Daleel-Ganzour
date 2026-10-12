@@ -102,9 +102,10 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
   const visibleCategories = catalog.categories.filter((category) => category.active && (!category.parentId || visibleRoots.includes(category.parentId)));
   const ids = visibleCategories.filter((category) => category.parentId).map((category) => category.id);
   const providers = ids.length ? await db.select().from(services).where(and(eq(services.status, "approved"), inArray(services.category, ids))).orderBy(desc(services.featured), asc(services.id)) : [];
-  const ratingRows = ids.length ? await db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings).where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, ids))).groupBy(serviceRatings.serviceId) : [];
+  const providerIds = providers.map((row) => row.id);
+  const ratingRows = providerIds.length ? await db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings).where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, providerIds))).groupBy(serviceRatings.serviceId) : [];
   const ratingByService = new Map(ratingRows.map((row) => [row.serviceId, row]));
-  const commentRows = ids.length ? await db.select({ serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, createdAt: serviceRatings.createdAt, memberName: members.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).where(and(eq(serviceRatings.status, "approved"), ne(serviceRatings.comment, ""), inArray(serviceRatings.serviceId, ids))).orderBy(desc(serviceRatings.createdAt)).limit(150) : [];
+  const commentRows = providerIds.length ? await db.select({ serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, createdAt: serviceRatings.createdAt, memberName: members.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).where(and(eq(serviceRatings.status, "approved"), ne(serviceRatings.comment, ""), inArray(serviceRatings.serviceId, providerIds))).orderBy(desc(serviceRatings.createdAt)).limit(150) : [];
   const commentsByService = new Map<string, ServiceComment[]>();
   for (const row of commentRows) {
     const list = commentsByService.get(row.serviceId) ?? [];
