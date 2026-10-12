@@ -1,5 +1,15 @@
-.availability-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 18px; }
-.availability-filter small { color: #52647a; }
+/* زر "متاح الآن" داخل برواز عنوان مقدمي الخدمات المميزين، بجوار زر "عرض الكل". */
+.section-heading-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+.availability-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border: 1px solid #07934c; border-radius: 999px; background: linear-gradient(135deg, #0cb763, #07974e); color: #fff; font-size: 12px; font-weight: 800; white-space: nowrap; box-shadow: 0 4px 10px #08a4532b; transition: background .18s, box-shadow .18s, transform .18s; }
+.availability-toggle:hover { background: linear-gradient(135deg, #0bab5a, #087e43); transform: translateY(-1px); box-shadow: 0 6px 14px #08a4533d; }
+.availability-toggle:active { transform: translateY(1px); box-shadow: none; }
+/* اللمبة الخضراء داخل الزر — تُشع بأثناء تشغيل الفلتر. */
+.availability-toggle svg { flex: none; color: #c8ffdf; filter: drop-shadow(0 0 4px #a9ffcd); }
+.availability-toggle.is-on { box-shadow: 0 0 0 3px #0cb7632b, 0 5px 12px #08a45345; }
+.availability-toggle.is-on svg { color: #f0fff6; animation: availability-glow 1.5s ease-in-out infinite; }
+@keyframes availability-glow { 0%, 100% { filter: drop-shadow(0 0 3px #a9ffcd); } 50% { filter: drop-shadow(0 0 9px #4dff96); } }
+@media(max-width:600px) { .availability-toggle { padding: 7px 11px; font-size: 11px; gap: 5px; } }
+@media(prefers-reduced-motion:reduce) { .availability-toggle { transition: none; } .availability-toggle.is-on svg { animation: none; } }
 .working-hours-editor { border: 1px solid #dbe5f0; border-radius: 12px; padding: 12px; min-width: 0; }
 .working-day-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 10px; border-bottom: 1px solid #e8eef5; }
 .working-day-row > strong { min-width: 65px; }
