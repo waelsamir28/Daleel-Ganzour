@@ -565,6 +565,36 @@ test("clinic booking filter, schedule summary, and shop catalog WhatsApp order b
   assert.ok(orderMsg.includes("الاتصال قبل الوصول"));
 });
 
+test("extended design & site studio settings sanitize cleanly", () => {
+  assert.equal(defaultDesignSettings.prayerCardStyle, "dark-sky");
+  assert.equal(defaultDesignSettings.prayerDefaultOpen, false);
+  assert.equal(defaultDesignSettings.categorySearchDefaultOpen, false);
+  assert.equal(defaultDesignSettings.showCategoryCounts, true);
+  assert.equal(defaultDesignSettings.providerCallStripStyle, "sky");
+  assert.equal(defaultDesignSettings.cardAnimationSpeed, "normal");
+  assert.equal(defaultDesignSettings.allowPublicSubmissions, true);
+
+  const custom = sanitizeDesignSettings({
+    prayerCardStyle: "emerald",
+    prayerDefaultOpen: true,
+    categorySearchDefaultOpen: true,
+    showCategoryCounts: false,
+    providerCallStripStyle: "solid-blue",
+    cardAnimationSpeed: "smooth",
+    officeAddress: "جنزور — بجوار المسجد الكبير",
+    allowPublicSubmissions: false,
+  });
+  assert.equal(custom.prayerCardStyle, "emerald");
+  assert.equal(custom.prayerDefaultOpen, true);
+  assert.equal(custom.categorySearchDefaultOpen, true);
+  assert.equal(custom.showCategoryCounts, false);
+  assert.equal(custom.providerCallStripStyle, "solid-blue");
+  assert.equal(custom.cardAnimationSpeed, "smooth");
+  assert.equal(custom.officeAddress, "جنزور — بجوار المسجد الكبير");
+  assert.equal(custom.allowPublicSubmissions, false);
+});
+
+
 
 
 

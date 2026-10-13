@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
 import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
@@ -27,7 +27,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [queryDraft, setQueryDraft] = useState(""), [query, setQuery] = useState(""), [rootFilter, setRootFilter] = useState(rootId ?? "");
   const [area, setArea] = useState(""), [customAddress, setCustomAddress] = useState(""), [emergency, setEmergency] = useState(false);
   const [deliveryOnly, setDeliveryOnly] = useState(false), [teacherStage, setTeacherStage] = useState<TeacherStageId>("all"), [now, setNow] = useState(0);
-  const [prayerOpen, setPrayerOpen] = useState(false);
+  const [prayerOpen, setPrayerOpen] = useState(() => Boolean(initialData.designSettings?.prayerDefaultOpen));
+  const [scopedSearchOpen, setScopedSearchOpen] = useState(() => Boolean(initialData.designSettings?.categorySearchDefaultOpen));
   const [openTeacherStage, setOpenTeacherStage] = useState<TeacherStageId | null>(null);
   const [teacherSpecialtyFilter, setTeacherSpecialtyFilter] = useState<string>(specialtyId ?? "");
   const [clinicFilter, setClinicFilter] = useState<ClinicBookingFilter>("all");
@@ -526,9 +527,47 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         )}
       </div>
     )}
-    <form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>{(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}
+    {scoped && !scopedSearchOpen && !query && !area ? (
+      <div className="scoped-search-trigger-wrap">
+        <button
+          type="button"
+          className="scoped-search-trigger-btn"
+          aria-expanded={false}
+          aria-label={`فتح البحث في ${title}`}
+          onClick={() => {
+            setScopedSearchOpen(true);
+            setTimeout(() => {
+              document.getElementById("hero-search-input")?.focus();
+            }, 60);
+          }}
+        >
+          <span className="scoped-search-trigger-icon">
+            <Search size={20}/>
+          </span>
+          <span>ابحث في {title}</span>
+        </button>
+      </div>
+    ) : (
+      <div className={`hero-search-expandable-wrap ${scoped ? "is-scoped-expanded" : ""}`}>
+        <form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>
+        {scoped && (
+          <div className="scoped-search-collapse-row">
+            <button
+              type="button"
+              className="scoped-search-collapse-btn"
+              onClick={() => setScopedSearchOpen(false)}
+              aria-label="طي مربع البحث وإرجاعه إلى زر"
+              title="طي مربع البحث"
+            >
+              <ChevronUp size={17}/>
+            </button>
+          </div>
+        )}
+      </div>
+    )}
+    {(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}
     {!scoped && design.showPrayerWeatherBar && (
-      <div className={`ganzour-prayer-card ${prayerOpen ? "is-open" : ""}`} role="region" aria-label="مواقيت الصلاة والطقس في جنزور">
+      <div className={`ganzour-prayer-card ${prayerOpen ? "is-open" : ""}`} role="region" aria-label="مواقيت الصلاة في جنزور">
         <button
           type="button"
           className="ganzour-prayer-card-toggle"
@@ -538,11 +577,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <div className="prayer-centered-title">
             <Clock size={18}/>
             <strong>مواقيت الصلاة اليوم في جنزور</strong>
-            <span className="prayer-weather-inline-pill">
-              {prayerWeather.weather.period === "night" ? <Moon size={14}/> : <Sun size={14}/>}
-              <b>{prayerWeather.weather.tempC}°C</b>
-              <span>{prayerWeather.weather.label}</span>
-            </span>
           </div>
           <div className="prayer-centered-next">
             <span>الصلاة القادمة: <b>{prayerWeather.nextPrayer.name} ({prayerWeather.nextPrayer.time12})</b> — {prayerWeather.nextPrayer.remainingText}</span>
@@ -744,51 +778,59 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </section>
       )}
       {(scoped || isFiltering || design.showFeaturedSection) && <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`} style={scoped ? { order: 3 } : { order: sectionOrderIndex("featured", 2) }}>{isFeaturedCollapsible ? (
-        <div
-          className={`category-tile featured-providers-banner-card ${featuredOpen ? "is-open" : ""}`}
-          style={{ "--category-color": "#078cf0", "--category-light": "#078cf012" } as CSSProperties}
-        >
-          <div className="featured-banner-right">
+        <>
+          <div className="section-heading directory-section-heading featured-section-heading">
+            <div>
+              <h2><Crown size={23}/>{providerTitle}</h2>
+            </div>
+            <span className="section-count">{visibleServices.length} خدمة مميزة</span>
+          </div>
+          <div
+            className={`category-tile featured-providers-banner-card ${featuredOpen ? "is-open" : ""}`}
+            style={{ "--category-color": "#078cf0", "--category-light": "#078cf012" } as CSSProperties}
+          >
+            <div className="featured-banner-right">
+              <button
+                type="button"
+                className={`featured-banner-main-btn ${featuredOpen ? "is-open" : ""}`}
+                aria-expanded={featuredOpen}
+                onClick={() => setFeaturedOpen((open) => !open)}
+              >
+                <h2 className="featured-framed-heading"><Crown size={20}/><span>{providerTitle}</span></h2>
+                <p className="featured-banner-subtitle">نخبة من المهنيين والخدمات المميزة في قرية جنزور</p>
+                <span className="featured-banner-status">
+                  <span>{featuredOpen ? "إخفاء المميزين" : "اضغط لعرض المميزين"}</span>
+                  <ChevronDown size={18} className={featuredOpen ? "is-rotated" : ""}/>
+                </span>
+              </button>
+              {isShopsContext && (
+                <div className="featured-banner-actions">
+                  <button
+                    type="button"
+                    className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`}
+                    aria-pressed={deliveryOnly}
+                    onClick={() => {
+                      const next = !deliveryOnly;
+                      setDeliveryOnly(next);
+                      if (next) setFeaturedOpen(true);
+                    }}
+                  >
+                    <Truck size={15} aria-hidden="true"/>
+                    <span>يوجد توصيل</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               type="button"
-              className={`featured-banner-main-btn ${featuredOpen ? "is-open" : ""}`}
-              aria-expanded={featuredOpen}
+              className="featured-banner-icon-btn"
+              aria-label={providerTitle}
               onClick={() => setFeaturedOpen((open) => !open)}
             >
-              <h2>{providerTitle}</h2>
-              <p className="featured-banner-subtitle">نخبة من المهنيين والخدمات المميزة في قرية جنزور</p>
-              <span className="featured-banner-status">
-                <span>{featuredOpen ? "إخفاء المميزين" : "اضغط لعرض المميزين"}</span>
-                <ChevronDown size={18} className={featuredOpen ? "is-rotated" : ""}/>
-              </span>
+              <span className="category-icon featured-3d-icon"><MainCategoryIcon icon="featured"/></span>
             </button>
-            {isShopsContext && (
-              <div className="featured-banner-actions">
-                <button
-                  type="button"
-                  className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`}
-                  aria-pressed={deliveryOnly}
-                  onClick={() => {
-                    const next = !deliveryOnly;
-                    setDeliveryOnly(next);
-                    if (next) setFeaturedOpen(true);
-                  }}
-                >
-                  <Truck size={15} aria-hidden="true"/>
-                  <span>يوجد توصيل</span>
-                </button>
-              </div>
-            )}
           </div>
-          <button
-            type="button"
-            className="featured-banner-icon-btn"
-            aria-label={providerTitle}
-            onClick={() => setFeaturedOpen((open) => !open)}
-          >
-            <span className="category-icon featured-3d-icon"><MainCategoryIcon icon="featured"/></span>
-          </button>
-        </div>
+        </>
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || activeSpecialtyCategory) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}

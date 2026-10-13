@@ -1020,6 +1020,17 @@ export type DesignSettings = {
   headerPattern: "none" | "dots" | "grid" | "islamic" | "waves";
   heroPattern: "none" | "dots" | "grid" | "islamic" | "waves" | "stars";
   patternOpacity: "subtle" | "medium" | "clear";
+  // 11. Extended Studio & Site Controls
+  prayerCardStyle: "dark-sky" | "royal-navy" | "emerald";
+  prayerDefaultOpen: boolean;
+  categorySearchDefaultOpen: boolean;
+  showCategoryCounts: boolean;
+  providerCallStripStyle: "sky" | "emerald" | "solid-blue";
+  cardAnimationSpeed: "normal" | "smooth" | "instant";
+  officeAddress: string;
+  officeWorkingHours: string;
+  whatsappDefaultGreeting: string;
+  allowPublicSubmissions: boolean;
 };
 
 export const defaultDesignSettings: DesignSettings = {
@@ -1108,6 +1119,16 @@ export const defaultDesignSettings: DesignSettings = {
   headerPattern: "none",
   heroPattern: "none",
   patternOpacity: "subtle",
+  prayerCardStyle: "dark-sky",
+  prayerDefaultOpen: false,
+  categorySearchDefaultOpen: false,
+  showCategoryCounts: true,
+  providerCallStripStyle: "sky",
+  cardAnimationSpeed: "normal",
+  officeAddress: "قرية جنزور — مركز بركة السبع — محافظة المنوفية (بجوار مكتبة الجمال)",
+  officeWorkingHours: "يومياً من ٩ صباحاً حتى ١١ مساءً",
+  whatsappDefaultGreeting: "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.",
+  allowPublicSubmissions: true,
 };
 
 export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; badge?: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
@@ -1273,6 +1294,17 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.headerPattern = pickEnum(record.headerPattern, ["none", "dots", "grid", "islamic", "waves"] as const, defaultDesignSettings.headerPattern);
   next.heroPattern = pickEnum(record.heroPattern, ["none", "dots", "grid", "islamic", "waves", "stars"] as const, defaultDesignSettings.heroPattern);
   next.patternOpacity = pickEnum(record.patternOpacity, ["subtle", "medium", "clear"] as const, defaultDesignSettings.patternOpacity);
+
+  next.prayerCardStyle = pickEnum(record.prayerCardStyle, ["dark-sky", "royal-navy", "emerald"] as const, defaultDesignSettings.prayerCardStyle);
+  next.prayerDefaultOpen = pickBool(record.prayerDefaultOpen, defaultDesignSettings.prayerDefaultOpen);
+  next.categorySearchDefaultOpen = pickBool(record.categorySearchDefaultOpen, defaultDesignSettings.categorySearchDefaultOpen);
+  next.showCategoryCounts = pickBool(record.showCategoryCounts, defaultDesignSettings.showCategoryCounts);
+  next.providerCallStripStyle = pickEnum(record.providerCallStripStyle, ["sky", "emerald", "solid-blue"] as const, defaultDesignSettings.providerCallStripStyle);
+  next.cardAnimationSpeed = pickEnum(record.cardAnimationSpeed, ["normal", "smooth", "instant"] as const, defaultDesignSettings.cardAnimationSpeed);
+  next.officeAddress = pickText(record.officeAddress, defaultDesignSettings.officeAddress, 240);
+  next.officeWorkingHours = pickText(record.officeWorkingHours, defaultDesignSettings.officeWorkingHours, 160);
+  next.whatsappDefaultGreeting = pickText(record.whatsappDefaultGreeting, defaultDesignSettings.whatsappDefaultGreeting, 240);
+  next.allowPublicSubmissions = pickBool(record.allowPublicSubmissions, defaultDesignSettings.allowPublicSubmissions);
 
   return next;
 }
