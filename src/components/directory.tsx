@@ -201,7 +201,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const isTeachersContext = Boolean(rootId === "teachers" || rootFilter === "teachers" || (specialty && specialty.parentId === "teachers"));
   const isShopsContext = Boolean(rootId === "shops" || rootFilter === "shops" || (specialty && specialty.parentId === "shops"));
   const activeDeliveryOnly = isShopsContext && deliveryOnly;
-  const activeSpecialtyId = specialtyId || (isTeachersContext ? teacherSpecialtyFilter : "");
+  const activeSpecialtyId = isTeachersContext ? teacherSpecialtyFilter : (specialtyId ?? "");
   const teacherSpecialties = useMemo(
     () => categories.filter((category) => category.parentId === "teachers" && category.active),
     [categories],
@@ -237,8 +237,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     return services.filter((service) => {
       const cat = getCategory(service.category, categories);
       if (cat.parentId !== "teachers") return false;
-      const targetSpec = specId || specialtyId || "";
-      if (targetSpec && service.category !== targetSpec) return false;
+      if (specId && service.category !== specId) return false;
       return stageId === "all" || matchesTeacherStage(service, stageId);
     }).length;
   }
@@ -472,7 +471,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     {data.previewMode && <div className="preview-mode-notice" role="status">وضع المعاينة: البيانات المعروضة توضيحية، ولن تُحفَظ الإضافات دون قاعدة بيانات.</div>}
     {logoutError && <div role="alert" className="form-error container">{logoutError}</div>}
     {(scoped || design.showHero) && <section className={`hero ${scoped ? "category-page-hero" : "hero-with-banner"}`} aria-labelledby="hero-title"><div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/><svg className="hero-skyline" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path d="M0 210V105h43V81h32v50h29V64h32V22h8V0h6v22h10v42h29v83h27v-39h24V77h22v31h20v102h31V97h33v28h17V65h50v145h42v-65h22v-20h29v20h28v65h33V79h26V36h8V15h5v21h9v43h31v131h32v-86h22V98h38v26h24v86h31V73h49v35h29v102h45V94h31V62h40v148h29v-62h50v62h50V99h34V80h21v19h32v111h41V64h29V26h9V5h5v21h12v38h30v146h42V91h47v119h31V70h26V40h23v30h22v140h37v-63h52v63h34v-98h26V79h31v33h20v98Z"/></svg>{!scoped && <div className="hero-banner-wrap"><Image src="/images/home-banner-sky.png" alt="دليل المهن والخدمات بقرية جنزور، كل أرقام المهنيين والخدمات والمشاريع في مكان واحد" width={2048} height={768} sizes="(max-width: 700px) 100vw, (max-width: 1378px) 90vw, 1240px" priority/></div>}<div className="container hero-inner"><div className="hero-visual"><span className="hero-floating-tag"><CheckCircle2 size={16}/> من أهل القرية.. لأهل القرية</span></div><div className="hero-copy">{scoped ? <nav className="hero-breadcrumb" aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><ChevronLeft size={13}/>{specialty ? <><Link href={`/categories/${rootId}`}>{root?.name}</Link><ChevronLeft size={13}/><span>{specialty.name}</span></> : <span>{root?.name}</span>}</nav> : <div className="hero-eyebrow"><Sparkles size={15}/>{settings.heroEyebrow}</div>}<h1 id="hero-title">{title}</h1>{!scoped && <><p className="hero-subtitle">{settings.heroSubtitle}</p><p className="hero-tagline">{settings.tagline}</p></>}
-    {design.announcementEnabled && announcementList.length > 0 && (
+    {!scoped && design.announcementEnabled && announcementList.length > 0 && (
       <div
         className={`site-announcement-ticker-card is-${design.announcementStyle} is-mode-${design.announcementTickerMode || "marquee"}`}
         style={{ "--ticker-bg": design.announcementBgColor } as CSSProperties}
