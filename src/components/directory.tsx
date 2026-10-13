@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Flame, FlaskConical, Gift, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Store, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
-import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getSponsorOfferCategoryGroup, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, parseSponsoredProviders, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DailyOfferFilterGroup, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type SponsoredProviderConfig, type TeacherStageId, type Viewer } from "@/lib/catalog";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ChevronsDown, ChevronsUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Flame, FlaskConical, Gift, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Store, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getSponsorOfferCategoryGroup, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, parseSponsoredProviders, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DailyOfferFilterGroup, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type SponsoredProviderConfig, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import BusinessCardModal from "@/components/business-card-modal";
@@ -28,8 +28,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [queryDraft, setQueryDraft] = useState(""), [query, setQuery] = useState(""), [rootFilter, setRootFilter] = useState(rootId ?? "");
   const [area, setArea] = useState(""), [customAddress, setCustomAddress] = useState(""), [emergency, setEmergency] = useState(false);
   const [deliveryOnly, setDeliveryOnly] = useState(false), [teacherStage, setTeacherStage] = useState<TeacherStageId>("all"), [now, setNow] = useState(0);
-  const [prayerOpen, setPrayerOpen] = useState(() => Boolean(initialData.designSettings?.prayerDefaultOpen));
-  const [scopedSearchOpen, setScopedSearchOpen] = useState(() => Boolean(initialData.designSettings?.categorySearchDefaultOpen));
   const [openTeacherStage, setOpenTeacherStage] = useState<TeacherStageId | null>(null);
   const [teacherSpecialtyFilter, setTeacherSpecialtyFilter] = useState<string>(specialtyId ?? "");
   const [clinicFilter, setClinicFilter] = useState<ClinicBookingFilter>("all");
@@ -62,6 +60,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [sponsorModalOpen, setSponsorModalOpen] = useState(false);
   const [sponsorModalAuto, setSponsorModalAuto] = useState(false);
   const [dailyOfferFilter, setDailyOfferFilter] = useState<DailyOfferFilterGroup>("all");
+  const [dailyOffersOpen, setDailyOffersOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [ratingStars, setRatingStars] = useState(0), [ratingComment, setRatingComment] = useState(""), [ratingMessage, setRatingMessage] = useState(""), [ratingBusy, setRatingBusy] = useState(false);
   const [followIds, setFollowIds] = useState<string[]>([]), [feedItems, setFeedItems] = useState<FollowFeedItem[]>([]), [feedOpen, setFeedOpen] = useState(false), [followBusy, setFollowBusy] = useState(false), [followError, setFollowError] = useState("");
   const [feedSeen, setFeedSeen] = useState(() => { try { return Number(localStorage.getItem("janzour-feed-seen")) || 0; } catch { return 0; } });
@@ -189,6 +189,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     if (trimmed) trackDirectoryEvent({ kind: "search", label: trimmed });
     setQuery(trimmed);
     setView("all");
+    setFeaturedOpen(true);
+    setSearchModalOpen(false);
     scrollToProviders();
   }
   function selectLocation(value: string, custom = "") { setArea(value); setCustomAddress(custom); setView("all"); setModal(null); scrollToProviders(); }
@@ -293,8 +295,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   }, [queryDraft, categories, services, rootId]);
   function chooseSearchSuggestion(item: (typeof searchSuggestions)[number]) {
     setSuggestOpen(false); setSuggestActive(-1);
+    setSearchModalOpen(false);
     if (item.kind === "specialty") { window.location.assign(item.href); return; }
-    setQueryDraft(item.label); setQuery(item.label); setView("all"); scrollToProviders();
+    setQueryDraft(item.label); setQuery(item.label); setView("all"); setFeaturedOpen(true); scrollToProviders();
   }
   function searchKeyDown(event: React.KeyboardEvent) {
     if (!searchSuggestions.length) return;
@@ -376,7 +379,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     const idx = sectionOrderList.indexOf(key);
     return idx >= 0 ? idx + 1 : fallback;
   };
-  const prayerWeather = useMemo(() => getGanzourPrayerAndWeather(now > 0 ? now : undefined), [now]);
   const announcementList = useMemo(() => {
     const base = parseAnnouncementItems(design);
     const sponsorAds = activeSponsors
@@ -564,6 +566,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <span>حجم الخط الكبير</span>
             <span className={`nav-count ${bigText ? "is-on" : ""}`}>{bigText ? "مفعّل" : "عادي"}</span>
           </button>
+          <div className="header-menu-member-badge" role="status">
+            <UsersRound size={17}/>
+            <span>عدد أعضاء الموقع</span>
+            <span className="nav-count">{data.memberCount} عضو</span>
+          </div>
           {viewer.role !== "guest" && (
             <button type="button" className="menu-logout-item" onClick={() => { setMenuOpen(false); void logout(); }}>
               <LogOut size={17}/>
@@ -623,98 +630,19 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         )}
       </div>
     )}
-    {!scopedSearchOpen && !query && !area ? (
-      <div className="scoped-search-trigger-wrap">
+    {!scoped && (
+      <div className="hero-sponsor-fullwidth-wrap">
         <button
           type="button"
-          className="scoped-search-trigger-btn"
-          aria-expanded={false}
-          aria-label={scoped ? `فتح البحث في ${title}` : "فتح مربع البحث عن مهنة أو خدمة"}
-          onClick={() => {
-            setScopedSearchOpen(true);
-            setTimeout(() => {
-              document.getElementById("hero-search-input")?.focus();
-            }, 60);
-          }}
-        >
-          <span className="scoped-search-trigger-icon">
-            <Search size={20}/>
-          </span>
-          <span>{scoped ? `ابحث في ${title}` : "ابحث عن مهنة، طبيب أو خدمة في جنزور"}</span>
-        </button>
-      </div>
-    ) : (
-      <div className="hero-search-expandable-wrap is-scoped-expanded">
-        <form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>
-        <div className="scoped-search-collapse-row">
-          <button
-            type="button"
-            className="scoped-search-collapse-btn"
-            onClick={() => setScopedSearchOpen(false)}
-            aria-label="طي مربع البحث وإرجاعه إلى زر"
-            title="طي مربع البحث"
-          >
-            <ChevronUp size={17}/>
-          </button>
-        </div>
-      </div>
-    )}
-    {(scoped || design.showAddProfessionBanner) && (
-      <div className="hero-trust">
-        <button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}>
-          <CirclePlus size={19}/>
-          <span>أضف مهنتك</span>
-        </button>
-        <button
-          type="button"
-          className="button hero-sponsor-packages-btn"
+          className="button hero-sponsor-packages-btn is-ticker-width"
           onClick={() => {
             setSponsorModalAuto(false);
             setSponsorModalOpen(true);
           }}
         >
-          <Crown size={19}/>
+          <Crown size={20}/>
           <span>باقات الرعاية والتميز (١٠ أيام مجاناً)</span>
         </button>
-        <span><ShieldCheck size={19}/> مراجعة قبل النشر</span>
-        <span><PhoneCall size={18}/> تواصل مباشر</span>
-        <span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span>
-      </div>
-    )}
-    {!scoped && design.showPrayerWeatherBar && (
-      <div className={`ganzour-prayer-card ${prayerOpen ? "is-open" : ""}`} role="region" aria-label="مواقيت الصلاة في جنزور">
-        <button
-          type="button"
-          className="ganzour-prayer-card-toggle"
-          aria-expanded={prayerOpen}
-          onClick={() => setPrayerOpen((open) => !open)}
-        >
-          <div className="prayer-centered-title">
-            <Clock size={18}/>
-            <strong>مواقيت الصلاة اليوم في جنزور</strong>
-          </div>
-          <div className="prayer-centered-next">
-            <span>الصلاة القادمة: <b>{prayerWeather.nextPrayer.name} ({prayerWeather.nextPrayer.time12})</b> — {prayerWeather.nextPrayer.remainingText}</span>
-          </div>
-          <span className="prayer-fold-pill">
-            <span>{prayerOpen ? "طي وإخفاء المواقيت" : "اضغط لعرض مواقيت الصلوات الخمس"}</span>
-            <ChevronDown size={15} className={prayerOpen ? "is-rotated" : ""}/>
-          </span>
-        </button>
-        {prayerOpen && (
-          <div className="ganzour-prayer-boxes" aria-label="مواقيت الصلوات الخمس في جنزور">
-            {prayerWeather.prayers.map((item) => {
-              const isUpcoming = prayerWeather.nextPrayer.id === item.id;
-              return (
-                <div key={item.id} className={`ganzour-prayer-box ${isUpcoming ? "is-upcoming" : ""}`}>
-                  <span className="prayer-box-name">{item.name}</span>
-                  <strong className="prayer-box-time">{item.time12}</strong>
-                  {isUpcoming && <small className="prayer-box-tag">القادمة</small>}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     )}
     </div></div></section>}
@@ -726,11 +654,12 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           aria-label="رعاة الدليل المعتمدون بقرية جنزور"
           style={{ order: -1 }}
         >
-          <div className="sponsors-ribbon-head">
-            <span className="sponsors-ribbon-badge">
-              <Crown size={16}/>
-              <strong>رعاة الدليل المعتمدون 👑</strong>
-            </span>
+          <div className="sponsors-ribbon-top-legend">
+            <Crown size={16}/>
+            <strong>رعاة الدليل المعتمدون 👑</strong>
+          </div>
+
+          <div className="sponsors-ribbon-centered-join-wrap">
             <button
               type="button"
               className="sponsors-ribbon-join-link"
@@ -739,8 +668,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                 setSponsorModalOpen(true);
               }}
             >
-              <Gift size={14}/>
-              <span>انضم للرعاة (١٠ أيام مجاناً)</span>
+              <Gift size={15}/>
+              <span>انضم ( ١٠ أيام مجاناً )</span>
             </button>
           </div>
 
@@ -784,119 +713,129 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       {!scoped && design.showDailyOffersSection && dailyOffers.length > 0 && (
         <section
           id="daily-offers"
-          className="daily-offers-section"
+          className={`daily-offers-section ${dailyOffersOpen ? "is-open" : "is-folded"}`}
           aria-labelledby="daily-offers-heading"
           style={{ order: 0 }}
         >
-          <div className="daily-offers-header">
-            <div className="daily-offers-title-group">
-              <span className="daily-offers-flame-icon">
-                <Flame size={22}/>
-              </span>
-              <div>
-                <h2 id="daily-offers-heading">🔥 عروض اليوم في جنزور (للعيادات والمعامل والمحلات المشتركة)</h2>
-                <p>خصومات وعروض حصرية وخدمات فورية لأهالي قرية جنزور من رعاة الدليل المعتمدين</p>
-              </div>
-            </div>
+          <div className="daily-offers-centered-head">
+            <h2 id="daily-offers-heading" className="daily-offers-line1">
+              <Flame size={22}/>
+              <span>عروض اليوم في جنزور</span>
+            </h2>
+            <div className="daily-offers-line2">( للعيادات والمعامل والمحلات )</div>
+            <p className="daily-offers-line3">
+              خصومات وعروض حصرية وخدمات فورية لأهالي قرية جنزور من رعاة الدليل المعتمدين
+            </p>
             <button
               type="button"
-              className="button button-amber button-small daily-offers-join-btn"
+              className="button button-amber daily-offers-join-centered-btn"
               onClick={() => {
                 setSponsorModalAuto(false);
                 setSponsorModalOpen(true);
               }}
             >
-              <Gift size={16}/>
+              <Gift size={17}/>
               <span>أضف عرضك (١٠ أيام مجاناً)</span>
+            </button>
+            <button
+              type="button"
+              className={`daily-offers-double-arrow-btn ${dailyOffersOpen ? "is-open" : ""}`}
+              aria-expanded={dailyOffersOpen}
+              aria-label={dailyOffersOpen ? "طي عروض اليوم" : "فرد وعرض عروض اليوم"}
+              onClick={() => setDailyOffersOpen((open) => !open)}
+            >
+              {dailyOffersOpen ? <ChevronsUp size={22}/> : <ChevronsDown size={22}/>}
             </button>
           </div>
 
-          <div className="daily-offers-filter-bar" role="tablist" aria-label="فلترة عروض اليوم حسب القسم">
-            {(
-              [
-                { id: "all" as DailyOfferFilterGroup, label: "🔥 كل العروض", icon: Flame },
-                { id: "clinics" as DailyOfferFilterGroup, label: "🩺 عروض العيادات", icon: Stethoscope },
-                { id: "labs" as DailyOfferFilterGroup, label: "🧪 عروض المعامل", icon: FlaskConical },
-                { id: "shops" as DailyOfferFilterGroup, label: "🛒 عروض المحلات والمطاعم", icon: Store },
-              ] as const
-            ).map((tabItem) => {
-              const count =
-                tabItem.id === "all"
-                  ? dailyOffers.length
-                  : dailyOffers.filter((item) => getSponsorOfferCategoryGroup(item, services, categories) === tabItem.id).length;
-              const isSelected = dailyOfferFilter === tabItem.id;
-              return (
-                <button
-                  key={tabItem.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isSelected}
-                  className={`daily-offer-filter-chip ${isSelected ? "is-active" : ""}`}
-                  onClick={() => setDailyOfferFilter(tabItem.id)}
-                >
-                  <span>{tabItem.label}</span>
-                  <b className="daily-offer-filter-count">{count}</b>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="daily-offers-grid">
-            {dailyOffers
-              .filter(
-                (offer) =>
-                  dailyOfferFilter === "all" ||
-                  getSponsorOfferCategoryGroup(offer, services, categories) === dailyOfferFilter,
-              )
-              .map((offer, idx) => {
-              const matchedService = services.find((srv) => srv.id === offer.serviceId);
-              const contactPhone = (offer.phone || matchedService?.phone || matchedService?.phoneSecondary || settings.phone).trim();
-              const orderMsg = `مرحبًا (${offer.providerName})، شاهدت عرضكم (${offer.dailyOfferDiscount}: ${offer.dailyOfferTitle}) على دليل قرية جنزور وأود الاستفسار أو الحجز.`;
-
-              return (
-                <article key={`${offer.serviceId}-${idx}`} className="daily-offer-card">
-                  <div className="daily-offer-top">
-                    <span className="daily-offer-crown-badge">
-                      <Crown size={14}/> {offer.badgeLabel || "راعي معتمد 👑"}
-                    </span>
-                    <span className="daily-offer-discount-pill">
-                      {offer.dailyOfferDiscount || "عرض اليوم 🔥"}
-                    </span>
-                  </div>
-
-                  <h3 className="daily-offer-provider">{offer.providerName}</h3>
-                  <span className="daily-offer-category">{offer.categoryName}</span>
-                  <p className="daily-offer-description">{offer.dailyOfferTitle}</p>
-
-                  <div className="daily-offer-actions">
-                    <a
-                      href={whatsappUrl(contactPhone, orderMsg)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="daily-offer-wa-btn"
+          {dailyOffersOpen && (
+            <div className="daily-offers-collapsible-body">
+              <div className="daily-offers-filter-grid" role="tablist" aria-label="فلترة عروض اليوم حسب القسم">
+                {(
+                  [
+                    { id: "clinics" as DailyOfferFilterGroup, label: "🩺 عروض العيادات", spanFull: false },
+                    { id: "labs" as DailyOfferFilterGroup, label: "🧪 عروض المعامل", spanFull: false },
+                    { id: "shops" as DailyOfferFilterGroup, label: "🛒 عروض المحلات والمطاعم", spanFull: true },
+                  ] as const
+                ).map((tabItem) => {
+                  const count = dailyOffers.filter(
+                    (item) => getSponsorOfferCategoryGroup(item, services, categories) === tabItem.id,
+                  ).length;
+                  const isSelected = dailyOfferFilter === tabItem.id;
+                  return (
+                    <button
+                      key={tabItem.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isSelected}
+                      className={`daily-offer-filter-chip ${tabItem.spanFull ? "is-full-row" : "is-half-row"} ${isSelected ? "is-active" : ""}`}
+                      onClick={() => setDailyOfferFilter((curr) => (curr === tabItem.id ? "all" : tabItem.id))}
                     >
-                      <MessageCircle size={17}/>
-                      <span>اطلب العرض عبر واتساب</span>
-                    </a>
-                    {matchedService ? (
-                      <button
-                        type="button"
-                        className="daily-offer-view-btn"
-                        onClick={() => openDetail(matchedService)}
-                      >
-                        <span>فتح الصفحة</span>
-                      </button>
-                    ) : (
-                      <a href={`tel:${contactPhone}`} className="daily-offer-view-btn">
-                        <Phone size={15}/>
-                        <span>اتصال</span>
-                      </a>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                      <span>{tabItem.label}</span>
+                      <b className="daily-offer-filter-count">{count}</b>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="daily-offers-grid">
+                {dailyOffers
+                  .filter(
+                    (offer) =>
+                      dailyOfferFilter === "all" ||
+                      getSponsorOfferCategoryGroup(offer, services, categories) === dailyOfferFilter,
+                  )
+                  .map((offer, idx) => {
+                  const matchedService = services.find((srv) => srv.id === offer.serviceId);
+                  const contactPhone = (offer.phone || matchedService?.phone || matchedService?.phoneSecondary || settings.phone).trim();
+                  const orderMsg = `مرحبًا (${offer.providerName})، شاهدت عرضكم (${offer.dailyOfferDiscount}: ${offer.dailyOfferTitle}) على دليل قرية جنزور وأود الاستفسار أو الحجز.`;
+
+                  return (
+                    <article key={`${offer.serviceId}-${idx}`} className="daily-offer-card">
+                      <div className="daily-offer-top">
+                        <span className="daily-offer-crown-badge">
+                          <Crown size={14}/> {offer.badgeLabel || "راعي معتمد 👑"}
+                        </span>
+                        <span className="daily-offer-discount-pill">
+                          {offer.dailyOfferDiscount || "عرض اليوم 🔥"}
+                        </span>
+                      </div>
+
+                      <h3 className="daily-offer-provider">{offer.providerName}</h3>
+                      <span className="daily-offer-category">{offer.categoryName}</span>
+                      <p className="daily-offer-description">{offer.dailyOfferTitle}</p>
+
+                      <div className="daily-offer-actions">
+                        <a
+                          href={whatsappUrl(contactPhone, orderMsg)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="daily-offer-wa-btn"
+                        >
+                          <MessageCircle size={17}/>
+                          <span>اطلب العرض عبر واتساب</span>
+                        </a>
+                        {matchedService ? (
+                          <button
+                            type="button"
+                            className="daily-offer-view-btn"
+                            onClick={() => openDetail(matchedService)}
+                          >
+                            <span>فتح الصفحة</span>
+                          </button>
+                        ) : (
+                          <a href={`tel:${contactPhone}`} className="daily-offer-view-btn">
+                            <Phone size={15}/>
+                            <span>اتصال</span>
+                          </a>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </section>
       )}
       {isTeachersContext && (
@@ -1038,12 +977,67 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </div>
         </div>
       )}
+      {(isTeachersContext || specialty) && (
+        <div
+          className="categories-top-action-frame"
+          role="region"
+          aria-label="البحث السريع وإضافة مهنة"
+          style={scoped ? { order: 0 } : { order: sectionOrderIndex("categories", 3) - 1 }}
+        >
+          <button
+            type="button"
+            className="search-icon-only-trigger-btn"
+            aria-label="فتح نافذة البحث في الدليل"
+            title="بحث في الدليل"
+            onClick={() => {
+              setSearchModalOpen(true);
+              setTimeout(() => {
+                document.getElementById("hero-search-input")?.focus();
+              }, 60);
+            }}
+          >
+            <Search size={21}/>
+          </button>
+          <button
+            type="button"
+            className="button button-success compact-add-service-btn"
+            onClick={() => setModal("service")}
+          >
+            <CirclePlus size={15}/>
+            <span>أضف مهنتك</span>
+          </button>
+        </div>
+      )}
       {!isTeachersContext && !specialty && (scoped || design.showCategoriesSection) && (
         <section
           id="categories"
           className="categories-section"
           style={scoped ? { order: 2 } : { order: sectionOrderIndex("categories", 3) }}
         >
+          <div className="categories-top-action-frame" role="region" aria-label="البحث السريع وإضافة مهنة">
+            <button
+              type="button"
+              className="search-icon-only-trigger-btn"
+              aria-label="فتح نافذة البحث في الدليل"
+              title="بحث في الدليل"
+              onClick={() => {
+                setSearchModalOpen(true);
+                setTimeout(() => {
+                  document.getElementById("hero-search-input")?.focus();
+                }, 60);
+              }}
+            >
+              <Search size={21}/>
+            </button>
+            <button
+              type="button"
+              className="button button-success compact-add-service-btn"
+              onClick={() => setModal("service")}
+            >
+              <CirclePlus size={15}/>
+              <span>أضف مهنتك</span>
+            </button>
+          </div>
           <div className="section-heading directory-section-heading">
             <div>
               <h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2>
@@ -1785,6 +1779,117 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     )}
     {detail && detailQr && <BusinessCardModal service={liveDetail ?? detail} category={getCategory(detail.category, categories)} siteName={settings.siteName} now={now} onClose={() => setDetailQr(false)}/>}
     {detail && detailUpdate && isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && <Modal floating title="تحديث البيانات" subtitle={`تحديث بيانات ${detail.name} — ستراجعها الإدارة`} onClose={() => setDetailUpdate(false)}><div className="detail-update"><h4>هل هذه بياناتك؟</h4><p>حدّث رقم الهاتف أو أضف ملاحظة وسيراجعها فريق الإدارة.</p><input value={updatePhone} onChange={(event) => setUpdatePhone(event.target.value)} placeholder="رقم الهاتف الصحيح" inputMode="tel"/><input value={updateNote} onChange={(event) => setUpdateNote(event.target.value)} placeholder="ملاحظة أو رقم إضافي"/><div className="detail-update-actions"><button type="button" className="button button-primary" onClick={() => void requestServiceUpdate()}>حدّثها الآن</button><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailUpdate(false)}><X size={17}/>إغلاق</button></div>{updateMessage && <small role="status">{updateMessage}</small>}</div></Modal>}
+    {searchModalOpen && (
+      <Modal
+        floating
+        title="البحث في دليل قرية جنزور"
+        subtitle="ابحث بالاسم أو المهنة أو التخصص أو العنوان وانتقل مباشرة للنتائج"
+        onClose={() => setSearchModalOpen(false)}
+      >
+        <div className="floating-search-modal-body">
+          <form className="hero-search floating-modal-search-form" onSubmit={search} role="search">
+            <div className="search-input-wrap">
+              <Search size={22}/>
+              <input
+                id="hero-search-input"
+                type="search"
+                role="combobox"
+                aria-expanded={suggestOpen && searchSuggestions.length > 0}
+                aria-controls="hero-search-suggestions"
+                aria-autocomplete="list"
+                aria-label="ابحث عن مهنة أو مقدم خدمة"
+                value={queryDraft}
+                onChange={(event) => {
+                  setQueryDraft(event.target.value);
+                  setSuggestOpen(true);
+                  setSuggestActive(-1);
+                }}
+                onFocus={() => setSuggestOpen(true)}
+                onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+                onKeyDown={searchKeyDown}
+                placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."
+              />
+              {suggestOpen && searchSuggestions.length > 0 && (
+                <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">
+                  {searchSuggestions.map((item, index) => (
+                    <li
+                      key={`${item.kind}-${item.id}`}
+                      role="option"
+                      aria-selected={suggestActive === index}
+                      className={suggestActive === index ? "is-active" : ""}
+                    >
+                      {item.kind === "specialty" ? (
+                        <Link
+                          href={item.href}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
+                            setSuggestOpen(false);
+                            setSearchModalOpen(false);
+                          }}
+                        >
+                          <Search size={14}/>
+                          <span>{item.label}</span>
+                          <small>{item.hint}</small>
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => chooseSearchSuggestion(item)}
+                        >
+                          <Search size={14}/>
+                          <span>{item.label}</span>
+                          <small>{item.hint}</small>
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <SelectField
+              aria-label="اختر التصنيف"
+              value={rootFilter}
+              onChange={(event) => setRootFilter(event.target.value)}
+              disabled={scoped}
+              icon={<Grid2X2 size={17}/>}
+              options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}
+            />
+            <SelectField
+              className="area-select"
+              aria-label="اختر العنوان"
+              value={area}
+              onChange={(event) => {
+                setArea(event.target.value);
+                setCustomAddress("");
+              }}
+              icon={<MapPin size={18}/>}
+              options={[
+                { value: "", label: "كل عناوين جنزور" },
+                ...data.areas.map(({ name }) => ({ value: name, label: name })),
+                { value: OTHER_ADDRESS, label: OTHER_ADDRESS },
+              ]}
+            />
+            {area === OTHER_ADDRESS && (
+              <label className="hero-custom-address">
+                العنوان الآخر
+                <input
+                  value={customAddress}
+                  onChange={(event) => setCustomAddress(event.target.value)}
+                  placeholder="اكتب الشارع أو العلامة المميزة"
+                  required
+                  minLength={3}
+                  maxLength={240}
+                />
+              </label>
+            )}
+            <button className="search-button" type="submit">
+              ابحث الآن <Search size={17}/>
+            </button>
+          </form>
+        </div>
+      </Modal>
+    )}
     <SponsorshipModal
       open={sponsorModalOpen}
       autoTriggered={sponsorModalAuto}
