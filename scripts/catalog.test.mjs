@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -358,5 +358,20 @@ test("getCompletionFieldSuggestions returns profession-tailored suggestions for 
   assert.ok(clinicSuggestions.subSpecialties.length >= 3);
   assert.ok(clinicSuggestions.serviceItems.length >= 3);
 });
+
+test("isServiceOwner restricts service update visibility to the service owner only", () => {
+  const service = {
+    id: "service-123",
+    name: "د. سارة أحمد",
+    phone: "01066778899",
+    phoneSecondary: "01200001111",
+  };
+  assert.equal(isServiceOwner(service, { role: "guest" }), false);
+  assert.equal(isServiceOwner(service, { role: "member", name: "محمود علي", phone: "01199998888" }), false);
+  assert.equal(isServiceOwner(service, { role: "member", name: "مستخدم", phone: "+201066778899" }), true);
+  assert.equal(isServiceOwner(service, { role: "member", name: "د. سارة أحمد", phone: "01500000000" }), true);
+  assert.equal(isServiceOwner(service, { role: "guest" }, ["service-123"]), true);
+});
+
 
 
