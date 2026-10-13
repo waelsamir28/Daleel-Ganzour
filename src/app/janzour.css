@@ -7878,6 +7878,379 @@ html.dark .sponsor-trial-dates-badge {
   color: #f8fafc;
 }
 
+/* =========================================================================
+   16. تحديثات الشاشة الرئيسية والقائمة وبطاقات الرعاة وعروض اليوم
+   ========================================================================= */
+
+/* عدد الأعضاء داخل قائمة الهيدر المنسدلة */
+.header-menu-member-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 13px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1.5px solid rgba(16, 185, 129, 0.35);
+  color: #ecfdf5;
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.header-menu-member-badge svg {
+  color: #34d399;
+  flex-shrink: 0;
+}
+.header-menu-member-badge > span:first-of-type {
+  flex: 1;
+}
+.header-menu-member-badge .nav-count {
+  background: #10b981;
+  color: #ffffff;
+  font-weight: 900;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+}
+
+/* زر باقات الرعاية والتميز باللون الذهبي وبعرض الشريط المتحرك بالكامل */
+.hero-sponsor-fullwidth-wrap {
+  width: 100%;
+  margin: 10px auto 0;
+  display: flex;
+  justify-content: center;
+}
+.hero-sponsor-packages-btn.is-ticker-width {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 20px !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #fde047 0%, #f59e0b 52%, #d97706 100%) !important;
+  border: 2px solid #fef08a !important;
+  color: #3b1700 !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  box-shadow: 0 10px 26px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+  text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.hero-sponsor-packages-btn.is-ticker-width svg {
+  color: #78350f !important;
+  flex-shrink: 0;
+}
+.hero-sponsor-packages-btn.is-ticker-width:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+  box-shadow: 0 14px 32px rgba(245, 158, 11, 0.45) !important;
+}
+
+/* البرواز الأنيق أعلى عنوان «تصفح أقسام القرية» وبداخله أيقونة البحث + زر أضف مهنتك المصغّر */
+.categories-top-action-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 16px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+  border: 2px solid #93ccf8;
+  box-shadow: 0 10px 26px rgba(7, 112, 189, 0.12);
+}
+.search-icon-only-trigger-btn {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 15px;
+  border: 2px solid #0284c7;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.28);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+  flex-shrink: 0;
+}
+.search-icon-only-trigger-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  filter: brightness(1.06);
+  box-shadow: 0 10px 22px rgba(2, 132, 199, 0.36);
+}
+.compact-add-service-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 16px !important;
+  border-radius: 14px !important;
+  font-size: 0.88rem !important;
+  font-weight: 900 !important;
+  white-space: nowrap;
+  box-shadow: 0 6px 14px rgba(16, 185, 129, 0.22);
+}
+
+/* الشاشة العائمة للبحث */
+.floating-search-modal-body {
+  padding: 6px 2px 4px;
+}
+.floating-modal-search-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 14px !important;
+  border-radius: 18px !important;
+  background: #f8fbff !important;
+  border: 1.5px solid #cde4fa !important;
+  box-shadow: none !important;
+}
+.floating-modal-search-form .search-input-wrap,
+.floating-modal-search-form .select-field,
+.floating-modal-search-form .search-button {
+  width: 100% !important;
+}
+.floating-modal-search-form .search-input-wrap {
+  background: #ffffff;
+  border: 1.5px solid #93ccf8;
+  border-radius: 14px;
+  padding: 4px 12px;
+}
+.floating-modal-search-form .search-button {
+  justify-content: center !important;
+  min-height: 48px !important;
+  border-radius: 14px !important;
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+}
+
+/* تنسيق «رعاة الدليل المعتمدون 👑»: العنوان في المنتصف راكب فوق الخط العلوي للبرواز وأسفله داخل البرواز في المنتصف انضم (١٠ أيام مجاناً) */
+.certified-sponsors-ribbon-card {
+  position: relative;
+  margin-top: 22px !important;
+  padding: 28px 16px 16px !important;
+  border-radius: 22px !important;
+  border: 2.5px solid #f59e0b !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fff7ed 100%) !important;
+  box-shadow: 0 12px 28px rgba(217, 119, 6, 0.14) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow: visible !important;
+}
+.sponsors-ribbon-top-legend {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -54%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #78350f 0%, #b45309 55%, #d97706 100%);
+  border: 2px solid #fde68a;
+  color: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 8px 18px rgba(180, 83, 9, 0.28);
+  z-index: 3;
+}
+.sponsors-ribbon-top-legend svg {
+  color: #fde047;
+  flex-shrink: 0;
+}
+.sponsors-ribbon-centered-join-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 2px 0 12px;
+}
+.certified-sponsors-ribbon-card .sponsors-ribbon-join-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 1.5px solid #fef08a;
+  color: #ffffff;
+  font-size: 0.86rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.26);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.certified-sponsors-ribbon-card .sponsors-ribbon-join-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(217, 119, 6, 0.35);
+}
+.certified-sponsors-ribbon-card .sponsors-ribbon-track {
+  width: 100%;
+  justify-content: center;
+}
+
+/* تنسيق قسم «عروض اليوم في جنزور 🔥» المتمركز والمطوي افتراضياً */
+.daily-offers-section {
+  padding: 20px 18px 16px !important;
+  border-radius: 24px !important;
+  border: 2px solid #f59e0b !important;
+  background: linear-gradient(180deg, #fffbeb 0%, #fff7ed 100%) !important;
+  box-shadow: 0 12px 30px rgba(234, 88, 12, 0.12) !important;
+  text-align: center;
+}
+.daily-offers-centered-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+}
+.daily-offers-line1 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.32rem;
+  font-weight: 900;
+  color: #7c2d12;
+  text-align: center;
+}
+.daily-offers-line1 svg {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+.daily-offers-line2 {
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: #b45309;
+  text-align: center;
+}
+.daily-offers-line3 {
+  margin: 2px auto 6px;
+  max-width: 560px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #9a3412;
+  line-height: 1.65;
+  text-align: center;
+}
+.daily-offers-join-centered-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 2px auto 4px;
+  padding: 10px 24px !important;
+  border-radius: 999px !important;
+  font-size: 0.92rem !important;
+  font-weight: 900 !important;
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #fde68a !important;
+  box-shadow: 0 8px 20px rgba(234, 88, 12, 0.28) !important;
+}
+.daily-offers-double-arrow-btn {
+  margin-top: 4px;
+  width: 48px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1.5px solid #f59e0b;
+  background: #ffffff;
+  color: #c2410c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(234, 88, 12, 0.18);
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.daily-offers-double-arrow-btn:hover,
+.daily-offers-double-arrow-btn.is-open {
+  background: #ea580c;
+  border-color: #c2410c;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.daily-offers-collapsible-body {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1.5px dashed rgba(217, 119, 6, 0.35);
+}
+
+/* أزرار فلترة العروض: زرين في الأعلى بعرض البرواز + زر أسفلهم بحجم الزرين معاً */
+.daily-offers-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 16px;
+}
+.daily-offers-filter-grid .daily-offer-filter-chip {
+  width: 100%;
+  justify-content: center;
+  padding: 11px 12px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-align: center;
+}
+.daily-offers-filter-grid .daily-offer-filter-chip.is-half-row {
+  grid-column: span 1;
+}
+.daily-offers-filter-grid .daily-offer-filter-chip.is-full-row {
+  grid-column: 1 / -1;
+}
+
+html.dark .categories-top-action-frame {
+  background: linear-gradient(135deg, #0c1d31 0%, #102742 100%);
+  border-color: #1e4976;
+}
+html.dark .floating-modal-search-form {
+  background: #0c1d31 !important;
+  border-color: #1e4976 !important;
+}
+html.dark .floating-modal-search-form .search-input-wrap {
+  background: #081525;
+  border-color: #2563eb;
+}
+html.dark .certified-sponsors-ribbon-card {
+  background: linear-gradient(135deg, #1e1607 0%, #271c09 100%) !important;
+  border-color: #d97706 !important;
+}
+html.dark .daily-offers-section {
+  background: linear-gradient(180deg, #1f1408 0%, #191006 100%) !important;
+  border-color: #d97706 !important;
+}
+html.dark .daily-offers-line1 {
+  color: #fde68a;
+}
+html.dark .daily-offers-line2 {
+  color: #fbbf24;
+}
+html.dark .daily-offers-line3 {
+  color: #fed7aa;
+}
+html.dark .daily-offers-double-arrow-btn {
+  background: #271c09;
+  color: #fbbf24;
+  border-color: #d97706;
+}
+
+
 
 
 
