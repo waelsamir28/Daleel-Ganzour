@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { BellRing, Building2, Check, Globe, LoaderCircle, MessageCircle, PhoneCall, Send, Settings2, Share2, ShieldAlert, Sliders } from "lucide-react";
+import { BellRing, Building2, Check, Globe, LoaderCircle, MessageCircle, Send, Settings2, Share2, Sliders } from "lucide-react";
 import { defaultDesignSettings, type DesignSettings, type SiteSettings } from "@/lib/catalog";
 
 export default function SettingsEditor({
@@ -24,14 +24,9 @@ export default function SettingsEditor({
   const [testBusy, setTestBusy] = useState(false);
   const [testNotice, setTestNotice] = useState<{ text: string; error: boolean } | null>(null);
 
-  const identityFields: Array<[keyof SiteSettings, string]> = [
-    ["siteName", "اسم الموقع الرسمي"],
-    ["heroEyebrow", "العنوان الصغير أعلى البانر الترحيبي"],
-    ["heroSubtitle", "الوصف الرئيسي تحت عنوان الموقع"],
-    ["tagline", "شعار الثقة المختصر (تحت البانر)"],
-    ["benefitsHeading", "عنوان قسم مميزات الدليل"],
-    ["benefitsText", "وصف قسم مميزات الدليل"],
-  ];
+  function updateSetting<K extends keyof SiteSettings>(key: K, val: SiteSettings[K]) {
+    setValues((curr) => ({ ...curr, [key]: val }));
+  }
 
   function updateDesign<K extends keyof DesignSettings>(key: K, val: DesignSettings[K]) {
     setDesignValues((curr) => ({ ...curr, [key]: val }));
@@ -84,230 +79,370 @@ export default function SettingsEditor({
           <Settings2 size={24}/>
         </span>
         <h3>⚙️ مركز إعدادات الموقع والمحتوى العام</h3>
-        <p>تحكم في نصوص الواجهة، بيانات مكتب الدليل بجنزور، روابط التواصل الاجتماعي، والخصائص التفاعلية للموقع.</p>
+        <p>جميع إعدادات ونصوص وبيانات الموقع مقسّمة باحترافية مع خانة إدخال واضحة لكل بند.</p>
       </div>
 
+      {/* القسم الأول */}
       <div className="admin-Visual-divider" role="separator">
-        <span><Globe size={15}/> ١. الهوية الأساسية ونصوص الصفحة الرئيسية</span>
+        <span><Globe size={15}/> القسم ١: الهوية الأساسية وعناوين الواجهة الرئيسية</span>
       </div>
 
       <section className="settings-section-card">
-        <div className="form-grid settings-centered-grid">
-          {identityFields.map(([key, label]) => (
-            <label key={key} className="field settings-centered-field">
-              <span>{label}</span>
-              <input
-                value={String(values[key])}
-                onChange={(event) => setValues((current) => ({ ...current, [key]: event.target.value }))}
-                required
-              />
-            </label>
+        <div className="settings-section-head">
+          <h4>نصوص الهوية والبانر الرئيسي</h4>
+          <p>عدّل اسم الموقع والعناوين الترحيبية التي تظهر لزوار دليل قرية جنزور في أعلى الصفحة الرئيسية</p>
+        </div>
+
+        <div className="settings-items-grid">
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-siteName">١. اسم الموقع الرسمي</label>
+            <small className="settings-item-hint">يظهر في الهيدر وعنوان المتصفح والبانر</small>
+            <input
+              id="setting-siteName"
+              className="studio-textbox"
+              value={values.siteName}
+              onChange={(e) => updateSetting("siteName", e.target.value)}
+              placeholder="دليل المهن والخدمات بقرية جنزور"
+              required
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-heroEyebrow">٢. الشارة الترحيبية أعلى البانر</label>
+            <small className="settings-item-hint">العبارة المختصرة فوق اسم الموقع</small>
+            <input
+              id="setting-heroEyebrow"
+              className="studio-textbox"
+              value={values.heroEyebrow}
+              onChange={(e) => updateSetting("heroEyebrow", e.target.value)}
+              placeholder="دليل أهل جنزور"
+              required
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-heroSubtitle">٣. الوصف الرئيسي تحت عنوان الموقع</label>
+            <small className="settings-item-hint">جملة تعريفية شاملة بخدمات الدليل</small>
+            <input
+              id="setting-heroSubtitle"
+              className="studio-textbox"
+              value={values.heroSubtitle}
+              onChange={(e) => updateSetting("heroSubtitle", e.target.value)}
+              placeholder="أهل الخبرة قريبين منك.. كل خدمات جنزور في مكان واحد"
+              required
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-tagline">٤. شعار الثقة المختصر</label>
+            <small className="settings-item-hint">الكلمات التحفيزية أسفل الوصف الرئيسي</small>
+            <input
+              id="setting-tagline"
+              className="studio-textbox"
+              value={values.tagline}
+              onChange={(e) => updateSetting("tagline", e.target.value)}
+              placeholder="بسهولة • بسرعة • بثقة"
+              required
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-benefitsHeading">٥. عنوان قسم مميزات الدليل</label>
+            <small className="settings-item-hint">عنوان قسم التعريف بفوائد الدليل</small>
+            <input
+              id="setting-benefitsHeading"
+              className="studio-textbox"
+              value={values.benefitsHeading}
+              onChange={(e) => updateSetting("benefitsHeading", e.target.value)}
+              placeholder="ليه تختار دليل قرية جنزور؟"
+              required
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-benefitsText">٦. نص وصف مميزات الدليل</label>
+            <small className="settings-item-hint">الوصف التوضيحي تحت عنوان المميزات</small>
+            <input
+              id="setting-benefitsText"
+              className="studio-textbox"
+              value={values.benefitsText}
+              onChange={(e) => updateSetting("benefitsText", e.target.value)}
+              placeholder="دليل يجمع أهل القرية.. ويوصّل كل خدمة لأصحابها"
+              required
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* القسم الثاني */}
+      <div className="admin-Visual-divider" role="separator">
+        <span><Building2 size={15}/> القسم ٢: بيانات مكتب الدليل والتواصل والواتساب</span>
+      </div>
+
+      <section className="settings-section-card">
+        <div className="settings-section-head">
+          <h4>أرقام وعنوان المكتب ورسائل التواصل</h4>
+          <p>حدد رقم الهاتف والواتساب الرسمي للإدارة وعنوان المكتب ومواعيد العمل ورسالة الترحيب</p>
+        </div>
+
+        <div className="settings-items-grid">
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-phone">١. رقم هاتف وواتساب الإدارة</label>
+            <small className="settings-item-hint">الرقم الرسمي لاستقبال اتصالات ورسائل الأهالي</small>
+            <input
+              id="setting-phone"
+              dir="ltr"
+              className="studio-textbox"
+              value={values.phone}
+              onChange={(e) => updateSetting("phone", e.target.value)}
+              placeholder="01222355769"
+              required
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-officeAddress">٢. عنوان مكتب الدليل في جنزور</label>
+            <small className="settings-item-hint">العنوان التفصيلي للمكتب داخل القرية</small>
+            <input
+              id="setting-officeAddress"
+              className="studio-textbox"
+              value={designValues.officeAddress}
+              onChange={(e) => updateDesign("officeAddress", e.target.value)}
+              placeholder="قرية جنزور — بجوار مكتبة الجمال"
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-officeHours">٣. مواعيد عمل المكتب واستقبال الطلبات</label>
+            <small className="settings-item-hint">المواعيد اليومية للتواصل المباشر</small>
+            <input
+              id="setting-officeHours"
+              className="studio-textbox"
+              value={designValues.officeWorkingHours}
+              onChange={(e) => updateDesign("officeWorkingHours", e.target.value)}
+              placeholder="يومياً من ٩ صباحاً حتى ١١ مساءً"
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-waGreeting">٤. رسالة الترحيب التلقائية في واتساب</label>
+            <small className="settings-item-hint">تُكتب تلقائياً عند ضغط الزائر على زر واتساب المهني</small>
+            <input
+              id="setting-waGreeting"
+              className="studio-textbox"
+              value={designValues.whatsappDefaultGreeting}
+              onChange={(e) => updateDesign("whatsappDefaultGreeting", e.target.value)}
+              placeholder="مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور."
+            />
+          </div>
+
+          <div className="settings-item-box is-full-span">
+            <label className="settings-item-label" htmlFor="setting-contactText">٥. النص التعريفي لنافذة «اتصل بنا»</label>
+            <small className="settings-item-hint">يظهر للزوار داخل نافذة التواصل مع الإدارة</small>
+            <input
+              id="setting-contactText"
+              className="studio-textbox"
+              value={values.contactText}
+              onChange={(e) => updateSetting("contactText", e.target.value)}
+              placeholder="للاستفسار أو إضافة مهنتك في دليل جنزور تواصل معنا مباشرة"
+              required
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* القسم الثالث */}
+      <div className="admin-Visual-divider" role="separator">
+        <span><Share2 size={15}/> القسم ٣: إعدادات الفوتر وروابط السوشيال ميديا والشعار</span>
+      </div>
+
+      <section className="settings-section-card">
+        <div className="settings-section-head">
+          <h4>تذييل الموقع (Footer) وروابط التواصل الاجتماعي</h4>
+          <p>تحكم في وصف الفوتر ونص حقوق الملكية وروابط فيسبوك وجروب واتساب جنزور</p>
+        </div>
+
+        <div className="settings-items-grid">
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-footerDesc">١. وصف الموقع المختصر في الفوتر</label>
+            <small className="settings-item-hint">الجملة الظاهرة أسفل اسم الموقع في الفوتر</small>
+            <input
+              id="setting-footerDesc"
+              className="studio-textbox"
+              value={designValues.footerDescription}
+              onChange={(e) => updateDesign("footerDescription", e.target.value)}
+              placeholder="دليل المهن والخدمات.. من أهل القرية لأهلها"
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-copyright">٢. نص حقوق النشر أسفل الموقع</label>
+            <small className="settings-item-hint">يظهر في نهاية جميع صفحات الدليل ولوحة الإدارة</small>
+            <input
+              id="setting-copyright"
+              className="studio-textbox"
+              value={values.copyright}
+              onChange={(e) => updateSetting("copyright", e.target.value)}
+              placeholder="جميع الحقوق محفوظة — دليل جنزور"
+              required
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-fbUrl">٣. رابط صفحة أو جروب فيسبوك الرسمي</label>
+            <small className="settings-item-hint">ضع الرابط الكامل ليظهر في الفوتر</small>
+            <input
+              id="setting-fbUrl"
+              dir="ltr"
+              className="studio-textbox"
+              placeholder="https://facebook.com/..."
+              value={designValues.footerFacebookUrl}
+              onChange={(e) => updateDesign("footerFacebookUrl", e.target.value)}
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-waGroupUrl">٤. رابط جروب واتساب أهل جنزور</label>
+            <small className="settings-item-hint">رابط الدعوة لجروب أو قناة واتساب القرية</small>
+            <input
+              id="setting-waGroupUrl"
+              dir="ltr"
+              className="studio-textbox"
+              placeholder="https://chat.whatsapp.com/..."
+              value={designValues.footerWhatsappGroupUrl}
+              onChange={(e) => updateDesign("footerWhatsappGroupUrl", e.target.value)}
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-headerLogo">٥. رابط صورة لوجو الهيدر (اختياري)</label>
+            <small className="settings-item-hint">اتركه فارغاً لاستخدام شعار دليل جنزور الافتراضي</small>
+            <input
+              id="setting-headerLogo"
+              dir="ltr"
+              className="studio-textbox"
+              placeholder="/images/logo-daleel-transparent.png"
+              value={designValues.headerLogoUrl}
+              onChange={(e) => updateDesign("headerLogoUrl", e.target.value)}
+            />
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-announcementText">٦. نص الإعلان الترحيبي الثابت</label>
+            <small className="settings-item-hint">يُستخدم عند ضبط شريط الأخبار على الوضع الثابت</small>
+            <input
+              id="setting-announcementText"
+              className="studio-textbox"
+              placeholder="أهلاً بكم في دليل جنزور..."
+              value={designValues.announcementText}
+              onChange={(e) => updateDesign("announcementText", e.target.value)}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* القسم الرابع */}
+      <div className="admin-Visual-divider" role="separator">
+        <span><Sliders size={15}/> القسم ٤: التحكم في أقسام وخصائص الموقع التفاعلية</span>
+      </div>
+
+      <section className="settings-section-card">
+        <div className="settings-section-head">
+          <h4>تفعيل وإيقاف خصائص وأقسام الموقع</h4>
+          <p>يمكنك تفعيل أو إيقاف أي ميزة من القائمة أو كتابة حالة التفعيل مباشرة</p>
+        </div>
+
+        <div className="settings-items-grid">
+          {(
+            [
+              {
+                id: "showEmergency",
+                title: "١. شريط وأرقام الطوارئ والمناوبات",
+                hint: "إظهار أرقام الطوارئ العاجلة في الموقع",
+                checked: values.showEmergency,
+                onToggle: (next: boolean) => updateSetting("showEmergency", next),
+              },
+              {
+                id: "allowPublicSubmissions",
+                title: "٢. استقبال طلبات إضافة مهنة جديدة",
+                hint: "السماح للزوار بإرسال طلبات إضافة مهنتهم",
+                checked: designValues.allowPublicSubmissions,
+                onToggle: (next: boolean) => updateDesign("allowPublicSubmissions", next),
+              },
+              {
+                id: "showPrayerWeatherBar",
+                title: "٣. مستطيل مواقيت الصلاة بجنزور",
+                hint: "عرض مواقيت الصلوات الخمس في الصفحة الرئيسية",
+                checked: designValues.showPrayerWeatherBar,
+                onToggle: (next: boolean) => updateDesign("showPrayerWeatherBar", next),
+              },
+              {
+                id: "showTransitGuide",
+                title: "٤. دليل مواصلات ومواقف جنزور",
+                hint: "عرض خطوط السير والمواقف اليومية بالقرية",
+                checked: designValues.showTransitGuide,
+                onToggle: (next: boolean) => updateDesign("showTransitGuide", next),
+              },
+              {
+                id: "floatingWhatsappEnabled",
+                title: "٥. زر واتساب العائم السريع",
+                hint: "إظهار زر تواصل واتساب عائم أسفل الشاشة",
+                checked: designValues.floatingWhatsappEnabled,
+                onToggle: (next: boolean) => updateDesign("floatingWhatsappEnabled", next),
+              },
+              {
+                id: "showFooterWhatsapp",
+                title: "٦. زر واتساب الإدارة داخل الفوتر",
+                hint: "عرض بطاقة التواصل عبر واتساب في الفوتر",
+                checked: designValues.showFooterWhatsapp,
+                onToggle: (next: boolean) => updateDesign("showFooterWhatsapp", next),
+              },
+              {
+                id: "showFooterStats",
+                title: "٧. عداد إحصائيات المهن والأقسام في الفوتر",
+                hint: "عرض عدد الخدمات والأقسام والمناطق للزوار",
+                checked: designValues.showFooterStats,
+                onToggle: (next: boolean) => updateDesign("showFooterStats", next),
+              },
+              {
+                id: "showAdminQuickEdit",
+                title: "٨. زر «تعديل سريع» للأدمن على الكروت",
+                hint: "يتيح للأدمن فتح تعديل المهنة مباشرة من الكارت",
+                checked: designValues.showAdminQuickEdit,
+                onToggle: (next: boolean) => updateDesign("showAdminQuickEdit", next),
+              },
+            ] as const
+          ).map((item) => (
+            <div key={item.id} className="settings-item-box">
+              <label className="settings-item-label" htmlFor={`toggle-box-${item.id}`}>
+                {item.title}
+              </label>
+              <small className="settings-item-hint">{item.hint}</small>
+              <div className="settings-toggle-textbox-row">
+                <input
+                  id={`toggle-box-${item.id}`}
+                  type="text"
+                  readOnly
+                  className={`studio-textbox is-status-textbox ${item.checked ? "is-on" : "is-off"}`}
+                  value={item.checked ? "✅ مفعّل وظاهر بالموقع" : "⏸️ متوقف / مخفي حالياً"}
+                  onClick={() => item.onToggle(!item.checked)}
+                />
+                <button
+                  type="button"
+                  className={`button button-small ${item.checked ? "button-primary" : "button-soft"}`}
+                  onClick={() => item.onToggle(!item.checked)}
+                >
+                  {item.checked ? "إيقاف" : "تفعيل"}
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       </section>
 
+      {/* القسم الخامس */}
       <div className="admin-Visual-divider" role="separator">
-        <span><Building2 size={15}/> ٢. بيانات مكتب الدليل وأرقام التواصل والطوارئ</span>
-      </div>
-
-      <section className="settings-section-card">
-        <div className="form-grid settings-centered-grid">
-          <label className="field settings-centered-field">
-            <span>رقم هاتف وواتساب إدارة الدليل</span>
-            <input
-              dir="ltr"
-              value={values.phone}
-              onChange={(event) => setValues((current) => ({ ...current, phone: event.target.value }))}
-              required
-            />
-          </label>
-
-          <label className="field settings-centered-field">
-            <span>عنوان المكتب في قرية جنزور</span>
-            <input
-              value={designValues.officeAddress}
-              onChange={(event) => updateDesign("officeAddress", event.target.value)}
-            />
-          </label>
-
-          <label className="field settings-centered-field">
-            <span>مواعيد عمل المكتب واستقبال الطلبات</span>
-            <input
-              value={designValues.officeWorkingHours}
-              onChange={(event) => updateDesign("officeWorkingHours", event.target.value)}
-            />
-          </label>
-
-          <label className="field settings-centered-field">
-            <span>رسالة الترحيب الافتراضية عند مراسلة واتساب</span>
-            <input
-              value={designValues.whatsappDefaultGreeting}
-              onChange={(event) => updateDesign("whatsappDefaultGreeting", event.target.value)}
-            />
-          </label>
-
-          <label className="field field-full settings-centered-field">
-            <span>النص التعريفي لبطاقة التواصل والإضافة بالموقع</span>
-            <input
-              value={values.contactText}
-              onChange={(event) => setValues((current) => ({ ...current, contactText: event.target.value }))}
-              required
-            />
-          </label>
-        </div>
-
-        <div className="settings-toggles-grid">
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={values.showEmergency}
-              onChange={(event) => setValues((current) => ({ ...current, showEmergency: event.target.checked }))}
-            />
-            <ShieldAlert size={18}/>
-            <span>إظهار شريط وأرقام الطوارئ والمناوبات للزوار</span>
-          </label>
-
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.floatingWhatsappEnabled}
-              onChange={(event) => updateDesign("floatingWhatsappEnabled", event.target.checked)}
-            />
-            <PhoneCall size={18}/>
-            <span>إظهار زر واتساب العائم للتواصل السريع</span>
-          </label>
-        </div>
-      </section>
-
-      <div className="admin-Visual-divider" role="separator">
-        <span><Share2 size={15}/> ٣. الفوتر وروابط السوشيال ميديا وحقوق النشر</span>
-      </div>
-
-      <section className="settings-section-card">
-        <div className="form-grid settings-centered-grid">
-          <label className="field settings-centered-field">
-            <span>وصف الموقع المختصر في الفوتر</span>
-            <input
-              value={designValues.footerDescription}
-              onChange={(event) => updateDesign("footerDescription", event.target.value)}
-            />
-          </label>
-
-          <label className="field settings-centered-field">
-            <span>نص حقوق النشر أسفل الموقع</span>
-            <input
-              value={values.copyright}
-              onChange={(event) => setValues((current) => ({ ...current, copyright: event.target.value }))}
-              required
-            />
-          </label>
-
-          <label className="field settings-centered-field">
-            <span>رابط صفحة أو جروب فيسبوك الرسمي (اختياري)</span>
-            <input
-              dir="ltr"
-              placeholder="https://facebook.com/..."
-              value={designValues.footerFacebookUrl}
-              onChange={(event) => updateDesign("footerFacebookUrl", event.target.value)}
-            />
-          </label>
-
-          <label className="field settings-centered-field">
-            <span>رابط جروب واتساب أهل جنزور (اختياري)</span>
-            <input
-              dir="ltr"
-              placeholder="https://chat.whatsapp.com/..."
-              value={designValues.footerWhatsappGroupUrl}
-              onChange={(event) => updateDesign("footerWhatsappGroupUrl", event.target.value)}
-            />
-          </label>
-        </div>
-
-        <div className="settings-toggles-grid">
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.showFooterWhatsapp}
-              onChange={(event) => updateDesign("showFooterWhatsapp", event.target.checked)}
-            />
-            <span>إظهار زر تواصل واتساب داخل الفوتر</span>
-          </label>
-
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.showFooterStats}
-              onChange={(event) => updateDesign("showFooterStats", event.target.checked)}
-            />
-            <span>إظهار عداد المهن والأقسام الموثقة في الفوتر</span>
-          </label>
-        </div>
-      </section>
-
-      <div className="admin-Visual-divider" role="separator">
-        <span><Sliders size={15}/> ٤. التحكم في خصائص وأدوات الدليل التفاعلية</span>
-      </div>
-
-      <section className="settings-section-card">
-        <div className="settings-toggles-grid">
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.allowPublicSubmissions}
-              onChange={(event) => updateDesign("allowPublicSubmissions", event.target.checked)}
-            />
-            <span>السماح للزوار بإرسال طلبات إضافة مهنة جديدة</span>
-          </label>
-
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.showPrayerWeatherBar}
-              onChange={(event) => updateDesign("showPrayerWeatherBar", event.target.checked)}
-            />
-            <span>إظهار مستطيل مواقيت الصلاة بجنزور</span>
-          </label>
-
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.showTransitGuide}
-              onChange={(event) => updateDesign("showTransitGuide", event.target.checked)}
-            />
-            <span>إظهار دليل المواصلات ومواقف قرية جنزور</span>
-          </label>
-
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.showInstallAppBanner}
-              onChange={(event) => updateDesign("showInstallAppBanner", event.target.checked)}
-            />
-            <span>إظهار بانر تثبيت التطبيق على الهاتف</span>
-          </label>
-
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.showAddProfessionBanner}
-              onChange={(event) => updateDesign("showAddProfessionBanner", event.target.checked)}
-            />
-            <span>إظهار بانر «أضف مهنتك مجاناً» أسفل الصفحة</span>
-          </label>
-
-          <label className="checkbox-field settings-centered-checkbox">
-            <input
-              type="checkbox"
-              checked={designValues.showAdminQuickEdit}
-              onChange={(event) => updateDesign("showAdminQuickEdit", event.target.checked)}
-            />
-            <span>تفعيل زر «تعديل سريع» للأدمن على كروت المهنيين</span>
-          </label>
-        </div>
-      </section>
-
-      <div className="admin-Visual-divider" role="separator">
-        <span><BellRing size={15}/> ٥. تنبيهات واتساب الفورية للإدارة (CallMeBot)</span>
+        <span><BellRing size={15}/> القسم ٥: تنبيهات واتساب الفورية للإدارة (CallMeBot)</span>
       </div>
 
       <section className="whatsapp-alerts-card settings-centered-alerts" aria-label="إعدادات تنبيهات واتساب المجانية">
@@ -332,25 +467,32 @@ export default function SettingsEditor({
           <li>سيصلك رد خلال ثوانٍ يحتوي على رقم الـ API Key الخاص بك — انسخه وضعه في الخانة بالأسفل ثم اضغط حفظ.</li>
         </ol>
 
-        <div className="form-grid settings-centered-grid">
-          <label className="field settings-centered-field">
-            <span>رقم واتساب الأدمن لاستقبال التنبيهات</span>
+        <div className="settings-items-grid">
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-waAlertNumber">١. رقم واتساب الأدمن لاستقبال التنبيهات</label>
+            <small className="settings-item-hint">الرقم الذي فعّلت عليه خدمة CallMeBot</small>
             <input
+              id="setting-waAlertNumber"
               dir="ltr"
+              className="studio-textbox"
               placeholder="01222355769 أو 201222355769"
               value={values.whatsappAlertsNumber}
-              onChange={(event) => setValues((current) => ({ ...current, whatsappAlertsNumber: event.target.value }))}
+              onChange={(event) => updateSetting("whatsappAlertsNumber", event.target.value)}
             />
-          </label>
-          <label className="field settings-centered-field">
-            <span>مفتاح CallMeBot API Key</span>
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="setting-waAlertKey">٢. مفتاح CallMeBot API Key</label>
+            <small className="settings-item-hint">الكود الرقمي الذي وصلك في رسالة التفعيل</small>
             <input
+              id="setting-waAlertKey"
               dir="ltr"
+              className="studio-textbox"
               placeholder="مثال: 1234567"
               value={values.whatsappAlertsApiKey}
-              onChange={(event) => setValues((current) => ({ ...current, whatsappAlertsApiKey: event.target.value }))}
+              onChange={(event) => updateSetting("whatsappAlertsApiKey", event.target.value)}
             />
-          </label>
+          </div>
         </div>
 
         <div className="whatsapp-alerts-actions">

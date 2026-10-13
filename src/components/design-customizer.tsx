@@ -1093,20 +1093,57 @@ export default function DesignCustomizer({
                   </SelectField>
                 </label>
 
-                <InnerDivider title="تخصيص كروت المهنيين ومقدمي الخدمات" />
+                <InnerDivider title="تخصيص كروت المهنيين وصفحة مقدم الخدمة والبحث المتمركز" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    تخطيط كارت مقدم الخدمة (Provider Card)
+                    <SelectField value={draft.providerCardLayout} onChange={(e) => updateField("providerCardLayout", e.target.value as DesignSettings["providerCardLayout"])}>
+                      <option value="classic">كلاسيكي متوازن (الافتراضي)</option>
+                      <option value="compact">مدمج ومختصر لشاشات الموبايل</option>
+                      <option value="centered">متوسطن بالكامل (الأيقونة والاسم والنجوم في المنتصف)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    ستايل إطار كارت مقدم الخدمة من الخارج
+                    <SelectField value={draft.outerCardStyle} onChange={(e) => updateField("outerCardStyle", e.target.value as DesignSettings["outerCardStyle"])}>
+                      <option value="modern">كارت حديث بإطار واضح (الافتراضي)</option>
+                      <option value="bordered">برواز ملون مزدوج وبارز</option>
+                      <option value="soft-gradient">خلفية متدرجة ناعمة</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون المستطيل المميز لاسم المهني والنجوم (داخل صفحته)"
+                    value={draft.detailNameBoxColor}
+                    swatches={QUICK_SWATCHES.button}
+                    onChange={(hex) => updateField("detailNameBoxColor", hex)}
+                  />
+
+                  <label className="field">
+                    حالة أوسمة المهني تحت برواز الاسم (داخل صفحته)
+                    <SelectField value={draft.badgesDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("badgesDefaultOpen", e.target.value === "open")}>
+                      <option value="closed">مطوية وتفتح بالسهم الصغير تحت الاسم (الافتراضي)</option>
+                      <option value="open">مفرودة تلقائياً عند فتح صفحة المهني</option>
+                    </SelectField>
+                  </label>
+                </div>
+
                 <label className="field">
-                  تخطيط كارت مقدم الخدمة (Provider Card)
-                  <SelectField value={draft.providerCardLayout} onChange={(e) => updateField("providerCardLayout", e.target.value as DesignSettings["providerCardLayout"])}>
-                    <option value="classic">كلاسيكي مفصل (الافتراضي)</option>
-                    <option value="compact">مدمج ومختصر لشاشات الموبايل</option>
-                    <option value="centered">متوسطن بالكامل (الأيقونة والاسم والنجوم في المنتصف)</option>
+                  تصميم زر البحث المتمركز في الصفحة الرئيسية والأقسام
+                  <SelectField value={draft.searchTriggerStyle} onChange={(e) => updateField("searchTriggerStyle", e.target.value as DesignSettings["searchTriggerStyle"])}>
+                    <option value="pill-gradient">كبسولة زرقاء متدرجة بارزة (الافتراضي)</option>
+                    <option value="glass-outline">إطار زجاجي مضيء وعصري</option>
+                    <option value="gold-accent">كبسولة ملكية بإطار ذهبي</option>
                   </SelectField>
                 </label>
 
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderBadges} onChange={(e) => updateField("showProviderBadges", e.target.checked)}/>إظهار شارات التوثيق والتميز و«جديد» على كارت المهني</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderWhatsappBtn} onChange={(e) => updateField("showProviderWhatsappBtn", e.target.checked)}/>إظهار زر واتساب المباشر على كارت المهني</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderShareBtn} onChange={(e) => updateField("showProviderShareBtn", e.target.checked)}/>إظهار زر مشاركة الخدمة على كارت المهني</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderBadges} onChange={(e) => updateField("showProviderBadges", e.target.checked)}/>إظهار شارات التوثيق والتميز داخل صفحة المهني</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderWhatsappBtn} onChange={(e) => updateField("showProviderWhatsappBtn", e.target.checked)}/>إظهار زر واتساب المباشر داخل صفحة المهني</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderShareBtn} onChange={(e) => updateField("showProviderShareBtn", e.target.checked)}/>إظهار أيقونة المشاركة بجانب اسم المهني</label>
                 </div>
               </div>
             )}
@@ -1138,20 +1175,26 @@ export default function DesignCustomizer({
                   <>
                     <div className="form-row design-two-col">
                       <label className="field">
-                        طريقة عرض الأخبار في الشريط العلوي
+                        طريقة وحركة عرض الأخبار في الشريط العلوي
                         <SelectField value={draft.announcementTickerMode} onChange={(e) => updateField("announcementTickerMode", e.target.value as DesignSettings["announcementTickerMode"])}>
-                          <option value="rotate">متقلب تلقائياً بين عدة أخبار (Rotate - الافتراضي)</option>
-                          <option value="marquee">شريط إخباري متحرك مستمر (Marquee Ticker)</option>
-                          <option value="single">خبر أو إعلان واحد ثابت</option>
+                          <option value="marquee">شريط إخباري متحرك مستمر من اليمين لليسار (الافتراضي)</option>
+                          <option value="marquee-reverse">شريط إخباري متحرك عكسي من اليسار لليمين</option>
+                          <option value="rotate">تبديل متقلب تلقائي ناعم بين الأخبار</option>
+                          <option value="vertical-slide">انزلاق رأسي للأعلى بين الأخبار</option>
+                          <option value="pulse-glow">نبض وتوهج ضوئي متغير للأخبار</option>
+                          <option value="bounce">حركة ارتدادية حيوية عند تبديل الخبر</option>
+                          <option value="single">خبر أو إعلان واحد ثابت بدون حركة</option>
                         </SelectField>
                       </label>
 
                       <label className="field">
                         سرعة تبديل أو حركة الشريط الإخباري
                         <SelectField value={draft.announcementSpeed} onChange={(e) => updateField("announcementSpeed", e.target.value as DesignSettings["announcementSpeed"])}>
-                          <option value="slow">هادئة ومريحة للقراءة</option>
-                          <option value="normal">متوسطة متوازنة (الافتراضي)</option>
-                          <option value="fast">سريعة ونشطة</option>
+                          <option value="very-slow">بطيئة جداً وهادئة (٤٥ ثانية)</option>
+                          <option value="slow">هادئة ومريحة للقراءة (٣٢ ثانية)</option>
+                          <option value="normal">متوسطة متوازنة (٢٢ ثانية - الافتراضي)</option>
+                          <option value="fast">سريعة ونشطة (١٤ ثانية)</option>
+                          <option value="turbo">فائقة السرعة (٨ ثوانٍ)</option>
                         </SelectField>
                       </label>
                     </div>

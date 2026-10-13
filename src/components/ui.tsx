@@ -43,8 +43,17 @@ export function Modal({ title, subtitle, children, onClose, wide = false, floati
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null, previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    if (panel.current) {
+      panel.current.scrollTop = 0;
+      const bodyEl = panel.current.querySelector<HTMLElement>(".modal-body");
+      if (bodyEl) bodyEl.scrollTop = 0;
+    }
     const elements = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]') ?? []);
-    (panel.current?.querySelector<HTMLElement>("input:not([type=hidden]), select, textarea") ?? elements()[0])?.focus();
+    const isDetailView = Boolean(panel.current?.querySelector(".service-details"));
+    const targetFocus = isDetailView
+      ? elements()[0]
+      : (panel.current?.querySelector<HTMLElement>("input:not([type=hidden]), select, textarea") ?? elements()[0]);
+    targetFocus?.focus({ preventScroll: true });
     const handler = (event: KeyboardEvent) => {
       const panels = document.querySelectorAll(".modal-panel");
       if (panels[panels.length - 1] !== panel.current) return;

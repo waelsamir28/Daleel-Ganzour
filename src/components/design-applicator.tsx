@@ -18,6 +18,7 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-auth-border", design.authInputBorderColor);
   root.style.setProperty("--design-announcement-bg", design.announcementBgColor);
   root.style.setProperty("--design-whatsapp-color", design.whatsappButtonColor);
+  root.style.setProperty("--design-detail-name-bg", design.detailNameBoxColor || "#0b4a82");
   root.style.setProperty("--design-mobile-cols", design.mobileColumns);
   root.style.setProperty("--design-desktop-cols", design.desktopColumns);
 
@@ -62,6 +63,8 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-category-counts", design.showCategoryCounts !== false ? "true" : "false");
   root.setAttribute("data-design-call-strip", design.providerCallStripStyle || "sky");
   root.setAttribute("data-design-animation-speed", design.cardAnimationSpeed || "normal");
+  root.setAttribute("data-design-outer-card", design.outerCardStyle || "modern");
+  root.setAttribute("data-design-search-trigger", design.searchTriggerStyle || "pill-gradient");
   root.setAttribute("data-design-splash-enabled", design.splashEnabled ? "true" : "false");
   root.setAttribute("data-design-splash-image", design.splashImageUrl || "/images/logo-daleel-transparent.png");
   root.setAttribute("data-design-splash-duration", design.splashDuration || "900");

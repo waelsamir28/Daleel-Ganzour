@@ -583,6 +583,13 @@ test("extended design & site studio settings sanitize cleanly", () => {
     cardAnimationSpeed: "smooth",
     officeAddress: "جنزور — بجوار المسجد الكبير",
     allowPublicSubmissions: false,
+    themePreset: "turquoise-nile",
+    announcementTickerMode: "vertical-slide",
+    announcementSpeed: "turbo",
+    detailNameBoxColor: "#1e3a8a",
+    outerCardStyle: "bordered",
+    searchTriggerStyle: "gold-accent",
+    badgesDefaultOpen: true,
   });
   assert.equal(custom.prayerCardStyle, "emerald");
   assert.equal(custom.prayerDefaultOpen, true);
@@ -592,6 +599,13 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.cardAnimationSpeed, "smooth");
   assert.equal(custom.officeAddress, "جنزور — بجوار المسجد الكبير");
   assert.equal(custom.allowPublicSubmissions, false);
+  assert.equal(custom.themePreset, "turquoise-nile");
+  assert.equal(custom.announcementTickerMode, "vertical-slide");
+  assert.equal(custom.announcementSpeed, "turbo");
+  assert.equal(custom.detailNameBoxColor, "#1e3a8a");
+  assert.equal(custom.outerCardStyle, "bordered");
+  assert.equal(custom.searchTriggerStyle, "gold-accent");
+  assert.equal(custom.badgesDefaultOpen, true);
 });
 
 

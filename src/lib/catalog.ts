@@ -923,6 +923,11 @@ export type DesignThemePresetId =
   | "eid"
   | "schools"
   | "winter-emergency"
+  | "sunset-coral"
+  | "turquoise-nile"
+  | "lavender-soft"
+  | "graphite-modern"
+  | "olive-country"
   | "custom";
 
 export type DesignSettings = {
@@ -1015,8 +1020,8 @@ export type DesignSettings = {
   showAdminQuickEdit: boolean;
   // 10. Multi-Item News Ticker & Subtle Background Patterns
   announcementItems: string;
-  announcementTickerMode: "single" | "rotate" | "marquee";
-  announcementSpeed: "slow" | "normal" | "fast";
+  announcementTickerMode: "single" | "rotate" | "marquee" | "marquee-reverse" | "vertical-slide" | "pulse-glow" | "bounce";
+  announcementSpeed: "very-slow" | "slow" | "normal" | "fast" | "turbo";
   headerPattern: "none" | "dots" | "grid" | "islamic" | "waves";
   heroPattern: "none" | "dots" | "grid" | "islamic" | "waves" | "stars";
   patternOpacity: "subtle" | "medium" | "clear";
@@ -1031,6 +1036,10 @@ export type DesignSettings = {
   officeWorkingHours: string;
   whatsappDefaultGreeting: string;
   allowPublicSubmissions: boolean;
+  detailNameBoxColor: string;
+  outerCardStyle: "modern" | "bordered" | "soft-gradient";
+  searchTriggerStyle: "pill-gradient" | "glass-outline" | "gold-accent";
+  badgesDefaultOpen: boolean;
 };
 
 export const defaultDesignSettings: DesignSettings = {
@@ -1129,6 +1138,10 @@ export const defaultDesignSettings: DesignSettings = {
   officeWorkingHours: "يومياً من ٩ صباحاً حتى ١١ مساءً",
   whatsappDefaultGreeting: "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.",
   allowPublicSubmissions: true,
+  detailNameBoxColor: "#0b4a82",
+  outerCardStyle: "modern",
+  searchTriggerStyle: "pill-gradient",
+  badgesDefaultOpen: false,
 };
 
 export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; badge?: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
@@ -1181,6 +1194,36 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     description: "تباين عالٍ وواضح يبرز أرقام الطوارئ والصيدليات والخدمات العاجلة",
     colors: { primaryColor: "#0369a1", pageBgColor: "#f0f6fa", modalHeaderBg: "#bae6fd", buttonColor: "#dc2626", borderColor: "#c5d9e8", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#082032" },
   },
+  "sunset-coral": {
+    label: "🌅 غروب مرجاني دافئ",
+    badge: "جديد",
+    description: "تدرجات المرجاني الدافئ والبرتقالي الهادئ لمظهر عصري مفعم بالحيوية",
+    colors: { primaryColor: "#e11d48", pageBgColor: "#fff5f5", modalHeaderBg: "#ffe4e6", buttonColor: "#be123c", borderColor: "#fecdd3", cardBgColor: "#ffffff", headerBgColor: "#fffafa", footerBgColor: "#310b19" },
+  },
+  "turquoise-nile": {
+    label: "🌊 فيروزي النيل المشرق",
+    badge: "جديد",
+    description: "درجات الفيروزي والسماوي النيلي الصافي المريح للعين على الهاتف والكمبيوتر",
+    colors: { primaryColor: "#0284c7", pageBgColor: "#f0fdfa", modalHeaderBg: "#ccfbf1", buttonColor: "#0891b2", borderColor: "#a5f3fc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#083344" },
+  },
+  "lavender-soft": {
+    label: "💜 لافندر عصري هادئ",
+    badge: "جديد",
+    description: "ألوان البنفسجي اللافندر الراقي مع خلفية ناعمة وتباين مريح للقراءة",
+    colors: { primaryColor: "#7c3aed", pageBgColor: "#f8f7ff", modalHeaderBg: "#ede9fe", buttonColor: "#6d28d9", borderColor: "#ddd6fe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1e1b4b" },
+  },
+  "graphite-modern": {
+    label: "🖤 جرافيت عصري أنيق",
+    badge: "جديد",
+    description: "تصميم احترافي بدرجات الرمادي الجرافيت والأزرق الفولاذي",
+    colors: { primaryColor: "#334155", pageBgColor: "#f8fafc", modalHeaderBg: "#e2e8f0", buttonColor: "#0f172a", borderColor: "#cbd5e1", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#090d16" },
+  },
+  "olive-country": {
+    label: "🌿 أخضر ريفي أصيل",
+    badge: "جديد",
+    description: "مستوحى من خضرة ريف المنوفية وقرية جنزور بدرجات الزيتوني والأخضر الدافئ",
+    colors: { primaryColor: "#3f6212", pageBgColor: "#f7fee7", modalHeaderBg: "#ecfccb", buttonColor: "#4d7c0f", borderColor: "#d9f99d", cardBgColor: "#ffffff", headerBgColor: "#fefffa", footerBgColor: "#1a2e05" },
+  },
 };
 
 export function sanitizeDesignSettings(saved: unknown): DesignSettings {
@@ -1199,7 +1242,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.themePreset = pickEnum(
     record.themePreset,
-    ["classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "custom"] as const,
+    ["classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "custom"] as const,
     defaultDesignSettings.themePreset,
   );
   next.primaryColor = hexColor(record.primaryColor, defaultDesignSettings.primaryColor);
@@ -1289,8 +1332,16 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.showAdminQuickEdit = pickBool(record.showAdminQuickEdit, defaultDesignSettings.showAdminQuickEdit);
 
   next.announcementItems = pickText(record.announcementItems, defaultDesignSettings.announcementItems, 1200, true);
-  next.announcementTickerMode = pickEnum(record.announcementTickerMode, ["single", "rotate", "marquee"] as const, defaultDesignSettings.announcementTickerMode);
-  next.announcementSpeed = pickEnum(record.announcementSpeed, ["slow", "normal", "fast"] as const, defaultDesignSettings.announcementSpeed);
+  next.announcementTickerMode = pickEnum(
+    record.announcementTickerMode,
+    ["single", "rotate", "marquee", "marquee-reverse", "vertical-slide", "pulse-glow", "bounce"] as const,
+    defaultDesignSettings.announcementTickerMode,
+  );
+  next.announcementSpeed = pickEnum(
+    record.announcementSpeed,
+    ["very-slow", "slow", "normal", "fast", "turbo"] as const,
+    defaultDesignSettings.announcementSpeed,
+  );
   next.headerPattern = pickEnum(record.headerPattern, ["none", "dots", "grid", "islamic", "waves"] as const, defaultDesignSettings.headerPattern);
   next.heroPattern = pickEnum(record.heroPattern, ["none", "dots", "grid", "islamic", "waves", "stars"] as const, defaultDesignSettings.heroPattern);
   next.patternOpacity = pickEnum(record.patternOpacity, ["subtle", "medium", "clear"] as const, defaultDesignSettings.patternOpacity);
@@ -1305,6 +1356,10 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.officeWorkingHours = pickText(record.officeWorkingHours, defaultDesignSettings.officeWorkingHours, 160);
   next.whatsappDefaultGreeting = pickText(record.whatsappDefaultGreeting, defaultDesignSettings.whatsappDefaultGreeting, 240);
   next.allowPublicSubmissions = pickBool(record.allowPublicSubmissions, defaultDesignSettings.allowPublicSubmissions);
+  next.detailNameBoxColor = hexColor(record.detailNameBoxColor, defaultDesignSettings.detailNameBoxColor);
+  next.outerCardStyle = pickEnum(record.outerCardStyle, ["modern", "bordered", "soft-gradient"] as const, defaultDesignSettings.outerCardStyle);
+  next.searchTriggerStyle = pickEnum(record.searchTriggerStyle, ["pill-gradient", "glass-outline", "gold-accent"] as const, defaultDesignSettings.searchTriggerStyle);
+  next.badgesDefaultOpen = pickBool(record.badgesDefaultOpen, defaultDesignSettings.badgesDefaultOpen);
 
   return next;
 }
