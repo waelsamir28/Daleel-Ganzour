@@ -4,17 +4,35 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0877e6">
-    <title>غير متصل بالإنترنت | دليل جنزور</title>
+    <title>أرقام الطوارئ بدون إنترنت | دليل جنزور</title>
     <style>
-      *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#eaf5ff,#f7fbff);color:#153451;font-family:Arial,Tahoma,sans-serif;text-align:center}.card{max-width:420px;padding:36px 28px;border:1px solid #dbeafe;border-radius:24px;background:#fff;box-shadow:0 18px 60px #125ba51c}.mark{display:grid;place-items:center;width:70px;height:70px;margin:0 auto 20px;border-radius:22px;background:linear-gradient(145deg,#0c95f3,#075fd0);color:#fff;font-size:34px;font-weight:900}.card h1{margin:0 0 12px;font-size:25px}.card p{margin:0;color:#5a7186;font-size:15px;line-height:2}.card a{display:inline-block;margin-top:24px;padding:12px 22px;border-radius:12px;background:#0877e6;color:#fff;font-weight:800;text-decoration:none}
+      *{box-sizing:border-box}
+      body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(145deg,#eaf5ff,#f7fbff);color:#153451;font-family:Arial,Tahoma,sans-serif;text-align:center}
+      .card{width:100%;max-width:460px;padding:28px 22px;border:1px solid #dbeafe;border-radius:24px;background:#fff;box-shadow:0 18px 60px #125ba51c}
+      .mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:20px;background:linear-gradient(145deg,#0c95f3,#075fd0);color:#fff;font-size:30px;font-weight:900}
+      .card h1{margin:0 0 8px;font-size:22px}
+      .card p{margin:0 0 18px;color:#5a7186;font-size:14px;line-height:1.8}
+      .hotlines{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0;text-align:right}
+      .hotline{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:12px;background:#f4f9ff;border:1px solid #d5e8fa;color:#0e3358;text-decoration:none;font-size:13px;font-weight:700}
+      .hotline b{color:#0877e6;font-size:15px}
+      .retry-btn{display:inline-block;margin-top:14px;padding:12px 24px;border-radius:12px;background:#0877e6;color:#fff;font-weight:800;text-decoration:none}
     </style>
   </head>
   <body>
     <main class="card">
       <div class="mark" aria-hidden="true">ج</div>
-      <h1>أنت غير متصل بالإنترنت</h1>
-      <p>يحتاج دليل جنزور إلى اتصال بالإنترنت لعرض أحدث بيانات الخدمات. تأكد من اتصالك، ثم أعد المحاولة.</p>
-      <a href="/">إعادة المحاولة</a>
+      <h1>أنت غير متصل بالإنترنت حالياً</h1>
+      <p>يمكنك الاتصال بأرقام الطوارئ والمرافق في جنزور مباشرة حتى بدون إنترنت:</p>
+      <div class="hotlines">
+        <a class="hotline" href="tel:123"><span>الإسعاف</span><b dir="ltr">123</b></a>
+        <a class="hotline" href="tel:122"><span>النجدة</span><b dir="ltr">122</b></a>
+        <a class="hotline" href="tel:180"><span>المطافئ</span><b dir="ltr">180</b></a>
+        <a class="hotline" href="tel:121"><span>طوارئ الكهرباء</span><b dir="ltr">121</b></a>
+        <a class="hotline" href="tel:125"><span>طوارئ المياه</span><b dir="ltr">125</b></a>
+        <a class="hotline" href="tel:129"><span>طوارئ الغاز</span><b dir="ltr">129</b></a>
+      </div>
+      <a class="hotline" style="margin-top:6px" href="tel:01222355769"><span>إدارة دليل جنزور (مكتب الجمال)</span><b dir="ltr">01222355769</b></a>
+      <a class="retry-btn" href="/">إعادة المحاولة عند عودة الإنترنت</a>
     </main>
   </body>
 </html>

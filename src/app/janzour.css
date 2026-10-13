@@ -2932,5 +2932,773 @@ html.dark .design-choice-pills > button,
 html.dark .design-section-tabs > button { background: #14293f; border-color: #274a6e; color: #cde2f7; }
 html.dark .design-preset-card.is-selected { border-color: #3898ff; background: #173452; }
 
+/* ==========================================================
+   الميزات المجتمعية واستوديو الثيمات والتحليلات وتطبيق الموبايل
+   ========================================================== */
+
+/* 1. شريط المواسم والمناسبات */
+.site-seasonal-ribbon {
+  padding: 9px 14px;
+  color: #ffffff;
+  font-size: .86rem;
+  font-weight: 800;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, .18);
+}
+.site-seasonal-ribbon.is-ramadan {
+  background: linear-gradient(90deg, #0c1f33, #b45309, #0c1f33);
+}
+.site-seasonal-ribbon.is-eid {
+  background: linear-gradient(90deg, #0d9488, #0284c7, #0d9488);
+}
+.site-seasonal-ribbon.is-schools {
+  background: linear-gradient(90deg, #1d4ed8, #d97706, #1d4ed8);
+}
+.site-seasonal-ribbon.is-winter {
+  background: linear-gradient(90deg, #0c4a6e, #dc2626, #0c4a6e);
+}
+
+/* 2. شريط مواقيت الصلاة والطقس في جنزور */
+.ganzour-prayer-weather-bar {
+  background: linear-gradient(180deg, #eef6ff, #f8fbff);
+  border-bottom: 1px solid #d7e7f7;
+  padding: 8px 0;
+}
+.ganzour-prayer-weather-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.prayer-weather-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #cfe3f7;
+  color: #0e3b68;
+  font-size: .8rem;
+  font-weight: 700;
+}
+.prayer-weather-badge.is-next strong { color: #0878c9; }
+.prayer-weather-badge.is-next small {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e6f4ff;
+  color: #095999;
+  font-weight: 800;
+}
+.prayer-weather-badge.is-weather strong { color: #d97706; font-weight: 900; }
+.prayer-times-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.prayer-times-pills::-webkit-scrollbar { display: none; }
+.prayer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #dce8f4;
+  font-size: .76rem;
+  color: #2c4c6b;
+  white-space: nowrap;
+}
+.prayer-pill b { font-weight: 800; color: #103252; }
+.prayer-pill.is-upcoming {
+  background: #0878c9;
+  border-color: #0878c9;
+  color: #ffffff;
+}
+.prayer-pill.is-upcoming b,
+.prayer-pill.is-upcoming small { color: #ffffff; }
+
+/* 3. زر فاتح أو متاح الآن السريع في البانر */
+.hero-open-now-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, .45);
+  background: rgba(15, 38, 64, .55);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.hero-open-now-btn:hover,
+.hero-open-now-btn.is-active {
+  background: #16a34a;
+  border-color: #86efac;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(22, 163, 74, .32);
+}
+
+/* 4. دليل مواصلات وخطوط سير جنزور */
+.transit-guide-section {
+  margin: 18px 0;
+}
+.transit-routes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.transit-route-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1.5px solid #d9e7f5;
+  box-shadow: 0 6px 18px rgba(12, 46, 82, .05);
+}
+.transit-route-card.is-blue { border-right: 4px solid #0878c9; }
+.transit-route-card.is-emerald { border-right: 4px solid #10b981; }
+.transit-route-card.is-amber { border-right: 4px solid #f59e0b; }
+.transit-route-card.is-purple { border-right: 4px solid #8b5cf6; }
+.transit-route-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.transit-route-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: #eaf4ff;
+  color: #0878c9;
+  flex-shrink: 0;
+}
+.transit-route-head h3 {
+  margin: 0;
+  font-size: .98rem;
+  font-weight: 900;
+  color: #103252;
+}
+.transit-route-badge {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f0f7ff;
+  color: #0b64b0;
+  font-size: .74rem;
+  font-weight: 800;
+}
+.transit-route-notes {
+  margin: 0;
+  font-size: .84rem;
+  color: #46637f;
+  line-height: 1.55;
+}
+.transit-route-meta {
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed #e2ecf6;
+  font-size: .79rem;
+  color: #294969;
+}
+.transit-route-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* 5. كارت العمل الرقمي ورمز QR للمهني */
+.business-card-modal-wrap {
+  display: grid;
+  gap: 14px;
+}
+.provider-business-card {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid var(--cat, #0878c9);
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(10, 42, 74, .12);
+}
+.provider-business-card-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--cat, #0878c9), #0c3b66);
+  color: #ffffff;
+}
+.provider-business-card-brand {
+  display: grid;
+  gap: 2px;
+}
+.provider-business-card-brand strong { font-size: .92rem; font-weight: 900; }
+.provider-business-card-brand span { font-size: .74rem; opacity: .9; }
+.provider-business-card-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .2);
+  color: #ffffff;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.provider-business-card-body {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 16px;
+  align-items: center;
+}
+.provider-business-card-info {
+  display: grid;
+  gap: 8px;
+}
+.provider-business-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.provider-business-card-title-row h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #0e2e4f;
+}
+.provider-business-card-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: .74rem;
+  font-weight: 800;
+}
+.provider-business-card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #f59e0b;
+  font-size: .84rem;
+}
+.provider-business-card-rating .stars { display: inline-flex; gap: 2px; }
+.provider-business-card-rating strong { color: #103252; }
+.provider-business-card-rating small { color: #647f98; }
+.provider-business-card-desc {
+  margin: 0;
+  font-size: .84rem;
+  color: #46637f;
+  line-height: 1.5;
+}
+.provider-business-card-contacts {
+  display: grid;
+  gap: 5px;
+  padding-top: 4px;
+}
+.provider-business-card-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .86rem;
+  color: #1f4264;
+}
+.provider-business-card-contact-item.is-phone strong {
+  font-size: 1rem;
+  color: #0878c9;
+  font-weight: 900;
+}
+.provider-business-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.provider-business-card-qr-box {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #f5f9fe;
+  border: 1px solid #d5e6f7;
+}
+.provider-business-card-qr-frame {
+  width: 140px;
+  height: 140px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 4px;
+}
+.business-card-qr-svg {
+  width: 132px;
+  height: 132px;
+}
+.provider-business-card-qr-caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .73rem;
+  font-weight: 800;
+  color: #1f4b75;
+}
+.business-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* 6. إحصائيات الفوتر وشريط التنقل السفلي للموبايل ووضع التعديل السريع للأدمن */
+.footer-stats-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.footer-stats-strip > span {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .16);
+  color: #e2effd;
+  font-size: .8rem;
+}
+.footer-stats-strip > span strong {
+  color: #60b5ff;
+  font-weight: 900;
+  margin-left: 3px;
+}
+
+.provider-admin-edit-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #b45309;
+  transition: transform .15s ease;
+}
+.provider-admin-edit-btn:hover { transform: scale(1.08); }
+
+.admin-homepage-quickbar {
+  position: fixed;
+  bottom: 76px;
+  right: 16px;
+  z-index: 44;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(15, 34, 56, .94);
+  border: 1px solid rgba(255, 255, 255, .18);
+  color: #ffffff;
+  font-size: .78rem;
+  font-weight: 800;
+  box-shadow: 0 10px 26px rgba(9, 24, 42, .28);
+}
+.admin-homepage-quickbar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #fbbf24;
+}
+.admin-homepage-quickbar > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .14);
+  color: #ffffff;
+  text-decoration: none;
+}
+.admin-homepage-quickbar > a:hover { background: #0878c9; }
+
+.mobile-bottom-app-nav {
+  display: none;
+}
+@media(max-width: 760px) {
+  .mobile-bottom-app-nav {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 48;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, .97);
+    backdrop-filter: blur(12px);
+    border-top: 1.5px solid #d4e4f4;
+    box-shadow: 0 -8px 24px rgba(12, 42, 74, .1);
+  }
+  .mobile-bottom-app-nav > button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #365675;
+    font-size: .74rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .mobile-bottom-app-nav > button.is-active {
+    color: var(--design-primary, #0878c9);
+    background: #eef6ff;
+  }
+  .mobile-bottom-app-nav > button.is-add-btn {
+    color: #15803d;
+    background: #ecfdf5;
+  }
+  html[data-design-mobile-nav="true"] .site-footer {
+    padding-bottom: 84px;
+  }
+}
+
+html[data-design-install-banner="false"] .pwa-install-card {
+  display: none !important;
+}
+
+/* 7. قوالب المظهر المحفوظة وشارات المواسم في استوديو المظهر */
+.design-preset-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.design-preset-season-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: .7rem;
+  font-weight: 900;
+}
+.design-custom-presets-box {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f6faff;
+  border: 1px solid #d7e7f7;
+}
+.design-custom-preset-save-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.design-custom-preset-save-row > input {
+  flex: 1 1 200px;
+  min-height: 38px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid #c6dcf2;
+}
+.design-import-label { cursor: pointer; }
+.design-preset-msg {
+  color: #0b69b8;
+  font-weight: 800;
+  font-size: .8rem;
+}
+.design-saved-presets-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.design-saved-preset-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #c8ddf2;
+  overflow: hidden;
+}
+.design-saved-preset-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 0;
+  background: transparent;
+  color: #12365a;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.design-saved-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+.design-saved-preset-del {
+  display: grid;
+  place-items: center;
+  padding: 5px 8px;
+  border: 0;
+  border-right: 1px solid #e2eef9;
+  background: #fff5f5;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+/* 8. استوديو إحصائيات التفاعل والبحث للأدمن */
+.admin-analytics-studio {
+  display: grid;
+  gap: 16px;
+}
+.analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.analytics-kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #dbe8f5;
+  box-shadow: 0 6px 18px rgba(12, 42, 74, .04);
+}
+.analytics-kpi-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.analytics-kpi-card.is-blue .analytics-kpi-icon { background: #e6f3ff; color: #0878c9; }
+.analytics-kpi-card.is-emerald .analytics-kpi-icon { background: #dcfce7; color: #15803d; }
+.analytics-kpi-card.is-amber .analytics-kpi-icon { background: #fef3c7; color: #b45309; }
+.analytics-kpi-card.is-purple .analytics-kpi-icon { background: #f3e8ff; color: #7e22ce; }
+.analytics-kpi-card small { display: block; color: #5b7691; font-size: .76rem; }
+.analytics-kpi-card strong { display: block; font-size: 1.05rem; font-weight: 900; color: #0f2f4f; margin: 2px 0; }
+.analytics-kpi-card span { font-size: .75rem; color: #647f98; }
+
+.analytics-grid-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.analytics-panel-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #d9e7f5;
+}
+.analytics-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.analytics-panel-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 3px;
+  font-size: .98rem;
+  font-weight: 900;
+  color: #103252;
+}
+.analytics-panel-head p {
+  margin: 0;
+  font-size: .8rem;
+  color: #5b7691;
+}
+.analytics-interaction-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.analytics-interaction-pills > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #f2f8ff;
+  border: 1px solid #d4e6f8;
+  font-size: .8rem;
+  color: #1c436a;
+}
+.analytics-search-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.analytics-search-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  font-size: .82rem;
+}
+.analytics-search-tag strong { color: #92400e; }
+.analytics-search-tag span { color: #b45309; font-size: .75rem; }
+.analytics-empty-hint {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fbff;
+  color: #5a7690;
+  font-size: .83rem;
+}
+.analytics-bars-list {
+  display: grid;
+  gap: 9px;
+}
+.analytics-bar-row {
+  display: grid;
+  gap: 4px;
+}
+.analytics-bar-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: .83rem;
+}
+.analytics-cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  margin-left: 5px;
+}
+.analytics-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #edf4fb;
+  overflow: hidden;
+}
+.analytics-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #0878c9;
+}
+.analytics-underserved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+.analytics-underserved-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  border: 1px solid #dce8f5;
+  background: #f9fcff;
+}
+.analytics-underserved-item.is-zero {
+  border-color: #fecaca;
+  background: #fffafa;
+}
+.analytics-underserved-copy {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.analytics-underserved-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.analytics-underserved-copy strong { display: block; font-size: .85rem; color: #103252; }
+.analytics-underserved-copy small { font-size: .74rem; color: #647f98; }
+.analytics-top-providers {
+  display: grid;
+  gap: 8px;
+}
+.analytics-top-provider-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #f7fbff;
+  border: 1px solid #dfecf8;
+}
+.analytics-top-provider-row strong { display: block; font-size: .88rem; color: #103252; }
+.analytics-top-provider-row small { font-size: .76rem; color: #587490; }
+
+@media(max-width: 720px) {
+  .transit-routes-grid,
+  .analytics-grid-two,
+  .provider-business-card-body {
+    grid-template-columns: 1fr;
+  }
+  .ganzour-prayer-weather-inner {
+    justify-content: center;
+  }
+}
+
+html.dark .ganzour-prayer-weather-bar { background: #0d1f33; border-bottom-color: #1f3b58; }
+html.dark .prayer-weather-badge,
+html.dark .prayer-pill,
+html.dark .transit-route-card,
+html.dark .provider-business-card,
+html.dark .analytics-kpi-card,
+html.dark .analytics-panel-card,
+html.dark .analytics-underserved-item,
+html.dark .analytics-top-provider-row {
+  background: #11243a;
+  border-color: #244568;
+  color: #e2effd;
+}
+html.dark .transit-route-head h3,
+html.dark .provider-business-card-title-row h3,
+html.dark .analytics-panel-head h3,
+html.dark .analytics-kpi-card strong,
+html.dark .analytics-underserved-copy strong,
+html.dark .analytics-top-provider-row strong {
+  color: #eaf4ff;
+}
+html.dark .mobile-bottom-app-nav {
+  background: rgba(13, 28, 45, .96);
+  border-top-color: #234364;
+}
+html.dark .mobile-bottom-app-nav > button { color: #b8d2ec; }
+
+
 
 
