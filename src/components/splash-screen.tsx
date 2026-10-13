@@ -22,6 +22,8 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
     if (pathname !== "/" || root.classList.contains("skip-splash") || root.getAttribute("data-design-splash-enabled") === "false") {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Immediately hide splash on non-home pages or when disabled by admin.
       setHidden(true);
+      root.setAttribute("data-splash-done", "true");
+      window.dispatchEvent(new CustomEvent("janzour-splash-finished"));
       return;
     }
     const customImg = root.getAttribute("data-design-splash-image");
@@ -32,6 +34,8 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
     const remove = window.setTimeout(() => {
       setHidden(true);
       root.classList.add("skip-splash");
+      root.setAttribute("data-splash-done", "true");
+      window.dispatchEvent(new CustomEvent("janzour-splash-finished"));
     }, customDuration + FADE_MS);
     return () => { window.clearTimeout(fade); window.clearTimeout(remove); };
   }, [pathname]);

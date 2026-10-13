@@ -606,6 +606,13 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.outerCardStyle, "bordered");
   assert.equal(custom.searchTriggerStyle, "gold-accent");
   assert.equal(custom.badgesDefaultOpen, true);
+  assert.equal(custom.sponsorModalEnabled, true);
+  assert.equal(custom.sponsorModalDelaySeconds, 10);
+  assert.equal(custom.showDailyOffersSection, true);
+
+  const parsedSponsors = catalog.parseSponsoredProviders(custom.sponsoredProvidersJson);
+  assert.ok(parsedSponsors.length >= 3);
+  assert.equal(parsedSponsors[0].badgeLabel, "راعي معتمد 👑");
 });
 
 

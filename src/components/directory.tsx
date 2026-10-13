@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
-import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Flame, Gift, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, parseSponsoredProviders, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type SponsoredProviderConfig, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import BusinessCardModal from "@/components/business-card-modal";
+import SponsorshipModal from "@/components/sponsorship-modal";
 import SelectField from "@/components/select-field";
 import { LocationPicker, ServiceForm } from "@/components/request-forms";
 import { ProviderCompletionModalForm } from "@/components/management-editor";
@@ -48,7 +49,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     return () => { clearTimeout(initial); clearInterval(timer); window.removeEventListener("focus", tick); };
   }, []);
   const liveDetail = detail ? data.services.find((service) => service.id === detail.id) ?? detail : null;
-  const design = { ...defaultDesignSettings, ...(data.designSettings ?? {}) };
+  const design = useMemo(() => ({ ...defaultDesignSettings, ...(data.designSettings ?? {}) }), [data.designSettings]);
   const [view, setView] = useState<"all" | "favorites">(initialFavorites ? "favorites" : "all");
   const [featuredOpen, setFeaturedOpen] = useState(() => Boolean(initialData.designSettings?.featuredDefaultOpen));
   const [ownedServiceIds, setOwnedServiceIds] = useState<string[]>([]);
@@ -58,6 +59,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [detailRatingOpen, setDetailRatingOpen] = useState(false);
   const [detailClinicOpen, setDetailClinicOpen] = useState(false);
   const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
+  const [sponsorModalOpen, setSponsorModalOpen] = useState(false);
+  const [sponsorModalAuto, setSponsorModalAuto] = useState(false);
   const [ratingStars, setRatingStars] = useState(0), [ratingComment, setRatingComment] = useState(""), [ratingMessage, setRatingMessage] = useState(""), [ratingBusy, setRatingBusy] = useState(false);
   const [followIds, setFollowIds] = useState<string[]>([]), [feedItems, setFeedItems] = useState<FollowFeedItem[]>([]), [feedOpen, setFeedOpen] = useState(false), [followBusy, setFollowBusy] = useState(false), [followError, setFollowError] = useState("");
   const [feedSeen, setFeedSeen] = useState(() => { try { return Number(localStorage.getItem("janzour-feed-seen")) || 0; } catch { return 0; } });
@@ -211,6 +214,18 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   }
   async function logout() { setLogoutError(""); try { const response = await fetch("/api/auth", { method: "DELETE" }); if (!response.ok) throw new Error(); window.location.assign("/"); } catch { setLogoutError("تعذر تسجيل الخروج. حاول مرة أخرى."); } }
   async function requestServiceUpdate() { if (!detail) return; setUpdateMessage(""); const response = await fetch("/api/service-updates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ serviceId: detail.id, phone: updatePhone, note: updateNote }) }); const result = await response.json(); setUpdateMessage(result.message ?? "تعذر إرسال الطلب."); if (response.ok) { setUpdatePhone(""); setUpdateNote(""); } }
+  const activeSponsors = useMemo(
+    () => parseSponsoredProviders(design.sponsoredProvidersJson).filter((item) => item.active),
+    [design.sponsoredProvidersJson],
+  );
+  const activeSponsorMap = useMemo(
+    () => new Map(activeSponsors.map((item) => [item.serviceId, item])),
+    [activeSponsors],
+  );
+  const dailyOffers = useMemo(
+    () => activeSponsors.filter((item) => item.dailyOfferTitle.trim().length > 0),
+    [activeSponsors],
+  );
   const isTeachersContext = Boolean(rootId === "teachers" || rootFilter === "teachers" || (specialty && specialty.parentId === "teachers"));
   const isShopsContext = Boolean(rootId === "shops" || rootFilter === "shops" || (specialty && specialty.parentId === "shops"));
   const isClinicsContext = Boolean(rootId === "clinics" || rootFilter === "clinics" || (specialty && specialty.parentId === "clinics"));
@@ -221,23 +236,30 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     () => categories.filter((category) => category.parentId === "teachers" && category.active),
     [categories],
   );
-  const filteredServices = useMemo(() => services.filter((service) => {
-    const item = getCategory(service.category, categories);
-    return (!activeDeliveryOnly || supportsHomeDelivery(service))
-      && (!isClinicsContext || activeClinicFilter === "all" || matchesClinicFilter(service, activeClinicFilter, now || undefined))
-      && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage))
-      && (!activeSpecialtyId || service.category === activeSpecialtyId)
-      && (!rootFilter || item.parentId === rootFilter)
-      && (!query || matchesServiceQuery(service, item.name, query))
-      && (!area || service.area === area)
-      && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress)))
-      && (!emergency || service.emergency)
-      && (view !== "favorites" || favorites.includes(service.id));
-  }), [services, categories, activeSpecialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, activeDeliveryOnly, isClinicsContext, activeClinicFilter, now, isTeachersContext, teacherStage]);
+  const filteredServices = useMemo(() => services
+    .filter((service) => {
+      const item = getCategory(service.category, categories);
+      return (!activeDeliveryOnly || supportsHomeDelivery(service))
+        && (!isClinicsContext || activeClinicFilter === "all" || matchesClinicFilter(service, activeClinicFilter, now || undefined))
+        && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage))
+        && (!activeSpecialtyId || service.category === activeSpecialtyId)
+        && (!rootFilter || item.parentId === rootFilter)
+        && (!query || matchesServiceQuery(service, item.name, query))
+        && (!area || service.area === area)
+        && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress)))
+        && (!emergency || service.emergency)
+        && (view !== "favorites" || favorites.includes(service.id));
+    })
+    .sort((a, b) => {
+      const aSponsor = activeSponsorMap.has(a.id) ? 1 : 0;
+      const bSponsor = activeSponsorMap.has(b.id) ? 1 : 0;
+      if (bSponsor !== aSponsor) return bSponsor - aSponsor;
+      return 0;
+    }), [services, categories, activeSpecialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, activeDeliveryOnly, isClinicsContext, activeClinicFilter, now, isTeachersContext, teacherStage, activeSponsorMap]);
   const isFiltering = Boolean(activeDeliveryOnly || (isClinicsContext && activeClinicFilter !== "all") || (isTeachersContext && (teacherStage !== "all" || Boolean(teacherSpecialtyFilter))) || query || area || emergency || view === "favorites" || (!rootId && rootFilter));
   const isFeaturedCollapsible = !isFiltering && !specialty;
   const showProvidersList = !isFeaturedCollapsible || featuredOpen;
-  const featured = filteredServices.filter((service) => service.featured);
+  const featured = filteredServices.filter((service) => service.featured || activeSponsorMap.has(service.id));
   const visibleServices = isFiltering || activeSpecialtyId ? filteredServices : (featured.length ? featured : filteredServices);
   const activeSpecialtyCategory = activeSpecialtyId ? getCategory(activeSpecialtyId, categories) : specialty;
   const providerTitle = view === "favorites" ? "خدماتك المفضلة" : emergency ? "خدمات الطوارئ" : activeDeliveryOnly && !specialty ? "محلات توفر التوصيل للمنازل بجنزور" : activeSpecialtyCategory ? `${rootId === "clinics" ? "أطباء" : "مقدمو خدمات"} ${activeSpecialtyCategory.name}` : isFiltering ? "نتائج البحث" : root ? `خدمات ${root.name} المميزة في جنزور` : "مقدمو الخدمات المميزين";
@@ -354,7 +376,49 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     return idx >= 0 ? idx + 1 : fallback;
   };
   const prayerWeather = useMemo(() => getGanzourPrayerAndWeather(now > 0 ? now : undefined), [now]);
-  const announcementList = parseAnnouncementItems(design);
+  const announcementList = useMemo(() => {
+    const base = parseAnnouncementItems(design);
+    const sponsorAds = activeSponsors
+      .map((item) => item.tickerAdText.trim())
+      .filter((text) => text.length > 0);
+    return [...sponsorAds, ...base];
+  }, [design, activeSponsors]);
+  useEffect(() => {
+    if (scoped || !design.sponsorModalEnabled) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("service")) return;
+      if (sessionStorage.getItem("janzour-sponsor-modal-shown") === "1") return;
+    } catch {
+      /* Ignore storage/search issues */
+    }
+    let opened = false;
+    const triggerModal = () => {
+      if (opened) return;
+      opened = true;
+      try {
+        sessionStorage.setItem("janzour-sponsor-modal-shown", "1");
+      } catch {
+        /* Ignore storage issues */
+      }
+      setSponsorModalAuto(true);
+      setSponsorModalOpen(true);
+    };
+    const root = document.documentElement;
+    if (root.getAttribute("data-splash-done") === "true" || root.classList.contains("skip-splash") || !design.splashEnabled) {
+      const immediateTimer = window.setTimeout(triggerModal, 180);
+      return () => window.clearTimeout(immediateTimer);
+    }
+    const onSplashDone = () => {
+      window.setTimeout(triggerModal, 120);
+    };
+    window.addEventListener("janzour-splash-finished", onSplashDone);
+    const fallbackTimer = window.setTimeout(triggerModal, 2200);
+    return () => {
+      window.removeEventListener("janzour-splash-finished", onSplashDone);
+      window.clearTimeout(fallbackTimer);
+    };
+  }, [scoped, design.sponsorModalEnabled, design.splashEnabled]);
   const isRotatingTickerMode =
     design.announcementTickerMode === "rotate" ||
     design.announcementTickerMode === "vertical-slide" ||
@@ -457,6 +521,18 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <button type="button" onClick={() => { setMenuOpen(false); setModal("service"); }}>
             <CirclePlus size={17}/>
             <span>أضف مهنتك للدليل</span>
+          </button>
+          <button
+            type="button"
+            className="menu-sponsor-item"
+            onClick={() => {
+              setMenuOpen(false);
+              setSponsorModalAuto(false);
+              setSponsorModalOpen(true);
+            }}
+          >
+            <Crown size={17}/>
+            <span>باقات الرعاية والتميز (١٠ أيام مجاناً)</span>
           </button>
           {design.showHeaderFavorites && (
             <button type="button" className={view === "favorites" ? "active" : ""} onClick={showFavorites}>
@@ -582,7 +658,28 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </div>
       </div>
     )}
-    {(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}
+    {(scoped || design.showAddProfessionBanner) && (
+      <div className="hero-trust">
+        <button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}>
+          <CirclePlus size={19}/>
+          <span>أضف مهنتك</span>
+        </button>
+        <button
+          type="button"
+          className="button hero-sponsor-packages-btn"
+          onClick={() => {
+            setSponsorModalAuto(false);
+            setSponsorModalOpen(true);
+          }}
+        >
+          <Crown size={19}/>
+          <span>باقات الرعاية والتميز (١٠ أيام مجاناً)</span>
+        </button>
+        <span><ShieldCheck size={19}/> مراجعة قبل النشر</span>
+        <span><PhoneCall size={18}/> تواصل مباشر</span>
+        <span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span>
+      </div>
+    )}
     {!scoped && design.showPrayerWeatherBar && (
       <div className={`ganzour-prayer-card ${prayerOpen ? "is-open" : ""}`} role="region" aria-label="مواقيت الصلاة في جنزور">
         <button
@@ -622,6 +719,88 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     </div></div></section>}
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => setModal("service")}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><Link href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></Link></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
     <main className="directory-main directory-ordered-main">
+      {!scoped && design.showDailyOffersSection && dailyOffers.length > 0 && (
+        <section
+          id="daily-offers"
+          className="daily-offers-section"
+          aria-labelledby="daily-offers-heading"
+          style={{ order: 0 }}
+        >
+          <div className="daily-offers-header">
+            <div className="daily-offers-title-group">
+              <span className="daily-offers-flame-icon">
+                <Flame size={22}/>
+              </span>
+              <div>
+                <h2 id="daily-offers-heading">🔥 عروض اليوم في جنزور (للعيادات والمعامل والمحلات المشتركة)</h2>
+                <p>خصومات وعروض حصرية وخدمات فورية لأهالي قرية جنزور من رعاة الدليل المعتمدين</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="button button-amber button-small daily-offers-join-btn"
+              onClick={() => {
+                setSponsorModalAuto(false);
+                setSponsorModalOpen(true);
+              }}
+            >
+              <Gift size={16}/>
+              <span>أضف عرضك (١٠ أيام مجاناً)</span>
+            </button>
+          </div>
+
+          <div className="daily-offers-grid">
+            {dailyOffers.map((offer, idx) => {
+              const matchedService = services.find((srv) => srv.id === offer.serviceId);
+              const contactPhone = (offer.phone || matchedService?.phone || matchedService?.phoneSecondary || settings.phone).trim();
+              const orderMsg = `مرحبًا (${offer.providerName})، شاهدت عرضكم (${offer.dailyOfferDiscount}: ${offer.dailyOfferTitle}) على دليل قرية جنزور وأود الاستفسار أو الحجز.`;
+
+              return (
+                <article key={`${offer.serviceId}-${idx}`} className="daily-offer-card">
+                  <div className="daily-offer-top">
+                    <span className="daily-offer-crown-badge">
+                      <Crown size={14}/> {offer.badgeLabel || "راعي معتمد 👑"}
+                    </span>
+                    <span className="daily-offer-discount-pill">
+                      {offer.dailyOfferDiscount || "عرض اليوم 🔥"}
+                    </span>
+                  </div>
+
+                  <h3 className="daily-offer-provider">{offer.providerName}</h3>
+                  <span className="daily-offer-category">{offer.categoryName}</span>
+                  <p className="daily-offer-description">{offer.dailyOfferTitle}</p>
+
+                  <div className="daily-offer-actions">
+                    <a
+                      href={whatsappUrl(contactPhone, orderMsg)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="daily-offer-wa-btn"
+                    >
+                      <MessageCircle size={17}/>
+                      <span>اطلب العرض عبر واتساب</span>
+                    </a>
+                    {matchedService ? (
+                      <button
+                        type="button"
+                        className="daily-offer-view-btn"
+                        onClick={() => openDetail(matchedService)}
+                      >
+                        <span>فتح الصفحة</span>
+                      </button>
+                    ) : (
+                      <a href={`tel:${contactPhone}`} className="daily-offer-view-btn">
+                        <Phone size={15}/>
+                        <span>اتصال</span>
+                      </a>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
       {isTeachersContext && (
         <section id="teacher-stages" className="categories-section teacher-stages-section" style={scoped ? { order: 1 } : { order: sectionOrderIndex("categories", 3) - 1 }}>
           <div className="section-heading directory-section-heading">
@@ -843,7 +1022,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || activeSpecialtyCategory) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
-      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
+      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} sponsorInfo={activeSponsorMap.get(service.id)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
         <div className="category-grid main-category-grid feature-cards-grid">
           <button
@@ -1508,6 +1687,13 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     )}
     {detail && detailQr && <BusinessCardModal service={liveDetail ?? detail} category={getCategory(detail.category, categories)} siteName={settings.siteName} now={now} onClose={() => setDetailQr(false)}/>}
     {detail && detailUpdate && isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && <Modal floating title="تحديث البيانات" subtitle={`تحديث بيانات ${detail.name} — ستراجعها الإدارة`} onClose={() => setDetailUpdate(false)}><div className="detail-update"><h4>هل هذه بياناتك؟</h4><p>حدّث رقم الهاتف أو أضف ملاحظة وسيراجعها فريق الإدارة.</p><input value={updatePhone} onChange={(event) => setUpdatePhone(event.target.value)} placeholder="رقم الهاتف الصحيح" inputMode="tel"/><input value={updateNote} onChange={(event) => setUpdateNote(event.target.value)} placeholder="ملاحظة أو رقم إضافي"/><div className="detail-update-actions"><button type="button" className="button button-primary" onClick={() => void requestServiceUpdate()}>حدّثها الآن</button><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailUpdate(false)}><X size={17}/>إغلاق</button></div>{updateMessage && <small role="status">{updateMessage}</small>}</div></Modal>}
+    <SponsorshipModal
+      open={sponsorModalOpen}
+      autoTriggered={sponsorModalAuto}
+      designSettings={design}
+      fallbackPhone={settings.phone}
+      onClose={() => setSponsorModalOpen(false)}
+    />
     {!scoped && neededServices.length > 0 && <section className="container search-assistance most-needed"><h2>الأكثر احتياجًا</h2><p>خدمات تختارها وترتبها الإدارة لاحتياجات أهل القرية، وليست ترتيبًا حسب المشاهدات.</p>{neededServices.map((service) => <button className="button button-soft" key={service.id} onClick={() => openDetail(service)}>{service.name} — {getCategory(service.category, categories).name}</button>)}</section>}
   </>;
 }
@@ -1528,17 +1714,18 @@ type ProviderCardProps = {
   favorite: boolean;
   now: number;
   showAdminQuickEdit?: boolean;
+  sponsorInfo?: SponsoredProviderConfig;
   onOpen: (service: ServiceRecord) => void;
   onOpenCompletion: (service: ServiceRecord) => void;
   onShare: (service: ServiceRecord) => void;
   onToggleFavorite: (id: string) => void;
 };
-// Outer card layout: shows ONLY Provider Name, Specialty, Stars, and Call Button.
+// Outer card layout: shows ONLY Provider Name, Specialty, Stars, and Call Button (plus Golden VIP Frame & Crown Badge if sponsored).
 // All other details appear inside the Service Provider Detail Modal.
-function ProviderCard({ service, category, showAdminQuickEdit, onOpen }: ProviderCardProps) {
+function ProviderCard({ service, category, showAdminQuickEdit, sponsorInfo, onOpen }: ProviderCardProps) {
   return (
     <article
-      className="provider-card provider-card-minimal"
+      className={`provider-card provider-card-minimal ${sponsorInfo ? "is-vip-sponsor" : ""}`}
       data-service-id={service.id}
       role="button"
       tabIndex={0}
@@ -1552,6 +1739,12 @@ function ProviderCard({ service, category, showAdminQuickEdit, onOpen }: Provide
         }
       }}
     >
+      {sponsorInfo && (
+        <div className="vip-sponsor-card-ribbon">
+          <Crown size={14}/>
+          <span>{sponsorInfo.badgeLabel || "راعي معتمد 👑"}</span>
+        </div>
+      )}
       <div className="provider-card-main provider-card-minimal-main">
         <span className="provider-card-icon" aria-hidden="true">
           <CategoryIcon icon={category.icon} size={26}/>
