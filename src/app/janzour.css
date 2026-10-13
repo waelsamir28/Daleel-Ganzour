@@ -1484,7 +1484,7 @@ html.dark .replies-provider-list strong { color: #dcebf9; }
 .utility-card.is-amber { border-top: 3px solid #e08b18; }
 .utility-card.is-blue { border-top: 3px solid #1577d1; }
 .utility-card.is-emerald { border-top: 3px solid #169362; }
-.utility-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.utility-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .utility-category-tag { padding: 3px 9px; border-radius: 999px; font-size: 10.5px; font-weight: 800; background: #eef5fc; color: #245785; }
 .utility-card.is-red .utility-category-tag { background: #ffecef; color: #b91c2c; }
 .utility-card.is-amber .utility-category-tag { background: #fff4e2; color: #a15c00; }
@@ -1497,11 +1497,75 @@ html.dark .replies-provider-list strong { color: #dcebf9; }
 .utility-call-link strong { font-size: 15px; font-weight: 900; letter-spacing: .3px; }
 .utility-call-link:hover { background: #dff0ff; border-color: #a4cef5; }
 
-/* Dark Mode support for #9, #2, #10 */
+/* ===== المستطيلات الثلاثة في الصفحة الرئيسية (المناوبات + أرقام تهمك + الخدمات السريعة) ===== */
+.feature-rectangles-stack { display: grid; gap: 14px; margin-top: 26px; }
+.feature-action-rect { padding: 18px 20px; border: 1px solid #d5e6f6; border-radius: 20px; background: linear-gradient(135deg, #f6faff 0%, #ffffff 58%, #eef7ff 100%); box-shadow: 0 10px 26px rgba(17, 62, 102, .05); transition: border-color .18s ease, box-shadow .18s ease; }
+.feature-action-rect:hover { border-color: #aed1f0; box-shadow: 0 14px 30px rgba(17, 62, 102, .08); }
+.feature-action-rect.is-utilities { background: linear-gradient(135deg, #f3faf7 0%, #ffffff 58%, #eef7ff 100%); border-color: #cce6db; }
+.feature-action-rect.is-quick { background: linear-gradient(135deg, #fdf9f1 0%, #ffffff 58%, #f3f9ff 100%); border-color: #e6dcc7; }
+.feature-rect-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.feature-rect-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; min-width: 245px; padding: 11px 20px; border-radius: 14px; font-size: 14px; font-weight: 900; white-space: nowrap; flex-shrink: 0; box-shadow: 0 8px 20px rgba(13, 106, 198, .22); }
+.feature-rect-btn.is-utilities-btn { background: linear-gradient(135deg, #0e8a5c, #0a6e48); border-color: #0b7a50; box-shadow: 0 8px 20px rgba(14, 138, 92, .22); }
+.feature-rect-btn.is-utilities-btn:hover { background: linear-gradient(135deg, #0b7a50, #085d3c); }
+.feature-rect-btn.is-quick-btn { background: linear-gradient(135deg, #165ea8, #0e4681); border-color: #124f8f; }
+.feature-rect-btn svg.is-rotated { transform: rotate(180deg); transition: transform .2s ease; }
+.feature-rect-explain { flex: 1 1 280px; text-align: left; direction: rtl; display: grid; gap: 3px; }
+.feature-rect-explain strong { color: #143b61; font-size: 13.5px; font-weight: 900; }
+.feature-rect-explain p { margin: 0; color: #587590; font-size: 12.5px; font-weight: 600; line-height: 1.65; }
+.feature-rect-expanded { margin-top: 16px; padding-top: 16px; border-top: 1px dashed #d6e5f3; }
+@media(max-width:700px) {
+  .feature-rect-row { flex-direction: column; align-items: stretch; gap: 12px; }
+  .feature-rect-btn { width: 100%; min-width: 0; }
+  .feature-rect-explain { text-align: right; }
+}
+
+/* ===== النوافذ العائمة العريضة (المناوبات + أرقام تهمك + استكمال بيانات المهني) ===== */
+.modal-panel.modal-floating.modal-wide { width: min(100%, 880px); max-height: 88vh; }
+.duty-modal-content, .utilities-modal-content { display: grid; gap: 16px; }
+.duty-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.duty-filter-tabs button { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ===== أزرار الإدارة في نافذة أرقام تهمك في جنزور (للأدمن فقط) ===== */
+.utilities-admin-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 11px 14px; border: 1px solid #cbe2f7; border-radius: 13px; background: #f1f8ff; color: #144470; font-size: 12.5px; font-weight: 800; }
+.utilities-admin-bar > span { display: inline-flex; align-items: center; gap: 7px; }
+.utility-editor-form { display: grid; gap: 12px; padding: 15px; border: 1px solid #bfdcf6; border-radius: 15px; background: #f8fbff; }
+.utility-editor-form h4 { margin: 0; color: #153e65; font-size: 14px; font-weight: 900; }
+.utility-editor-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.utility-card-tools { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.utility-admin-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid #cfe0f0; border-radius: 8px; background: #f4f9ff; color: #1b568c; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; transition: background .15s, border-color .15s; }
+.utility-admin-btn:hover { background: #e3f0fd; border-color: #a9caec; }
+.utility-admin-btn.is-delete { border-color: #f4c6cb; background: #fff4f5; color: #bf2233; }
+.utility-admin-btn.is-delete:hover { background: #ffe5e8; border-color: #ea9fa7; }
+
+/* ===== زر استكمال البيانات للمهني + النقطة الحمراء + الاقتراحات القابلة للضغط ===== */
+.completion-cell-actions { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.completion-edit-btn { min-height: 36px; padding: 6px 10px; border-radius: 9px; font-size: 11.5px; font-weight: 800; }
+.provider-completion-strip { display: flex; align-items: center; padding: 0 14px 8px; }
+.provider-complete-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 38px; padding: 7px 13px; border: 1px solid #b8d8f6; border-radius: 11px; background: linear-gradient(135deg, #eef7ff, #e2f0fd); color: #0e599e; font: inherit; font-size: 12.5px; font-weight: 900; cursor: pointer; transition: background .16s ease, border-color .16s ease, transform .14s ease; }
+.provider-complete-btn:hover:not(:disabled) { background: linear-gradient(135deg, #e0f0ff, #d0e7fc); border-color: #8fc1ef; transform: translateY(-1px); }
+.provider-complete-btn.is-rejected { border-color: #f3b2b9; background: linear-gradient(135deg, #fff4f5, #ffe8eb); color: #b81d2d; }
+.provider-complete-btn.is-submitted { border-color: #bde5d0; background: #eefaf3; color: #117a4b; cursor: default; opacity: .92; }
+.completion-red-dot { display: inline-block; width: 10px; height: 10px; border-radius: 999px; background: #e01e31; box-shadow: 0 0 0 3px rgba(224, 30, 49, .24); animation: completion-pulse 1.5s infinite ease-in-out; flex-shrink: 0; }
+@keyframes completion-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px rgba(224, 30, 49, .26); }
+  50% { transform: scale(1.18); box-shadow: 0 0 0 6px rgba(224, 30, 49, .1); }
+}
+.completion-rejected-banner { display: flex; align-items: center; gap: 9px; padding: 11px 14px; border: 1px solid #f4bcc2; border-radius: 12px; background: #fff3f4; color: #b41d2d; font-size: 12.5px; font-weight: 800; line-height: 1.65; }
+.provider-completion-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.field-suggestions, .field-suggestion-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+.field-suggestions-label, .field-suggestion-bar > small { display: inline-flex; align-items: center; gap: 4px; color: #5b7894; font-size: 11px; font-weight: 800; margin-inline-end: 2px; }
+.suggestion-chip, .field-suggestion-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #cde1f4; border-radius: 999px; background: #f3f9ff; color: #135899; font: inherit; font-size: 11px; font-weight: 800; line-height: 1.45; cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease, transform .12s ease; text-align: right; }
+.suggestion-chip:hover, .field-suggestion-chip:hover { background: #e1f0ff; border-color: #96c5f0; color: #0a457d; transform: translateY(-1px); }
+.suggestion-chip.is-selected { background: #0e6ecc; border-color: #0e6ecc; color: #fff; }
+
+/* Dark Mode support for #9, #2, #10, Rectangles, and Provider Completion */
 html.dark .trust-badge.is-emerald, html.dark .detail-trust-badge.is-emerald { background: rgba(16, 185, 129, .15); color: #6ee7b7; border-color: rgba(16, 185, 129, .32); }
 html.dark .trust-badge.is-amber, html.dark .detail-trust-badge.is-amber { background: rgba(245, 158, 11, .16); color: #fcd34d; border-color: rgba(245, 158, 11, .34); }
 html.dark .trust-badge.is-blue, html.dark .detail-trust-badge.is-blue { background: rgba(59, 130, 246, .16); color: #93c5fd; border-color: rgba(59, 130, 246, .34); }
-html.dark .duty-section { background: linear-gradient(135deg, #101f31 0%, #13253a 60%, #10292b 100%); border-color: #213a54; box-shadow: 0 12px 30px rgba(0, 0, 0, .28); }
+html.dark .duty-section, html.dark .feature-action-rect { background: linear-gradient(135deg, #101f31 0%, #13253a 60%, #10292b 100%); border-color: #213a54; box-shadow: 0 12px 30px rgba(0, 0, 0, .28); }
+html.dark .feature-rect-explain strong { color: #e6f1fc; }
+html.dark .feature-rect-explain p { color: #95aec7; }
+html.dark .feature-rect-expanded { border-top-color: #213a54; }
 html.dark .duty-section-head h2 { color: #e6f1fc; }
 html.dark .duty-section-head p { color: #95aec7; }
 html.dark .duty-filter-tabs { background: #0c1928; border-color: #1f364d; }
@@ -1517,9 +1581,20 @@ html.dark .duty-empty { background: #0d1a29; border-color: #213952; color: #8fa9
 html.dark .utility-card { background: #101e2f; border-color: #1f364e; }
 html.dark .utility-card h3 { color: #e5f0fb; }
 html.dark .utility-card p { color: #90aac3; }
-html.dark .utility-copy-btn { background: #15283d; border-color: #25415e; color: #b5cce2; }
-html.dark .utility-copy-btn:hover { background: #1c344f; color: #fff; }
+html.dark .utility-copy-btn, html.dark .utility-admin-btn { background: #15283d; border-color: #25415e; color: #b5cce2; }
+html.dark .utility-copy-btn:hover, html.dark .utility-admin-btn:hover { background: #1c344f; color: #fff; }
+html.dark .utility-admin-btn.is-delete { background: rgba(220, 53, 69, .15); border-color: rgba(220, 53, 69, .35); color: #fca5a5; }
+html.dark .utilities-admin-bar, html.dark .utility-editor-form { background: #0f2033; border-color: #23405e; color: #d6e8fa; }
+html.dark .utility-editor-form h4 { color: #e4f0fc; }
 html.dark .utility-call-link { background: #142a42; border-color: #24476b; color: #7cc0ff; }
 html.dark .utility-call-link:hover { background: #193553; border-color: #326191; }
+html.dark .provider-complete-btn { background: #14293f; border-color: #274a6e; color: #8ac5ff; }
+html.dark .provider-complete-btn.is-rejected { background: rgba(220, 53, 69, .16); border-color: rgba(220, 53, 69, .4); color: #fca5a5; }
+html.dark .provider-complete-btn.is-submitted { background: rgba(16, 185, 129, .15); border-color: rgba(16, 185, 129, .35); color: #6ee7b7; }
+html.dark .completion-rejected-banner { background: rgba(220, 53, 69, .16); border-color: rgba(220, 53, 69, .38); color: #fecaca; }
+html.dark .field-suggestions-label, html.dark .field-suggestion-bar > small { color: #8fa9c2; }
+html.dark .suggestion-chip, html.dark .field-suggestion-chip { background: #13273c; border-color: #244363; color: #93c5fd; }
+html.dark .suggestion-chip:hover, html.dark .field-suggestion-chip:hover { background: #193450; border-color: #366596; color: #fff; }
+html.dark .suggestion-chip.is-selected { background: #1d74d4; border-color: #1d74d4; color: #fff; }
 
 

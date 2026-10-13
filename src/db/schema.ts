@@ -1,5 +1,5 @@
 import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, jsonb, uniqueIndex, primaryKey } from "drizzle-orm/pg-core";
-import type { WorkingHours } from "@/lib/catalog";
+import type { ServiceCompletionDraft, WorkingHours } from "@/lib/catalog";
 
 export const services = pgTable("directory_services", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -21,6 +21,9 @@ export const services = pgTable("directory_services", {
   subSpecialties: jsonb("sub_specialties").$type<string[]>().notNull().default([]),
   neededRank: integer("needed_rank").notNull().default(0),
   reviewNote: text("review_note").notNull().default(""),
+  completionStatus: varchar("completion_status", { length: 20 }).notNull().default("none"),
+  completionNote: text("completion_note").notNull().default(""),
+  completionDraft: jsonb("completion_draft").$type<ServiceCompletionDraft | null>().default(null),
   hours: varchar("hours", { length: 120 }).notNull().default(""),
   menuUrl: text("menu_url").notNull().default(""),
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),

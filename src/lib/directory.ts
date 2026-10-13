@@ -2,15 +2,16 @@ import "server-only";
 import { and, asc, avg, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { areas, defaultSettings, initialCategories, sampleServices, sanitizeSettings, type AdminDirectory, type CategoryRecord, type CommunityListingType, type PublicDirectory, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { areas, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeSettings, sanitizeUtilityNumbers, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
   return {
-    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, availableNow: false, availableUntil: null, workingHours: [], serviceItems: [], subSpecialties: [], neededRank: 0, hours: "8 صباحًا - 10 مساءً", menuUrl: "", menuWhatsapp: "", demo: true, createdAt: "2026-01-01T00:00:00.000Z" })),
+    services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, availableNow: false, availableUntil: null, workingHours: [], serviceItems: [], subSpecialties: [], neededRank: 0, hours: "8 صباحًا - 10 مساءً", menuUrl: "", menuWhatsapp: "", demo: true, createdAt: "2026-01-01T00:00:00.000Z", completionStatus: "none", completionNote: "", completionDraft: null })),
     categories: initialCategories,
     areas: areas.map((name, sortOrder) => ({ id: `preview-area-${sortOrder + 1}`, name, sortOrder })),
     settings: defaultSettings,
+    utilityNumbers: publicUtilityNumbers,
     memberCount: 0,
     previewMode: true,
   };
@@ -27,6 +28,9 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS sub_specialties jsonb NOT NULL DEFAULT '[]'::jsonb`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS needed_rank integer NOT NULL DEFAULT 0`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS review_note text NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_status varchar(20) NOT NULL DEFAULT 'none'`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_note text NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_draft jsonb`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_submission_tracking (token_hash varchar(64) PRIMARY KEY, service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_appointment_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, name varchar(120) NOT NULL, phone varchar(24) NOT NULL, preference varchar(240) NOT NULL, status varchar(20) NOT NULL DEFAULT 'waiting', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
@@ -81,19 +85,27 @@ export async function getSettings(): Promise<SiteSettings> {
   if (!row) return defaultSettings;
   try { return sanitizeSettings(JSON.parse(row.value) as Record<string, unknown>); } catch { return defaultSettings; }
 }
+export async function getUtilityNumbers(): Promise<PublicUtilityContact[]> {
+  if (!databaseConfigured) return publicUtilityNumbers;
+  await ensureSeed();
+  const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "utility_numbers"));
+  if (!row) return publicUtilityNumbers;
+  try { return sanitizeUtilityNumbers(JSON.parse(row.value)); } catch { return publicUtilityNumbers; }
+}
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
   const { reviewNote: _privateNote, availabilityToken: _privateToken, ...publicItem } = item;
-  return { ...publicItem, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
+  const completionStatus = (["none", "requested", "submitted", "rejected"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
+  return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
 async function getCatalog() {
   await ensureSeed();
-  const [categoryRows, areaRows, settings, memberTotal] = await Promise.all([
+  const [categoryRows, areaRows, settings, utilityNumbers, memberTotal] = await Promise.all([
     db.select().from(directoryCategories).orderBy(asc(directoryCategories.sortOrder), asc(directoryCategories.name)),
     db.select().from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
-    getSettings(), db.select({ total: count() }).from(members),
+    getSettings(), getUtilityNumbers(), db.select({ total: count() }).from(members),
   ]);
-  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, memberCount: memberTotal[0]?.total ?? 0 };
+  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, memberCount: memberTotal[0]?.total ?? 0 };
 }
 export async function getPublicDirectory(): Promise<PublicDirectory> {
   if (!databaseConfigured) return getPreviewDirectory();

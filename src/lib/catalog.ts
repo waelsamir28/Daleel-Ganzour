@@ -115,10 +115,25 @@ export type CategoryRecord = {
   color: string; light: string; icon: string; sortOrder: number; active: boolean;
 };
 export type AreaRecord = { id: string; name: string; sortOrder: number };
+export type CompletionStatus = "none" | "requested" | "submitted" | "rejected";
+export type ServiceCompletionDraft = {
+  name: string;
+  category: string;
+  area: string;
+  address: string;
+  phone: string;
+  phoneSecondary: string;
+  description: string;
+  subSpecialties: string[];
+  serviceItems: string[];
+  emergency: boolean;
+  updatedAt?: string;
+};
 export type ServiceRecord = {
   id: string; name: string; category: string; area: string; address: string; phone: string; phoneSecondary: string;
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
   availabilityToken?: string; comments?: ServiceComment[]; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
+  completionStatus?: CompletionStatus; completionNote?: string; completionDraft?: ServiceCompletionDraft | null;
 };
 
 export function missingServiceData(service: ServiceRecord) {
@@ -237,6 +252,129 @@ export const publicUtilityNumbers: PublicUtilityContact[] = [
   { id: "daleel-office", name: "خدمة دليل جنزور — مكتب الجمال", number: OFFICE_PHONE, category: "إدارة الدليل", detail: "لإضافة أو تحديث أرقام المهنيين والمرافق بقرية جنزور", tone: "blue" },
 ];
 
+export function sanitizeUtilityNumbers(value: unknown): PublicUtilityContact[] {
+  if (!Array.isArray(value)) return publicUtilityNumbers;
+  const tones = new Set(["red", "blue", "amber", "emerald"]);
+  const cleaned = value
+    .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+    .map((item, index) => {
+      const id = typeof item.id === "string" && item.id.trim() ? item.id.trim().slice(0, 60) : `utility-${index + 1}`;
+      const name = typeof item.name === "string" ? item.name.trim().slice(0, 120) : "";
+      const number = typeof item.number === "string" ? item.number.replace(/[^\d+]/g, "").slice(0, 24) : "";
+      const category = typeof item.category === "string" && item.category.trim() ? item.category.trim().slice(0, 60) : "مرافق وخدمات";
+      const detail = typeof item.detail === "string" ? item.detail.trim().slice(0, 240) : "";
+      const tone = (typeof item.tone === "string" && tones.has(item.tone) ? item.tone : "blue") as PublicUtilityContact["tone"];
+      return { id, name, number, category, detail, tone };
+    })
+    .filter((item) => item.name.length >= 2 && item.number.length >= 2);
+  return cleaned.length > 0 ? cleaned : publicUtilityNumbers;
+}
+
+export type CompletionFieldSuggestions = {
+  names: string[];
+  addresses: string[];
+  descriptions: string[];
+  subSpecialties: string[];
+  serviceItems: string[];
+};
+
+const specialtyServiceItemSuggestions: Record<string, string[]> = {
+  plumbing: ["تأسيس سباكة حمام ومطبخ", "صيانة وإصلاح مواتير المياه", "تركيب وصيانة فلاتر المياه", "تركيب سخانات غاز وكهرباء", "كشف وإصلاح تسريبات المياه", "تسليك خطوط الصرف الصحي"],
+  electricity: ["تأسيس وتشطيب شبكات الكهرباء", "إصلاح القفلات والأعطال الطارئة", "تركيب لوحات التوزيع والقواطع", "تركيب النجف والكشافات الحديثة", "تمديد كابلات الإنترنت والدش"],
+  carpentry: ["تفصيل وتركيب الأبواب والشبابيك", "تصنيع غرف النوم والأطفال", "تفصيل مطابخ خشب عمولة", "صيانة المفصلات والكوالين", "فك وتركيب الأثاث والعفش"],
+  metalwork: ["تصنيع وتركيب البوابات الحديد", "أعمال الكريتال والأسوار", "تصنيع التندات والمظلات", "أعمال اللحام الفوري بالمنزل", "حمايات الشبابيك والبلكونات"],
+  painting: ["دهانات بلاستيك حديثة للغرف", "تأسيس معجون وتشطيب سوبر لوكس", "معالجة الرطوبة والشروخ", "دهانات أخشاب وأبواب لاكيه وأستر", "ديكورات حوائط وورق حائط"],
+  masonry: ["بناء حوائط وتقسيم شقق", "طرطشة ومحارة بالبؤج والأوتار", "ترميم المباني القديمة", "أعمال التشطيبات والمباني"],
+  tiles: ["تركيب سيراميك حمامات ومطابخ", "تركيب بورسلين بالليزر والكلبسات", "تركيب رخام وجرانيت للسلالم والمطابخ", "إصلاح وترقيع البلاط والسيراميك"],
+  aluminum: ["تفصيل شبابيك وأبواب ألوميتال", "مطابخ ألوميتال وخشمونيوم", "تركيب سلك مانع للحشرات", "صيانة العجل والمفصلات والزجاج"],
+  glass: ["قص وتركيب زجاج الشبابيك والأبواب", "تفصيل مرايات حمامات وديكور", "زجاج سيكوريت للواجهات والمحلات", "قرص زجاج للسفرة والركنة"],
+  ac: ["شحن فريون وصيانة التكييفات", "فك وتركيب التكييف الاسبليت", "إصلاح الثلاجات والديب فريزر بالمنزل", "صيانة الغسالات الأوتوماتيك والسخانات"],
+  mechanics: ["عمرة وصيانة الموتور", "ضبط العفشة والفرامل", "تغيير زيت وفلاتر", "كشف أعطال بالكمبيوتر", "نجدة أعطال سيارات على الطريق"],
+  upholstery: ["تنجيد وتجديد الانتريهات والركن", "تفصيل ستائر وبراقع حديثة", "تغيير قماش وسفنج عالي الكثافة", "تنجيد مراتب ومجالس عربي"],
+  family: ["كشف باطنة وجهاز هضمي", "متابعة الضغط والسكر والأمراض المزمنة", "كشف منزلي للحالات الطارئة وكبار السن", "استشارات طبية شاملة للأسرة"],
+  pediatrics: ["كشف ومتابعة حديثي الولادة والرضع", "علاج نزلات البرد وحساسية الصدر", "جلسات بخار وقياس الصفراء", "متابعة النمو والتغذية والتطعيمات"],
+  dentistry: ["حشو عصب وعلاج الجذور", "تركيبات ثابتة زيركون وبورسلين", "حشو تجميلي بالليزر وتبييض الأسنان", "خلع عادي وجراحي للضروس", "علاج ومتابعة أسنان الأطفال"],
+  gynecology: ["متابعة الحمل بالسونار رباعي الأبعاد", "علاج تأخر الإنجاب وتنظيم الأسرة", "عمليات الولادة الطبيعية والقيصرية", "الكشف المبكر ومتابعة صحة المرأة"],
+  orthopedics: ["علاج كسور العظام والجبس", "علاج خشونة الركبة والمفاصل", "علاج آلام العمود الفقري والغضروف", "إصابات الملاعب والتمزقات العضلية"],
+  dermatology: ["علاج الحساسية والأكزيما وحب الشباب", "جلسات ليزر وعناية بالبشرة", "علاج تساقط الشعر ومشاكل فروة الرأس", "إزالة الزوائد الجلدية والسنط"],
+  ophthalmology: ["فحص النظر ومقاس النظارات", "فحص قاع العين وضغط العين", "متابعة المياه البيضاء والزرقاء", "علاج حساسية وجفاف العين"],
+  ent: ["علاج التهابات الأذن والجيوب الأنفية", "غسيل الأذن واختبار السمع", "علاج حساسية الأنف والتهاب اللوزتين", "متابعة مشاكل الحنجرة والأحبال الصوتية"],
+  physiotherapy: ["تأهيل ما بعد الكسور والعمليات", "جلسات علاج طبيعي للعمود الفقري", "تأهيل حالات الجلطات والشلل", "جلسات علاج طبيعي منزلية"],
+  "medical-labs": ["صورة دم كاملة وتحاليل شاملة", "تحليل سكر تراكمي ودهون ثلاثية", "وظائف كبد وكلى وغدة درقية", "خدمة سحب العينات من المنازل بجنزور", "إرسال نتائج التحاليل عبر واتساب"],
+  groceries: ["جميع السلع الغذائية والتموينية", "ألبان وأجبان طازجة يوميًا", "عطارة وبقوليات ومنظفات", "خدمة توصيل الطلبات للمنازل"],
+  pharmacies: ["صرف جميع الأدوية والروشتات الطبية", "قياس الضغط والسكر والوزن", "مستلزمات العناية بالطفل والأم", "خدمة توصيل الأدوية للمنازل بجنزور", "مناوبة واستفسارات دوائية على واتساب"],
+  clothing: ["ملابس كاجوال وكلاسيك", "ملابس أطفال وحديثي الولادة", "عبايات وملابس حريمي", "أحذية وشنط ومستلزمات العروسة"],
+  stationery: ["جميع الأدوات المدرسية والمكتبية", "تصوير وطباعة الأوراق والمذكرات", "تغليف حراري وسلك للكتب", "هدايا وألعاب أطفال"],
+  appliances: ["أجهزة كهربائية منزلية بالضمان", "شاشات ومراوح وخلاطات ومكاوي", "تجهيز العرائس بأفضل الأسعار", "خدمة التوصيل والتركيب"],
+  food: ["وجبات سريعة وساندوتشات طازجة", "مشويات وطواجن ومأكولات بيتي", "مخبوزات وفطير وحلويات شرقية", "خدمة التوصيل السريع داخل جنزور"],
+  "mobile-shops": ["بيع الهواتف الذكية والإكسسوارات", "صيانة الشاشات والبطاريات والسوفت وير", "شحن رصيد ودفع فواتير وتحويل كاش", "صيانة الكمبيوتر واللابتوب"],
+  arabic: ["تأسيس القراءة والكتابة والإملاء", "شرح مبسط للنحو والبلاغة", "مراجعات نهائية وامتحانات دورية", "متابعة مستمرة لمستوى الطالب مع ولي الأمر"],
+  english: ["تأسيس فونكس وقواعد اللغة الإنجليزية", "تنمية مهارات المحادثة والاستماع", "شرح المناهج الدراسية لكل المراحل", "مراجعات واختبارات دورية"],
+  math: ["تأسيس الحساب والرياضيات والماث", "تبسيط الجبر والهندسة وحل المسائل", "تدريب مكثف على نماذج الامتحانات", "متابعة فردية لمستوى الطالب"],
+  science: ["شرح مبسط للعلوم والفيزياء والكيمياء والأحياء", "تجارب وتطبيقات عملية لتثبيت المعلومة", "مراجعات شاملة وحل بنوك الأسئلة"],
+  "social-studies": ["شرح التاريخ والجغرافيا بالخرائط الذهنية", "مراجعات شاملة وتلخيصات مبسطة", "تدريب على أسئلة الخرائط والمفاهيم"],
+  law: ["استشارات قانونية وصياغة العقود", "قضايا الأسرة والأحوال الشخصية والمواريث", "قضايا مدنية وجنائية وإجراءات الشهر العقاري"],
+  transport: ["توصيل مشاوير خاصة داخل وخارج جنزور", "نقل عفش وبضائع بسيارات مجهزة", "التزام تام بالمواعيد وأسعار مناسبة للأهالي"],
+  cameras: ["تركيب وصيانة كاميرات المراقبة", "برمجة المتابعة من الموبايل عن بعد", "تركيب شبكات الإنترنت والراوتر والدش"],
+  solar: ["توريد وتركيب ألواح الطاقة الشمسية", "أنظمة طاقة شمسية للمنازل والمزارع", "صيانة الانفرتر والبطاريات"],
+  cleaning: ["تنظيف شامل للمنازل والشقق", "غسيل السجاد والانتريهات بالبخار", "مكافحة ورش الحشرات بمواد آمنة"],
+};
+
+export function getCompletionFieldSuggestions(
+  categoryId: string,
+  catalog: CategoryRecord[] = initialCategories,
+  providerName = "",
+  areaName = "",
+): CompletionFieldSuggestions {
+  const category = getCategory(categoryId, catalog);
+  const specName = category.name !== "خدمة" ? category.name : "الخدمات المهنية";
+  const baseName = providerName.trim() || "مقدم الخدمة";
+  const areaPrefix = areaName && areaName !== OTHER_ADDRESS ? `${areaName} — ` : "جنزور — ";
+
+  const names = category.parentId === "clinics"
+    ? [`عيادة د. ${baseName} (${specName})`, `مركز د. ${baseName} التخصصي`, `د. ${baseName} — أخصائي ${specName}`]
+    : category.id === "pharmacies"
+      ? [`صيدلية د. ${baseName}`, `صيدلية ${baseName} — خدمة التوصيل بجنزور`]
+      : category.parentId === "labs"
+        ? [`معمل ${baseName} للتحاليل الطبية`, `معمل د. ${baseName} بجنزور`]
+        : category.parentId === "teachers"
+          ? [`أ. ${baseName} — مدرس ${specName}`, `سنتر أ. ${baseName} لتدريس ${specName}`]
+          : category.parentId === "shops"
+            ? [`${baseName} (${specName})`, `معرض ومحل ${baseName} بجنزور`]
+            : [`${baseName} — فني ${specName}`, `المعلم ${baseName} لأعمال ${specName}`, `ورشة ${baseName} (${specName})`];
+
+  const addresses = [
+    `${areaPrefix}الشارع الرئيسي وسط البلد`,
+    `${areaPrefix}بجوار المسجد الكبير بجنزور`,
+    `${areaPrefix}أمام الوحدة الصحية بجنزور`,
+    `${areaPrefix}بجوار المزلقان وموقف السيارات`,
+    `${areaPrefix}بجوار مجمع المدارس`,
+    `${areaPrefix}بجوار مكتبة الجمال`,
+  ];
+
+  const descriptions = [
+    `نقدم خدمات ${specName} لأهالي قرية جنزور والمناطق المجاورة بدقة عالية ومواعيد منضبطة وأسعار مناسبة للجميع.`,
+    `خبرة متميزة في كافة أعمال وخدمات ${specName} مع سرعة الاستجابة والتواصل المباشر عبر الهاتف أو واتساب.`,
+    category.parentId === "clinics" || category.parentId === "labs" || category.id === "pharmacies"
+      ? `رعاية طبية متكاملة في ${specName} بأحدث الأجهزة، مع إمكانية الحجز والاستفسار المسبق ومتابعة الحالات الطارئة بجنزور.`
+      : `تنفيذ وصيانة جميع أعمال ${specName} بأفضل الخامات، مع المعاينة والمتابعة لخدمة أهالي قرية جنزور.`,
+  ];
+
+  const rawKeywords = specialtySynonyms[categoryId] ?? [];
+  const subSpecialties = rawKeywords.length > 0
+    ? rawKeywords.slice(0, 7)
+    : [`أعمال ${specName} العامة`, `صيانة ومتابعة دورية`, `استشارات ومعاينة`, `طوارئ وخدمة سريعة`];
+
+  const serviceItems = specialtyServiceItemSuggestions[categoryId] ?? [
+    `خدمة ${specName} متكاملة`,
+    "معاينة واستشارة فنية",
+    "صيانة وإصلاح الأعطال",
+    "خدمة طوارئ سريعة داخل جنزور",
+  ];
+
+  return { names, addresses, descriptions, subSpecialties, serviceItems };
+}
+
 // A provider counts as new in the directory for this many days after it was created.
 export const NEW_SERVICE_DAYS = 30;
 export function isNewService(service: Pick<ServiceRecord, "createdAt">, now = Date.now()) {
@@ -262,6 +400,7 @@ export type SiteSettings = {
 export type PublicDirectory = {
   services: ServiceRecord[]; categories: CategoryRecord[];
   areas: AreaRecord[]; settings: SiteSettings; memberCount: number; previewMode?: boolean;
+  utilityNumbers?: PublicUtilityContact[];
 };
 export type RatingRecord = { id: string; serviceId: string; serviceName: string; memberName: string; stars: number; comment: string; status: string; createdAt: string };
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };

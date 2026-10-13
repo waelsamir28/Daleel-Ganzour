@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -332,4 +332,31 @@ test("public utility numbers cover essential Ganzour & national emergency hotlin
     assert.ok(numbers.includes(num), `includes ${num}`);
   }
 });
+
+test("sanitizeUtilityNumbers preserves custom admin numbers and falls back when empty", () => {
+  assert.deepEqual(sanitizeUtilityNumbers(null), publicUtilityNumbers);
+  assert.deepEqual(sanitizeUtilityNumbers([]), publicUtilityNumbers);
+  const custom = sanitizeUtilityNumbers([
+    { id: "custom-1", name: "سنترال جنزور", number: "0481234567", category: "اتصالات", detail: "خدمة الخطوط الأرضية", tone: "emerald" },
+  ]);
+  assert.equal(custom.length, 1);
+  assert.equal(custom[0].name, "سنترال جنزور");
+  assert.equal(custom[0].number, "0481234567");
+  assert.equal(custom[0].tone, "emerald");
+});
+
+test("getCompletionFieldSuggestions returns profession-tailored suggestions for each field", () => {
+  const clinicSuggestions = getCompletionFieldSuggestions(
+    "pediatrics",
+    initialCategories,
+    "أحمد جمال",
+    "وسط البلد - جنزور",
+  );
+  assert.ok(clinicSuggestions.names.length >= 2);
+  assert.ok(clinicSuggestions.addresses.some((item) => item.includes("وسط البلد - جنزور")));
+  assert.ok(clinicSuggestions.descriptions.some((item) => item.includes("الأطفال")));
+  assert.ok(clinicSuggestions.subSpecialties.length >= 3);
+  assert.ok(clinicSuggestions.serviceItems.length >= 3);
+});
+
 
