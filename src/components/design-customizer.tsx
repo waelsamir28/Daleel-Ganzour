@@ -8,17 +8,24 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  ChevronDown,
   Eye,
   Grid2X2,
   LayoutTemplate,
   LoaderCircle,
   LockKeyhole,
+  Megaphone,
+  MessageCircle,
+  Monitor,
   Palette,
   PhoneCall,
   RotateCcw,
+  Search,
+  Smartphone,
   Sparkles,
   Square,
   Type,
+  UsersRound,
 } from "lucide-react";
 import {
   defaultDesignSettings,
@@ -29,15 +36,99 @@ import { applyDesignSettingsToDocument } from "@/components/design-applicator";
 import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
 
-type SectionFilter = "all" | "colors" | "typography" | "cards" | "buttons" | "layout" | "header" | "auth";
+type SectionFilter = "all" | "colors" | "typography" | "cards" | "buttons" | "layout" | "providers" | "header" | "auth";
 
 const homeSectionsMeta: Record<string, { label: string; toggleKey: keyof DesignSettings }> = {
   hero: { label: "البانر الترحيبي والبحث الرئيسي", toggleKey: "showHero" },
   features: { label: "الكروت الثلاثة (المناوبات + أرقام تهمك + الخدمات السريعة)", toggleKey: "showFeatureCards" },
   featured: { label: "قسم مقدمو الخدمات المميزين", toggleKey: "showFeaturedSection" },
   categories: { label: "أقسام القرية والتخصصات", toggleKey: "showCategoriesSection" },
-  professionBanner: { label: "بانر «أضف مهنتك» أسفل الصفحة", toggleKey: "showAddProfessionBanner" },
+  professionBanner: { label: "بانر «أضف مهنتك» والطوارئ", toggleKey: "showAddProfessionBanner" },
 };
+
+const QUICK_SWATCHES = {
+  primary: ["#0878c9", "#0d8a5f", "#1d4ed8", "#b45309", "#6d28d9", "#be123c", "#0f766e", "#1e293b"],
+  pageBg: ["#f3f7fa", "#f2f8f5", "#f1f5f9", "#faf7f2", "#f6f4fb", "#ffffff", "#eef4fb", "#f8fafc"],
+  modalHeader: ["#dcecfb", "#d6f2e6", "#dbeafe", "#fde6c4", "#e9d5ff", "#ffe4e6", "#ccfbf1", "#e2e8f0"],
+  button: ["#0c72c7", "#0f8c62", "#1e40af", "#c2610c", "#7c3aed", "#e11d48", "#0d9488", "#153c66"],
+  border: ["#dce6ef", "#cfe6dc", "#cbd5e1", "#eadbc8", "#ddd6fe", "#b8d4ee", "#94a3b8", "#e2e8f0"],
+  cardBg: ["#ffffff", "#f9fcff", "#f4fbf7", "#fffdf9", "#f8f7ff", "#f1f7fd"],
+  headerBg: ["#ffffff", "#f4f9ff", "#f0fdf4", "#fffbeb", "#0f243c", "#1e293b"],
+  footerBg: ["#102437", "#0d2920", "#0f172a", "#271a0c", "#1e1035", "#18181b"],
+  whatsapp: ["#1fa855", "#128c7e", "#0d8a5f", "#16a34a", "#059669", "#0c72c7"],
+};
+
+function SectionDivider({ step, label }: { step: string; label: string }) {
+  return (
+    <div className="design-section-divider" aria-hidden="true">
+      <span className="design-divider-line"/>
+      <span className="design-divider-badge">
+        <b>{step}</b>
+        <span>{label}</span>
+      </span>
+      <span className="design-divider-line"/>
+    </div>
+  );
+}
+
+function InnerDivider({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="design-inner-divider">
+      <div className="design-inner-divider-head">
+        <span className="design-inner-dot"/>
+        <strong>{title}</strong>
+        <span className="design-inner-rule"/>
+      </div>
+      {subtitle && <small>{subtitle}</small>}
+    </div>
+  );
+}
+
+function ColorPickerField({
+  label,
+  value,
+  swatches,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  swatches: string[];
+  onChange: (color: string) => void;
+}) {
+  return (
+    <div className="field design-color-control">
+      <span>{label}</span>
+      <div className="design-color-field">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={label}
+        />
+        <input
+          type="text"
+          dir="ltr"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={`كود ${label}`}
+        />
+      </div>
+      <div className="design-color-swatches" role="group" aria-label={`ألوان سريعة لـ ${label}`}>
+        {swatches.map((hex) => (
+          <button
+            type="button"
+            key={hex}
+            className={`design-swatch-dot ${value.toLowerCase() === hex.toLowerCase() ? "is-active" : ""}`}
+            style={{ backgroundColor: hex }}
+            onClick={() => onChange(hex)}
+            title={hex}
+            aria-label={`اختيار اللون ${hex}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function DesignCustomizer({
   initialDesign,
@@ -51,6 +142,8 @@ export default function DesignCustomizer({
     ...(initialDesign ?? {}),
   }));
   const [activeFilter, setActiveFilter] = useState<SectionFilter>("all");
+  const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -72,6 +165,10 @@ export default function DesignCustomizer({
 
   function resetAll() {
     setDraft({ ...defaultDesignSettings });
+  }
+
+  function toggleGroup(groupId: string) {
+    setCollapsedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
   }
 
   function getOrderedSections(): string[] {
@@ -114,16 +211,16 @@ export default function DesignCustomizer({
       <div className="design-studio-top">
         <div className="design-studio-intro">
           <span className="design-studio-badge">
-            <Palette size={16}/>
+            <Palette size={15}/>
             استوديو تخصيص المظهر والهيكل
           </span>
           <h3>تحكم كامل في ألوان، عناوين، براويز، أيقونات، وهيكل التطبيق</h3>
-          <p>أي تعديل تختاره يظهر فوراً في المعاينة الحية ويُطبّق على جميع صفحات الموقع بمجرد الضغط على «حفظ وتطبيق المظهر».</p>
+          <p>مصمم خصيصاً لسهولة التحكم من الموبايل والكمبيوتر مع معاينة حية فورية وفواصل منظمة لكل قسم.</p>
         </div>
         <div className="design-studio-top-actions">
           <button type="button" className="button button-soft button-small" onClick={resetAll}>
             <RotateCcw size={15}/>
-            استعادة الوضع الافتراضي
+            استعادة الافتراضي
           </button>
           <button type="submit" className="button button-primary" disabled={saving}>
             {saving ? <LoaderCircle size={17} className="spin"/> : <Check size={17}/>}
@@ -132,593 +229,822 @@ export default function DesignCustomizer({
         </div>
       </div>
 
-      {/* Live Preview Box */}
+      {/* Live Preview Box with Mobile / Desktop Switcher */}
       <div className="design-live-preview-card">
-        <div className="design-preview-head" style={{ background: draft.modalHeaderBg }}>
+        <div className="design-preview-toolbar">
           <span className="design-preview-pill"><Eye size={14}/> معاينة حية فورية</span>
-          <strong>هيدر الشاشات العائمة والبطاقات باللون والتنسيق المختار</strong>
-        </div>
-        <div className="design-preview-body" style={{ background: draft.pageBgColor }}>
-          <div
-            className={`design-preview-section-title is-style-${draft.sectionHeadingStyle}`}
-            style={{
-              textAlign: draft.headingAlign,
-              justifyContent: draft.headingAlign === "center" ? "center" : draft.headingAlign === "left" ? "flex-end" : "flex-start",
-              color: draft.primaryColor,
-              borderColor: draft.borderColor,
-            }}
-          >
-            <span>عنوان قسم تجريبي (معاينة المحاذاة والشكل)</span>
+          <div className="design-preview-device-toggle" role="group" aria-label="حجم شاشة المعاينة">
+            <button
+              type="button"
+              className={previewDevice === "mobile" ? "is-active" : ""}
+              onClick={() => setPreviewDevice("mobile")}
+            >
+              <Smartphone size={14}/>
+              <span>موبايل</span>
+            </button>
+            <button
+              type="button"
+              className={previewDevice === "desktop" ? "is-active" : ""}
+              onClick={() => setPreviewDevice("desktop")}
+            >
+              <Monitor size={14}/>
+              <span>كمبيوتر</span>
+            </button>
           </div>
+        </div>
 
-          <div className="design-preview-grid">
+        <div className={`design-preview-viewport is-${previewDevice}`}>
+          {draft.announcementEnabled && (
+            <div className="design-preview-announcement" style={{ background: draft.announcementBgColor }}>
+              <Sparkles size={12}/>
+              <span>{draft.announcementText}</span>
+            </div>
+          )}
+          <div className="design-preview-head" style={{ background: draft.modalHeaderBg }}>
+            <strong>هيدر الشاشات العائمة باللون والتنسيق المختار</strong>
+            <small>العنوان والسطر الفرعي متوسطن بخلفية مخصصة</small>
+          </div>
+          <div className="design-preview-body" style={{ background: draft.pageBgColor }}>
             <div
-              className={`design-preview-item-card is-pos-${draft.iconPosition} is-radius-${draft.cardRadius} is-shadow-${draft.cardShadow} is-border-${draft.borderWidth}`}
+              className={`design-preview-section-title is-style-${draft.sectionHeadingStyle}`}
               style={{
-                background: draft.cardBgColor,
+                textAlign: draft.headingAlign,
+                justifyContent: draft.headingAlign === "center" ? "center" : draft.headingAlign === "left" ? "flex-end" : "flex-start",
+                color: draft.primaryColor,
                 borderColor: draft.borderColor,
-                textAlign: draft.cardTextAlign,
               }}
             >
-              <span className={`design-preview-icon is-style-${draft.iconStyle} is-size-${draft.iconSize}`}>
-                <MainCategoryIcon icon="featured" size={28}/>
-              </span>
-              <div className="design-preview-copy" style={{ textAlign: draft.cardTextAlign }}>
-                <strong style={{ color: draft.primaryColor }}>بطاقة معاينة الكروت والبراويز</strong>
-                <span>معاينة لون الخلفية والبوردر وموضع الأيقونة ومحاذاة النص</span>
-              </div>
+              <span>عنوان قسم تجريبي (معاينة المحاذاة والشكل)</span>
             </div>
 
-            <div className="design-preview-buttons-box" style={{ justifyContent: draft.buttonAlign === "center" ? "center" : draft.buttonAlign === "right" ? "flex-start" : "stretch" }}>
-              <span
-                className={`design-preview-btn is-shape-${draft.buttonShape} is-effect-${draft.buttonEffect} ${draft.buttonAlign === "full" ? "is-full" : ""}`}
+            <div className="design-preview-grid">
+              <div
+                className={`design-preview-item-card is-pos-${draft.iconPosition} is-radius-${draft.cardRadius} is-shadow-${draft.cardShadow} is-border-${draft.borderWidth}`}
                 style={{
-                  "--preview-btn-color": draft.buttonColor,
-                } as React.CSSProperties}
+                  background: draft.cardBgColor,
+                  borderColor: draft.borderColor,
+                  textAlign: draft.cardTextAlign,
+                }}
               >
-                <PhoneCall size={15}/>
-                معاينة شكل ولون الأزرار
-              </span>
+                <span className={`design-preview-icon is-style-${draft.iconStyle} is-size-${draft.iconSize}`}>
+                  <MainCategoryIcon icon="featured" size={28}/>
+                </span>
+                <div className="design-preview-copy" style={{ textAlign: draft.cardTextAlign }}>
+                  <strong style={{ color: draft.primaryColor }}>بطاقة معاينة الكروت والبراويز</strong>
+                  <span>معاينة البوردر وموضع الأيقونة ومحاذاة النص</span>
+                </div>
+              </div>
+
+              <div className="design-preview-buttons-box" style={{ justifyContent: draft.buttonAlign === "center" ? "center" : draft.buttonAlign === "right" ? "flex-start" : "stretch" }}>
+                <span
+                  className={`design-preview-btn is-shape-${draft.buttonShape} is-effect-${draft.buttonEffect} ${draft.buttonAlign === "full" ? "is-full" : ""}`}
+                  style={{
+                    "--preview-btn-color": draft.buttonColor,
+                  } as React.CSSProperties}
+                >
+                  <PhoneCall size={14}/>
+                  زر الاتصال
+                </span>
+                {draft.showProviderWhatsappBtn && (
+                  <span
+                    className={`design-preview-btn is-shape-${draft.buttonShape}`}
+                    style={{ background: draft.whatsappButtonColor }}
+                  >
+                    <MessageCircle size={14}/>
+                    واتساب
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Section Filter Tabs */}
+      {/* Horizontal Swipeable Section Filter Tabs on Mobile */}
       <div className="design-section-tabs" role="tablist" aria-label="أقسام تخصيص المظهر">
-        <button type="button" className={activeFilter === "all" ? "is-active" : ""} onClick={() => setActiveFilter("all")}><Sparkles size={15}/>كل الإعدادات</button>
+        <button type="button" className={activeFilter === "all" ? "is-active" : ""} onClick={() => setActiveFilter("all")}><Sparkles size={15}/>الكل (٨ أقسام)</button>
         <button type="button" className={activeFilter === "colors" ? "is-active" : ""} onClick={() => setActiveFilter("colors")}><Palette size={15}/>1. الألوان والثيمات</button>
         <button type="button" className={activeFilter === "typography" ? "is-active" : ""} onClick={() => setActiveFilter("typography")}><Type size={15}/>2. العناوين والمحاذاة</button>
-        <button type="button" className={activeFilter === "cards" ? "is-active" : ""} onClick={() => setActiveFilter("cards")}><Square size={15}/>3. البراويز والحدود</button>
-        <button type="button" className={activeFilter === "buttons" ? "is-active" : ""} onClick={() => setActiveFilter("buttons")}><PhoneCall size={15}/>4. شكل الأزرار</button>
+        <button type="button" className={activeFilter === "cards" ? "is-active" : ""} onClick={() => setActiveFilter("cards")}><Square size={15}/>3. البراويز والفواصل</button>
+        <button type="button" className={activeFilter === "buttons" ? "is-active" : ""} onClick={() => setActiveFilter("buttons")}><PhoneCall size={15}/>4. الأزرار</button>
         <button type="button" className={activeFilter === "layout" ? "is-active" : ""} onClick={() => setActiveFilter("layout")}><Grid2X2 size={15}/>5. الأيقونات والهيكل</button>
-        <button type="button" className={activeFilter === "header" ? "is-active" : ""} onClick={() => setActiveFilter("header")}><LayoutTemplate size={15}/>6. الهيدر والفوتر</button>
-        <button type="button" className={activeFilter === "auth" ? "is-active" : ""} onClick={() => setActiveFilter("auth")}><LockKeyhole size={15}/>7. الدخول والعضوية</button>
+        <button type="button" className={activeFilter === "providers" ? "is-active" : ""} onClick={() => setActiveFilter("providers")}><UsersRound size={15}/>6. كروت المهنيين والبحث</button>
+        <button type="button" className={activeFilter === "header" ? "is-active" : ""} onClick={() => setActiveFilter("header")}><LayoutTemplate size={15}/>7. الهيدر والإعلانات</button>
+        <button type="button" className={activeFilter === "auth" ? "is-active" : ""} onClick={() => setActiveFilter("auth")}><LockKeyhole size={15}/>8. الدخول والعضوية</button>
       </div>
 
       {/* 1. Themes & Colors */}
       {(activeFilter === "all" || activeFilter === "colors") && (
-        <section className="design-group-card">
-          <div className="design-group-head">
-            <Palette size={20}/>
-            <div>
-              <h3>1. الألوان والثيمات الجاهزة</h3>
-              <p>اختر ثيم جاهز بضغطة واحدة أو خصّص ألوان التطبيق والشاشات العائمة والأزرار يدوياً</p>
-            </div>
-          </div>
-
-          <div className="design-presets-grid">
-            {(Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>).map((key) => {
-              const preset = designThemePresets[key];
-              const isSelected = draft.themePreset === key;
-              return (
-                <button
-                  type="button"
-                  key={key}
-                  className={`design-preset-card ${isSelected ? "is-selected" : ""}`}
-                  onClick={() => applyPreset(key)}
-                >
-                  <div className="design-preset-swatches">
-                    <span style={{ background: preset.colors.primaryColor }}/>
-                    <span style={{ background: preset.colors.modalHeaderBg }}/>
-                    <span style={{ background: preset.colors.buttonColor }}/>
-                    <span style={{ background: preset.colors.footerBgColor }}/>
-                  </div>
-                  <strong>{preset.label}</strong>
-                  <small>{preset.description}</small>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              اللون الأساسي والعناوين
-              <div className="design-color-field">
-                <input type="color" value={draft.primaryColor} onChange={(e) => { updateField("primaryColor", e.target.value); updateField("themePreset", "custom"); }}/>
-                <input type="text" dir="ltr" value={draft.primaryColor} onChange={(e) => updateField("primaryColor", e.target.value)}/>
+        <>
+          <SectionDivider step="١" label="الألوان والثيمات الجاهزة" />
+          <section className={`design-group-card ${collapsedGroups.colors ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("colors")} aria-expanded={!collapsedGroups.colors}>
+              <span className="design-group-icon"><Palette size={20}/></span>
+              <div className="design-group-title">
+                <h3>1. الألوان والثيمات الجاهزة</h3>
+                <p>ثيمات جاهزة بضغطة واحدة أو تخصيص يدوي بالألوان السريعة</p>
               </div>
-            </label>
-            <label className="field">
-              لون خلفية الصفحات العام
-              <div className="design-color-field">
-                <input type="color" value={draft.pageBgColor} onChange={(e) => { updateField("pageBgColor", e.target.value); updateField("themePreset", "custom"); }}/>
-                <input type="text" dir="ltr" value={draft.pageBgColor} onChange={(e) => updateField("pageBgColor", e.target.value)}/>
-              </div>
-            </label>
-          </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.colors ? "is-collapsed" : ""}`}/>
+            </button>
 
-          <div className="form-row compact-two-col">
-            <label className="field">
-              لون هيدر الشاشات العائمة (اللبني أو أي لون)
-              <div className="design-color-field">
-                <input type="color" value={draft.modalHeaderBg} onChange={(e) => { updateField("modalHeaderBg", e.target.value); updateField("themePreset", "custom"); }}/>
-                <input type="text" dir="ltr" value={draft.modalHeaderBg} onChange={(e) => updateField("modalHeaderBg", e.target.value)}/>
-              </div>
-            </label>
-            <label className="field">
-              لون أزرار الاتصال والأزرار الرئيسية
-              <div className="design-color-field">
-                <input type="color" value={draft.buttonColor} onChange={(e) => { updateField("buttonColor", e.target.value); updateField("themePreset", "custom"); }}/>
-                <input type="text" dir="ltr" value={draft.buttonColor} onChange={(e) => updateField("buttonColor", e.target.value)}/>
-              </div>
-            </label>
-          </div>
+            {!collapsedGroups.colors && (
+              <div className="design-group-content">
+                <InnerDivider title="قوالب الألوان الجاهزة بضغطة واحدة" subtitle="اختر قالباً ليتم ملء جميع الألوان المتناسقة تلقائياً" />
+                <div className="design-presets-grid">
+                  {(Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>).map((key) => {
+                    const preset = designThemePresets[key];
+                    const isSelected = draft.themePreset === key;
+                    return (
+                      <button
+                        type="button"
+                        key={key}
+                        className={`design-preset-card ${isSelected ? "is-selected" : ""}`}
+                        onClick={() => applyPreset(key)}
+                      >
+                        <div className="design-preset-swatches">
+                          <span style={{ background: preset.colors.primaryColor }}/>
+                          <span style={{ background: preset.colors.modalHeaderBg }}/>
+                          <span style={{ background: preset.colors.buttonColor }}/>
+                          <span style={{ background: preset.colors.footerBgColor }}/>
+                        </div>
+                        <strong>{preset.label}</strong>
+                        <small>{preset.description}</small>
+                      </button>
+                    );
+                  })}
+                </div>
 
-          <label className="field">
-            الوضع الافتراضي للموقع (النهاري / الليلي)
-            <SelectField value={draft.themeMode} onChange={(e) => updateField("themeMode", e.target.value as DesignSettings["themeMode"])}>
-              <option value="auto">تلقائي حسب جهاز الزائر أو اختياره</option>
-              <option value="light">الوضع النهاري الفاتح افتراضياً</option>
-              <option value="dark">الوضع الليلي الداكن افتراضياً</option>
-            </SelectField>
-          </label>
-        </section>
+                <InnerDivider title="تخصيص الألوان الأساسية والخلفية" subtitle="اضغط على أي دائرة ملونة للاختيار السريع من الموبايل" />
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="اللون الأساسي والعناوين"
+                    value={draft.primaryColor}
+                    swatches={QUICK_SWATCHES.primary}
+                    onChange={(hex) => { updateField("primaryColor", hex); updateField("themePreset", "custom"); }}
+                  />
+                  <ColorPickerField
+                    label="لون خلفية الصفحات العام"
+                    value={draft.pageBgColor}
+                    swatches={QUICK_SWATCHES.pageBg}
+                    onChange={(hex) => { updateField("pageBgColor", hex); updateField("themePreset", "custom"); }}
+                  />
+                </div>
+
+                <InnerDivider title="ألوان الشاشات العائمة والأزرار" />
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون هيدر الشاشات العائمة (اللبني)"
+                    value={draft.modalHeaderBg}
+                    swatches={QUICK_SWATCHES.modalHeader}
+                    onChange={(hex) => { updateField("modalHeaderBg", hex); updateField("themePreset", "custom"); }}
+                  />
+                  <ColorPickerField
+                    label="لون أزرار الاتصال والأزرار الرئيسية"
+                    value={draft.buttonColor}
+                    swatches={QUICK_SWATCHES.button}
+                    onChange={(hex) => { updateField("buttonColor", hex); updateField("themePreset", "custom"); }}
+                  />
+                </div>
+
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون أزرار الواتساب"
+                    value={draft.whatsappButtonColor}
+                    swatches={QUICK_SWATCHES.whatsapp}
+                    onChange={(hex) => updateField("whatsappButtonColor", hex)}
+                  />
+                  <label className="field">
+                    الوضع الافتراضي للموقع (النهاري / الليلي)
+                    <SelectField value={draft.themeMode} onChange={(e) => updateField("themeMode", e.target.value as DesignSettings["themeMode"])}>
+                      <option value="auto">تلقائي حسب جهاز الزائر أو اختياره</option>
+                      <option value="light">الوضع النهاري الفاتح افتراضياً</option>
+                      <option value="dark">الوضع الليلي الداكن افتراضياً</option>
+                    </SelectField>
+                  </label>
+                </div>
+              </div>
+            )}
+          </section>
+        </>
       )}
 
       {/* 2. Typography & Alignment */}
       {(activeFilter === "all" || activeFilter === "typography") && (
-        <section className="design-group-card">
-          <div className="design-group-head">
-            <Type size={20}/>
-            <div>
-              <h3>2. تنسيق العناوين والنصوص والمحاذاة</h3>
-              <p>تحكم في محاذاة الكلام (متوسطن / يمين / شمال) وحجم ونوع الخط وشكل عناوين الأقسام</p>
-            </div>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <div className="field">
-              <span>محاذاة العناوين الرئيسية للأقسام</span>
-              <div className="design-choice-pills">
-                <button type="button" className={draft.headingAlign === "right" ? "is-active" : ""} onClick={() => updateField("headingAlign", "right")}><AlignRight size={15}/>يمين</button>
-                <button type="button" className={draft.headingAlign === "center" ? "is-active" : ""} onClick={() => updateField("headingAlign", "center")}><AlignCenter size={15}/>توسيط</button>
-                <button type="button" className={draft.headingAlign === "left" ? "is-active" : ""} onClick={() => updateField("headingAlign", "left")}><AlignLeft size={15}/>شمال</button>
+        <>
+          <SectionDivider step="٢" label="تنسيق العناوين والنصوص والمحاذاة" />
+          <section className={`design-group-card ${collapsedGroups.typography ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("typography")} aria-expanded={!collapsedGroups.typography}>
+              <span className="design-group-icon"><Type size={20}/></span>
+              <div className="design-group-title">
+                <h3>2. تنسيق العناوين والنصوص والمحاذاة</h3>
+                <p>تحكم في محاذاة الكلام (متوسطن / يمين / شمال) وحجم ونوع الخط</p>
               </div>
-            </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.typography ? "is-collapsed" : ""}`}/>
+            </button>
 
-            <div className="field">
-              <span>محاذاة الكلام داخل الكروت والبراويز</span>
-              <div className="design-choice-pills">
-                <button type="button" className={draft.cardTextAlign === "right" ? "is-active" : ""} onClick={() => updateField("cardTextAlign", "right")}><AlignRight size={15}/>يمين</button>
-                <button type="button" className={draft.cardTextAlign === "center" ? "is-active" : ""} onClick={() => updateField("cardTextAlign", "center")}><AlignCenter size={15}/>توسيط</button>
-                <button type="button" className={draft.cardTextAlign === "left" ? "is-active" : ""} onClick={() => updateField("cardTextAlign", "left")}><AlignLeft size={15}/>شمال</button>
+            {!collapsedGroups.typography && (
+              <div className="design-group-content">
+                <InnerDivider title="محاذاة العناوين والكروت والملحوظات" subtitle="اختر هل الكلام يكون على اليمين أو متوسطن في المنتصف أو على الشمال" />
+                <div className="form-row design-two-col">
+                  <div className="field">
+                    <span>محاذاة العناوين الرئيسية للأقسام</span>
+                    <div className="design-choice-pills">
+                      <button type="button" className={draft.headingAlign === "right" ? "is-active" : ""} onClick={() => updateField("headingAlign", "right")}><AlignRight size={15}/>يمين</button>
+                      <button type="button" className={draft.headingAlign === "center" ? "is-active" : ""} onClick={() => updateField("headingAlign", "center")}><AlignCenter size={15}/>توسيط</button>
+                      <button type="button" className={draft.headingAlign === "left" ? "is-active" : ""} onClick={() => updateField("headingAlign", "left")}><AlignLeft size={15}/>شمال</button>
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <span>محاذاة الكلام داخل الكروت والبراويز</span>
+                    <div className="design-choice-pills">
+                      <button type="button" className={draft.cardTextAlign === "right" ? "is-active" : ""} onClick={() => updateField("cardTextAlign", "right")}><AlignRight size={15}/>يمين</button>
+                      <button type="button" className={draft.cardTextAlign === "center" ? "is-active" : ""} onClick={() => updateField("cardTextAlign", "center")}><AlignCenter size={15}/>توسيط</button>
+                      <button type="button" className={draft.cardTextAlign === "left" ? "is-active" : ""} onClick={() => updateField("cardTextAlign", "left")}><AlignLeft size={15}/>شمال</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-row design-two-col">
+                  <div className="field">
+                    <span>محاذاة الملحوظات والتنبيهات</span>
+                    <div className="design-choice-pills">
+                      <button type="button" className={draft.noticeAlign === "right" ? "is-active" : ""} onClick={() => updateField("noticeAlign", "right")}><AlignRight size={15}/>يمين</button>
+                      <button type="button" className={draft.noticeAlign === "center" ? "is-active" : ""} onClick={() => updateField("noticeAlign", "center")}><AlignCenter size={15}/>توسيط</button>
+                      <button type="button" className={draft.noticeAlign === "left" ? "is-active" : ""} onClick={() => updateField("noticeAlign", "left")}><AlignLeft size={15}/>شمال</button>
+                    </div>
+                  </div>
+
+                  <label className="field">
+                    شكل عناوين الأقسام الرئيسية
+                    <SelectField value={draft.sectionHeadingStyle} onChange={(e) => updateField("sectionHeadingStyle", e.target.value as DesignSettings["sectionHeadingStyle"])}>
+                      <option value="pill">داخل كبسولة أنيقة (الافتراضي)</option>
+                      <option value="plain">سادة بدون خلفية</option>
+                      <option value="underline">بخط سفلي ملون</option>
+                      <option value="framed">داخل برواز كامل</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <InnerDivider title="نوع وحجم وسمك الخط العربي" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    حجم الخط العام للتطبيق
+                    <SelectField value={draft.fontScale} onChange={(e) => updateField("fontScale", e.target.value as DesignSettings["fontScale"])}>
+                      <option value="small">صغير مدمج (94%)</option>
+                      <option value="normal">متوسط متوازن (100% - الافتراضي)</option>
+                      <option value="large">كبير واضح (107%)</option>
+                      <option value="xlarge">كبير جداً لكبار السن (114%)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    سمك الخط والعناوين
+                    <SelectField value={draft.fontWeight} onChange={(e) => updateField("fontWeight", e.target.value as DesignSettings["fontWeight"])}>
+                      <option value="normal">عادي ناعم</option>
+                      <option value="bold">عريض واضح (الافتراضي)</option>
+                      <option value="extrabold">عريض جداً وبارز</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <label className="field">
+                  نوع الخط العربي
+                  <SelectField value={draft.fontFamily} onChange={(e) => updateField("fontFamily", e.target.value as DesignSettings["fontFamily"])}>
+                    <option value="cairo">خط القاهرة (Cairo - الافتراضي)</option>
+                    <option value="tajawal">خط تجوّل (Tajawal)</option>
+                    <option value="almarai">خط المراعي (Almarai)</option>
+                    <option value="readex">خط ريدكس (Readex Pro)</option>
+                  </SelectField>
+                </label>
               </div>
-            </div>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <div className="field">
-              <span>محاذاة الملحوظات والتنبيهات</span>
-              <div className="design-choice-pills">
-                <button type="button" className={draft.noticeAlign === "right" ? "is-active" : ""} onClick={() => updateField("noticeAlign", "right")}><AlignRight size={15}/>يمين</button>
-                <button type="button" className={draft.noticeAlign === "center" ? "is-active" : ""} onClick={() => updateField("noticeAlign", "center")}><AlignCenter size={15}/>توسيط</button>
-                <button type="button" className={draft.noticeAlign === "left" ? "is-active" : ""} onClick={() => updateField("noticeAlign", "left")}><AlignLeft size={15}/>شمال</button>
-              </div>
-            </div>
-
-            <label className="field">
-              شكل عناوين الأقسام الرئيسية
-              <SelectField value={draft.sectionHeadingStyle} onChange={(e) => updateField("sectionHeadingStyle", e.target.value as DesignSettings["sectionHeadingStyle"])}>
-                <option value="pill">داخل كبسولة أنيقة (الافتراضي)</option>
-                <option value="plain">سادة بدون خلفية</option>
-                <option value="underline">بخط سفلي ملون</option>
-                <option value="framed">داخل برواز كامل</option>
-              </SelectField>
-            </label>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              حجم الخط العام للتطبيق
-              <SelectField value={draft.fontScale} onChange={(e) => updateField("fontScale", e.target.value as DesignSettings["fontScale"])}>
-                <option value="small">صغير مدمج (94%)</option>
-                <option value="normal">متوسط متوازن (100% - الافتراضي)</option>
-                <option value="large">كبير واضح (107%)</option>
-                <option value="xlarge">كبير جداً لكبار السن (114%)</option>
-              </SelectField>
-            </label>
-
-            <label className="field">
-              سمك الخط والعناوين
-              <SelectField value={draft.fontWeight} onChange={(e) => updateField("fontWeight", e.target.value as DesignSettings["fontWeight"])}>
-                <option value="normal">عادي ناعم</option>
-                <option value="bold">عريض واضح (الافتراضي)</option>
-                <option value="extrabold">عريض جداً وبارز</option>
-              </SelectField>
-            </label>
-          </div>
-
-          <label className="field">
-            نوع الخط العربي
-            <SelectField value={draft.fontFamily} onChange={(e) => updateField("fontFamily", e.target.value as DesignSettings["fontFamily"])}>
-              <option value="cairo">خط القاهرة (Cairo - الافتراضي)</option>
-              <option value="tajawal">خط تجوّل (Tajawal)</option>
-              <option value="almarai">خط المراعي (Almarai)</option>
-              <option value="readex">خط ريدكس (Readex Pro)</option>
-            </SelectField>
-          </label>
-        </section>
+            )}
+          </section>
+        </>
       )}
 
-      {/* 3. Cards, Frames & Borders */}
+      {/* 3. Cards, Frames, Borders & Dividers */}
       {(activeFilter === "all" || activeFilter === "cards") && (
-        <section className="design-group-card">
-          <div className="design-group-head">
-            <Square size={20}/>
-            <div>
-              <h3>3. البراويز والكروت والحدود (Borders & Frames)</h3>
-              <p>تغيير ألوان وسمك بوردر البراويز واستدارة الحواف والظلال</p>
-            </div>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              لون بوردر البراويز والكروت
-              <div className="design-color-field">
-                <input type="color" value={draft.borderColor} onChange={(e) => updateField("borderColor", e.target.value)}/>
-                <input type="text" dir="ltr" value={draft.borderColor} onChange={(e) => updateField("borderColor", e.target.value)}/>
+        <>
+          <SectionDivider step="٣" label="البراويز والحدود والفواصل" />
+          <section className={`design-group-card ${collapsedGroups.cards ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("cards")} aria-expanded={!collapsedGroups.cards}>
+              <span className="design-group-icon"><Square size={20}/></span>
+              <div className="design-group-title">
+                <h3>3. البراويز والكروت والحدود والفواصل</h3>
+                <p>ألوان وسمك بوردر البراويز، استدارة الحواف، الظلال، والفواصل بين الأقسام</p>
               </div>
-            </label>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.cards ? "is-collapsed" : ""}`}/>
+            </button>
 
-            <label className="field">
-              لون خلفية الكروت والبراويز
-              <div className="design-color-field">
-                <input type="color" value={draft.cardBgColor} onChange={(e) => updateField("cardBgColor", e.target.value)}/>
-                <input type="text" dir="ltr" value={draft.cardBgColor} onChange={(e) => updateField("cardBgColor", e.target.value)}/>
+            {!collapsedGroups.cards && (
+              <div className="design-group-content">
+                <InnerDivider title="ألوان البراويز وخلفية الكروت" />
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون بوردر البراويز والكروت"
+                    value={draft.borderColor}
+                    swatches={QUICK_SWATCHES.border}
+                    onChange={(hex) => updateField("borderColor", hex)}
+                  />
+                  <ColorPickerField
+                    label="لون خلفية الكروت والبراويز"
+                    value={draft.cardBgColor}
+                    swatches={QUICK_SWATCHES.cardBg}
+                    onChange={(hex) => updateField("cardBgColor", hex)}
+                  />
+                </div>
+
+                <InnerDivider title="سمك البوردر واستدارة الحواف والظل" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    سمك ونوع بوردر البراويز
+                    <SelectField value={draft.borderWidth} onChange={(e) => updateField("borderWidth", e.target.value as DesignSettings["borderWidth"])}>
+                      <option value="none">بدون حدود (0px)</option>
+                      <option value="thin">خط رفيع أنيق (1px - الافتراضي)</option>
+                      <option value="medium">خط واضح عريض (2px)</option>
+                      <option value="double">برواز مزدوج فاخر (Double Border)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    استدارة حواف البراويز والكروت
+                    <SelectField value={draft.cardRadius} onChange={(e) => updateField("cardRadius", e.target.value as DesignSettings["cardRadius"])}>
+                      <option value="sharp">حواف حادة مربعة (6px)</option>
+                      <option value="medium">متوسطة الاستدارة (12px)</option>
+                      <option value="rounded">دائرية ناعمة (18px - الافتراضي)</option>
+                      <option value="pill">شديدة الاستدارة (26px)</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    قوة ظل وبروز الكروت (Shadow)
+                    <SelectField value={draft.cardShadow} onChange={(e) => updateField("cardShadow", e.target.value as DesignSettings["cardShadow"])}>
+                      <option value="none">مسطح بدون ظل</option>
+                      <option value="soft">ظل هادئ ناعم (الافتراضي)</option>
+                      <option value="elevated-3d">ظل بارز ثلاثي الأبعاد (3D Card Elevation)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    تأثير حركة الكارت عند اللمس أو التمرير
+                    <SelectField value={draft.cardHoverEffect} onChange={(e) => updateField("cardHoverEffect", e.target.value as DesignSettings["cardHoverEffect"])}>
+                      <option value="lift">ارتفاع ناعم للأعلى (الافتراضي)</option>
+                      <option value="glow">توهج ملون حول البرواز</option>
+                      <option value="scale">تكبير خفيف وواضح</option>
+                      <option value="none">ثابت بدون حركة</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <InnerDivider title="الفواصل والمسافات بين أقسام الموقع" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    شكل الفواصل البصرية بين أقسام الصفحة
+                    <SelectField value={draft.sectionDividerStyle} onChange={(e) => updateField("sectionDividerStyle", e.target.value as DesignSettings["sectionDividerStyle"])}>
+                      <option value="none">بدون خط فاصل (الافتراضي)</option>
+                      <option value="line">خط فاصل أنيق بين كل قسم</option>
+                      <option value="gradient">فاصل ملون متدرج في المنتصف</option>
+                      <option value="dots">فاصل منقط زخرفي</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    المسافات الرأسية بين الأقسام والكروت
+                    <SelectField value={draft.sectionSpacing} onChange={(e) => updateField("sectionSpacing", e.target.value as DesignSettings["sectionSpacing"])}>
+                      <option value="compact">مدمجة ومختصرة للموبايل</option>
+                      <option value="normal">متوسطة متوازنة (الافتراضي)</option>
+                      <option value="relaxed">واسعة ومريحة للعين</option>
+                    </SelectField>
+                  </label>
+                </div>
               </div>
-            </label>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              سمك ونوع بوردر البراويز
-              <SelectField value={draft.borderWidth} onChange={(e) => updateField("borderWidth", e.target.value as DesignSettings["borderWidth"])}>
-                <option value="none">بدون حدود (0px)</option>
-                <option value="thin">خط رفيع أنيق (1px - الافتراضي)</option>
-                <option value="medium">خط واضح عريض (2px)</option>
-                <option value="double">برواز مزدوج فاخر (Double Border)</option>
-              </SelectField>
-            </label>
-
-            <label className="field">
-              استدارة حواف البراويز والكروت
-              <SelectField value={draft.cardRadius} onChange={(e) => updateField("cardRadius", e.target.value as DesignSettings["cardRadius"])}>
-                <option value="sharp">حواف حادة مربعة (6px)</option>
-                <option value="medium">متوسطة الاستدارة (12px)</option>
-                <option value="rounded">دائرية ناعمة (18px - الافتراضي)</option>
-                <option value="pill">شديدة الاستدارة (26px)</option>
-              </SelectField>
-            </label>
-          </div>
-
-          <label className="field">
-            قوة ظل وبروز الكروت (Shadow)
-            <SelectField value={draft.cardShadow} onChange={(e) => updateField("cardShadow", e.target.value as DesignSettings["cardShadow"])}>
-              <option value="none">مسطح بدون ظل</option>
-              <option value="soft">ظل هادئ ناعم (الافتراضي)</option>
-              <option value="elevated-3d">ظل بارز ثلاثي الأبعاد (3D Card Elevation)</option>
-            </SelectField>
-          </label>
-        </section>
+            )}
+          </section>
+        </>
       )}
 
       {/* 4. Buttons Style */}
       {(activeFilter === "all" || activeFilter === "buttons") && (
-        <section className="design-group-card">
-          <div className="design-group-head">
-            <PhoneCall size={20}/>
-            <div>
-              <h3>4. شكل وتصميم الأزرار</h3>
-              <p>تحكم في استدارة الأزرار وتأثيرها اللوني وموضع أزرار الإرسال</p>
-            </div>
-          </div>
+        <>
+          <SectionDivider step="٤" label="شكل وتصميم الأزرار" />
+          <section className={`design-group-card ${collapsedGroups.buttons ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("buttons")} aria-expanded={!collapsedGroups.buttons}>
+              <span className="design-group-icon"><PhoneCall size={20}/></span>
+              <div className="design-group-title">
+                <h3>4. شكل وتصميم الأزرار</h3>
+                <p>تحكم في استدارة الأزرار وتأثيرها اللوني وموضع أزرار الإرسال</p>
+              </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.buttons ? "is-collapsed" : ""}`}/>
+            </button>
 
-          <div className="form-row compact-two-col">
-            <label className="field">
-              شكل حواف الأزرار
-              <SelectField value={draft.buttonShape} onChange={(e) => updateField("buttonShape", e.target.value as DesignSettings["buttonShape"])}>
-                <option value="rounded">مستطيل بحواف ناعمة (الافتراضي)</option>
-                <option value="pill">كبسولة دائرية بالكامل (Pill)</option>
-                <option value="square">مستطيل كلاسيكي بحواف حادة</option>
-              </SelectField>
-            </label>
+            {!collapsedGroups.buttons && (
+              <div className="design-group-content">
+                <InnerDivider title="استدارة وتأثير الأزرار" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    شكل حواف الأزرار
+                    <SelectField value={draft.buttonShape} onChange={(e) => updateField("buttonShape", e.target.value as DesignSettings["buttonShape"])}>
+                      <option value="rounded">مستطيل بحواف ناعمة (الافتراضي)</option>
+                      <option value="pill">كبسولة دائرية بالكامل (Pill)</option>
+                      <option value="square">مستطيل كلاسيكي بحواف حادة</option>
+                    </SelectField>
+                  </label>
 
-            <label className="field">
-              تأثير الأزرار
-              <SelectField value={draft.buttonEffect} onChange={(e) => updateField("buttonEffect", e.target.value as DesignSettings["buttonEffect"])}>
-                <option value="gradient">تدرج لوني لامع (Gradient - الافتراضي)</option>
-                <option value="solid">لون سادة موحد (Solid)</option>
-                <option value="3d">بارز ثلاثي الأبعاد بحافة سفلية (3D)</option>
-                <option value="outline">إطار واضح وخلفية خفيفة</option>
-              </SelectField>
-            </label>
-          </div>
+                  <label className="field">
+                    تأثير الأزرار
+                    <SelectField value={draft.buttonEffect} onChange={(e) => updateField("buttonEffect", e.target.value as DesignSettings["buttonEffect"])}>
+                      <option value="gradient">تدرج لوني لامع (Gradient - الافتراضي)</option>
+                      <option value="solid">لون سادة موحد (Solid)</option>
+                      <option value="3d">بارز ثلاثي الأبعاد بحافة سفلية (3D)</option>
+                      <option value="outline">إطار واضح وخلفية خفيفة</option>
+                    </SelectField>
+                  </label>
+                </div>
 
-          <label className="field">
-            موضع أزرار الإرسال داخل النماذج والشاشات العائمة
-            <SelectField value={draft.buttonAlign} onChange={(e) => updateField("buttonAlign", e.target.value as DesignSettings["buttonAlign"])}>
-              <option value="center">متوسطن في منتصف الشاشة (الافتراضي)</option>
-              <option value="right">محاذاة لليمين</option>
-              <option value="full">بعرض كامل الشاشة (ممتاز للموبايل)</option>
-            </SelectField>
-          </label>
-        </section>
+                <InnerDivider title="موضع أزرار الإرسال في الشاشات العائمة" />
+                <label className="field">
+                  موضع أزرار الإرسال داخل النماذج والشاشات العائمة
+                  <SelectField value={draft.buttonAlign} onChange={(e) => updateField("buttonAlign", e.target.value as DesignSettings["buttonAlign"])}>
+                    <option value="center">متوسطن في منتصف الشاشة (الافتراضي)</option>
+                    <option value="right">محاذاة لليمين</option>
+                    <option value="full">بعرض كامل الشاشة (ممتاز للموبايل)</option>
+                  </SelectField>
+                </label>
+              </div>
+            )}
+          </section>
+        </>
       )}
 
       {/* 5. Icons & Layout Structure */}
       {(activeFilter === "all" || activeFilter === "layout") && (
-        <section className="design-group-card">
-          <div className="design-group-head">
-            <Grid2X2 size={20}/>
-            <div>
-              <h3>5. شكل الأيقونات وهيكل وترتيب الصفحة الرئيسية</h3>
-              <p>تحكم في شكل وحجم وموضع الأيقونات، عدد الكروت في الصف، وترتيب وإظهار أقسام الصفحة الرئيسية</p>
-            </div>
-          </div>
+        <>
+          <SectionDivider step="٥" label="الأيقونات وهيكل الصفحة الرئيسية" />
+          <section className={`design-group-card ${collapsedGroups.layout ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("layout")} aria-expanded={!collapsedGroups.layout}>
+              <span className="design-group-icon"><Grid2X2 size={20}/></span>
+              <div className="design-group-title">
+                <h3>5. شكل الأيقونات وهيكل وترتيب الصفحة الرئيسية</h3>
+                <p>شكل وحجم وموضع الأيقونات، عدد الأعمدة، وترتيب أقسام الصفحة الرئيسية</p>
+              </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.layout ? "is-collapsed" : ""}`}/>
+            </button>
 
-          <div className="form-row compact-two-col">
-            <label className="field">
-              ستايل وشكل الأيقونات
-              <SelectField value={draft.iconStyle} onChange={(e) => updateField("iconStyle", e.target.value as DesignSettings["iconStyle"])}>
-                <option value="3d">أيقونات 3D ملونة بارزة (الافتراضي)</option>
-                <option value="flat">أيقونات مسطحة هادئة بدون إطار ثقيل (Flat)</option>
-                <option value="glow">أيقونات دائرية متوهجة (Glow Circle)</option>
-              </SelectField>
-            </label>
+            {!collapsedGroups.layout && (
+              <div className="design-group-content">
+                <InnerDivider title="ستايل وحجم وموضع الأيقونات" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    ستايل وشكل الأيقونات
+                    <SelectField value={draft.iconStyle} onChange={(e) => updateField("iconStyle", e.target.value as DesignSettings["iconStyle"])}>
+                      <option value="3d">أيقونات 3D ملونة بارزة (الافتراضي)</option>
+                      <option value="flat">أيقونات مسطحة هادئة بدون إطار ثقيل (Flat)</option>
+                      <option value="glow">أيقونات دائرية متوهجة (Glow Circle)</option>
+                    </SelectField>
+                  </label>
 
-            <label className="field">
-              حجم الأيقونات داخل الكروت
-              <SelectField value={draft.iconSize} onChange={(e) => updateField("iconSize", e.target.value as DesignSettings["iconSize"])}>
-                <option value="small">صغير مدمج</option>
-                <option value="medium">متوسط متوازن (الافتراضي)</option>
-                <option value="large">كبير وواضح</option>
-              </SelectField>
-            </label>
-          </div>
+                  <label className="field">
+                    حجم الأيقونات داخل الكروت
+                    <SelectField value={draft.iconSize} onChange={(e) => updateField("iconSize", e.target.value as DesignSettings["iconSize"])}>
+                      <option value="small">صغير مدمج</option>
+                      <option value="medium">متوسط متوازن (الافتراضي)</option>
+                      <option value="large">كبير وواضح</option>
+                    </SelectField>
+                  </label>
+                </div>
 
-          <div className="form-row compact-two-col">
-            <label className="field">
-              موضع الأيقونة داخل كروت الأقسام
-              <SelectField value={draft.iconPosition} onChange={(e) => updateField("iconPosition", e.target.value as DesignSettings["iconPosition"])}>
-                <option value="top-center">فوق العنوان في المنتصف (الافتراضي)</option>
-                <option value="left">على الشمال بجانب العنوان</option>
-                <option value="right">على اليمين بجانب العنوان</option>
-              </SelectField>
-            </label>
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    موضع الأيقونة داخل كروت الأقسام
+                    <SelectField value={draft.iconPosition} onChange={(e) => updateField("iconPosition", e.target.value as DesignSettings["iconPosition"])}>
+                      <option value="top-center">فوق العنوان في المنتصف (الافتراضي)</option>
+                      <option value="left">على الشمال بجانب العنوان</option>
+                      <option value="right">على اليمين بجانب العنوان</option>
+                    </SelectField>
+                  </label>
 
-            <label className="field">
-              حالة قسم «مقدمو الخدمات المميزين» عند فتح الموقع
-              <SelectField value={draft.featuredDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("featuredDefaultOpen", e.target.value === "open")}>
-                <option value="closed">مطوي ويفتح عند الضغط على الزر (الافتراضي)</option>
-                <option value="open">مفتوح ومفرود تلقائياً عند فتح الصفحة</option>
-              </SelectField>
-            </label>
-          </div>
+                  <label className="field">
+                    حالة قسم «مقدمو الخدمات المميزين» عند فتح الموقع
+                    <SelectField value={draft.featuredDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("featuredDefaultOpen", e.target.value === "open")}>
+                      <option value="closed">مطوي ويفتح عند الضغط على الزر (الافتراضي)</option>
+                      <option value="open">مفتوح ومفرود تلقائياً عند فتح الصفحة</option>
+                    </SelectField>
+                  </label>
+                </div>
 
-          <div className="form-row compact-two-col">
-            <label className="field">
-              عدد كروت الأقسام في الصف على الموبايل
-              <SelectField value={draft.mobileColumns} onChange={(e) => updateField("mobileColumns", e.target.value as DesignSettings["mobileColumns"])}>
-                <option value="2">كارتين في الصف (٢ أعمدة - الافتراضي)</option>
-                <option value="3">٣ كروت في الصف (٣ أعمدة مدمجة)</option>
-              </SelectField>
-            </label>
+                <InnerDivider title="عدد الكروت في الصف على الموبايل والكمبيوتر" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    عدد كروت الأقسام في الصف على الموبايل
+                    <SelectField value={draft.mobileColumns} onChange={(e) => updateField("mobileColumns", e.target.value as DesignSettings["mobileColumns"])}>
+                      <option value="2">كارتين في الصف (٢ أعمدة - الافتراضي)</option>
+                      <option value="3">٣ كروت في الصف (٣ أعمدة مدمجة)</option>
+                    </SelectField>
+                  </label>
 
-            <label className="field">
-              عدد كروت الأقسام في الصف على الكمبيوتر
-              <SelectField value={draft.desktopColumns} onChange={(e) => updateField("desktopColumns", e.target.value as DesignSettings["desktopColumns"])}>
-                <option value="4">٤ كروت في الصف (الافتراضي)</option>
-                <option value="3">٣ كروت عريضة في الصف</option>
-              </SelectField>
-            </label>
-          </div>
+                  <label className="field">
+                    عدد كروت الأقسام في الصف على الكمبيوتر
+                    <SelectField value={draft.desktopColumns} onChange={(e) => updateField("desktopColumns", e.target.value as DesignSettings["desktopColumns"])}>
+                      <option value="4">٤ كروت في الصف (الافتراضي)</option>
+                      <option value="3">٣ كروت عريضة في الصف</option>
+                    </SelectField>
+                  </label>
+                </div>
 
-          <div className="design-order-box">
-            <h4>ترتيب وإظهار أقسام الصفحة الرئيسية</h4>
-            <p>رتّب الأقسام بالسهم لأعلى أو لأسفل، أو أخفِ أي قسم لا تريده في الصفحة الرئيسية:</p>
-            <div className="design-order-list">
-              {orderedSections.map((sectionKey, idx) => {
-                const meta = homeSectionsMeta[sectionKey];
-                if (!meta) return null;
-                const enabled = Boolean(draft[meta.toggleKey]);
-                return (
-                  <div key={sectionKey} className={`design-order-item ${enabled ? "" : "is-hidden"}`}>
-                    <label className="design-order-check">
-                      <input
-                        type="checkbox"
-                        checked={enabled}
-                        onChange={(e) => updateField(meta.toggleKey, e.target.checked as never)}
-                      />
-                      <strong>{idx + 1}. {meta.label}</strong>
-                    </label>
-                    <div className="design-order-arrows">
-                      <button type="button" className="icon-button" disabled={idx === 0} onClick={() => moveSection(idx, -1)} aria-label="تحريك لأعلى" title="تحريك لأعلى">
-                        <ArrowUp size={15}/>
-                      </button>
-                      <button type="button" className="icon-button" disabled={idx === orderedSections.length - 1} onClick={() => moveSection(idx, 1)} aria-label="تحريك لأسفل" title="تحريك لأسفل">
-                        <ArrowDown size={15}/>
-                      </button>
-                    </div>
+                <InnerDivider title="ترتيب وإظهار أقسام الصفحة الرئيسية" subtitle="حرك أي قسم لأعلى أو لأسفل أو أخفِه بضغطة واحدة" />
+                <div className="design-order-box">
+                  <div className="design-order-list">
+                    {orderedSections.map((sectionKey, idx) => {
+                      const meta = homeSectionsMeta[sectionKey];
+                      if (!meta) return null;
+                      const enabled = Boolean(draft[meta.toggleKey]);
+                      return (
+                        <div key={sectionKey} className={`design-order-item ${enabled ? "" : "is-hidden"}`}>
+                          <label className="design-order-check">
+                            <input
+                              type="checkbox"
+                              checked={enabled}
+                              onChange={(e) => updateField(meta.toggleKey, e.target.checked as never)}
+                            />
+                            <strong>{idx + 1}. {meta.label}</strong>
+                          </label>
+                          <div className="design-order-arrows">
+                            <button type="button" className="icon-button" disabled={idx === 0} onClick={() => moveSection(idx, -1)} aria-label="تحريك لأعلى" title="تحريك لأعلى">
+                              <ArrowUp size={15}/>
+                            </button>
+                            <button type="button" className="icon-button" disabled={idx === orderedSections.length - 1} onClick={() => moveSection(idx, 1)} aria-label="تحريك لأسفل" title="تحريك لأسفل">
+                              <ArrowDown size={15}/>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+                </div>
+              </div>
+            )}
+          </section>
+        </>
       )}
 
-      {/* 6. Header, Footer & Splash */}
+      {/* 6. Provider Cards, Hero & Search Customizer (NEW) */}
+      {(activeFilter === "all" || activeFilter === "providers") && (
+        <>
+          <SectionDivider step="٦" label="كروت المهنيين والبانر والبحث" />
+          <section className={`design-group-card ${collapsedGroups.providers ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("providers")} aria-expanded={!collapsedGroups.providers}>
+              <span className="design-group-icon"><UsersRound size={20}/></span>
+              <div className="design-group-title">
+                <h3>6. تخصيص كروت المهنيين والبانر الرئيسي ومربع البحث</h3>
+                <p>تحكم في شكل كارت مقدم الخدمة، الأزرار والشارات الظاهرة عليه، وشكل البانر ومربع البحث</p>
+              </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.providers ? "is-collapsed" : ""}`}/>
+            </button>
+
+            {!collapsedGroups.providers && (
+              <div className="design-group-content">
+                <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    شكل البانر الترحيبي أعلى الرئيسية
+                    <SelectField value={draft.heroStyle} onChange={(e) => updateField("heroStyle", e.target.value as DesignSettings["heroStyle"])}>
+                      <option value="sky-banner">بانر سماء جنزور المصور (الافتراضي)</option>
+                      <option value="gradient-card">خلفية متدرجة حديثة بدون صورة</option>
+                      <option value="compact-minimal">بانر مدمج ومختصر للموبايل</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    شكل مربع البحث الرئيسي
+                    <SelectField value={draft.searchBoxStyle} onChange={(e) => updateField("searchBoxStyle", e.target.value as DesignSettings["searchBoxStyle"])}>
+                      <option value="rounded">زوايا ناعمة كلاسيكية (الافتراضي)</option>
+                      <option value="pill">كبسولة دائرية بالكامل (Pill Search)</option>
+                      <option value="floating-glass">زجاجي عائم بظل بارز</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <InnerDivider title="تخصيص كروت المهنيين ومقدمي الخدمات" />
+                <label className="field">
+                  تخطيط كارت مقدم الخدمة (Provider Card)
+                  <SelectField value={draft.providerCardLayout} onChange={(e) => updateField("providerCardLayout", e.target.value as DesignSettings["providerCardLayout"])}>
+                    <option value="classic">كلاسيكي مفصل (الافتراضي)</option>
+                    <option value="compact">مدمج ومختصر لشاشات الموبايل</option>
+                    <option value="centered">متوسطن بالكامل (الأيقونة والاسم والنجوم في المنتصف)</option>
+                  </SelectField>
+                </label>
+
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderBadges} onChange={(e) => updateField("showProviderBadges", e.target.checked)}/>إظهار شارات التوثيق والتميز و«جديد» على كارت المهني</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderWhatsappBtn} onChange={(e) => updateField("showProviderWhatsappBtn", e.target.checked)}/>إظهار زر واتساب المباشر على كارت المهني</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderShareBtn} onChange={(e) => updateField("showProviderShareBtn", e.target.checked)}/>إظهار زر مشاركة الخدمة على كارت المهني</label>
+                </div>
+              </div>
+            )}
+          </section>
+        </>
+      )}
+
+      {/* 7. Header, Footer, Top Announcement & Splash */}
       {(activeFilter === "all" || activeFilter === "header") && (
-        <section className="design-group-card">
-          <div className="design-group-head">
-            <LayoutTemplate size={20}/>
-            <div>
-              <h3>6. تعديل الهيدر والفوتر وشاشة البداية</h3>
-              <p>تخصيص ألوان وأزرار الهيدر العلوي والفوتر السفلي وشاشة الترحيب</p>
-            </div>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              لون خلفية الهيدر العلوي
-              <div className="design-color-field">
-                <input type="color" value={draft.headerBgColor} onChange={(e) => updateField("headerBgColor", e.target.value)}/>
-                <input type="text" dir="ltr" value={draft.headerBgColor} onChange={(e) => updateField("headerBgColor", e.target.value)}/>
+        <>
+          <SectionDivider step="٧" label="الهيدر والفوتر وشريط الإعلانات" />
+          <section className={`design-group-card ${collapsedGroups.header ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("header")} aria-expanded={!collapsedGroups.header}>
+              <span className="design-group-icon"><LayoutTemplate size={20}/></span>
+              <div className="design-group-title">
+                <h3>7. تعديل الهيدر والفوتر وشريط الإعلان العلوي وشاشة البداية</h3>
+                <p>تخصيص الهيدر العلوي، الفوتر السفلي، شريط التنبيهات والتهنئة، وشاشة الترحيب</p>
               </div>
-            </label>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.header ? "is-collapsed" : ""}`}/>
+            </button>
 
-            <label className="field">
-              لون خلفية الفوتر السفلي
-              <div className="design-color-field">
-                <input type="color" value={draft.footerBgColor} onChange={(e) => updateField("footerBgColor", e.target.value)}/>
-                <input type="text" dir="ltr" value={draft.footerBgColor} onChange={(e) => updateField("footerBgColor", e.target.value)}/>
+            {!collapsedGroups.header && (
+              <div className="design-group-content">
+                <InnerDivider title="شريط الإعلان أو الترحيب العلوي (أعلى الهيدر)" subtitle="مثالي للتهنئة بالمناسبات أو كتابة تنبيه هام لأهل القرية" />
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.announcementEnabled} onChange={(e) => updateField("announcementEnabled", e.target.checked)}/>تفعيل وإظهار شريط الإعلان والتنبيه أعلى الموقع</label>
+                </div>
+                {draft.announcementEnabled && (
+                  <div className="form-row design-two-col">
+                    <label className="field">
+                      نص الشريط العلوي
+                      <input
+                        value={draft.announcementText}
+                        onChange={(e) => updateField("announcementText", e.target.value)}
+                        maxLength={240}
+                        placeholder="اكتب نص الترحيب أو الإعلان..."
+                      />
+                    </label>
+                    <ColorPickerField
+                      label="لون خلفية الشريط العلوي"
+                      value={draft.announcementBgColor}
+                      swatches={QUICK_SWATCHES.button}
+                      onChange={(hex) => updateField("announcementBgColor", hex)}
+                    />
+                  </div>
+                )}
+
+                <InnerDivider title="ألوان وشعار الهيدر والفوتر" />
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون خلفية الهيدر العلوي"
+                    value={draft.headerBgColor}
+                    swatches={QUICK_SWATCHES.headerBg}
+                    onChange={(hex) => updateField("headerBgColor", hex)}
+                  />
+                  <ColorPickerField
+                    label="لون خلفية الفوتر السفلي"
+                    value={draft.footerBgColor}
+                    swatches={QUICK_SWATCHES.footerBg}
+                    onChange={(hex) => updateField("footerBgColor", hex)}
+                  />
+                </div>
+
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    رابط صورة لوجو مخصص في الهيدر (اختياري)
+                    <input
+                      type="text"
+                      dir="ltr"
+                      value={draft.headerLogoUrl}
+                      onChange={(e) => updateField("headerLogoUrl", e.target.value)}
+                      placeholder="اتركه فارغاً للنص الافتراضي أو ضع رابط صورة"
+                    />
+                  </label>
+
+                  <label className="field">
+                    مدة ظهور شاشة البداية (Splash Screen)
+                    <SelectField value={draft.splashDuration} onChange={(e) => updateField("splashDuration", e.target.value as DesignSettings["splashDuration"])}>
+                      <option value="900">سريعة (0.9 ثانية - الافتراضي)</option>
+                      <option value="1500">متوسطة (1.5 ثانية)</option>
+                      <option value="2500">طويلة (2.5 ثانية)</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <label className="field">
+                  رابط صورة شاشة البداية (Splash Screen)
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={draft.splashImageUrl}
+                    onChange={(e) => updateField("splashImageUrl", e.target.value)}
+                    placeholder="/images/logo-daleel-transparent.png"
+                  />
+                </label>
+
+                <InnerDivider title="إظهار وإخفاء عناصر الهيدر والفوتر" />
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.headerSticky} onChange={(e) => updateField("headerSticky", e.target.checked)}/>تثبيت الهيدر أعلى الشاشة عند التمرير</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderBell} onChange={(e) => updateField("showHeaderBell", e.target.checked)}/>إظهار جرس الإشعارات في الهيدر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderFavorites} onChange={(e) => updateField("showHeaderFavorites", e.target.checked)}/>إظهار زر المفضلة في الهيدر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderDarkToggle} onChange={(e) => updateField("showHeaderDarkToggle", e.target.checked)}/>إظهار زر الوضع الليلي في الهيدر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderLoginBtn} onChange={(e) => updateField("showHeaderLoginBtn", e.target.checked)}/>إظهار زر دخول الأعضاء في الهيدر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterWhatsapp} onChange={(e) => updateField("showFooterWhatsapp", e.target.checked)}/>إظهار زر واتساب الإدارة في الفوتر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.floatingWhatsappEnabled} onChange={(e) => updateField("floatingWhatsappEnabled", e.target.checked)}/>إظهار زر واتساب عائم سريع على الموبايل</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.splashEnabled} onChange={(e) => updateField("splashEnabled", e.target.checked)}/>تفعيل شاشة البداية الترحيبية عند أول فتح</label>
+                </div>
               </div>
-            </label>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              رابط صورة لوجو مخصص في الهيدر (اختياري)
-              <input
-                type="text"
-                dir="ltr"
-                value={draft.headerLogoUrl}
-                onChange={(e) => updateField("headerLogoUrl", e.target.value)}
-                placeholder="اتركه فارغاً للنص الافتراضي أو ضع رابط صورة"
-              />
-            </label>
-
-            <label className="field">
-              مدة ظهور شاشة البداية
-              <SelectField value={draft.splashDuration} onChange={(e) => updateField("splashDuration", e.target.value as DesignSettings["splashDuration"])}>
-                <option value="900">سريعة (0.9 ثانية - الافتراضي)</option>
-                <option value="1500">متوسطة (1.5 ثانية)</option>
-                <option value="2500">طويلة (2.5 ثانية)</option>
-              </SelectField>
-            </label>
-          </div>
-
-          <label className="field">
-            رابط صورة شاشة البداية (Splash Screen)
-            <input
-              type="text"
-              dir="ltr"
-              value={draft.splashImageUrl}
-              onChange={(e) => updateField("splashImageUrl", e.target.value)}
-              placeholder="/images/logo-daleel-transparent.png"
-            />
-          </label>
-
-          <div className="design-toggles-grid">
-            <label className="checkbox-field"><input type="checkbox" checked={draft.headerSticky} onChange={(e) => updateField("headerSticky", e.target.checked)}/>تثبيت الهيدر أعلى الشاشة عند التمرير</label>
-            <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderBell} onChange={(e) => updateField("showHeaderBell", e.target.checked)}/>إظهار جرس الإشعارات في الهيدر</label>
-            <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderFavorites} onChange={(e) => updateField("showHeaderFavorites", e.target.checked)}/>إظهار زر المفضلة في الهيدر</label>
-            <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderDarkToggle} onChange={(e) => updateField("showHeaderDarkToggle", e.target.checked)}/>إظهار زر الوضع الليلي في الهيدر</label>
-            <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderLoginBtn} onChange={(e) => updateField("showHeaderLoginBtn", e.target.checked)}/>إظهار زر دخول الأعضاء في الهيدر</label>
-            <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterWhatsapp} onChange={(e) => updateField("showFooterWhatsapp", e.target.checked)}/>إظهار زر واتساب الإدارة في الفوتر</label>
-            <label className="checkbox-field"><input type="checkbox" checked={draft.splashEnabled} onChange={(e) => updateField("splashEnabled", e.target.checked)}/>تفعيل شاشة البداية الترحيبية عند أول فتح</label>
-          </div>
-        </section>
+            )}
+          </section>
+        </>
       )}
 
-      {/* 7. Login & Register Customizer */}
+      {/* 8. Login & Register Customizer */}
       {(activeFilter === "all" || activeFilter === "auth") && (
-        <section className="design-group-card">
-          <div className="design-group-head">
-            <LockKeyhole size={20}/>
-            <div>
-              <h3>7. تعديل شكل وصورة ونصوص تسجيل الدخول والعضوية</h3>
-              <p>تحكم في صورة البانر الترحيبي وعناوين وشكل خانات شاشة الدخول وإنشاء العضوية</p>
-            </div>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              عنوان شاشة تسجيل الدخول
-              <input value={draft.loginTitle} onChange={(e) => updateField("loginTitle", e.target.value)} maxLength={120}/>
-            </label>
-            <label className="field">
-              وصف شاشة تسجيل الدخول
-              <input value={draft.loginSubtitle} onChange={(e) => updateField("loginSubtitle", e.target.value)} maxLength={180}/>
-            </label>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              عنوان شاشة إنشاء العضوية
-              <input value={draft.registerTitle} onChange={(e) => updateField("registerTitle", e.target.value)} maxLength={120}/>
-            </label>
-            <label className="field">
-              وصف شاشة إنشاء العضوية
-              <input value={draft.registerSubtitle} onChange={(e) => updateField("registerSubtitle", e.target.value)} maxLength={180}/>
-            </label>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              رابط صورة مخصصة لبانر الدخول والعضوية (اختياري)
-              <input
-                type="text"
-                dir="ltr"
-                value={draft.authBannerImage}
-                onChange={(e) => updateField("authBannerImage", e.target.value)}
-                placeholder="مثال: /images/hero-category-transparent.webp"
-              />
-            </label>
-
-            <label className="field">
-              ترتيب خانات تسجيل العضوية
-              <SelectField value={draft.authFieldsLayout} onChange={(e) => updateField("authFieldsLayout", e.target.value as DesignSettings["authFieldsLayout"])}>
-                <option value="two-col">خانتين جنب بعض (مدمج ومختصر - الافتراضي)</option>
-                <option value="one-col">خانة واحدة في كل سطر تحت بعض</option>
-              </SelectField>
-            </label>
-          </div>
-
-          <div className="form-row compact-two-col">
-            <label className="field">
-              لون بوردر خانات الإدخال (Textboxes) في الدخول والعضوية
-              <div className="design-color-field">
-                <input type="color" value={draft.authInputBorderColor} onChange={(e) => updateField("authInputBorderColor", e.target.value)}/>
-                <input type="text" dir="ltr" value={draft.authInputBorderColor} onChange={(e) => updateField("authInputBorderColor", e.target.value)}/>
+        <>
+          <SectionDivider step="٨" label="تسجيل الدخول والعضوية" />
+          <section className={`design-group-card ${collapsedGroups.auth ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("auth")} aria-expanded={!collapsedGroups.auth}>
+              <span className="design-group-icon"><LockKeyhole size={20}/></span>
+              <div className="design-group-title">
+                <h3>8. تعديل شكل وصورة ونصوص تسجيل الدخول والعضوية</h3>
+                <p>تحكم في صورة البانر الترحيبي وعناوين وشكل خانات شاشة الدخول وإنشاء العضوية</p>
               </div>
-            </label>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.auth ? "is-collapsed" : ""}`}/>
+            </button>
 
-            <div className="field" style={{ justifyContent: "flex-end" }}>
-              <label className="checkbox-field" style={{ minHeight: 44 }}>
-                <input type="checkbox" checked={draft.authShowBanner} onChange={(e) => updateField("authShowBanner", e.target.checked)}/>
-                إظهار البانر الترحيبي العلوي في شاشات الدخول والعضوية
-              </label>
-            </div>
-          </div>
-        </section>
+            {!collapsedGroups.auth && (
+              <div className="design-group-content">
+                <InnerDivider title="عناوين ونصوص شاشة تسجيل الدخول والعضوية" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    عنوان شاشة تسجيل الدخول
+                    <input value={draft.loginTitle} onChange={(e) => updateField("loginTitle", e.target.value)} maxLength={120}/>
+                  </label>
+                  <label className="field">
+                    وصف شاشة تسجيل الدخول
+                    <input value={draft.loginSubtitle} onChange={(e) => updateField("loginSubtitle", e.target.value)} maxLength={180}/>
+                  </label>
+                </div>
+
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    عنوان شاشة إنشاء العضوية
+                    <input value={draft.registerTitle} onChange={(e) => updateField("registerTitle", e.target.value)} maxLength={120}/>
+                  </label>
+                  <label className="field">
+                    وصف شاشة إنشاء العضوية
+                    <input value={draft.registerSubtitle} onChange={(e) => updateField("registerSubtitle", e.target.value)} maxLength={180}/>
+                  </label>
+                </div>
+
+                <InnerDivider title="صورة البانر وترتيب ولون الخانات" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    رابط صورة مخصصة لبانر الدخول والعضوية (اختياري)
+                    <input
+                      type="text"
+                      dir="ltr"
+                      value={draft.authBannerImage}
+                      onChange={(e) => updateField("authBannerImage", e.target.value)}
+                      placeholder="مثال: /images/hero-category-transparent.webp"
+                    />
+                  </label>
+
+                  <label className="field">
+                    ترتيب خانات تسجيل العضوية
+                    <SelectField value={draft.authFieldsLayout} onChange={(e) => updateField("authFieldsLayout", e.target.value as DesignSettings["authFieldsLayout"])}>
+                      <option value="two-col">خانتين جنب بعض (مدمج ومختصر - الافتراضي)</option>
+                      <option value="one-col">خانة واحدة في كل سطر تحت بعض</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون بوردر خانات الإدخال (Textboxes)"
+                    value={draft.authInputBorderColor}
+                    swatches={QUICK_SWATCHES.border}
+                    onChange={(hex) => updateField("authInputBorderColor", hex)}
+                  />
+
+                  <div className="field" style={{ justifyContent: "flex-end" }}>
+                    <label className="checkbox-field" style={{ minHeight: 44 }}>
+                      <input type="checkbox" checked={draft.authShowBanner} onChange={(e) => updateField("authShowBanner", e.target.checked)}/>
+                      إظهار البانر الترحيبي العلوي في شاشات الدخول والعضوية
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        </>
       )}
 
-      <div className="form-submit-center">
-        <button type="submit" className="button button-primary form-submit" disabled={saving}>
-          {saving ? <LoaderCircle size={18} className="spin"/> : <Check size={18}/>}
-          حفظ وتطبيق المظهر والهيكل على الموقع
+      {/* Sticky / Floating Bottom Save Bar for Mobile & Desktop */}
+      <div className="design-mobile-sticky-bar">
+        <button type="button" className="button button-soft button-small" onClick={resetAll}>
+          <RotateCcw size={15}/>
+          <span>افتراضي</span>
+        </button>
+        <button type="submit" className="button button-primary design-sticky-save-btn" disabled={saving}>
+          {saving ? <LoaderCircle size={17} className="spin"/> : <Check size={17}/>}
+          <span>حفظ وتطبيق المظهر على الموقع</span>
         </button>
       </div>
     </form>

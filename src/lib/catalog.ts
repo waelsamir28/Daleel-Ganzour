@@ -488,6 +488,22 @@ export type DesignSettings = {
   registerSubtitle: string;
   authFieldsLayout: "two-col" | "one-col";
   authInputBorderColor: string;
+  // 8. Additional Components: Top Announcement Bar, Hero & Search, Provider Cards, Spacing & Dividers
+  announcementEnabled: boolean;
+  announcementText: string;
+  announcementBgColor: string;
+  announcementStyle: "static" | "badge" | "soft";
+  heroStyle: "sky-banner" | "gradient-card" | "compact-minimal";
+  searchBoxStyle: "rounded" | "pill" | "floating-glass";
+  providerCardLayout: "classic" | "compact" | "centered";
+  showProviderBadges: boolean;
+  showProviderShareBtn: boolean;
+  showProviderWhatsappBtn: boolean;
+  whatsappButtonColor: string;
+  sectionSpacing: "compact" | "normal" | "relaxed";
+  cardHoverEffect: "lift" | "glow" | "scale" | "none";
+  sectionDividerStyle: "none" | "line" | "dots" | "gradient";
+  floatingWhatsappEnabled: boolean;
 };
 
 export const defaultDesignSettings: DesignSettings = {
@@ -544,6 +560,21 @@ export const defaultDesignSettings: DesignSettings = {
   registerSubtitle: "عضوية مجانية وسريعة لأهالي قرية جنزور",
   authFieldsLayout: "two-col",
   authInputBorderColor: "#c8ddf0",
+  announcementEnabled: false,
+  announcementText: "أهلاً بكم في دليل جنزور — أضف مهنتك مجاناً وتواصل مع أهل القرية مباشرة",
+  announcementBgColor: "#0c72c7",
+  announcementStyle: "static",
+  heroStyle: "sky-banner",
+  searchBoxStyle: "rounded",
+  providerCardLayout: "classic",
+  showProviderBadges: true,
+  showProviderShareBtn: true,
+  showProviderWhatsappBtn: true,
+  whatsappButtonColor: "#1fa855",
+  sectionSpacing: "normal",
+  cardHoverEffect: "lift",
+  sectionDividerStyle: "none",
+  floatingWhatsappEnabled: false,
 };
 
 export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
@@ -647,6 +678,22 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.registerSubtitle = pickText(record.registerSubtitle, defaultDesignSettings.registerSubtitle, 180);
   next.authFieldsLayout = pickEnum(record.authFieldsLayout, ["two-col", "one-col"] as const, defaultDesignSettings.authFieldsLayout);
   next.authInputBorderColor = hexColor(record.authInputBorderColor, defaultDesignSettings.authInputBorderColor);
+
+  next.announcementEnabled = pickBool(record.announcementEnabled, defaultDesignSettings.announcementEnabled);
+  next.announcementText = pickText(record.announcementText, defaultDesignSettings.announcementText, 240);
+  next.announcementBgColor = hexColor(record.announcementBgColor, defaultDesignSettings.announcementBgColor);
+  next.announcementStyle = pickEnum(record.announcementStyle, ["static", "badge", "soft"] as const, defaultDesignSettings.announcementStyle);
+  next.heroStyle = pickEnum(record.heroStyle, ["sky-banner", "gradient-card", "compact-minimal"] as const, defaultDesignSettings.heroStyle);
+  next.searchBoxStyle = pickEnum(record.searchBoxStyle, ["rounded", "pill", "floating-glass"] as const, defaultDesignSettings.searchBoxStyle);
+  next.providerCardLayout = pickEnum(record.providerCardLayout, ["classic", "compact", "centered"] as const, defaultDesignSettings.providerCardLayout);
+  next.showProviderBadges = pickBool(record.showProviderBadges, defaultDesignSettings.showProviderBadges);
+  next.showProviderShareBtn = pickBool(record.showProviderShareBtn, defaultDesignSettings.showProviderShareBtn);
+  next.showProviderWhatsappBtn = pickBool(record.showProviderWhatsappBtn, defaultDesignSettings.showProviderWhatsappBtn);
+  next.whatsappButtonColor = hexColor(record.whatsappButtonColor, defaultDesignSettings.whatsappButtonColor);
+  next.sectionSpacing = pickEnum(record.sectionSpacing, ["compact", "normal", "relaxed"] as const, defaultDesignSettings.sectionSpacing);
+  next.cardHoverEffect = pickEnum(record.cardHoverEffect, ["lift", "glow", "scale", "none"] as const, defaultDesignSettings.cardHoverEffect);
+  next.sectionDividerStyle = pickEnum(record.sectionDividerStyle, ["none", "line", "dots", "gradient"] as const, defaultDesignSettings.sectionDividerStyle);
+  next.floatingWhatsappEnabled = pickBool(record.floatingWhatsappEnabled, defaultDesignSettings.floatingWhatsappEnabled);
 
   return next;
 }
