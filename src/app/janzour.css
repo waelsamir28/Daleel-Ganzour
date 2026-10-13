@@ -5287,6 +5287,430 @@ html.dark .shops-delivery-toggle-btn.is-active {
   color: #ffffff;
 }
 
+/* ==========================================================================
+   الاقتراح ١: قسم العيادات والأطباء (فلتر الحجز المسبق / بأسبقية الحضور + أيام التواجد)
+   الاقتراح ٤: قسم المحلات (قائمة الأصناف والأسعار المختصرة + اطلب عبر واتساب)
+   ========================================================================== */
+
+/* شريط فلترة العيادات والأطباء */
+.clinics-booking-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 18px;
+  margin-bottom: 18px;
+  border-radius: 18px;
+  border: 1.5px solid #a7f3d0;
+  background: linear-gradient(135deg, #ecfdf5 0%, #f7fee7 50%, #ffffff 100%);
+  box-shadow: 0 8px 22px rgba(16, 185, 129, .08);
+}
+.clinics-booking-filter-copy {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.clinics-booking-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(16, 185, 129, .24);
+}
+.clinics-booking-filter-copy strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #064e3b;
+}
+.clinics-booking-filter-copy span {
+  display: block;
+  font-size: 11.5px;
+  color: #047857;
+}
+.clinics-booking-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.clinic-booking-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #6ee7b7;
+  background: #ffffff;
+  color: #065f46;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.clinic-booking-chip:hover {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+.clinic-booking-chip.is-active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-color: #059669;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, .26);
+}
+.clinic-filter-tag {
+  background: #ecfdf5 !important;
+  border-color: #6ee7b7 !important;
+  color: #065f46 !important;
+}
+
+/* شارات كارت الطبيب (حجز مسبق / بأسبقية الحضور + أيام التواجد) وشارة قائمة المحل */
+.trust-badge.is-clinic-booking {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+.trust-badge.is-clinic-booking.is-appointment {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+.trust-badge.is-clinic-days {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+.trust-badge.is-clinic-days.is-today-open {
+  background: #f0fdf4;
+  border-color: #86efac;
+  color: #166534;
+}
+.trust-badge.is-shop-menu {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #0c4a6e;
+}
+
+/* بطاقة مواعيد الطبيب ونظام الكشف داخل نافذة التفاصيل */
+.detail-clinic-schedule-card {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1.5px solid #a7f3d0;
+  background: linear-gradient(145deg, #f0fdf4 0%, #ffffff 100%);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, .08);
+}
+.detail-clinic-schedule-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.detail-clinic-schedule-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #d1fae5;
+  color: #059669;
+  flex-shrink: 0;
+}
+.detail-clinic-schedule-head > div {
+  flex: 1;
+  min-width: 160px;
+  display: grid;
+  gap: 4px;
+}
+.detail-clinic-schedule-head h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: #064e3b;
+}
+.detail-clinic-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #047857;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+.detail-clinic-mode-pill.is-appointment {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+.detail-clinic-today-pill {
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+.detail-clinic-today-pill.is-open {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
+}
+.detail-clinic-days-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  background: #ffffff;
+  border: 1px dashed #a7f3d0;
+  color: #0f3d2e;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.detail-clinic-days-row svg {
+  color: #059669;
+  flex-shrink: 0;
+}
+.detail-clinic-book-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 12px;
+  font-weight: 900;
+}
+
+/* قائمة الأصناف والأسعار المختصرة داخل نافذة تفاصيل المحل + الطلب عبر واتساب */
+.detail-shop-catalog-card {
+  display: grid;
+  gap: 12px;
+  margin: 10px 0 14px;
+  padding: 15px 16px;
+  border-radius: 18px;
+  border: 1.5px solid #bae6fd;
+  background: linear-gradient(145deg, #f0f9ff 0%, #ffffff 100%);
+  box-shadow: 0 10px 24px rgba(2, 132, 199, .09);
+}
+.detail-shop-catalog-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.detail-shop-catalog-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.detail-shop-catalog-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.detail-shop-catalog-title h4 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #0c4a6e;
+}
+.detail-shop-catalog-title span {
+  display: block;
+  font-size: 11.5px;
+  color: #3b6b8c;
+}
+.detail-shop-selected-count {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 900;
+}
+.detail-shop-items-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 7px;
+}
+.detail-shop-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid #d8eaf8;
+  background: #ffffff;
+  color: #0f3254;
+  text-align: right;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.detail-shop-item-row:hover {
+  border-color: #38bdf8;
+  background: #f8fcff;
+}
+.detail-shop-item-row.is-selected {
+  border-color: #0284c7;
+  background: #e0f2fe;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, .14);
+}
+.detail-shop-item-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid #94a3b8;
+  background: #ffffff;
+  display: inline-grid;
+  place-items: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.detail-shop-item-check.is-checked {
+  background: #0284c7;
+  border-color: #0284c7;
+}
+.detail-shop-item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f3254;
+}
+.detail-shop-item-price {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.detail-shop-item-price.has-price {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+.detail-shop-order-controls {
+  display: grid;
+  gap: 9px;
+  padding-top: 6px;
+  border-top: 1px dashed #bae6fd;
+}
+.detail-shop-note-input {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 11px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f3254;
+  font-size: 12.5px;
+}
+.detail-shop-delivery-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0c4a6e;
+  cursor: pointer;
+}
+.detail-shop-whatsapp-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: 13px;
+  font-size: 14px;
+  font-weight: 900;
+}
+.shop-custom-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 8px;
+}
+.shop-custom-item-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 680px) {
+  .clinics-booking-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+  }
+  .clinics-booking-chips {
+    width: 100%;
+  }
+  .clinic-booking-chip {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+  }
+}
+
+html.dark .clinics-booking-filter-bar,
+html.dark .detail-clinic-schedule-card,
+html.dark .detail-shop-catalog-card {
+  background: #102338;
+  border-color: #244568;
+  color: #e4f1fe;
+}
+html.dark .clinics-booking-filter-copy strong,
+html.dark .detail-clinic-schedule-head h4,
+html.dark .detail-shop-catalog-title h4 {
+  color: #eaf4ff;
+}
+html.dark .clinics-booking-filter-copy span,
+html.dark .detail-shop-catalog-title span {
+  color: #b4cde6;
+}
+html.dark .clinic-booking-chip {
+  background: #0c1b2c;
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+html.dark .clinic-booking-chip.is-active {
+  background: #059669;
+  color: #ffffff;
+}
+html.dark .detail-clinic-days-row,
+html.dark .detail-shop-item-row,
+html.dark .detail-shop-note-input {
+  background: #0c1b2c;
+  border-color: #254668;
+  color: #e4f1fe;
+}
+html.dark .detail-shop-item-row.is-selected {
+  background: #132f4c;
+  border-color: #38bdf8;
+}
+html.dark .detail-shop-item-name,
+html.dark .detail-shop-delivery-check {
+  color: #eaf4ff;
+}
+
+
 
 
 

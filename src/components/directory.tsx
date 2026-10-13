@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
-import { defaultDesignSettings, ganzourTransitRoutes, getCategory, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import BusinessCardModal from "@/components/business-card-modal";
@@ -30,6 +30,10 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [prayerOpen, setPrayerOpen] = useState(false);
   const [openTeacherStage, setOpenTeacherStage] = useState<TeacherStageId | null>(null);
   const [teacherSpecialtyFilter, setTeacherSpecialtyFilter] = useState<string>(specialtyId ?? "");
+  const [clinicFilter, setClinicFilter] = useState<ClinicBookingFilter>("all");
+  const [selectedShopItems, setSelectedShopItems] = useState<string[]>([]);
+  const [shopOrderNote, setShopOrderNote] = useState("");
+  const [shopOrderDelivery, setShopOrderDelivery] = useState(true);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [dutyFilter, setDutyFilter] = useState<DutyFilter>("all"), [copiedUtilityId, setCopiedUtilityId] = useState("");
   const [completionService, setCompletionService] = useState<ServiceRecord | null>(null);
@@ -75,6 +79,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       source?.style.removeProperty("view-transition-name");
       setDetail(service);
       setDetailQr(false); setDetailUpdate(false); setRatingStars(0); setRatingComment(""); setRatingMessage("");
+      setSelectedShopItems([]); setShopOrderNote(""); setShopOrderDelivery(supportsHomeDelivery(service));
     });
   }
   const { settings, categories, services } = data;
@@ -176,7 +181,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   }
   function selectLocation(value: string, custom = "") { setArea(value); setCustomAddress(custom); setView("all"); setModal(null); scrollToProviders(); }
   function showEmergency() { setModal("emergency"); setMenuOpen(false); }
-  function clearFilters() { setRootFilter(rootId ?? ""); setArea(""); setCustomAddress(""); setQuery(""); setQueryDraft(""); setEmergency(false); setDeliveryOnly(false); setTeacherStage("all"); setOpenTeacherStage(null); setTeacherSpecialtyFilter(specialtyId ?? ""); setView("all"); }
+  function clearFilters() { setRootFilter(rootId ?? ""); setArea(""); setCustomAddress(""); setQuery(""); setQueryDraft(""); setEmergency(false); setDeliveryOnly(false); setTeacherStage("all"); setOpenTeacherStage(null); setTeacherSpecialtyFilter(specialtyId ?? ""); setClinicFilter("all"); setView("all"); }
   function toggleBigText() {
     const on = document.documentElement.classList.toggle("big-text");
     setBigText(on);
@@ -200,7 +205,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   async function requestServiceUpdate() { if (!detail) return; setUpdateMessage(""); const response = await fetch("/api/service-updates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ serviceId: detail.id, phone: updatePhone, note: updateNote }) }); const result = await response.json(); setUpdateMessage(result.message ?? "تعذر إرسال الطلب."); if (response.ok) { setUpdatePhone(""); setUpdateNote(""); } }
   const isTeachersContext = Boolean(rootId === "teachers" || rootFilter === "teachers" || (specialty && specialty.parentId === "teachers"));
   const isShopsContext = Boolean(rootId === "shops" || rootFilter === "shops" || (specialty && specialty.parentId === "shops"));
+  const isClinicsContext = Boolean(rootId === "clinics" || rootFilter === "clinics" || (specialty && specialty.parentId === "clinics"));
   const activeDeliveryOnly = isShopsContext && deliveryOnly;
+  const activeClinicFilter: ClinicBookingFilter = isClinicsContext ? clinicFilter : "all";
   const activeSpecialtyId = isTeachersContext ? teacherSpecialtyFilter : (specialtyId ?? "");
   const teacherSpecialties = useMemo(
     () => categories.filter((category) => category.parentId === "teachers" && category.active),
@@ -209,6 +216,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const filteredServices = useMemo(() => services.filter((service) => {
     const item = getCategory(service.category, categories);
     return (!activeDeliveryOnly || supportsHomeDelivery(service))
+      && (!isClinicsContext || activeClinicFilter === "all" || matchesClinicFilter(service, activeClinicFilter, now || undefined))
       && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage))
       && (!activeSpecialtyId || service.category === activeSpecialtyId)
       && (!rootFilter || item.parentId === rootFilter)
@@ -217,8 +225,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress)))
       && (!emergency || service.emergency)
       && (view !== "favorites" || favorites.includes(service.id));
-  }), [services, categories, activeSpecialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, activeDeliveryOnly, isTeachersContext, teacherStage]);
-  const isFiltering = Boolean(activeDeliveryOnly || (isTeachersContext && (teacherStage !== "all" || Boolean(teacherSpecialtyFilter))) || query || area || emergency || view === "favorites" || (!rootId && rootFilter));
+  }), [services, categories, activeSpecialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, activeDeliveryOnly, isClinicsContext, activeClinicFilter, now, isTeachersContext, teacherStage]);
+  const isFiltering = Boolean(activeDeliveryOnly || (isClinicsContext && activeClinicFilter !== "all") || (isTeachersContext && (teacherStage !== "all" || Boolean(teacherSpecialtyFilter))) || query || area || emergency || view === "favorites" || (!rootId && rootFilter));
   const isFeaturedCollapsible = !isFiltering && !specialty;
   const showProvidersList = !isFeaturedCollapsible || featuredOpen;
   const featured = filteredServices.filter((service) => service.featured);
@@ -229,7 +237,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const title = specialty ? `${specialty.name} بقرية جنزور` : root ? `${root.name} بقرية جنزور` : settings.siteName;
   function categoryCount(category: CategoryRecord) {
     if (category.parentId) {
-      return services.filter((service) => service.category === category.id && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage))).length;
+      return services.filter((service) => service.category === category.id && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage)) && (!isClinicsContext || activeClinicFilter === "all" || matchesClinicFilter(service, activeClinicFilter, now || undefined))).length;
     }
     return categories.filter((item) => item.parentId === category.id).length;
   }
@@ -669,6 +677,39 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </button>
         </div>
       )}
+      {isClinicsContext && (
+        <div className="clinics-booking-filter-bar" role="region" aria-label="فلتر نظام الكشف وأيام التواجد في قسم العيادات" style={scoped ? { order: 1 } : undefined}>
+          <div className="clinics-booking-filter-copy">
+            <span className="clinics-booking-icon"><Stethoscope size={19}/></span>
+            <div>
+              <strong>نظام الكشف ومواعيد تواجد الأطباء في جنزور</strong>
+              <span>فلتر الأطباء حسب طريقة الحجز (حجز مسبق أو بأسبقية الحضور) أو المتواجدين اليوم</span>
+            </div>
+          </div>
+          <div className="clinics-booking-chips" role="tablist" aria-label="فلترة العيادات والأطباء">
+            {([
+              { id: "all" as ClinicBookingFilter, label: "كل الأطباء" },
+              { id: "appointment" as ClinicBookingFilter, label: "📅 بحجز مسبق" },
+              { id: "walk-in" as ClinicBookingFilter, label: "🚶 بأسبقية الحضور" },
+              { id: "open-today" as ClinicBookingFilter, label: "✅ متواجد اليوم" },
+            ]).map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="tab"
+                aria-selected={clinicFilter === option.id}
+                className={`clinic-booking-chip ${clinicFilter === option.id ? "is-active" : ""}`}
+                onClick={() => {
+                  setClinicFilter(option.id);
+                  if (option.id !== "all") setFeaturedOpen(true);
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {!isTeachersContext && !specialty && (scoped || design.showCategoriesSection) && (
         <section
           id="categories"
@@ -751,7 +792,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || activeSpecialtyCategory) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
-      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
+      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
         <div className="category-grid main-category-grid feature-cards-grid">
           <button
@@ -1073,9 +1114,141 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         {detail.phoneSecondary && <div><dt>هاتف إضافي</dt><dd dir="ltr">{detail.phoneSecondary}</dd></div>}
       </dl>
       {detail.menuUrl && <a className="button button-soft detail-menu-button" href={detail.menuUrl} target="_blank" rel="noopener noreferrer">عرض المنيو</a>}
+      {getCategory(detail.category, categories).parentId === "clinics" && (() => {
+        const currentDoc = liveDetail ?? detail;
+        const bookingMode = getClinicBookingMode(currentDoc);
+        const schedule = getClinicScheduleSummary(currentDoc, now || undefined);
+        return (
+          <section className="detail-clinic-schedule-card" aria-label="نظام الكشف ومواعيد تواجد الطبيب">
+            <div className="detail-clinic-schedule-head">
+              <span className="detail-clinic-schedule-icon"><Stethoscope size={19}/></span>
+              <div>
+                <h4>نظام الكشف وأيام التواجد بالعيادة</h4>
+                <span className={`detail-clinic-mode-pill is-${bookingMode}`}>
+                  <CalendarCheck size={13}/>
+                  {getClinicBookingLabel(bookingMode)}
+                </span>
+              </div>
+              <span className={`detail-clinic-today-pill ${schedule.isOpenToday ? "is-open" : "is-closed"}`}>
+                {schedule.todayHoursText}
+              </span>
+            </div>
+            <div className="detail-clinic-days-row">
+              <Clock size={15}/>
+              <span>{schedule.daysText}</span>
+            </div>
+            <a
+              href={whatsappUrl(
+                detail.phone,
+                `مرحبًا ${detail.name}، وصلت إليك من دليل جنزور. أود الاستفسار عن مواعيد الكشف (${getClinicBookingLabel(bookingMode)})${contactArea ? ` — العنوان: ${contactArea}` : ""}.`,
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button button-whatsapp button-small detail-clinic-book-btn"
+              onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+            >
+              <MessageCircle size={16}/>
+              <span>احجز أو استفسر عن موعد عبر واتساب</span>
+            </a>
+          </section>
+        );
+      })()}
+      {getCategory(detail.category, categories).parentId === "shops" && (() => {
+        const currentShop = liveDetail ?? detail;
+        const catalogItems = getShopCatalogItems(currentShop);
+        const shopHasDelivery = supportsHomeDelivery(currentShop);
+        if (!catalogItems.length) return null;
+        return (
+          <section className="detail-shop-catalog-card" aria-label="قائمة الأصناف والأسعار المختصرة للطلب السريع">
+            <div className="detail-shop-catalog-head">
+              <div className="detail-shop-catalog-title">
+                <span className="detail-shop-catalog-icon"><ShoppingBag size={18}/></span>
+                <div>
+                  <h4>قائمة الأصناف والعروض المتاحة</h4>
+                  <span>حدد الأصناف التي تريدها واضغط «اطلب عبر واتساب» لتجهيز الرسالة تلقائياً</span>
+                </div>
+              </div>
+              {selectedShopItems.length > 0 && (
+                <span className="detail-shop-selected-count">{selectedShopItems.length} أصناف محددة</span>
+              )}
+            </div>
+            <ul className="detail-shop-items-list">
+              {catalogItems.map((item) => {
+                const isSelected = selectedShopItems.includes(item.raw);
+                return (
+                  <li key={item.raw}>
+                    <button
+                      type="button"
+                      className={`detail-shop-item-row ${isSelected ? "is-selected" : ""}`}
+                      aria-pressed={isSelected}
+                      onClick={() => {
+                        setSelectedShopItems((curr) =>
+                          curr.includes(item.raw) ? curr.filter((x) => x !== item.raw) : [...curr, item.raw],
+                        );
+                      }}
+                    >
+                      <span className={`detail-shop-item-check ${isSelected ? "is-checked" : ""}`} aria-hidden="true">
+                        {isSelected && <Check size={13}/>}
+                      </span>
+                      <span className="detail-shop-item-name">{item.name}</span>
+                      <span className={`detail-shop-item-price ${item.price ? "has-price" : ""}`}>
+                        {item.price || "متوفر للطلب"}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="detail-shop-order-controls">
+              <input
+                type="text"
+                className="detail-shop-note-input"
+                value={shopOrderNote}
+                onChange={(event) => setShopOrderNote(event.target.value)}
+                placeholder="أضف الكمية أو ملاحظة للطلب (اختياري)..."
+                maxLength={160}
+              />
+              {shopHasDelivery && (
+                <label className="detail-shop-delivery-check">
+                  <input
+                    type="checkbox"
+                    checked={shopOrderDelivery}
+                    onChange={(event) => setShopOrderDelivery(event.target.checked)}
+                  />
+                  <Truck size={14}/>
+                  <span>طلب توصيل للمنزل بجنزور</span>
+                </label>
+              )}
+              <a
+                href={whatsappUrl(
+                  detail.phone,
+                  buildShopWhatsappOrderMessage(
+                    detail,
+                    selectedShopItems,
+                    contactArea,
+                    shopOrderNote,
+                    shopHasDelivery && shopOrderDelivery,
+                  ),
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button button-whatsapp detail-shop-whatsapp-btn"
+                onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+              >
+                <MessageCircle size={18}/>
+                <span>
+                  {selectedShopItems.length > 0
+                    ? `اطلب الأصناف المحددة عبر واتساب (${selectedShopItems.length})`
+                    : "اطلب أو استفسر عن الأصناف عبر واتساب"}
+                </span>
+              </a>
+            </div>
+          </section>
+        );
+      })()}
       <div className="detail-about"><h4>نبذة عن الخدمة</h4><p>{detail.description}</p></div>
       {liveDetail?.subSpecialties?.length ? <section className="detail-subspec"><h4>التخصصات الفرعية</h4><ul>{liveDetail.subSpecialties.map((item) => <li key={item}>{item}</li>)}</ul></section> : null}
-      {liveDetail?.serviceItems?.length ? <section className="detail-service-items"><h4>الخدمات التفصيلية</h4><ul>{liveDetail.serviceItems.map((item) => <li key={item}>{item} <a href={whatsappUrl(detail.phone, serviceWhatsappMessage(detail, getCategory(detail.category, categories).name, contactArea, item))} target="_blank" rel="noopener noreferrer">اسأل على واتساب</a></li>)}</ul></section> : null}
+      {liveDetail?.serviceItems?.length && getCategory(detail.category, categories).parentId !== "shops" ? <section className="detail-service-items"><h4>الخدمات التفصيلية</h4><ul>{liveDetail.serviceItems.map((item) => <li key={item}>{item} <a href={whatsappUrl(detail.phone, serviceWhatsappMessage(detail, getCategory(detail.category, categories).name, contactArea, item))} target="_blank" rel="noopener noreferrer">اسأل على واتساب</a></li>)}</ul></section> : null}
       {detail.comments?.length ? <section className="detail-comments"><h4>آراء الأعضاء ({detail.comments.length})</h4><ul>{detail.comments.map((item, index) => <li key={index}><span className="comment-stars" aria-label={`${item.stars} من 5`}>{[1, 2, 3, 4, 5].map((step) => <Star key={step} size={13} fill={step <= item.stars ? "currentColor" : "none"}/>)}</span><p>{item.comment}</p><small>{item.member} • {new Date(item.date).toLocaleDateString("ar-EG")}</small></li>)}</ul></section> : null}
       {viewer.role === "guest" ? <p className="rating-login-hint"><Star size={14}/><span>عندك عضوية؟ <a href="/login">سجّل دخولك</a> لتقييم {detail.name}.. تقييمات الأعضاء بتظهر بعد مراجعة الإدارة.</span></p> : <div className="member-rating"><h4>قيّم {detail.name}</h4><div className="member-rating-stars">{[1, 2, 3, 4, 5].map((step) => <button type="button" key={step} className={step <= ratingStars ? "is-on" : ""} aria-label={`تقييم ${step} من 5`} aria-pressed={ratingStars === step} onClick={() => setRatingStars(step)}><Star size={21} fill={step <= ratingStars ? "currentColor" : "none"}/></button>)}</div><input value={ratingComment} onChange={(event) => setRatingComment(event.target.value)} placeholder="تعليق اختياري.." maxLength={300}/><button type="button" className="button button-success button-small" disabled={!ratingStars || ratingBusy} onClick={() => void submitRating()}>{ratingBusy ? "جاري الإرسال.." : "إرسال التقييم"}</button>{ratingMessage && <small role="status">{ratingMessage}</small>}<small className="member-rating-note">تقييمك يظهر بعد مراجعة الإدارة، ولو قيّمت قبل كده تقييمك الجديد يحل محله.</small></div>}
       <div className="detail-tools">
@@ -1141,6 +1314,11 @@ function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, on
   const trustBadges = getServiceTrustBadges(service, now);
   const hasDelivery = supportsHomeDelivery(service);
   const teacherStages = category.parentId === "teachers" ? getTeacherStagesForService(service) : [];
+  const isClinic = category.parentId === "clinics";
+  const clinicMode = isClinic ? getClinicBookingMode(service) : null;
+  const clinicSchedule = isClinic ? getClinicScheduleSummary(service, now || undefined) : null;
+  const isShop = category.parentId === "shops";
+  const shopItemsCount = isShop ? getShopCatalogItems(service).length : 0;
   const completionStatus = service.completionStatus ?? "none";
   async function copyNumber(event: MouseEvent) { event.stopPropagation(); try { await navigator.clipboard.writeText(service.phone); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { /* Clipboard permissions may be unavailable. */ } }
   return <article className="provider-card" data-service-id={service.id} role="button" tabIndex={0} aria-label={`عرض تفاصيل ${service.name}`} style={categoryTheme(category)} onClick={() => onOpen(service)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen(service); } }}>
@@ -1151,8 +1329,23 @@ function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, on
         <span className="provider-specialty">{category.name}</span>{service.verified && <span className="provider-verified"><ShieldCheck size={13}/>تم التحقق بالمعاينة</span>}
         <ProviderRating value={service.rating} reviews={service.reviews}/>
         <span className="provider-address"><MapPin size={13}/>{service.address || service.area}</span>
-        {(hasDelivery || teacherStages.length > 0 || trustBadges.length > 0) && (
+        {(hasDelivery || isClinic || shopItemsCount > 0 || teacherStages.length > 0 || trustBadges.length > 0) && (
           <div className="provider-trust-badges">
+            {isClinic && clinicMode && (
+              <span className={`trust-badge is-clinic-booking is-${clinicMode}`}>
+                <CalendarCheck size={11}/> {getClinicBookingLabel(clinicMode)}
+              </span>
+            )}
+            {isClinic && clinicSchedule && (
+              <span className={`trust-badge is-clinic-days ${clinicSchedule.isOpenToday ? "is-today-open" : ""}`}>
+                <Clock size={11}/> {clinicSchedule.daysText}
+              </span>
+            )}
+            {isShop && shopItemsCount > 0 && (
+              <span className="trust-badge is-shop-menu">
+                <ShoppingBag size={11}/> قائمة الأصناف والطلب ({shopItemsCount})
+              </span>
+            )}
             {hasDelivery && (
               <span className="trust-badge is-delivery">
                 <Truck size={11}/> 🛵 يوجد توصيل للمنازل
