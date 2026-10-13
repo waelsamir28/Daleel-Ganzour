@@ -1048,6 +1048,7 @@ export type DesignSettings = {
   sponsorModalOfferBanner: string;
   sponsorModalPhone: string;
   showDailyOffersSection: boolean;
+  showSponsorsRibbon: boolean;
   sponsoredProvidersJson: string;
 };
 
@@ -1064,6 +1065,105 @@ export type SponsoredProviderConfig = {
   tickerAdText: string;
   trialStartDate: string;
 };
+
+export type SponsorTrialStatus = {
+  isTrial: boolean;
+  totalDays: number;
+  elapsedDays: number;
+  remainingDays: number;
+  isExpired: boolean;
+  isExpiringSoon: boolean;
+  progressPercent: number;
+  statusLabel: string;
+  endDateFormatted: string;
+  tone: "emerald" | "amber" | "red" | "gold";
+};
+
+export function getSponsorTrialStatus(
+  sponsor: Pick<SponsoredProviderConfig, "planType" | "trialStartDate">,
+  nowInput: Date | number = new Date(),
+): SponsorTrialStatus {
+  const totalDays = 10;
+  const nowDate = typeof nowInput === "number" ? new Date(nowInput) : nowInput;
+  const nowUtcMidnight = Date.UTC(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+
+  const parts = (sponsor.trialStartDate || "").split("-").map((n) => Number.parseInt(n, 10));
+  const startUtcMidnight =
+    parts.length === 3 && parts.every((n) => Number.isFinite(n))
+      ? Date.UTC(parts[0], parts[1] - 1, parts[2])
+      : nowUtcMidnight;
+
+  const endUtc = startUtcMidnight + totalDays * 86_400_000;
+  const endDateObj = new Date(endUtc);
+  const endDateFormatted = `${endDateObj.getUTCFullYear()}-${String(endDateObj.getUTCMonth() + 1).padStart(2, "0")}-${String(endDateObj.getUTCDate()).padStart(2, "0")}`;
+
+  if (sponsor.planType === "monthly-vip") {
+    return {
+      isTrial: false,
+      totalDays: 30,
+      elapsedDays: 0,
+      remainingDays: 30,
+      isExpired: false,
+      isExpiringSoon: false,
+      progressPercent: 100,
+      statusLabel: "👑 اشتراك باقة التميز VIP مفعل",
+      endDateFormatted,
+      tone: "gold",
+    };
+  }
+
+  const rawDiffDays = Math.floor((nowUtcMidnight - startUtcMidnight) / 86_400_000);
+  const elapsedDays = Math.max(0, rawDiffDays);
+  const remainingDays = Math.max(0, totalDays - elapsedDays);
+  const isExpired = elapsedDays >= totalDays;
+  const isExpiringSoon = !isExpired && remainingDays <= 3;
+  const progressPercent = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+
+  let statusLabel = `⏳ التجربة المجانية سارية — متبقي ${remainingDays} أيام من ١٠ (مضى ${elapsedDays} يوم)`;
+  let tone: SponsorTrialStatus["tone"] = "emerald";
+
+  if (isExpired) {
+    statusLabel = "🚨 انتهت الـ ١٠ أيام المجانية — بانتظار تجديد الاشتراك!";
+    tone = "red";
+  } else if (isExpiringSoon) {
+    statusLabel = `⚠️ قاربت التجربة على الانتهاء — متبقي ${remainingDays} أيام فقط (مضى ${elapsedDays} يوم)`;
+    tone = "amber";
+  }
+
+  return {
+    isTrial: true,
+    totalDays,
+    elapsedDays,
+    remainingDays,
+    isExpired,
+    isExpiringSoon,
+    progressPercent,
+    statusLabel,
+    endDateFormatted,
+    tone,
+  };
+}
+
+export type DailyOfferFilterGroup = "all" | "clinics" | "labs" | "shops";
+
+export function getSponsorOfferCategoryGroup(
+  sponsor: Pick<SponsoredProviderConfig, "serviceId" | "categoryName" | "providerName">,
+  services: ServiceRecord[] = [],
+  catalog: CategoryRecord[] = initialCategories,
+): Exclude<DailyOfferFilterGroup, "all"> {
+  const matched = services.find((srv) => srv.id === sponsor.serviceId);
+  if (matched) {
+    const cat = getCategory(matched.category, catalog);
+    const rootId = cat.parentId ?? cat.id;
+    if (rootId === "clinics") return "clinics";
+    if (rootId === "labs") return "labs";
+    if (rootId === "shops") return "shops";
+  }
+  const text = normalizeSearch(`${sponsor.categoryName} ${sponsor.providerName}`);
+  if (/معمل|تحاليل|اشعه|مختبر/.test(text)) return "labs";
+  if (/عياد|طبيب|دكتور|د\.|اسنان|اطفال|باطن|نساء|عظام|جلدي|عيون|علاج طبيعي/.test(text)) return "clinics";
+  return "shops";
+}
 
 export const defaultSponsoredProviders: SponsoredProviderConfig[] = [
   {
@@ -1242,6 +1342,7 @@ export const defaultDesignSettings: DesignSettings = {
     "🎁 عرض خاص لفترة محدودة: تجربة مجانية كاملة لمدة ١٠ أيام للعيادات والمعامل والمحلات التجارية بقرية جنزور — فعّل باقتك الآن وجرّب كل المميزات الذهبية بنفسك أولاً مجاناً وبدون أي التزام!",
   sponsorModalPhone: OFFICE_PHONE,
   showDailyOffersSection: true,
+  showSponsorsRibbon: true,
   sponsoredProvidersJson: JSON.stringify(defaultSponsoredProviders),
 };
 
@@ -1470,6 +1571,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.sponsorModalOfferBanner = pickText(record.sponsorModalOfferBanner, defaultDesignSettings.sponsorModalOfferBanner, 400);
   next.sponsorModalPhone = pickText(record.sponsorModalPhone, defaultDesignSettings.sponsorModalPhone, 30);
   next.showDailyOffersSection = pickBool(record.showDailyOffersSection, defaultDesignSettings.showDailyOffersSection);
+  next.showSponsorsRibbon = pickBool(record.showSponsorsRibbon, defaultDesignSettings.showSponsorsRibbon);
   next.sponsoredProvidersJson = typeof record.sponsoredProvidersJson === "string" && record.sponsoredProvidersJson.trim()
     ? JSON.stringify(parseSponsoredProviders(record.sponsoredProvidersJson))
     : defaultDesignSettings.sponsoredProvidersJson;

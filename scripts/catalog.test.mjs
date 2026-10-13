@@ -609,10 +609,31 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.sponsorModalEnabled, true);
   assert.equal(custom.sponsorModalDelaySeconds, 10);
   assert.equal(custom.showDailyOffersSection, true);
+  assert.equal(custom.showSponsorsRibbon, true);
 
   const parsedSponsors = catalog.parseSponsoredProviders(custom.sponsoredProvidersJson);
   assert.ok(parsedSponsors.length >= 3);
   assert.equal(parsedSponsors[0].badgeLabel, "راعي معتمد 👑");
+
+  const activeTrial = catalog.getSponsorTrialStatus(
+    { planType: "trial-10-days", trialStartDate: "2026-10-10" },
+    new Date("2026-10-13T12:00:00Z"),
+  );
+  assert.equal(activeTrial.isTrial, true);
+  assert.equal(activeTrial.elapsedDays, 3);
+  assert.equal(activeTrial.remainingDays, 7);
+  assert.equal(activeTrial.isExpired, false);
+
+  const expiredTrial = catalog.getSponsorTrialStatus(
+    { planType: "trial-10-days", trialStartDate: "2026-10-01" },
+    new Date("2026-10-13T12:00:00Z"),
+  );
+  assert.equal(expiredTrial.isExpired, true);
+  assert.equal(expiredTrial.remainingDays, 0);
+
+  assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[0]), "clinics");
+  assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[1]), "labs");
+  assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[2]), "shops");
 });
 
 
