@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -378,6 +378,36 @@ test("iconArabicLabels provides an Arabic display name for every icon in iconNam
     assert.ok(iconArabicLabels[icon] && /[\u0600-\u06FF]/.test(iconArabicLabels[icon]), `Missing Arabic label for ${icon}`);
   }
 });
+
+test("sanitizeDesignSettings validates all 7 design customizer groups and falls back safely", () => {
+  assert.deepEqual(sanitizeDesignSettings(null), defaultDesignSettings);
+  const custom = sanitizeDesignSettings({
+    themePreset: "emerald",
+    primaryColor: "#0d8a5f",
+    headingAlign: "center",
+    cardTextAlign: "right",
+    borderWidth: "medium",
+    buttonShape: "pill",
+    iconStyle: "glow",
+    mobileColumns: "3",
+    featuredDefaultOpen: true,
+    authShowBanner: false,
+    loginTitle: "أهلاً بك في جنزور",
+  });
+  assert.equal(custom.themePreset, "emerald");
+  assert.equal(custom.primaryColor, "#0d8a5f");
+  assert.equal(custom.headingAlign, "center");
+  assert.equal(custom.cardTextAlign, "right");
+  assert.equal(custom.borderWidth, "medium");
+  assert.equal(custom.buttonShape, "pill");
+  assert.equal(custom.iconStyle, "glow");
+  assert.equal(custom.mobileColumns, "3");
+  assert.equal(custom.featuredDefaultOpen, true);
+  assert.equal(custom.authShowBanner, false);
+  assert.equal(custom.loginTitle, "أهلاً بك في جنزور");
+  assert.ok(Object.keys(designThemePresets).length >= 5);
+});
+
 
 
 
