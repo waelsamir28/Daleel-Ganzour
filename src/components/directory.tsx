@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Home, Lightbulb, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Palette, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Lightbulb, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
 import { defaultDesignSettings, ganzourTransitRoutes, getCategory, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOpenOrAvailableNow, isServiceOwner, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
@@ -330,90 +330,159 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </div>
       </div>
     )}
-    {design.announcementEnabled && announcementList.length > 0 && (
-      <div
-        className={`site-announcement-bar is-${design.announcementStyle} is-mode-${design.announcementTickerMode || "rotate"}`}
-        style={{ backgroundColor: design.announcementBgColor }}
-      >
-        <div className="container site-announcement-inner">
-          <Sparkles size={15}/>
-          {design.announcementTickerMode === "marquee" ? (
-            <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"}`} aria-label="شريط الأخبار والتنبيهات">
-              <div className="site-announcement-marquee-track">
-                {[...announcementList, ...announcementList].map((item, idx) => (
-                  <span key={`${idx}-${item}`} className="site-announcement-marquee-item">
-                    {item}
-                    <i aria-hidden="true">•</i>
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : design.announcementTickerMode === "rotate" && announcementList.length > 1 ? (
-            <div className="site-announcement-rotator">
-              <button
-                type="button"
-                className="announcement-nav-btn"
-                onClick={() => setTickerIndex((curr) => (curr - 1 + announcementList.length) % announcementList.length)}
-                aria-label="الخبر السابق"
-              >
-                <ChevronRight size={14}/>
-              </button>
-              <span className="announcement-rotate-text" key={tickerIndex % announcementList.length}>
-                {announcementList[tickerIndex % announcementList.length]}
-              </span>
-              <span className="announcement-rotate-counter">
-                {(tickerIndex % announcementList.length) + 1}/{announcementList.length}
-              </span>
-              <button
-                type="button"
-                className="announcement-nav-btn"
-                onClick={() => setTickerIndex((curr) => (curr + 1) % announcementList.length)}
-                aria-label="الخبر التالي"
-              >
-                <ChevronLeft size={14}/>
-              </button>
-            </div>
-          ) : (
-            <span>{design.announcementText || announcementList[0]}</span>
+    <header className="site-header">
+      <div className="container header-inner">
+        <Link href="/" className="site-header-brand" aria-label="الرئيسية — دليل جنزور">
+          {/* eslint-disable-next-line @next/next/no-img-element -- Brand header icon */}
+          <img
+            src={design.headerLogoUrl || "/images/logo-daleel-transparent.png"}
+            alt=""
+            className="site-header-brand-img"
+          />
+          <div className="site-header-brand-copy">
+            <strong>دليل جنزور</strong>
+            <span>المهن والخدمات</span>
+          </div>
+        </Link>
+        <nav className={`main-nav ${menuOpen ? "nav-open" : ""}`} aria-label="القائمة الرئيسية">
+          <Link href="/" className={isHome && !isFiltering ? "active" : ""} onClick={() => setMenuOpen(false)}>الرئيسية</Link>
+          <a href={isHome ? "#categories" : "/#categories"} className={scoped ? "active" : ""} onClick={() => setMenuOpen(false)}>التصنيفات</a>
+          {design.showHeaderFavorites && (
+            <button className={view === "favorites" ? "active" : ""} onClick={showFavorites}>
+              المفضلة <Heart size={15}/>
+              {favorites.length > 0 && <span className="nav-count">{favorites.length}</span>}
+            </button>
           )}
+          <button onClick={() => { setModal("contact"); setMenuOpen(false); }}>اتصل بنا</button>
+          {viewer.role === "guest" && design.showHeaderLoginBtn && (
+            <Link className="mobile-register-link" href="/register">إنشاء عضوية</Link>
+          )}
+        </nav>
+        <div className="header-actions">
+          {design.showHeaderBell && (
+            <button type="button" className="icon-button feed-bell" aria-label="إشعارات الأعضاء والمهنيين" title="إشعارات الأعضاء والمهنيين" onClick={openFeed}>
+              <BellRing size={18}/>
+              {feedUnread > 0 && <span className="feed-count">{feedUnread > 99 ? "99+" : feedUnread}</span>}
+            </button>
+          )}
+          <button type="button" className="icon-button font-toggle" aria-label="تكبير الخط" aria-pressed={bigText} title="الخط الكبير" onClick={toggleBigText}>
+            <ALargeSmall size={19}/>
+          </button>
+          {design.showHeaderDarkToggle && (
+            <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي" title="الوضع الليلي" onClick={toggleTheme}>
+              <span className="theme-toggle-track">
+                <Moon className="icon-moon" size={15}/>
+                <Sun className="icon-sun" size={15}/>
+                <span className="theme-toggle-thumb" aria-hidden="true"/>
+              </span>
+            </button>
+          )}
+          {viewer.role === "admin" ? (
+            <>
+              <AdminBell/>
+              <Link href="/admin" className="admin-link"><ShieldCheck size={18}/><span>لوحة التحكم</span></Link>
+            </>
+          ) : viewer.role === "moderator" ? (
+            <Link href="/admin" className="admin-link"><ShieldCheck size={18}/><span>لوحة المشرف</span></Link>
+          ) : viewer.role === "member" ? (
+            <Link href="/account" className="member-account-link"><UserRound size={18}/><span>{viewer.name?.split(" ")[0]}</span></Link>
+          ) : design.showHeaderLoginBtn ? (
+            <div className="auth-links">
+              <Link href="/login"><UserRound size={17}/><span>تسجيل الدخول</span></Link>
+              <Link href="/register" className="register-link" aria-label="عضوية جديدة"><UserPlus size={17}/><span>عضوية جديدة</span></Link>
+            </div>
+          ) : null}
+          {viewer.role !== "guest" && (
+            <button className="icon-button logout-button" onClick={logout} aria-label="تسجيل الخروج"><LogOut size={17}/></button>
+          )}
+          <button className="icon-button mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"} aria-expanded={menuOpen}>
+            {menuOpen ? <X size={19}/> : <Menu size={19}/>}
+          </button>
         </div>
       </div>
+    </header>
+    {data.previewMode && <div className="preview-mode-notice" role="status">وضع المعاينة: البيانات المعروضة توضيحية، ولن تُحفَظ الإضافات دون قاعدة بيانات.</div>}
+    {logoutError && <div role="alert" className="form-error container">{logoutError}</div>}
+    {(scoped || design.showHero) && <section className={`hero ${scoped ? "category-page-hero" : "hero-with-banner"}`} aria-labelledby="hero-title"><div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/><svg className="hero-skyline" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path d="M0 210V105h43V81h32v50h29V64h32V22h8V0h6v22h10v42h29v83h27v-39h24V77h22v31h20v102h31V97h33v28h17V65h50v145h42v-65h22v-20h29v20h28v65h33V79h26V36h8V15h5v21h9v43h31v131h32v-86h22V98h38v26h24v86h31V73h49v35h29v102h45V94h31V62h40v148h29v-62h50v62h50V99h34V80h21v19h32v111h41V64h29V26h9V5h5v21h12v38h30v146h42V91h47v119h31V70h26V40h23v30h22v140h37v-63h52v63h34v-98h26V79h31v33h20v98Z"/></svg>{!scoped && <div className="hero-banner-wrap"><Image src="/images/home-banner-sky.png" alt="دليل المهن والخدمات بقرية جنزور، كل أرقام المهنيين والخدمات والمشاريع في مكان واحد" width={2048} height={768} sizes="(max-width: 700px) 100vw, (max-width: 1378px) 90vw, 1240px" priority/></div>}<div className="container hero-inner"><div className="hero-visual"><span className="hero-floating-tag"><CheckCircle2 size={16}/> من أهل القرية.. لأهل القرية</span></div><div className="hero-copy">{scoped ? <nav className="hero-breadcrumb" aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><ChevronLeft size={13}/>{specialty ? <><Link href={`/categories/${rootId}`}>{root?.name}</Link><ChevronLeft size={13}/><span>{specialty.name}</span></> : <span>{root?.name}</span>}</nav> : <div className="hero-eyebrow"><Sparkles size={15}/>{settings.heroEyebrow}</div>}<h1 id="hero-title">{title}</h1>{!scoped && <><p className="hero-subtitle">{settings.heroSubtitle}</p><p className="hero-tagline">{settings.tagline}</p></>}
+    {design.announcementEnabled && announcementList.length > 0 && (
+      <div
+        className={`site-announcement-ticker-card is-${design.announcementStyle} is-mode-${design.announcementTickerMode || "marquee"}`}
+        style={{ "--ticker-bg": design.announcementBgColor } as CSSProperties}
+      >
+        <span className="ticker-badge-icon"><Sparkles size={15}/></span>
+        {design.announcementTickerMode === "marquee" ? (
+          <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"}`} aria-label="شريط الأخبار والتنبيهات">
+            <div className="site-announcement-marquee-track">
+              {[...announcementList, ...announcementList].map((item, idx) => (
+                <span key={`${idx}-${item}`} className="site-announcement-marquee-item">
+                  {item}
+                  <i aria-hidden="true">•</i>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : design.announcementTickerMode === "rotate" && announcementList.length > 1 ? (
+          <div className="site-announcement-rotator">
+            <button
+              type="button"
+              className="announcement-nav-btn"
+              onClick={() => setTickerIndex((curr) => (curr - 1 + announcementList.length) % announcementList.length)}
+              aria-label="الخبر السابق"
+            >
+              <ChevronRight size={14}/>
+            </button>
+            <span className="announcement-rotate-text" key={tickerIndex % announcementList.length}>
+              {announcementList[tickerIndex % announcementList.length]}
+            </span>
+            <span className="announcement-rotate-counter">
+              {(tickerIndex % announcementList.length) + 1}/{announcementList.length}
+            </span>
+            <button
+              type="button"
+              className="announcement-nav-btn"
+              onClick={() => setTickerIndex((curr) => (curr + 1) % announcementList.length)}
+              aria-label="الخبر التالي"
+            >
+              <ChevronLeft size={14}/>
+            </button>
+          </div>
+        ) : (
+          <span className="announcement-single-text">{design.announcementText || announcementList[0]}</span>
+        )}
+      </div>
     )}
-    <header className="site-header"><div className="container header-inner">
-      {design.headerLogoUrl && (
-        <Link href="/" className="header-custom-logo-link">
-          {/* eslint-disable-next-line @next/next/no-img-element -- Custom admin header logo */}
-          <img src={design.headerLogoUrl} alt="" className="brand-custom-logo"/>
-        </Link>
-      )}
-      <nav className={`main-nav ${menuOpen ? "nav-open" : ""}`} aria-label="القائمة الرئيسية"><Link href="/" className={isHome && !isFiltering ? "active" : ""} onClick={() => setMenuOpen(false)}>الرئيسية</Link><a href={isHome ? "#categories" : "/#categories"} className={scoped ? "active" : ""} onClick={() => setMenuOpen(false)}>التصنيفات</a>{design.showHeaderFavorites && <button className={view === "favorites" ? "active" : ""} onClick={showFavorites}>المفضلة <Heart size={15}/>{favorites.length > 0 && <span className="nav-count">{favorites.length}</span>}</button>}<button onClick={() => { setModal("contact"); setMenuOpen(false); }}>اتصل بنا</button>{viewer.role === "guest" && design.showHeaderLoginBtn && <Link className="mobile-register-link" href="/register">إنشاء عضوية</Link>}</nav><div className="header-actions">{design.showHeaderBell && <button type="button" className="icon-button feed-bell" aria-label="إشعارات الأعضاء والمهنيين" title="إشعارات الأعضاء والمهنيين" onClick={openFeed}><BellRing size={18}/>{feedUnread > 0 && <span className="feed-count">{feedUnread > 99 ? "99+" : feedUnread}</span>}</button>}<button type="button" className="icon-button font-toggle" aria-label="تكبير الخط" aria-pressed={bigText} title="الخط الكبير" onClick={toggleBigText}><ALargeSmall size={19}/></button>{design.showHeaderDarkToggle && <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي" title="الوضع الليلي" onClick={toggleTheme}><span className="theme-toggle-track"><Moon className="icon-moon" size={15}/><Sun className="icon-sun" size={15}/><span className="theme-toggle-thumb" aria-hidden="true"/></span></button>}{viewer.role === "admin" ? <><AdminBell/><Link href="/admin" className="admin-link"><ShieldCheck size={19}/><span>لوحة التحكم</span></Link></> : viewer.role === "moderator" ? <Link href="/admin" className="admin-link"><ShieldCheck size={19}/><span>لوحة المشرف</span></Link> : viewer.role === "member" ? <Link href="/account" className="member-account-link"><UserRound size={19}/><span>{viewer.name?.split(" ")[0]}</span></Link> : design.showHeaderLoginBtn ? <div className="auth-links"><Link href="/login"><UserRound size={18}/><span>تسجيل الدخول</span></Link><Link href="/register" className="register-link" aria-label="عضوية جديدة"><UserPlus size={18}/><span>عضوية جديدة</span></Link></div> : null}{viewer.role !== "guest" && <button className="icon-button logout-button" onClick={logout} aria-label="تسجيل الخروج"><LogOut size={17}/></button>}{scoped && <button className="button button-primary add-service-header" onClick={() => setModal("service")}><CirclePlus size={18}/><span>أضف مهنتك</span></button>}<button className="icon-button mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"} aria-expanded={menuOpen}>{menuOpen ? <X/> : <Menu/>}</button></div></div></header>
+    <form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>{(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><button type="button" className={`hero-open-now-btn ${availableOnly ? "is-active" : ""}`} aria-pressed={availableOnly} onClick={() => { const next = !availableOnly; setAvailableOnly(next); if (next) { setFeaturedOpen(true); scrollToProviders(); } }}><Lightbulb size={16}/><span>{availableOnly ? "معروض الفاتح/المتاح الآن" : "فاتح أو متاح الآن"}</span></button><button type="button" className={`hero-delivery-btn ${deliveryOnly ? "is-active" : ""}`} aria-pressed={deliveryOnly} onClick={() => { const next = !deliveryOnly; setDeliveryOnly(next); if (next) { setFeaturedOpen(true); scrollToProviders(); } }}><Truck size={16}/><span>{deliveryOnly ? "معروض توصيل المنازل" : "🛵 يوجد توصيل للمنازل"}</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}
     {!scoped && design.showPrayerWeatherBar && (
-      <section className="ganzour-prayer-weather-bar" aria-label="مواقيت الصلاة والطقس في جنزور">
-        <div className="container ganzour-prayer-weather-inner">
-          <div className="prayer-weather-badge is-next">
-            <Clock size={15}/>
-            <span>الصلاة القادمة: <strong>{prayerWeather.nextPrayer.name} ({prayerWeather.nextPrayer.time12})</strong></span>
-            <small>{prayerWeather.nextPrayer.remainingText}</small>
+      <div className="ganzour-prayer-card" role="region" aria-label="مواقيت الصلاة والطقس في جنزور">
+        <div className="ganzour-prayer-card-head">
+          <div className="prayer-next-summary">
+            <span className="prayer-icon-circle"><Clock size={16}/></span>
+            <div>
+              <strong>مواقيت الصلاة اليوم في جنزور</strong>
+              <span>الصلاة القادمة: <b>{prayerWeather.nextPrayer.name} ({prayerWeather.nextPrayer.time12})</b> — {prayerWeather.nextPrayer.remainingText}</span>
+            </div>
           </div>
-          <div className="prayer-times-pills" aria-label="مواقيت الصلوات الخمس في جنزور">
-            {prayerWeather.prayers.map((item) => (
-              <span key={item.id} className={`prayer-pill ${prayerWeather.nextPrayer.id === item.id ? "is-upcoming" : ""}`}>
-                <b>{item.name}</b>
-                <small>{item.time12}</small>
-              </span>
-            ))}
-          </div>
-          <div className="prayer-weather-badge is-weather">
-            {prayerWeather.weather.period === "night" ? <Moon size={15}/> : <Sun size={15}/>}
+          <div className="prayer-weather-summary">
+            {prayerWeather.weather.period === "night" ? <Moon size={16}/> : <Sun size={16}/>}
             <strong>{prayerWeather.weather.tempC}°C</strong>
             <span>{prayerWeather.weather.label}</span>
           </div>
         </div>
-      </section>
+        <div className="ganzour-prayer-boxes" aria-label="مواقيت الصلوات الخمس في جنزور">
+          {prayerWeather.prayers.map((item) => {
+            const isUpcoming = prayerWeather.nextPrayer.id === item.id;
+            return (
+              <div key={item.id} className={`ganzour-prayer-box ${isUpcoming ? "is-upcoming" : ""}`}>
+                <span className="prayer-box-name">{item.name}</span>
+                <strong className="prayer-box-time">{item.time12}</strong>
+                {isUpcoming && <small className="prayer-box-tag">القادمة</small>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     )}
-    {data.previewMode && <div className="preview-mode-notice" role="status">وضع المعاينة: البيانات المعروضة توضيحية، ولن تُحفَظ الإضافات دون قاعدة بيانات.</div>}
-    {logoutError && <div role="alert" className="form-error container">{logoutError}</div>}
-    {(scoped || design.showHero) && <section className={`hero ${scoped ? "category-page-hero" : "hero-with-banner"}`} aria-labelledby="hero-title"><div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/><svg className="hero-skyline" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path d="M0 210V105h43V81h32v50h29V64h32V22h8V0h6v22h10v42h29v83h27v-39h24V77h22v31h20v102h31V97h33v28h17V65h50v145h42v-65h22v-20h29v20h28v65h33V79h26V36h8V15h5v21h9v43h31v131h32v-86h22V98h38v26h24v86h31V73h49v35h29v102h45V94h31V62h40v148h29v-62h50v62h50V99h34V80h21v19h32v111h41V64h29V26h9V5h5v21h12v38h30v146h42V91h47v119h31V70h26V40h23v30h22v140h37v-63h52v63h34v-98h26V79h31v33h20v98Z"/></svg>{!scoped && <div className="hero-banner-wrap"><Image src="/images/home-banner-sky.png" alt="دليل المهن والخدمات بقرية جنزور، كل أرقام المهنيين والخدمات والمشاريع في مكان واحد" width={2048} height={768} sizes="(max-width: 700px) 100vw, (max-width: 1378px) 90vw, 1240px" priority/></div>}<div className="container hero-inner"><div className="hero-visual"><span className="hero-floating-tag"><CheckCircle2 size={16}/> من أهل القرية.. لأهل القرية</span></div><div className="hero-copy">{scoped ? <nav className="hero-breadcrumb" aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><ChevronLeft size={13}/>{specialty ? <><Link href={`/categories/${rootId}`}>{root?.name}</Link><ChevronLeft size={13}/><span>{specialty.name}</span></> : <span>{root?.name}</span>}</nav> : <div className="hero-eyebrow"><Sparkles size={15}/>{settings.heroEyebrow}</div>}<h1 id="hero-title">{title}</h1>{!scoped && <><p className="hero-subtitle">{settings.heroSubtitle}</p><p className="hero-tagline">{settings.tagline}</p></>}<form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>{(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><button type="button" className={`hero-open-now-btn ${availableOnly ? "is-active" : ""}`} aria-pressed={availableOnly} onClick={() => { const next = !availableOnly; setAvailableOnly(next); if (next) { setFeaturedOpen(true); scrollToProviders(); } }}><Lightbulb size={16}/><span>{availableOnly ? "معروض الفاتح/المتاح الآن" : "فاتح أو متاح الآن"}</span></button><button type="button" className={`hero-delivery-btn ${deliveryOnly ? "is-active" : ""}`} aria-pressed={deliveryOnly} onClick={() => { const next = !deliveryOnly; setDeliveryOnly(next); if (next) { setFeaturedOpen(true); scrollToProviders(); } }}><Truck size={16}/><span>{deliveryOnly ? "معروض توصيل المنازل" : "🛵 يوجد توصيل للمنازل"}</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}</div></div></section>}
+    </div></div></section>}
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => setModal("service")}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><Link href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></Link></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
     <main className="directory-main directory-ordered-main">{!specialty && (scoped || design.showCategoriesSection) && <section id="categories" className="categories-section" style={!scoped ? { order: sectionOrderIndex("categories", 3) } : undefined}><div className="section-heading directory-section-heading"><div><h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2></div><span className="section-count">{displayedCategories.length} {root ? "تخصص" : "أقسام رئيسية"}</span></div><div className={`category-grid ${root ? "specialties-grid" : "main-category-grid"}`}>{displayedCategories.map((category) => <Link key={category.id} href={category.parentId ? `/categories/${category.parentId}/${category.id}` : `/categories/${category.id}`} aria-label={category.name} className="category-tile" style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}><span className="category-icon">{category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon}/>}</span><strong>{category.name}</strong><span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span></Link>)}</div>{!displayedCategories.length && <div className="empty-state"><h3>التخصصات قيد التجهيز</h3><p>الإدارة هتضيف تخصصات القسم قريبًا.</p></div>}</section>}
       {(scoped || isFiltering || design.showFeaturedSection) && <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`} style={!scoped ? { order: sectionOrderIndex("featured", 2) } : undefined}>{isFeaturedCollapsible ? (
@@ -592,59 +661,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         <MessageCircle size={20}/>
         <span>واتساب الإدارة</span>
       </a>
-    )}
-    {isAdmin && design.showAdminQuickEdit && (
-      <aside className="admin-homepage-quickbar" aria-label="شريط التعديل السريع للأدمن">
-        <span><ShieldCheck size={15}/> وضع الأدمن</span>
-        <Link href="/admin?tab=design"><Palette size={14}/> تخصيص المظهر</Link>
-        <Link href="/admin?tab=analytics"><Sparkles size={14}/> الإحصائيات</Link>
-      </aside>
-    )}
-    {design.mobileBottomNavEnabled && (
-      <nav className="mobile-bottom-app-nav" aria-label="شريط التنقل السريع للموبايل">
-        <button
-          type="button"
-          className={isHome && !isFiltering && !modal ? "is-active" : ""}
-          onClick={() => {
-            clearFilters();
-            window.scrollTo({ top: 0, behavior: "smooth" });
-          }}
-        >
-          <Home size={19}/>
-          <span>الرئيسية</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const input = document.getElementById("hero-search-input");
-            if (input) {
-              input.scrollIntoView({ behavior: "smooth", block: "center" });
-              setTimeout(() => input.focus(), 200);
-            } else {
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-          }}
-        >
-          <Search size={19}/>
-          <span>البحث</span>
-        </button>
-        <button
-          type="button"
-          className={modal === "duty" ? "is-active" : ""}
-          onClick={() => setModal("duty")}
-        >
-          <Stethoscope size={19}/>
-          <span>المناوبات</span>
-        </button>
-        <button
-          type="button"
-          className={`is-add-btn ${modal === "service" ? "is-active" : ""}`}
-          onClick={() => setModal("service")}
-        >
-          <CirclePlus size={19}/>
-          <span>أضف مهنتك</span>
-        </button>
-      </nav>
     )}
     {suggestions.length > 0 && <section className="container search-assistance" aria-label="مساعدة البحث"><div className="specialty-suggestions"><h3>ملقيناش نتيجة مطابقة. جرّب التخصصات دي</h3><p>فتح التخصص يعرض كل خدماته بدون فلاتر البحث الحالية.</p>{suggestions.map((item) => <Link className="button button-soft" key={item.id} href={`/categories/${item.parentId}/${item.id}`}>{item.name}</Link>)}</div></section>}
     {modal === "duty" && (
