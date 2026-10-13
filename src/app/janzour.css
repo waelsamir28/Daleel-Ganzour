@@ -4625,7 +4625,16 @@ html[data-design-mobile-nav="true"] .site-footer {
   min-width: 0;
 }
 
-/* المستطيل المخصص لمواقيت الصلاة والطقس أسفل زر «أضف مهنتك» وشريط البحث */
+/* إزالة أي شريط أو خط علوي فوق الهيدر نهائياً */
+.site-seasonal-ribbon,
+.site-announcement-bar {
+  display: none !important;
+}
+.site-header {
+  border-top: 0 !important;
+}
+
+/* المستطيل المخصص لمواقيت الصلاة والطقس أسفل زر «أضف مهنتك» وشريط البحث: خلفية لبني غامق + توسيط الكلام + طي وانفراد */
 .ganzour-prayer-card {
   display: grid;
   gap: 12px;
@@ -4634,74 +4643,101 @@ html[data-design-mobile-nav="true"] .site-footer {
   min-width: 0;
   box-sizing: border-box;
   margin: 14px auto 0;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 2px solid #bcdbf7;
-  background: linear-gradient(180deg, #ffffff 0%, #f2f8ff 100%);
-  color: #103252;
-  box-shadow: 0 10px 26px rgba(9, 76, 138, .1);
-  text-align: right;
+  padding: 14px 18px;
+  border-radius: 20px;
+  border: 2px solid #38bdf8 !important;
+  background: linear-gradient(145deg, #07599d 0%, #05437a 55%, #04325e 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(4, 50, 94, .28), inset 0 1px 0 rgba(255, 255, 255, .22);
+  text-align: center !important;
 }
-.ganzour-prayer-card-head {
+.ganzour-prayer-card-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  text-align: center;
+  cursor: pointer;
+}
+.prayer-centered-title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed #cde2f7;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
 }
-.prayer-next-summary {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.prayer-icon-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #0878c9, #065a9e);
-  color: #ffffff;
+.prayer-centered-title > svg {
+  color: #7dd3fc;
   flex-shrink: 0;
 }
-.prayer-next-summary strong {
-  display: block;
-  font-size: .9rem;
+.prayer-centered-title > strong {
+  font-size: 1rem;
   font-weight: 900;
-  color: #0d365c;
-  line-height: 1.35;
+  color: #ffffff;
 }
-.prayer-next-summary span {
-  display: block;
-  font-size: .8rem;
-  color: #365a7d;
-}
-.prayer-next-summary b {
-  color: #0878c9;
-  font-weight: 900;
-}
-.prayer-weather-summary {
+.prayer-weather-inline-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 3px 10px;
   border-radius: 999px;
-  background: #eaf4ff;
-  border: 1px solid #c6dff7;
-  color: #0f3d68;
-  font-size: .8rem;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(125, 211, 252, .38);
+  color: #e0f2fe;
+  font-size: .78rem;
   font-weight: 800;
 }
-.prayer-weather-summary svg {
-  color: #f59e0b;
+.prayer-weather-inline-pill svg {
+  color: #fde047;
+}
+.prayer-centered-next {
+  font-size: .86rem;
+  font-weight: 700;
+  color: #dbeafe;
+  text-align: center;
+  line-height: 1.5;
+}
+.prayer-centered-next b {
+  color: #fde047;
+  font-weight: 900;
+}
+.prayer-fold-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, .28);
+  border: 1px solid rgba(125, 211, 252, .5);
+  color: #ffffff;
+  font-size: .78rem;
+  font-weight: 800;
+  transition: background .16s ease, transform .16s ease;
+}
+.ganzour-prayer-card-toggle:hover .prayer-fold-pill {
+  background: rgba(56, 189, 248, .4);
+}
+.prayer-fold-pill svg {
+  transition: transform .22s ease;
+}
+.prayer-fold-pill svg.is-rotated {
+  transform: rotate(180deg);
 }
 .ganzour-prayer-boxes {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(125, 211, 252, .35);
 }
 .ganzour-prayer-box {
   position: relative;
@@ -4709,45 +4745,122 @@ html[data-design-mobile-nav="true"] .site-footer {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 8px 6px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1.5px solid #d7e7f7;
+  gap: 3px;
+  padding: 9px 6px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .12) !important;
+  border: 1.5px solid rgba(125, 211, 252, .32) !important;
+  color: #ffffff !important;
+  text-align: center;
   transition: all .16s ease;
   min-width: 0;
 }
 .ganzour-prayer-box .prayer-box-name {
-  font-size: .78rem;
+  font-size: .8rem;
   font-weight: 800;
-  color: #466685;
+  color: #e0f2fe !important;
 }
 .ganzour-prayer-box .prayer-box-time {
-  font-size: .84rem;
+  font-size: .86rem;
   font-weight: 900;
-  color: #0f3254;
+  color: #ffffff !important;
   direction: ltr;
 }
 .ganzour-prayer-box.is-upcoming {
-  background: linear-gradient(135deg, #0878c9, #055ba0);
-  border-color: #0878c9;
-  color: #ffffff;
-  box-shadow: 0 6px 14px rgba(8, 120, 201, .24);
+  background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+  border-color: #fde047 !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, .4);
 }
 .ganzour-prayer-box.is-upcoming .prayer-box-name,
 .ganzour-prayer-box.is-upcoming .prayer-box-time {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 .prayer-box-tag {
   font-size: .66rem;
-  font-weight: 800;
-  padding: 1px 6px;
+  font-weight: 900;
+  padding: 1px 7px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .22);
-  color: #ffffff;
+  background: #fde047;
+  color: #042f56;
 }
 
-/* 5. تنسيق قسم المحلات (زر التوصيل للمنازل) وقسم المدرسين (المراحل أولاً ثم التخصصات) */
+/* تكبير كارت وزر عرض المتميزين ليكون بحجم وهيبة باقي الأقسام الرئيسية */
+.featured-providers-banner-card {
+  min-height: 158px !important;
+  padding: 20px 24px !important;
+  border-radius: 22px !important;
+  border: 2px solid #93ccf8 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 52%, #e0f2fe 100%) !important;
+  box-shadow: 0 14px 32px rgba(7, 114, 199, .14) !important;
+  gap: 18px !important;
+}
+.featured-banner-main-btn {
+  gap: 8px !important;
+}
+.featured-banner-main-btn h2 {
+  font-size: clamp(18px, 2.3vw, 22px) !important;
+  font-weight: 900 !important;
+  color: #0b3964;
+  line-height: 1.35 !important;
+}
+.featured-banner-subtitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #35628c;
+  line-height: 1.5;
+}
+.featured-banner-status {
+  min-height: 44px !important;
+  padding: 9px 20px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #0878c9, #055ba0) !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 8px 18px rgba(8, 120, 201, .26);
+}
+.featured-providers-banner-card.is-open .featured-banner-status {
+  background: linear-gradient(135deg, #055ba0, #043e70) !important;
+  color: #ffffff !important;
+}
+.featured-banner-icon-btn .featured-3d-icon {
+  width: 112px !important;
+  height: 112px !important;
+}
+.featured-banner-icon-btn .featured-3d-icon .main-category-3d-icon {
+  width: 108px !important;
+  height: 108px !important;
+}
+@media (max-width: 640px) {
+  .featured-providers-banner-card {
+    min-height: 144px !important;
+    padding: 16px 16px !important;
+    gap: 12px !important;
+  }
+  .featured-banner-main-btn h2 {
+    font-size: 17.5px !important;
+  }
+  .featured-banner-subtitle {
+    font-size: 11.5px;
+  }
+  .featured-banner-status {
+    min-height: 40px !important;
+    padding: 8px 15px !important;
+    font-size: 13px !important;
+  }
+  .featured-banner-icon-btn .featured-3d-icon {
+    width: 88px !important;
+    height: 88px !important;
+  }
+  .featured-banner-icon-btn .featured-3d-icon .main-category-3d-icon {
+    width: 84px !important;
+    height: 84px !important;
+  }
+}
+
+/* 5. تنسيق قسم المحلات (زر التوصيل للمنازل) وقسم المدرسين (قائمة مراحل منسدلة يظهر تحتها التخصصات) */
 .shops-delivery-filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -4808,14 +4921,102 @@ html[data-design-mobile-nav="true"] .site-footer {
 .teacher-stages-section {
   margin-bottom: 24px;
 }
-.teacher-stage-tile {
-  cursor: pointer;
-  border: 1.5px solid rgba(145, 96, 223, .22);
+.teacher-stages-accordion {
+  display: grid;
+  gap: 12px;
 }
-.teacher-stage-tile.is-active {
-  border: 2px solid #7c3aed;
-  background: linear-gradient(145deg, #f5f0ff, #ede5ff);
-  box-shadow: 0 8px 20px rgba(124, 58, 237, .18);
+.teacher-stage-dropdown-card {
+  border-radius: 18px;
+  border: 1.5px solid #dfd3f8;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(109, 40, 217, .06);
+  overflow: hidden;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.teacher-stage-dropdown-card.is-selected,
+.teacher-stage-dropdown-card.is-open {
+  border-color: #8b5cf6;
+  box-shadow: 0 12px 28px rgba(124, 58, 237, .14);
+}
+.teacher-stage-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 18px;
+  border: 0;
+  background: linear-gradient(135deg, #faf7ff 0%, #f3ecff 100%);
+  color: #2e1065;
+  text-align: right;
+  cursor: pointer;
+  transition: background .18s ease;
+}
+.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-header {
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: #ffffff;
+}
+.teacher-stage-dropdown-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: rgba(124, 58, 237, .14);
+  color: #6d28d9;
+  flex-shrink: 0;
+}
+.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-icon {
+  background: rgba(255, 255, 255, .2);
+  color: #ffffff;
+}
+.teacher-stage-dropdown-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.teacher-stage-dropdown-copy strong {
+  font-size: 16px;
+  font-weight: 900;
+  color: inherit;
+}
+.teacher-stage-dropdown-copy span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b5396;
+}
+.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-copy span {
+  color: #ede9fe;
+}
+.teacher-stage-dropdown-count {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-count {
+  background: rgba(255, 255, 255, .2);
+  color: #ffffff;
+}
+.teacher-stage-dropdown-chevron {
+  transition: transform .22s ease;
+  flex-shrink: 0;
+}
+.teacher-stage-dropdown-chevron.is-rotated {
+  transform: rotate(180deg);
+}
+.teacher-stage-dropdown-body {
+  padding: 16px;
+  background: #fcfaff;
+  border-top: 1px solid #e9d5ff;
+}
+.teacher-specialty-choice {
+  cursor: pointer;
 }
 
 /* 6. تنسيق الزر العلوي وهيدر الإدارة المتمدد للأسفل بدون تكرار أو تفاوت أحجام الخط */
@@ -5031,18 +5232,49 @@ html.dark .site-header .main-nav.header-dropdown-menu > button:hover {
 }
 html.dark .admin-public-header,
 html.dark .availability-header,
-html.dark .ganzour-prayer-card,
 html.dark .shops-delivery-filter-bar {
   background: #102338;
   border-color: #244568;
   color: #e4f1fe;
 }
-html.dark .shops-delivery-filter-copy strong,
-html.dark .prayer-next-summary strong {
+html.dark .ganzour-prayer-card {
+  background: linear-gradient(145deg, #07599d 0%, #05437a 55%, #04325e 100%) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+html.dark .featured-providers-banner-card {
+  background: linear-gradient(135deg, #10253d 0%, #0d2036 55%, #0a1a2d 100%) !important;
+  border-color: #1f4f80 !important;
+}
+html.dark .featured-banner-main-btn h2 {
+  color: #eef6ff !important;
+}
+html.dark .featured-banner-subtitle {
+  color: #a9c7e4 !important;
+}
+html.dark .teacher-stage-dropdown-card {
+  background: #102338;
+  border-color: #2b4566;
+}
+html.dark .teacher-stage-dropdown-header {
+  background: linear-gradient(135deg, #152b44 0%, #102237 100%);
   color: #eaf4ff;
 }
-html.dark .shops-delivery-filter-copy span,
-html.dark .prayer-next-summary span {
+html.dark .teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-header {
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+  color: #ffffff;
+}
+html.dark .teacher-stage-dropdown-copy span {
+  color: #b4cde6;
+}
+html.dark .teacher-stage-dropdown-body {
+  background: #0c1b2c;
+  border-top-color: #253f5e;
+}
+html.dark .shops-delivery-filter-copy strong {
+  color: #eaf4ff;
+}
+html.dark .shops-delivery-filter-copy span {
   color: #b4cde6;
 }
 html.dark .shops-delivery-toggle-btn {
@@ -5053,25 +5285,6 @@ html.dark .shops-delivery-toggle-btn {
 html.dark .shops-delivery-toggle-btn.is-active {
   background: #0878c9;
   color: #ffffff;
-}
-html.dark .teacher-stage-tile.is-active {
-  background: #1e1b3a;
-  border-color: #a78bfa;
-}
-html.dark .ganzour-prayer-box {
-  background: #0c1b2c;
-  border-color: #234365;
-}
-html.dark .ganzour-prayer-box .prayer-box-name {
-  color: #9ec0e0;
-}
-html.dark .ganzour-prayer-box .prayer-box-time {
-  color: #eaf4ff;
-}
-html.dark .prayer-weather-summary {
-  background: #162f4a;
-  border-color: #2a4f75;
-  color: #e2effd;
 }
 
 
