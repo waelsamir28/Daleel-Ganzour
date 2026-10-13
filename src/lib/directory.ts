@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, avg, count, desc, eq, inArray, ne, notInArray, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { areas, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeSettings, sanitizeUtilityNumbers, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { areas, defaultDesignSettings, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 function getPreviewDirectory(): PublicDirectory {
@@ -11,6 +11,7 @@ function getPreviewDirectory(): PublicDirectory {
     categories: initialCategories,
     areas: areas.map((name, sortOrder) => ({ id: `preview-area-${sortOrder + 1}`, name, sortOrder })),
     settings: defaultSettings,
+    designSettings: defaultDesignSettings,
     utilityNumbers: publicUtilityNumbers,
     memberCount: 0,
     previewMode: true,
@@ -92,6 +93,13 @@ export async function getUtilityNumbers(): Promise<PublicUtilityContact[]> {
   if (!row) return publicUtilityNumbers;
   try { return sanitizeUtilityNumbers(JSON.parse(row.value)); } catch { return publicUtilityNumbers; }
 }
+export async function getDesignSettings(): Promise<DesignSettings> {
+  if (!databaseConfigured) return defaultDesignSettings;
+  await ensureSeed();
+  const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "design_config"));
+  if (!row) return defaultDesignSettings;
+  try { return sanitizeDesignSettings(JSON.parse(row.value)); } catch { return defaultDesignSettings; }
+}
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
   const { reviewNote: _privateNote, availabilityToken: _privateToken, ...publicItem } = item;
   const completionStatus = (["none", "requested", "submitted", "rejected"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
@@ -100,12 +108,12 @@ export function serializeService(item: typeof services.$inferSelect): ServiceRec
 export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
 async function getCatalog() {
   await ensureSeed();
-  const [categoryRows, areaRows, settings, utilityNumbers, memberTotal] = await Promise.all([
+  const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal] = await Promise.all([
     db.select().from(directoryCategories).orderBy(asc(directoryCategories.sortOrder), asc(directoryCategories.name)),
     db.select().from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
-    getSettings(), getUtilityNumbers(), db.select({ total: count() }).from(members),
+    getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: count() }).from(members),
   ]);
-  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, memberCount: memberTotal[0]?.total ?? 0 };
+  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: memberTotal[0]?.total ?? 0 };
 }
 export async function getPublicDirectory(): Promise<PublicDirectory> {
   if (!databaseConfigured) return getPreviewDirectory();

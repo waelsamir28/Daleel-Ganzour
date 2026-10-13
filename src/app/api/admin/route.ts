@@ -6,7 +6,7 @@ import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { availabilityUpdate, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { availabilityUpdate, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -78,6 +78,9 @@ export async function PATCH(request: Request) {
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
       await db.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(settings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(settings) } });
+    } else if (type === "design-settings") {
+      const designSettings = sanitizeDesignSettings(objectInput(body.values));
+      await db.insert(directorySettings).values({ key: "design_config", value: JSON.stringify(designSettings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(designSettings) } });
     } else if (type === "utility-numbers") {
       const utilityNumbers = sanitizeUtilityNumbers(body.utilityNumbers);
       await db.insert(directorySettings).values({ key: "utility_numbers", value: JSON.stringify(utilityNumbers) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(utilityNumbers) } });

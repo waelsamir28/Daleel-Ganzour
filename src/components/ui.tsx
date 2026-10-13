@@ -12,11 +12,13 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
 const dimensionalCategoryIcons: Record<string, string> = { Wrench: "crafts", Stethoscope: "clinics", FlaskConical: "labs", Store: "shops", GraduationCap: "teachers", HandHeart: "charities", Grid2X2: "other", duty: "duty", utilities: "utilities", quick: "quick", featured: "featured" };
-export function MainCategoryIcon({ icon }: { icon: string }) {
-  return <svg className="main-category-art" viewBox="0 0 128 128" aria-hidden="true"><use href={`/images/category-3d.svg#${dimensionalCategoryIcons[icon] ?? "other"}`}/></svg>;
+export function MainCategoryIcon({ icon, size }: { icon: string; size?: number }) {
+  return <svg className="main-category-art" viewBox="0 0 128 128" style={size ? { width: size, height: size } : undefined} aria-hidden="true"><use href={`/images/category-3d.svg#${dimensionalCategoryIcons[icon] ?? "other"}`}/></svg>;
 }
-export function Logo({ compact = false, footer = false, name = defaultSettings.siteName }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
+export function Logo({ compact = false, footer = false, name = defaultSettings.siteName, logoUrl = "" }: { compact?: boolean; footer?: boolean; name?: string; description?: string; logoUrl?: string }) {
   return <Link href="/" className={`brand ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
+    {/* eslint-disable-next-line @next/next/no-img-element -- Custom admin-configured logo URL can point to any asset */}
+    {logoUrl && <img src={logoUrl} alt="" className="brand-custom-logo"/>}
     <span className="brand-copy"><strong>{name}</strong><span>دليل المهن والخدمات بقرية جنزور</span></span>
   </Link>;
 }

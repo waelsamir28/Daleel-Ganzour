@@ -427,11 +427,236 @@ export type SiteSettings = {
   phone: string; showEmergency: boolean;
   whatsappAlertsNumber: string; whatsappAlertsApiKey: string;
 };
+export type DesignSettings = {
+  // 1. Themes & Colors
+  themePreset: "classic-blue" | "emerald" | "royal-navy" | "warm-gold" | "festive" | "custom";
+  primaryColor: string;
+  pageBgColor: string;
+  modalHeaderBg: string;
+  buttonColor: string;
+  themeMode: "auto" | "light" | "dark";
+  // 2. Typography & Alignment
+  headingAlign: "center" | "right" | "left";
+  cardTextAlign: "center" | "right" | "left";
+  noticeAlign: "center" | "right" | "left";
+  fontScale: "small" | "normal" | "large" | "xlarge";
+  fontWeight: "normal" | "bold" | "extrabold";
+  fontFamily: "cairo" | "tajawal" | "almarai" | "readex";
+  sectionHeadingStyle: "plain" | "pill" | "underline" | "framed";
+  // 3. Cards, Frames & Borders
+  borderWidth: "none" | "thin" | "medium" | "double";
+  borderColor: string;
+  cardBgColor: string;
+  cardRadius: "sharp" | "medium" | "rounded" | "pill";
+  cardShadow: "none" | "soft" | "elevated-3d";
+  // 4. Buttons Style
+  buttonShape: "pill" | "rounded" | "square";
+  buttonEffect: "gradient" | "solid" | "outline" | "3d";
+  buttonAlign: "center" | "right" | "full";
+  // 5. Icons & Layout Structure
+  iconStyle: "3d" | "flat" | "glow";
+  iconSize: "small" | "medium" | "large";
+  iconPosition: "top-center" | "left" | "right";
+  mobileColumns: "2" | "3";
+  desktopColumns: "3" | "4";
+  sectionOrder: string;
+  showHero: boolean;
+  showFeatureCards: boolean;
+  showFeaturedSection: boolean;
+  showCategoriesSection: boolean;
+  showAddProfessionBanner: boolean;
+  featuredDefaultOpen: boolean;
+  // 6. Header, Footer & Splash
+  headerSticky: boolean;
+  headerBgColor: string;
+  headerLogoUrl: string;
+  showHeaderBell: boolean;
+  showHeaderFavorites: boolean;
+  showHeaderDarkToggle: boolean;
+  showHeaderLoginBtn: boolean;
+  footerBgColor: string;
+  showFooterWhatsapp: boolean;
+  splashEnabled: boolean;
+  splashImageUrl: string;
+  splashDuration: "900" | "1500" | "2500";
+  // 7. Login & Register Customizer
+  authShowBanner: boolean;
+  authBannerImage: string;
+  loginTitle: string;
+  loginSubtitle: string;
+  registerTitle: string;
+  registerSubtitle: string;
+  authFieldsLayout: "two-col" | "one-col";
+  authInputBorderColor: string;
+};
+
+export const defaultDesignSettings: DesignSettings = {
+  themePreset: "classic-blue",
+  primaryColor: "#0878c9",
+  pageBgColor: "#f3f7fa",
+  modalHeaderBg: "#dcecfb",
+  buttonColor: "#0c72c7",
+  themeMode: "auto",
+  headingAlign: "right",
+  cardTextAlign: "center",
+  noticeAlign: "center",
+  fontScale: "normal",
+  fontWeight: "bold",
+  fontFamily: "cairo",
+  sectionHeadingStyle: "pill",
+  borderWidth: "thin",
+  borderColor: "#dce6ef",
+  cardBgColor: "#ffffff",
+  cardRadius: "rounded",
+  cardShadow: "soft",
+  buttonShape: "rounded",
+  buttonEffect: "gradient",
+  buttonAlign: "center",
+  iconStyle: "3d",
+  iconSize: "medium",
+  iconPosition: "top-center",
+  mobileColumns: "2",
+  desktopColumns: "4",
+  sectionOrder: "hero,features,featured,categories,professionBanner",
+  showHero: true,
+  showFeatureCards: true,
+  showFeaturedSection: true,
+  showCategoriesSection: true,
+  showAddProfessionBanner: true,
+  featuredDefaultOpen: false,
+  headerSticky: true,
+  headerBgColor: "#ffffff",
+  headerLogoUrl: "",
+  showHeaderBell: true,
+  showHeaderFavorites: true,
+  showHeaderDarkToggle: true,
+  showHeaderLoginBtn: true,
+  footerBgColor: "#102437",
+  showFooterWhatsapp: true,
+  splashEnabled: true,
+  splashImageUrl: "/images/logo-daleel-transparent.png",
+  splashDuration: "900",
+  authShowBanner: true,
+  authBannerImage: "",
+  loginTitle: "دخول الأعضاء وإدارة الموقع",
+  loginSubtitle: "للأعضاء المسجلين أو إدارة الموقع",
+  registerTitle: "أنشئ حساب عضو جديد",
+  registerSubtitle: "عضوية مجانية وسريعة لأهالي قرية جنزور",
+  authFieldsLayout: "two-col",
+  authInputBorderColor: "#c8ddf0",
+};
+
+export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
+  "classic-blue": {
+    label: "أزرق جنزور الكلاسيكي",
+    description: "الهوية الافتراضية المريحة للعين بتدرجات السماوي والأزرق",
+    colors: { primaryColor: "#0878c9", pageBgColor: "#f3f7fa", modalHeaderBg: "#dcecfb", buttonColor: "#0c72c7", borderColor: "#dce6ef", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#102437" },
+  },
+  emerald: {
+    label: "أخضر زمردي طبيعي",
+    description: "ثيم هادئ بألوان الطبيعة والزمرد مع خلفية ناعمة",
+    colors: { primaryColor: "#0d8a5f", pageBgColor: "#f2f8f5", modalHeaderBg: "#d6f2e6", buttonColor: "#0f8c62", borderColor: "#cfe6dc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#0d2920" },
+  },
+  "royal-navy": {
+    label: "كحلي ملكي فاخر",
+    description: "تصميم رسمي أنيق بدرجات الكحلي الملكي والأزرق العميق",
+    colors: { primaryColor: "#1d4ed8", pageBgColor: "#f1f5f9", modalHeaderBg: "#dbeafe", buttonColor: "#1e40af", borderColor: "#cbd5e1", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#0f172a" },
+  },
+  "warm-gold": {
+    label: "ذهبي دافئ وتراثي",
+    description: "ألوان دافئة تجمع بين الكهرمان الذهبي والكحلي",
+    colors: { primaryColor: "#b45309", pageBgColor: "#faf7f2", modalHeaderBg: "#fde6c4", buttonColor: "#c2610c", borderColor: "#eadbc8", cardBgColor: "#ffffff", headerBgColor: "#fffdf9", footerBgColor: "#271a0c" },
+  },
+  festive: {
+    label: "ثيم المناسبات والمواسم",
+    description: "طابع احتفالي مميز للأعياد والمناسبات وشهر رمضان",
+    colors: { primaryColor: "#6d28d9", pageBgColor: "#f6f4fb", modalHeaderBg: "#e9d5ff", buttonColor: "#7c3aed", borderColor: "#ddd6fe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1e1035" },
+  },
+};
+
+export function sanitizeDesignSettings(saved: unknown): DesignSettings {
+  const next: DesignSettings = { ...defaultDesignSettings };
+  if (!saved || typeof saved !== "object") return next;
+  const record = saved as Record<string, unknown>;
+  const hexColor = (val: unknown, fallback: string) => (typeof val === "string" && /^#[0-9a-fA-F]{3,8}$/.test(val.trim()) ? val.trim() : fallback);
+  const pickEnum = <T extends string>(val: unknown, allowed: readonly T[], fallback: T): T =>
+    typeof val === "string" && (allowed as readonly string[]).includes(val) ? (val as T) : fallback;
+  const pickBool = (val: unknown, fallback: boolean) => (typeof val === "boolean" ? val : fallback);
+  const pickText = (val: unknown, fallback: string, max = 200, allowEmpty = false) => {
+    if (typeof val !== "string") return fallback;
+    const trimmed = val.trim().slice(0, max);
+    return trimmed || allowEmpty ? trimmed : fallback;
+  };
+
+  next.themePreset = pickEnum(record.themePreset, ["classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "custom"] as const, defaultDesignSettings.themePreset);
+  next.primaryColor = hexColor(record.primaryColor, defaultDesignSettings.primaryColor);
+  next.pageBgColor = hexColor(record.pageBgColor, defaultDesignSettings.pageBgColor);
+  next.modalHeaderBg = hexColor(record.modalHeaderBg, defaultDesignSettings.modalHeaderBg);
+  next.buttonColor = hexColor(record.buttonColor, defaultDesignSettings.buttonColor);
+  next.themeMode = pickEnum(record.themeMode, ["auto", "light", "dark"] as const, defaultDesignSettings.themeMode);
+
+  next.headingAlign = pickEnum(record.headingAlign, ["center", "right", "left"] as const, defaultDesignSettings.headingAlign);
+  next.cardTextAlign = pickEnum(record.cardTextAlign, ["center", "right", "left"] as const, defaultDesignSettings.cardTextAlign);
+  next.noticeAlign = pickEnum(record.noticeAlign, ["center", "right", "left"] as const, defaultDesignSettings.noticeAlign);
+  next.fontScale = pickEnum(record.fontScale, ["small", "normal", "large", "xlarge"] as const, defaultDesignSettings.fontScale);
+  next.fontWeight = pickEnum(record.fontWeight, ["normal", "bold", "extrabold"] as const, defaultDesignSettings.fontWeight);
+  next.fontFamily = pickEnum(record.fontFamily, ["cairo", "tajawal", "almarai", "readex"] as const, defaultDesignSettings.fontFamily);
+  next.sectionHeadingStyle = pickEnum(record.sectionHeadingStyle, ["plain", "pill", "underline", "framed"] as const, defaultDesignSettings.sectionHeadingStyle);
+
+  next.borderWidth = pickEnum(record.borderWidth, ["none", "thin", "medium", "double"] as const, defaultDesignSettings.borderWidth);
+  next.borderColor = hexColor(record.borderColor, defaultDesignSettings.borderColor);
+  next.cardBgColor = hexColor(record.cardBgColor, defaultDesignSettings.cardBgColor);
+  next.cardRadius = pickEnum(record.cardRadius, ["sharp", "medium", "rounded", "pill"] as const, defaultDesignSettings.cardRadius);
+  next.cardShadow = pickEnum(record.cardShadow, ["none", "soft", "elevated-3d"] as const, defaultDesignSettings.cardShadow);
+
+  next.buttonShape = pickEnum(record.buttonShape, ["pill", "rounded", "square"] as const, defaultDesignSettings.buttonShape);
+  next.buttonEffect = pickEnum(record.buttonEffect, ["gradient", "solid", "outline", "3d"] as const, defaultDesignSettings.buttonEffect);
+  next.buttonAlign = pickEnum(record.buttonAlign, ["center", "right", "full"] as const, defaultDesignSettings.buttonAlign);
+
+  next.iconStyle = pickEnum(record.iconStyle, ["3d", "flat", "glow"] as const, defaultDesignSettings.iconStyle);
+  next.iconSize = pickEnum(record.iconSize, ["small", "medium", "large"] as const, defaultDesignSettings.iconSize);
+  next.iconPosition = pickEnum(record.iconPosition, ["top-center", "left", "right"] as const, defaultDesignSettings.iconPosition);
+  next.mobileColumns = pickEnum(record.mobileColumns, ["2", "3"] as const, defaultDesignSettings.mobileColumns);
+  next.desktopColumns = pickEnum(record.desktopColumns, ["3", "4"] as const, defaultDesignSettings.desktopColumns);
+  next.sectionOrder = pickText(record.sectionOrder, defaultDesignSettings.sectionOrder, 120);
+  next.showHero = pickBool(record.showHero, defaultDesignSettings.showHero);
+  next.showFeatureCards = pickBool(record.showFeatureCards, defaultDesignSettings.showFeatureCards);
+  next.showFeaturedSection = pickBool(record.showFeaturedSection, defaultDesignSettings.showFeaturedSection);
+  next.showCategoriesSection = pickBool(record.showCategoriesSection, defaultDesignSettings.showCategoriesSection);
+  next.showAddProfessionBanner = pickBool(record.showAddProfessionBanner, defaultDesignSettings.showAddProfessionBanner);
+  next.featuredDefaultOpen = pickBool(record.featuredDefaultOpen, defaultDesignSettings.featuredDefaultOpen);
+
+  next.headerSticky = pickBool(record.headerSticky, defaultDesignSettings.headerSticky);
+  next.headerBgColor = hexColor(record.headerBgColor, defaultDesignSettings.headerBgColor);
+  next.headerLogoUrl = pickText(record.headerLogoUrl, defaultDesignSettings.headerLogoUrl, 300, true);
+  next.showHeaderBell = pickBool(record.showHeaderBell, defaultDesignSettings.showHeaderBell);
+  next.showHeaderFavorites = pickBool(record.showHeaderFavorites, defaultDesignSettings.showHeaderFavorites);
+  next.showHeaderDarkToggle = pickBool(record.showHeaderDarkToggle, defaultDesignSettings.showHeaderDarkToggle);
+  next.showHeaderLoginBtn = pickBool(record.showHeaderLoginBtn, defaultDesignSettings.showHeaderLoginBtn);
+  next.footerBgColor = hexColor(record.footerBgColor, defaultDesignSettings.footerBgColor);
+  next.showFooterWhatsapp = pickBool(record.showFooterWhatsapp, defaultDesignSettings.showFooterWhatsapp);
+  next.splashEnabled = pickBool(record.splashEnabled, defaultDesignSettings.splashEnabled);
+  next.splashImageUrl = pickText(record.splashImageUrl, defaultDesignSettings.splashImageUrl, 300);
+  next.splashDuration = pickEnum(record.splashDuration, ["900", "1500", "2500"] as const, defaultDesignSettings.splashDuration);
+
+  next.authShowBanner = pickBool(record.authShowBanner, defaultDesignSettings.authShowBanner);
+  next.authBannerImage = pickText(record.authBannerImage, defaultDesignSettings.authBannerImage, 300, true);
+  next.loginTitle = pickText(record.loginTitle, defaultDesignSettings.loginTitle, 120);
+  next.loginSubtitle = pickText(record.loginSubtitle, defaultDesignSettings.loginSubtitle, 180);
+  next.registerTitle = pickText(record.registerTitle, defaultDesignSettings.registerTitle, 120);
+  next.registerSubtitle = pickText(record.registerSubtitle, defaultDesignSettings.registerSubtitle, 180);
+  next.authFieldsLayout = pickEnum(record.authFieldsLayout, ["two-col", "one-col"] as const, defaultDesignSettings.authFieldsLayout);
+  next.authInputBorderColor = hexColor(record.authInputBorderColor, defaultDesignSettings.authInputBorderColor);
+
+  return next;
+}
+
 export type PublicDirectory = {
   services: ServiceRecord[]; categories: CategoryRecord[];
   areas: AreaRecord[]; settings: SiteSettings; memberCount: number; previewMode?: boolean;
   utilityNumbers?: PublicUtilityContact[];
   providerNotifications?: NotificationRecord[];
+  designSettings?: DesignSettings;
 };
 export type RatingRecord = { id: string; serviceId: string; serviceName: string; memberName: string; stars: number; comment: string; status: string; createdAt: string };
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };
