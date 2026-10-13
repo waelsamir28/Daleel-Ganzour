@@ -220,6 +220,40 @@ export default function SponsorshipModal({
             </div>
           </section>
 
+          {/* Reach & Impact Strip (#2) */}
+          <section className="sponsor-impact-strip" aria-label="أثر وظهور باقة الرعاية في جنزور">
+            <div className="sponsor-impact-item">
+              <strong>١٠٠٪</strong>
+              <span>ظهور في أول الصفوف وأولوية نتائج البحث</span>
+            </div>
+            <div className="sponsor-impact-item">
+              <strong>٢٤ / ٧</strong>
+              <span>إعلان متحرك وعرض يومي مستمر طوال الأسبوع</span>
+            </div>
+            <div className="sponsor-impact-item">
+              <strong>١٠ أيام</strong>
+              <span>تجربة مجانية كاملة بدون أي التزام مسبق</span>
+            </div>
+          </section>
+
+          {/* Sponsor Testimonials (#4) */}
+          <section className="sponsor-testimonials-box" aria-label="تجارب الرعاة المشتركين">
+            <h4 className="sponsor-testimonials-title">
+              <Star size={18} />
+              <span>لماذا يفضل أطباء ومعامل ومحلات جنزور الانضمام لرعاة الدليل؟</span>
+            </h4>
+            <div className="sponsor-testimonials-grid">
+              <div className="sponsor-testimonial-pill">
+                <p>«الحجز عبر واتساب وعرض اليوم سهّل على أهالي القرية معرفة مواعيد العيادة والتواصل المباشر معنا يومياً.»</p>
+                <small>— عيادات تخصصية بجنزور</small>
+              </div>
+              <div className="sponsor-testimonial-pill">
+                <p>«الشريط الإخباري المتحرك وعروض التحاليل اليومية زوّدت طلبات سحب العينات المنزلية بشكل ملحوظ.»</p>
+                <small>— معامل تحاليل ومراكز طبية</small>
+              </div>
+            </div>
+          </section>
+
           {/* Reassurance Note */}
           <div className="sponsor-reassurance-note">
             <CheckCircle2 size={20} />
