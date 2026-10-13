@@ -350,16 +350,6 @@ export default function DesignCustomizer({
         </div>
 
         <div className={`design-preview-viewport is-${previewDevice}`}>
-          {draft.announcementEnabled && (
-            <div className="design-preview-announcement" style={{ background: draft.announcementBgColor }}>
-              <Sparkles size={12}/>
-              <span>
-                {draft.announcementTickerMode === "single"
-                  ? draft.announcementText
-                  : parseAnnouncementItems(draft).join("  •  ") || draft.announcementText}
-              </span>
-            </div>
-          )}
           <div
             className={`design-preview-head is-pattern-${draft.heroPattern || "none"} is-opacity-${draft.patternOpacity || "subtle"}`}
             style={{ background: draft.modalHeaderBg }}
@@ -371,6 +361,16 @@ export default function DesignCustomizer({
                 : "العنوان والسطر الفرعي متوسطن بخلفية مخصصة"}
             </small>
           </div>
+          {draft.announcementEnabled && (
+            <div className="design-preview-announcement" style={{ background: draft.announcementBgColor }}>
+              <Sparkles size={12}/>
+              <span>
+                {draft.announcementTickerMode === "single"
+                  ? draft.announcementText
+                  : parseAnnouncementItems(draft).join("  •  ") || draft.announcementText}
+              </span>
+            </div>
+          )}
           <div className="design-preview-body" style={{ background: draft.pageBgColor }}>
             <div
               className={`design-preview-section-title is-style-${draft.sectionHeadingStyle}`}
@@ -1073,9 +1073,9 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.header && (
               <div className="design-group-content">
-                <InnerDivider title="شريط الإعلان أو الأخبار العلوي المتعدد (أعلى الهيدر)" subtitle="أضف خبراً واحداً أو عدة أخبار وتنبيهات متتالية لأهل القرية مع تحكم في الحركة والسرعة" />
+                <InnerDivider title="الشريط الإخباري المتحرك (أسفل البانر الترحيبي)" subtitle="أضف خبراً واحداً أو عدة أخبار وتنبيهات متتالية لأهل القرية مع تحكم في الحركة والسرعة" />
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.announcementEnabled} onChange={(e) => updateField("announcementEnabled", e.target.checked)}/>تفعيل وإظهار شريط الإعلانات والأخبار أعلى الموقع</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.announcementEnabled} onChange={(e) => updateField("announcementEnabled", e.target.checked)}/>تفعيل وإظهار الشريط الإخباري المتحرك أسفل البانر الترحيبي</label>
                 </div>
                 {draft.announcementEnabled && (
                   <>
