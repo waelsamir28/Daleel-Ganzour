@@ -1597,15 +1597,57 @@ html.dark .suggestion-chip, html.dark .field-suggestion-chip { background: #1327
 html.dark .suggestion-chip:hover, html.dark .field-suggestion-chip:hover { background: #193450; border-color: #366596; color: #fff; }
 html.dark .suggestion-chip.is-selected { background: #1d74d4; border-color: #1d74d4; color: #fff; }
 
-/* ===== زر مقدمو الخدمات المميزين القابل للطي والفتح ===== */
-.directory-section-heading h2:has(.featured-providers-btn) { padding: 0; border: 0; background: transparent; box-shadow: none; }
+/* ===== زر مقدمو الخدمات المميزين القابل للطي والفتح + صف واحد مع متاح الآن على الموبايل ===== */
+.providers-section .section-heading.directory-section-heading { display: flex; flex-direction: row !important; align-items: center !important; justify-content: space-between; flex-wrap: nowrap; gap: 8px; }
+.providers-section .section-heading.directory-section-heading > div:first-child { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.directory-section-heading h2:has(.featured-providers-btn) { padding: 0; border: 0; background: transparent; box-shadow: none; max-width: 100%; }
 .directory-section-heading h2:has(.featured-providers-btn)::after { display: none; }
-.featured-providers-btn { display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; border: 1px solid #b9d1e5; border-radius: 999px; background: linear-gradient(135deg, #17679c, #124b7a); box-shadow: 0 5px 13px rgba(18, 75, 122, .18), inset 0 1px 0 rgba(255, 255, 255, .2); color: #fff; font: inherit; font-size: inherit; font-weight: 900; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+.featured-providers-btn { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 7px 15px; border: 1px solid #b9d1e5; border-radius: 999px; background: linear-gradient(135deg, #17679c, #124b7a); box-shadow: 0 5px 13px rgba(18, 75, 122, .18), inset 0 1px 0 rgba(255, 255, 255, .2); color: #fff; font: inherit; font-size: inherit; font-weight: 900; white-space: nowrap; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
 .featured-providers-btn:hover { transform: translateY(-1px); background: linear-gradient(135deg, #1b75b1, #14558a); box-shadow: 0 8px 18px rgba(18, 75, 122, .26); }
-.featured-providers-btn .crown-icon { width: 32px; height: 32px; padding: 6px; border: 1px solid #d9eafa; border-radius: 10px; background: linear-gradient(145deg, #f4faff, #eaf5ff); color: #e09600; flex-shrink: 0; }
-.featured-providers-btn svg.is-rotated { transform: rotate(180deg); transition: transform .2s ease; }
+.featured-providers-btn .crown-icon { width: 30px; height: 30px; padding: 5px; border: 1px solid #d9eafa; border-radius: 10px; background: linear-gradient(145deg, #f4faff, #eaf5ff); color: #e09600; flex-shrink: 0; }
+.featured-providers-btn svg.is-rotated { transform: rotate(180deg); transition: transform .2s ease; flex-shrink: 0; }
+@media(max-width:600px) {
+  .providers-section .section-heading.directory-section-heading { gap: 6px; padding: 8px 9px; }
+  .featured-providers-btn { gap: 6px; padding: 6px 10px; font-size: 12.5px; }
+  .featured-providers-btn .crown-icon { width: 25px; height: 25px; padding: 4px; border-radius: 8px; }
+  .providers-section .availability-toggle { padding: 6px 10px; font-size: 11.5px; gap: 4px; flex-shrink: 0; }
+}
 html.dark .featured-providers-btn { background: linear-gradient(135deg, #163759, #10263f); border-color: #2b4d70; color: #f0f7ff; }
 html.dark .featured-providers-btn:hover { background: linear-gradient(135deg, #1b436b, #14304f); }
 html.dark .featured-providers-btn .crown-icon { border-color: #2b4d70; background: linear-gradient(145deg, #16314c, #10243a); color: #ffc83d; }
+
+/* ===== الكروت الثلاثة (الصيدلية والعيادة المناوبة الآن + أرقام تهمك في جنزور + الخدمات السريعة) ===== */
+.feature-cards-section { margin-top: 26px; }
+.feature-cards-grid.main-category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 14px; }
+.feature-card-tile.category-tile { display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 162px; padding: 18px 10px 15px; border-radius: 18px; cursor: pointer; font-family: inherit; text-align: center; }
+.feature-card-tile.category-tile .category-icon { margin-block: auto; }
+.feature-card-title { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 100%; margin-top: 6px; text-align: center; white-space: normal !important; line-height: 1.45 !important; }
+.feature-card-title > span { display: block; width: 100%; text-align: center; }
+.feature-card-title > span:first-child { font-size: 15px; font-weight: 900; color: #163a63; }
+.feature-card-title > span:last-child { font-size: 13.5px; font-weight: 800; color: var(--category-color, #0878c9); }
+@media(max-width:600px) {
+  .feature-cards-grid.main-category-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px; }
+  .feature-card-tile.category-tile { min-height: 136px; padding: 13px 6px 11px; border-radius: 15px; gap: 8px; }
+  .feature-card-tile.category-tile .category-icon { width: 58px; height: 58px; border-radius: 18px; }
+  .feature-card-tile.category-tile .main-category-art { width: 58px; height: 58px; }
+  .feature-card-title > span:first-child { font-size: 12px; }
+  .feature-card-title > span:last-child { font-size: 11px; }
+}
+html.dark .feature-card-title > span:first-child { color: #eef6ff; }
+html.dark .feature-card-title > span:last-child { color: #8ac8ff; }
+
+/* ===== تنسيق هيدر الشاشات العائمة (توسيط السطور + خلفية لبني مثل زر الاتصال) ===== */
+.modal-panel.modal-floating { overflow: hidden; }
+.modal-panel.modal-floating .modal-heading { position: relative; justify-content: center; align-items: center; text-align: center; padding: 18px 52px 15px; background: linear-gradient(135deg, #dcecfb 0%, #e7eef9 55%, #d6e9fb 100%); border-bottom: 1px solid #bfd8f2; }
+.modal-panel.modal-floating .modal-heading > div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-width: 0; }
+.modal-panel.modal-floating .modal-heading h2 { color: #164b88; text-align: center; width: 100%; font-size: 18px; font-weight: 900; }
+.modal-panel.modal-floating .modal-heading p { color: #2d5e91; text-align: center; width: 100%; margin-top: 4px; font-size: 12.5px; font-weight: 700; }
+.modal-panel.modal-floating .modal-heading .modal-close { position: absolute; top: 14px; inset-inline-end: 14px; background: rgba(255, 255, 255, .75); border: 1px solid #bfd8f2; color: #164b88; }
+.modal-panel.modal-floating .modal-heading .modal-close:hover { background: #fff; border-color: #96c0ea; }
+.quick-modal-grid { border: 0; padding: 4px 0 0; background: transparent; box-shadow: none; }
+html.dark .modal-panel.modal-floating .modal-heading { background: linear-gradient(135deg, #132c47 0%, #0d2236 60%, #15314f 100%); border-bottom-color: #244668; }
+html.dark .modal-panel.modal-floating .modal-heading h2 { color: #eef6ff; }
+html.dark .modal-panel.modal-floating .modal-heading p { color: #a9caec; }
+html.dark .modal-panel.modal-floating .modal-heading .modal-close { background: rgba(15, 32, 52, .75); border-color: #294d72; color: #cfe6ff; }
 
 

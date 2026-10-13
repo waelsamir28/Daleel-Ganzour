@@ -12,7 +12,7 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
-const dimensionalCategoryIcons: Record<string, string> = { Wrench: "crafts", Stethoscope: "clinics", FlaskConical: "labs", Store: "shops", GraduationCap: "teachers", HandHeart: "charities", Grid2X2: "other" };
+const dimensionalCategoryIcons: Record<string, string> = { Wrench: "crafts", Stethoscope: "clinics", FlaskConical: "labs", Store: "shops", GraduationCap: "teachers", HandHeart: "charities", Grid2X2: "other", duty: "duty", utilities: "utilities", quick: "quick" };
 export function MainCategoryIcon({ icon }: { icon: string }) {
   return <svg className="main-category-art" viewBox="0 0 128 128" aria-hidden="true"><use href={`/images/category-3d.svg#${dimensionalCategoryIcons[icon] ?? "other"}`}/></svg>;
 }
