@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -453,6 +453,54 @@ test("community helpers compute prayer times, transit routes, and open-now statu
     true,
   );
 });
+
+test("teacher stage filter, home delivery detector, and group 4 design settings work accurately", () => {
+  assert.equal(TEACHER_STAGES.length, 5);
+  const teacherService = {
+    name: "أ. محمد حسن — مدرس رياضيات",
+    description: "تدريس الرياضيات للمرحلة الإعدادية والمرحلة الثانوية",
+    subSpecialties: ["المرحلة الإعدادية", "المرحلة الثانوية"],
+    serviceItems: [],
+  };
+  assert.equal(matchesTeacherStage(teacherService, "all"), true);
+  assert.equal(matchesTeacherStage(teacherService, "prep"), true);
+  assert.equal(matchesTeacherStage(teacherService, "secondary"), true);
+  assert.equal(matchesTeacherStage(teacherService, "foundation"), false);
+  assert.equal(getTeacherStagesForService(teacherService).length, 2);
+
+  const deliveryService = {
+    name: "صيدلية الشفاء بجنزور",
+    description: "خدمة على مدار الساعة",
+    category: "pharmacies",
+    subSpecialties: [],
+    serviceItems: [HOME_DELIVERY_TAG],
+  };
+  const nonDeliveryService = {
+    name: "ورشة نجارة الأمل",
+    description: "تصنيع غرف نوم وأبواب",
+    category: "carpenter",
+    subSpecialties: [],
+    serviceItems: ["تفصيل موبيليا"],
+  };
+  assert.equal(supportsHomeDelivery(deliveryService), true);
+  assert.equal(supportsHomeDelivery(nonDeliveryService), false);
+
+  const group4Design = sanitizeDesignSettings({
+    announcementItems: "خبر أول\nخبر ثاني|خبر ثالث",
+    announcementTickerMode: "marquee",
+    announcementSpeed: "fast",
+    headerPattern: "islamic",
+    heroPattern: "stars",
+    patternOpacity: "medium",
+  });
+  assert.equal(group4Design.announcementTickerMode, "marquee");
+  assert.equal(group4Design.announcementSpeed, "fast");
+  assert.equal(group4Design.headerPattern, "islamic");
+  assert.equal(group4Design.heroPattern, "stars");
+  assert.equal(group4Design.patternOpacity, "medium");
+  assert.deepEqual(parseAnnouncementItems(group4Design), ["خبر أول", "خبر ثاني", "خبر ثالث"]);
+});
+
 
 
 

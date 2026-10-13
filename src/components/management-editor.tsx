@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { AlertCircle, Check, CirclePlus, LoaderCircle, Save, Sparkles } from "lucide-react";
-import { getCategory, getCompletionFieldSuggestions, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
+import { getCategory, getCompletionFieldSuggestions, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, TEACHER_STAGES, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 
 export type EntityKind = "service" | "category" | "area" | "member";
@@ -94,7 +94,38 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
         </div>
       </label>
       <label className="field">حالة النشر<SelectField name="status" defaultValue={record.status ?? "approved"}><option value="pending">قيد المراجعة</option><option value="approved">منشور</option><option value="rejected">مرفوض / موقوف</option></SelectField></label>
-      <div className="editor-checkboxes"><label className="checkbox-field"><input type="checkbox" name="verified" defaultChecked={record.verified ?? true}/> موثقة</label><label className="checkbox-field"><input type="checkbox" name="featured" defaultChecked={record.featured}/> خدمة مميزة</label><label className="checkbox-field"><input type="checkbox" name="emergency" defaultChecked={draft?.emergency ?? record.emergency}/> متاح للطوارئ</label><label className="checkbox-field"><input type="checkbox" name="demo" defaultChecked={record.demo}/> بطاقة توضيحية</label></div>
+      <div className="editor-checkboxes">
+        <label className="checkbox-field"><input type="checkbox" name="verified" defaultChecked={record.verified ?? true}/> موثقة</label>
+        <label className="checkbox-field"><input type="checkbox" name="featured" defaultChecked={record.featured}/> خدمة مميزة</label>
+        <label className="checkbox-field"><input type="checkbox" name="emergency" defaultChecked={draft?.emergency ?? record.emergency}/> متاح للطوارئ</label>
+        <label className="checkbox-field">
+          <input
+            type="checkbox"
+            checked={hasLineItem(serviceItemsVal, HOME_DELIVERY_TAG)}
+            onChange={() => setServiceItemsVal((curr) => toggleLineItem(curr, HOME_DELIVERY_TAG))}
+          />
+          🛵 يوجد توصيل للمنازل / خدمة منزلية
+        </label>
+        <label className="checkbox-field"><input type="checkbox" name="demo" defaultChecked={record.demo}/> بطاقة توضيحية</label>
+      </div>
+      {root === "teachers" && (
+        <div className="field teacher-stages-picker">
+          <span>🎓 المراحل الدراسية التي يدرّسها (اضغط لتحديد مرحلة أو أكثر):</span>
+          <div className="field-suggestions" aria-label="المراحل الدراسية">
+            {TEACHER_STAGES.map((stage) => (
+              <button
+                key={stage.id}
+                type="button"
+                className={`suggestion-chip ${hasLineItem(subSpecVal, stage.label) ? "is-selected" : ""}`}
+                onClick={() => setSubSpecVal((curr) => toggleLineItem(curr, stage.label))}
+              >
+                {hasLineItem(subSpecVal, stage.label) ? <Check size={12}/> : <CirclePlus size={12}/>}
+                {stage.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </>}
     {editing.kind === "service" && <>
       <label className="field">متاح الآن<SelectField name="availabilityAction" defaultValue="keep"><option value="keep">بدون تغيير</option><option value="activate">تفعيل أو تجديد لمدة ٤ ساعات</option><option value="stop">إيقاف الآن</option></SelectField><small className="input-help">تنتهي الحالة تلقائيًا. حفظ بيانات أخرى لا يجددها.</small>{record.availableUntil && <small>موعد الانتهاء: {new Date(record.availableUntil).toLocaleString("ar-EG", { timeZone: "Africa/Cairo" })} (بتوقيت جنزور)</small>}</label>
@@ -281,6 +312,24 @@ export function ProviderCompletionModalForm({
           {suggestions.descriptions.map((item) => <button key={item} type="button" className={`suggestion-chip ${descriptionVal === item ? "is-selected" : ""}`} onClick={() => setDescriptionVal(item)}><CirclePlus size={12}/>{item}</button>)}
         </div>
       </label>
+      {root === "teachers" && (
+        <div className="field teacher-stages-picker">
+          <span>🎓 المراحل الدراسية التي يدرّسها (اضغط لتحديد مرحلة أو أكثر):</span>
+          <div className="field-suggestions" aria-label="المراحل الدراسية">
+            {TEACHER_STAGES.map((stage) => (
+              <button
+                key={stage.id}
+                type="button"
+                className={`suggestion-chip ${hasLineItem(subSpecVal, stage.label) ? "is-selected" : ""}`}
+                onClick={() => setSubSpecVal((curr) => toggleLineItem(curr, stage.label))}
+              >
+                {hasLineItem(subSpecVal, stage.label) ? <Check size={12}/> : <CirclePlus size={12}/>}
+                {stage.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <label className="field">التخصصات الفرعية للمهنة
         <textarea name="subSpecialties" value={subSpecVal} onChange={(event) => setSubSpecVal(event.target.value)} rows={3} maxLength={2020} placeholder="تخصص فرعي في كل سطر"/>
         <small>اضغط على الاقتراحات التالية لإضافتها أو إزالتها مباشرة:</small>
@@ -295,10 +344,20 @@ export function ProviderCompletionModalForm({
           {suggestions.serviceItems.map((item) => <button key={item} type="button" className={`suggestion-chip ${hasLineItem(serviceItemsVal, item) ? "is-selected" : ""}`} onClick={() => setServiceItemsVal((curr) => toggleLineItem(curr, item))}>{hasLineItem(serviceItemsVal, item) ? <Check size={12}/> : <CirclePlus size={12}/>}{item}</button>)}
         </div>
       </label>
-      <label className="checkbox-field">
-        <input type="checkbox" name="emergency" checked={emergencyVal} onChange={(event) => setEmergencyVal(event.target.checked)}/>
-        <span>متاح للطوارئ والحالات العاجلة</span>
-      </label>
+      <div className="editor-checkboxes">
+        <label className="checkbox-field">
+          <input type="checkbox" name="emergency" checked={emergencyVal} onChange={(event) => setEmergencyVal(event.target.checked)}/>
+          <span>متاح للطوارئ والحالات العاجلة</span>
+        </label>
+        <label className="checkbox-field">
+          <input
+            type="checkbox"
+            checked={hasLineItem(serviceItemsVal, HOME_DELIVERY_TAG)}
+            onChange={() => setServiceItemsVal((curr) => toggleLineItem(curr, HOME_DELIVERY_TAG))}
+          />
+          <span>🛵 يوجد توصيل للمنازل / خدمة أو زيارة منزلية بجنزور</span>
+        </label>
+      </div>
       {error && <div className="form-error" role="alert">{error}</div>}
       <button className="button button-primary form-submit" type="submit" disabled={busy}>
         {busy ? <LoaderCircle size={18} className="spin"/> : <Save size={18}/>}
