@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, getClinicBookingMode, getClinicBookingLabel, getClinicScheduleSummary, matchesClinicFilter, parseShopItemString, getShopCatalogItems, buildShopWhatsappOrderMessage } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -500,6 +500,71 @@ test("teacher stage filter, home delivery detector, and group 4 design settings 
   assert.equal(group4Design.patternOpacity, "medium");
   assert.deepEqual(parseAnnouncementItems(group4Design), ["خبر أول", "خبر ثاني", "خبر ثالث"]);
 });
+
+test("clinic booking filter, schedule summary, and shop catalog WhatsApp order builder work accurately", () => {
+  const appointmentClinic = {
+    name: "عيادة د. سارة أحمد",
+    description: "عيادة طب الأسرة والباطنة، يرجى الاتصال لحجز موعد.",
+    subSpecialties: [CLINIC_APPOINTMENT_TAG, "السبت والاثنين والأربعاء"],
+    serviceItems: [],
+    availableNow: false,
+    availableUntil: null,
+  };
+  const walkinClinic = {
+    name: "عيادة د. محمود علي",
+    description: "الكشف بأسبقية الحضور يومياً عدا الجمعة",
+    subSpecialties: [CLINIC_WALKIN_TAG],
+    serviceItems: [],
+    availableNow: true,
+    availableUntil: new Date(Date.now() + 3600_000).toISOString(),
+  };
+
+  assert.equal(getClinicBookingMode(appointmentClinic), "appointment");
+  assert.equal(getClinicBookingLabel("appointment"), "حجز مسبق");
+  assert.equal(getClinicBookingMode(walkinClinic), "walk-in");
+  assert.equal(getClinicBookingLabel("walk-in"), "بأسبقية الحضور");
+
+  assert.equal(matchesClinicFilter(appointmentClinic, "appointment"), true);
+  assert.equal(matchesClinicFilter(appointmentClinic, "walk-in"), false);
+  assert.equal(matchesClinicFilter(walkinClinic, "walk-in"), true);
+  assert.equal(matchesClinicFilter(walkinClinic, "open-today"), true);
+
+  const schedule = getClinicScheduleSummary(appointmentClinic);
+  assert.ok(schedule.daysText.includes("السبت"));
+  assert.ok(schedule.daysText.includes("الاثنين"));
+
+  const parsedItem = parseShopItemString("وجبة مشويات مشكلة — 120 ج.م");
+  assert.equal(parsedItem.name, "وجبة مشويات مشكلة");
+  assert.equal(parsedItem.price, "120 ج.م");
+
+  const shopItems = getShopCatalogItems({
+    category: "groceries",
+    serviceItems: ["لبن جاموسي طازج — 35 ج.م", HOME_DELIVERY_TAG],
+  });
+  assert.equal(shopItems.length, 1);
+  assert.equal(shopItems[0].name, "لبن جاموسي طازج");
+  assert.equal(shopItems[0].price, "35 ج.م");
+
+  const fallbackShopItems = getShopCatalogItems({
+    category: "food",
+    serviceItems: [HOME_DELIVERY_TAG],
+  });
+  assert.ok(fallbackShopItems.length >= 3);
+
+  const orderMsg = buildShopWhatsappOrderMessage(
+    { name: "سوبر ماركت البركة" },
+    ["لبن جاموسي طازج — 35 ج.م", "كرتونة بيض طازج"],
+    "جنزور / شارع حسيب",
+    "الاتصال قبل الوصول",
+    true,
+  );
+  assert.ok(orderMsg.includes("سوبر ماركت البركة"));
+  assert.ok(orderMsg.includes("لبن جاموسي طازج — 35 ج.م"));
+  assert.ok(orderMsg.includes("جنزور / شارع حسيب"));
+  assert.ok(orderMsg.includes("مطلوب توصيل الطلب للمنزل"));
+  assert.ok(orderMsg.includes("الاتصال قبل الوصول"));
+});
+
 
 
 

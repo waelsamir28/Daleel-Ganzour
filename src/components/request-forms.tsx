@@ -2,8 +2,16 @@
 
 import { useState, type FormEvent } from "react";
 import { Check, CheckCircle2, CirclePlus, Clock3, LoaderCircle, MapPin, ShieldCheck } from "lucide-react";
-import { areas, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, TEACHER_STAGES, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
+import { areas, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, TEACHER_STAGES, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
+
+const CLINIC_SCHEDULE_CHIPS = [
+  CLINIC_APPOINTMENT_TAG,
+  CLINIC_WALKIN_TAG,
+  "يومياً عدا الجمعة",
+  "السبت والاثنين والأربعاء",
+  "الأحد والثلاثاء والخميس",
+];
 
 type FormOptions = { catalog: CategoryRecord[]; areaOptions: AreaRecord[] };
 export function AddressFields({ areaOptions, initialArea = "", initialAddress = "", editableDetails = false }: { areaOptions: AreaRecord[]; initialArea?: string; initialAddress?: string; editableDetails?: boolean }) {
@@ -18,15 +26,35 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   const [root, setRoot] = useState(selected?.parentId ?? (selected && !selected.parentId ? selected.id : ""));
   const [specialty, setSpecialty] = useState(selected?.parentId ? selected.id : "");
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
+  const [clinicTags, setClinicTags] = useState<string[]>([]);
+  const [shopItems, setShopItems] = useState<string[]>([]);
+  const [customShopItem, setCustomShopItem] = useState("");
   const [homeDelivery, setHomeDelivery] = useState(false);
   const knownArea = areaOptions.some((item) => item.name === initialArea);
   const [area, setArea] = useState(initialArea ? (knownArea ? initialArea : OTHER_ADDRESS) : "");
   function toggleStage(stageLabel: string) {
     setSelectedStages((curr) => curr.includes(stageLabel) ? curr.filter((item) => item !== stageLabel) : [...curr, stageLabel]);
   }
+  function toggleClinicTag(tag: string) {
+    setClinicTags((curr) => curr.includes(tag) ? curr.filter((item) => item !== tag) : [...curr, tag]);
+  }
+  function toggleShopItem(item: string) {
+    setShopItems((curr) => curr.includes(item) ? curr.filter((x) => x !== item) : [...curr, item].slice(0, 12));
+  }
+  function addCustomShopItem() {
+    const trimmed = customShopItem.trim();
+    if (!trimmed) return;
+    if (!shopItems.includes(trimmed)) {
+      setShopItems((curr) => [...curr, trimmed].slice(0, 12));
+    }
+    setCustomShopItem("");
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
+    const subSpecialties = root === "teachers" ? selectedStages : root === "clinics" ? clinicTags : [];
+    const baseServiceItems = root === "shops" ? shopItems : [];
+    const serviceItems = homeDelivery ? [...baseServiceItems, HOME_DELIVERY_TAG] : baseServiceItems;
     try {
       const response = await fetch("/api/services", {
         method: "POST",
@@ -34,8 +62,8 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
         body: JSON.stringify({
           ...Object.fromEntries(form),
           emergency: form.get("emergency") === "on",
-          subSpecialties: root === "teachers" ? selectedStages : [],
-          serviceItems: homeDelivery ? [HOME_DELIVERY_TAG] : [],
+          subSpecialties,
+          serviceItems,
         }),
       });
       const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "تعذر إرسال الطلب.");
@@ -85,9 +113,65 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
         </div>
       </div>
     )}
+    {root === "clinics" && (
+      <div className="field clinic-schedule-picker">
+        <span>🩺 نظام الكشف وأيام التواجد في العيادة بجنزور (اختر ما يناسبك):</span>
+        <div className="field-suggestions" aria-label="نظام الكشف وأيام التواجد">
+          {CLINIC_SCHEDULE_CHIPS.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              className={`suggestion-chip ${clinicTags.includes(tag) ? "is-selected" : ""}`}
+              onClick={() => toggleClinicTag(tag)}
+            >
+              {clinicTags.includes(tag) ? <Check size={12}/> : <CirclePlus size={12}/>}
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+    {root === "shops" && (
+      <div className="field shop-items-picker">
+        <span>🛍️ قائمة الأصناف أو العروض المختصرة (تظهر للزوار مع زر اطلب عبر واتساب):</span>
+        <div className="shop-custom-item-row">
+          <input
+            type="text"
+            value={customShopItem}
+            onChange={(event) => setCustomShopItem(event.target.value)}
+            placeholder="مثال: كرتونة بيض طازج — بسعر اليوم (أو اسم الصنف والعر)"
+            maxLength={95}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addCustomShopItem();
+              }
+            }}
+          />
+          <button type="button" className="button button-soft button-small" onClick={addCustomShopItem}>
+            <CirclePlus size={15}/> إضافة صنف
+          </button>
+        </div>
+        <div className="field-suggestions" aria-label="أصناف مقترحة للمحل">
+          {(shopSampleMenuItems[specialty] ?? shopSampleMenuItems.groceries ?? []).map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={`suggestion-chip ${shopItems.includes(item) ? "is-selected" : ""}`}
+              onClick={() => toggleShopItem(item)}
+            >
+              {shopItems.includes(item) ? <Check size={12}/> : <CirclePlus size={12}/>}
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
     <div className="editor-checkboxes">
       <label className="checkbox-field"><input name="emergency" type="checkbox"/><span>متاح لخدمات الطوارئ والمساعدة العاجلة</span></label>
-      <label className="checkbox-field"><input type="checkbox" checked={homeDelivery} onChange={(e) => setHomeDelivery(e.target.checked)}/><span>🛵 متاح توصيل للمنازل / زيارة أو خدمة منزلية بجنزور</span></label>
+      {root === "shops" && (
+        <label className="checkbox-field"><input type="checkbox" checked={homeDelivery} onChange={(e) => setHomeDelivery(e.target.checked)}/><span>🛵 يوفر المحل خدمة التوصيل للمنازل بجنزور</span></label>
+      )}
     </div>
     {error && <div role="alert" className="form-error">{error}</div>}
     <div className="form-submit-center"><button type="submit" className="button button-primary form-submit" disabled={busy}>{busy ? <LoaderCircle size={19} className="spin"/> : <CirclePlus size={19}/>} {busy ? "جاري إرسال الطلب..." : "إرسال طلب إضافة مهنتك"}</button></div>

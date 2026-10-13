@@ -562,6 +562,226 @@ export function supportsHomeDelivery(
   return homeDeliveryRegex.test(haystack);
 }
 
+export type ClinicBookingFilter = "all" | "appointment" | "walk-in" | "open-today";
+export type ClinicBookingMode = "appointment" | "walk-in" | "both";
+export const CLINIC_APPOINTMENT_TAG = "الكشف بالحجز المسبق";
+export const CLINIC_WALKIN_TAG = "الكشف بأسبقية الحضور";
+
+const clinicAppointmentRegex = /حجز مسبق|بالحجز|حجز موعد|لحجز موعد|بحجز|حجز تليفون|حجز بالهاتف|حجز واتساب/;
+const clinicWalkInRegex = /باسبقيه الحضور|اسبقيه الحضور|بدون حجز|حضور مباشر|دخول مباشر|اسبقيه الحجز/;
+
+export function getClinicBookingMode(
+  service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties">,
+): ClinicBookingMode {
+  const haystack = normalizeSearch(
+    `${service.name} ${service.description} ${(service.serviceItems ?? []).join(" ")} ${(service.subSpecialties ?? []).join(" ")}`,
+  );
+  const hasAppointment = clinicAppointmentRegex.test(haystack);
+  const hasWalkIn = clinicWalkInRegex.test(haystack);
+  if (hasAppointment && hasWalkIn) return "both";
+  if (hasWalkIn) return "walk-in";
+  if (hasAppointment || haystack.includes("حجز")) return "appointment";
+  return "walk-in";
+}
+
+export function getClinicBookingLabel(mode: ClinicBookingMode): string {
+  if (mode === "both") return "حجز مسبق أو بأسبقية الحضور";
+  if (mode === "appointment") return "حجز مسبق";
+  return "بأسبقية الحضور";
+}
+
+function formatHour12Ar(time24: string): string {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time24);
+  if (!match) return time24;
+  const h24 = Number(match[1]);
+  const mins = match[2];
+  const period = h24 >= 12 ? "م" : "ص";
+  const h12 = h24 % 12 || 12;
+  return mins === "00" ? `${h12} ${period}` : `${h12}:${mins} ${period}`;
+}
+
+export type ClinicScheduleSummary = {
+  daysText: string;
+  todayHoursText: string;
+  isOpenToday: boolean;
+};
+
+export function getClinicScheduleSummary(
+  service: Pick<ServiceRecord, "description" | "serviceItems" | "subSpecialties"> & { workingHours?: WorkingHours | null },
+  now = Date.now(),
+): ClinicScheduleSummary {
+  const date = new Date(now);
+  const todayIdx = date.getDay(); // 0 = Sunday .. 6 = Saturday
+  const wh = service.workingHours;
+
+  if (Array.isArray(wh) && wh.length === 7) {
+    const openDays = WEEK_DAYS.filter((_, idx) => !wh[idx]?.closed);
+    const closedDays = WEEK_DAYS.filter((_, idx) => Boolean(wh[idx]?.closed));
+    const todaySlot = wh[todayIdx];
+    const isOpenToday = Boolean(todaySlot && !todaySlot.closed);
+    const todayHoursText = isOpenToday && todaySlot
+      ? `مواعيد اليوم (${WEEK_DAYS[todayIdx]}): ${formatHour12Ar(todaySlot.opens)} – ${formatHour12Ar(todaySlot.closes)}`
+      : `إجازة اليوم (${WEEK_DAYS[todayIdx]})`;
+
+    let daysText = "يرجى الاتصال لمعرفة المواعيد";
+    if (openDays.length === 7) {
+      daysText = "متواجد يومياً طوال الأسبوع";
+    } else if (openDays.length === 6 && closedDays.length === 1) {
+      daysText = `يومياً عدا ${closedDays[0]}`;
+    } else if (openDays.length > 0) {
+      daysText = `أيام التواجد: ${openDays.join(" • ")}`;
+    }
+    return { daysText, todayHoursText, isOpenToday };
+  }
+
+  const haystack = normalizeSearch(
+    `${service.description} ${(service.serviceItems ?? []).join(" ")} ${(service.subSpecialties ?? []).join(" ")}`,
+  );
+  const mentionedDays = WEEK_DAYS.filter((day) => haystack.includes(normalizeSearch(day)));
+  if (mentionedDays.length > 0 && mentionedDays.length < 7) {
+    const isOpenToday = mentionedDays.includes(WEEK_DAYS[todayIdx]);
+    return {
+      daysText: `أيام التواجد: ${mentionedDays.join(" • ")}`,
+      todayHoursText: isOpenToday ? `متاح اليوم (${WEEK_DAYS[todayIdx]})` : `غير متواجد اليوم (${WEEK_DAYS[todayIdx]})`,
+      isOpenToday,
+    };
+  }
+
+  const isFriday = todayIdx === 5;
+  return {
+    daysText: "يومياً عدا الجمعة (تواصل لتأكيد الموعد)",
+    todayHoursText: isFriday ? "الجمعة (يرجى الاتصال للتأكد)" : `متاح اليوم (${WEEK_DAYS[todayIdx]})`,
+    isOpenToday: !isFriday,
+  };
+}
+
+export function matchesClinicFilter(
+  service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties" | "availableNow" | "availableUntil"> & { workingHours?: WorkingHours | null },
+  filter: ClinicBookingFilter,
+  now = Date.now(),
+): boolean {
+  if (!filter || filter === "all") return true;
+  if (filter === "open-today") {
+    return isAvailableNow(service, now) || getClinicScheduleSummary(service, now).isOpenToday;
+  }
+  const mode = getClinicBookingMode(service);
+  if (filter === "appointment") return mode === "appointment" || mode === "both";
+  if (filter === "walk-in") return mode === "walk-in" || mode === "both";
+  return true;
+}
+
+export type ShopCatalogItem = {
+  raw: string;
+  name: string;
+  price: string | null;
+};
+
+export const shopSampleMenuItems: Record<string, string[]> = {
+  groceries: [
+    "كرتونة بيض طازج — بسعر اليوم",
+    "جبنة قريش وجبنة ثلاجة طازجة",
+    "لبن جاموسي وبقري طازج يومياً",
+    "شنطة خزين البيت (أرز • مكرونة • زيت • سكر)",
+  ],
+  pharmacies: [
+    "صرف الروشتات الطبية وبدائل الأدوية",
+    "قياس الضغط والسكر بالصيدلية",
+    "ألبان ومستلزمات العناية بالطفل",
+    "أدوية الطوارئ والمسكنات والفيتامينات",
+  ],
+  clothing: [
+    "تشكيلة ملابس كاجوال وخروج حديثة",
+    "ملابس أطفال وحديثي الولادة",
+    "عبايات بيتي وخروج بأسعار مميزة",
+    "أحذية وشنط ومستلزمات العرائس",
+  ],
+  stationery: [
+    "تصوير وطباعة المذكرات والأوراق",
+    "تشكيلة كشاكيل وأقلام وأدوات مدرسية",
+    "تغليف حراري وتكعيب سلك للكتب",
+    "هدايا وألعاب أطفال تعليمية",
+  ],
+  appliances: [
+    "مراوح وشاشات وأجهزة منزلية بالضمان",
+    "خلاطات ومكاوي وغلايات كهربائية",
+    "عروض خاصة لتجهيز العرائس بجنزور",
+    "توصيل وتركيب الأجهزة للمنزل",
+  ],
+  food: [
+    "وجبات سريعة وساندوتشات طازجة",
+    "مشويات وطواجن ومأكولات بيتي",
+    "فطير مشلتت ومخبوزات وحلويات",
+    "وجبات عائلية مع توصيل سريع بجنزور",
+  ],
+  "mobile-shops": [
+    "إكسسوارات موبايل (جرابات • اسكرينة • شواحن أصلية)",
+    "تغيير شاشات وبطاريات وصيانة فورية",
+    "تحويل فودافون كاش وشحن رصيد وفواتير",
+    "سماعات أيربودز وكابلات أصلية بالضمان",
+  ],
+};
+
+export function parseShopItemString(rawItem: string): ShopCatalogItem {
+  const cleaned = rawItem.trim();
+  const dashSplit = cleaned.split(/\s*(?:—|–|-|:)\s*/);
+  if (dashSplit.length >= 2) {
+    const possiblePrice = dashSplit[dashSplit.length - 1].trim();
+    const itemName = dashSplit.slice(0, -1).join(" - ").trim();
+    if (itemName && (/\d|ج\.?م|جنيه|سعر|عرض/.test(possiblePrice) || possiblePrice.length <= 24)) {
+      return { raw: cleaned, name: itemName, price: possiblePrice };
+    }
+  }
+  const priceMatch = /^(.*?)\s+(?:بـ|بسعر)\s+(.+)$/.exec(cleaned);
+  if (priceMatch && priceMatch[1].trim() && priceMatch[2].trim()) {
+    return { raw: cleaned, name: priceMatch[1].trim(), price: priceMatch[2].trim() };
+  }
+  return { raw: cleaned, name: cleaned, price: null };
+}
+
+export function getShopCatalogItems(
+  service: Pick<ServiceRecord, "category" | "serviceItems">,
+): ShopCatalogItem[] {
+  const explicitItems = (service.serviceItems ?? [])
+    .map((item) => item.trim())
+    .filter((item) => item && item !== HOME_DELIVERY_TAG && !/^خدمه التوصيل للمنازل/.test(normalizeSearch(item)));
+  const sourceList = explicitItems.length > 0
+    ? explicitItems
+    : (shopSampleMenuItems[service.category] ?? specialtyServiceItemSuggestions[service.category] ?? []).slice(0, 4);
+  return sourceList.slice(0, 8).map(parseShopItemString);
+}
+
+export function buildShopWhatsappOrderMessage(
+  service: { name: string },
+  selectedItems: string[],
+  selectedArea = "",
+  customNote = "",
+  wantsDelivery = false,
+): string {
+  const cleanItems = selectedItems.map((item) => item.trim()).filter(Boolean);
+  const lines: string[] = [
+    `مرحبًا ${service.name}، وصلت إليك من دليل جنزور.`,
+  ];
+  if (cleanItems.length > 0) {
+    lines.push("أرغب في طلب / الاستفسار عن الأصناف التالية:");
+    for (const item of cleanItems) {
+      lines.push(`• ${item}`);
+    }
+  } else {
+    lines.push("أرغب في الاستفسار عن الأصناف والأسعار المتاحة لديكم.");
+  }
+  if (selectedArea.trim()) {
+    lines.push(`📍 العنوان: ${selectedArea.trim()}`);
+  }
+  if (wantsDelivery) {
+    lines.push("🛵 التوصيل: مطلوب توصيل الطلب للمنزل");
+  }
+  if (customNote.trim()) {
+    lines.push(`📝 ملاحظة: ${customNote.trim()}`);
+  }
+  lines.push("هل الطلب متاح حالياً؟");
+  return lines.join("\n");
+}
+
 export function parseAnnouncementItems(
   design: Pick<DesignSettings, "announcementText" | "announcementItems">,
 ): string[] {
@@ -616,18 +836,24 @@ export function getCompletionFieldSuggestions(
 
   const rawKeywords = specialtySynonyms[categoryId] ?? [];
   const isTeacher = category.parentId === "teachers" || category.id === "teachers";
+  const isClinic = category.parentId === "clinics" || category.id === "clinics";
+  const isShop = category.parentId === "shops" || category.id === "shops";
   const subSpecialties = isTeacher
     ? [...TEACHER_STAGES.map((stage) => stage.label), ...rawKeywords.slice(0, 4)]
-    : rawKeywords.length > 0
-      ? rawKeywords.slice(0, 7)
-      : [`أعمال ${specName} العامة`, `صيانة ومتابعة دورية`, `استشارات ومعاينة`, `طوارئ وخدمة سريعة`];
+    : isClinic
+      ? [CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, "يومياً عدا الجمعة", "السبت والاثنين والأربعاء", "الأحد والثلاثاء والخميس", ...rawKeywords.slice(0, 4)]
+      : rawKeywords.length > 0
+        ? rawKeywords.slice(0, 7)
+        : [`أعمال ${specName} العامة`, `صيانة ومتابعة دورية`, `استشارات ومعاينة`, `طوارئ وخدمة سريعة`];
 
-  const baseItems = specialtyServiceItemSuggestions[categoryId] ?? [
-    `خدمة ${specName} متكاملة`,
-    "معاينة واستشارة فنية",
-    "صيانة وإصلاح الأعطال",
-    "خدمة طوارئ سريعة داخل جنزور",
-  ];
+  const baseItems = isShop && shopSampleMenuItems[categoryId]
+    ? [...shopSampleMenuItems[categoryId], ...(specialtyServiceItemSuggestions[categoryId] ?? []).slice(0, 2)]
+    : specialtyServiceItemSuggestions[categoryId] ?? [
+        `خدمة ${specName} متكاملة`,
+        "معاينة واستشارة فنية",
+        "صيانة وإصلاح الأعطال",
+        "خدمة طوارئ سريعة داخل جنزور",
+      ];
   const serviceItems = baseItems.some((item) => item.includes("توصيل") || item.includes("منزل"))
     ? baseItems
     : [...baseItems, HOME_DELIVERY_TAG];
