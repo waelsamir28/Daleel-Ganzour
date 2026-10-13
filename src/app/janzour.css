@@ -4124,6 +4124,538 @@ html.dark .social-post-tab.is-active {
   color: #ffffff;
 }
 
+/* ==========================================================================
+   تحديثات التنسيق الشاملة:
+   1. تنسيق موحد للهيدر في جميع الصفحات
+   2. إزالة البار السفلي الثابت بالكامل
+   3. الشريط المتحرك أسفل البانر الترحيبي داخل مستطيل دائري ببوردر واضح
+   4. مستطيل مخصص لمواقيت الصلاة والطقس أسفل زر «أضف مهنتك» وشريط البحث
+   5. تنسيق هيدر الإدارة والزر العلوي المتمدد للأسفل بدون تكرار أو تفاوت خطوط
+   ========================================================================== */
+
+/* 1. تنسيق موحد للهيدر في جميع الصفحات */
+.site-header {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+}
+.site-header .header-inner {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+}
+.site-header-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.site-header-brand-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.site-header-brand-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.site-header-brand-copy strong {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f3a65;
+  white-space: nowrap;
+}
+.site-header-brand-copy span {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #0878c9;
+  white-space: nowrap;
+}
+.site-header .main-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: auto;
+}
+.site-header .main-nav > a,
+.site-header .main-nav > button {
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #19456e;
+  transition: all .16s ease;
+}
+.site-header .main-nav > a:hover,
+.site-header .main-nav > button:hover {
+  background: #edf6ff;
+  color: #0878c9;
+}
+.site-header .main-nav .active {
+  background: #e3f1ff;
+  color: #0767b8;
+}
+.site-header .main-nav .active::after {
+  display: none;
+}
+.site-header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* توحيد هيدر صفحات الدخول والعضوية والحساب ومتابعة الطلب وتجديد الإتاحة */
+.admin-public-header,
+.availability-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  max-width: 1120px;
+  min-height: 68px;
+  margin-inline: auto;
+  padding: 10px 20px;
+  background: #ffffff;
+  border-bottom: 1.5px solid #dceafa;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 6px 20px rgba(15, 52, 92, .05);
+}
+.admin-public-header .brand,
+.availability-header .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.admin-public-header .brand-symbol,
+.availability-header .brand-symbol {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+.admin-public-header .brand-copy strong,
+.availability-header .brand-copy strong {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f3a65;
+  line-height: 1.3;
+}
+.admin-public-header .brand-copy span,
+.availability-header .brand-copy span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0878c9;
+}
+.admin-public-header > a:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #cfe3f7;
+  background: #f2f8ff;
+  color: #0b5ca8;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+/* إظهار البحث وزر أضف مهنتك والشريط المتحرك في صفحات الأقسام أيضاً بتناسق كامل */
+.category-page-hero .hero-inner {
+  grid-template-columns: 1fr;
+  min-height: auto;
+}
+.category-page-hero .hero-visual {
+  display: none !important;
+}
+.category-page-hero .hero-breadcrumb,
+.category-page-hero .hero-search,
+.category-page-hero .hero-trust {
+  display: flex !important;
+}
+.category-page-hero .hero-search {
+  display: grid !important;
+}
+
+/* 2. إزالة البار السفلي الثابت بالكامل */
+.mobile-bottom-app-nav,
+.admin-homepage-quickbar {
+  display: none !important;
+}
+html[data-design-mobile-nav="true"] .site-footer {
+  padding-bottom: 0 !important;
+}
+
+/* 3. الشريط المتحرك أسفل البانر الترحيبي داخل مستطيل دائري ببوردر واضح */
+.site-announcement-ticker-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  margin: 10px auto 12px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 2px solid #7cc4fa;
+  background: linear-gradient(135deg, var(--ticker-bg, #0c72c7), #07599d);
+  color: #ffffff;
+  box-shadow: 0 8px 22px rgba(8, 95, 167, .22), inset 0 1px 0 rgba(255, 255, 255, .28);
+  overflow: hidden;
+}
+.site-announcement-ticker-card.is-soft {
+  background: #eef7ff;
+  color: #0b4f8a;
+  border-color: #93c5fd;
+}
+.ticker-badge-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(255, 255, 255, .2);
+  color: #fde047;
+  flex-shrink: 0;
+}
+.site-announcement-ticker-card.is-soft .ticker-badge-icon {
+  background: #dbeafe;
+  color: #0878c9;
+}
+.announcement-single-text {
+  font-size: .88rem;
+  font-weight: 800;
+  text-align: center;
+  flex: 1;
+}
+
+/* 4. المستطيل المخصص لمواقيت الصلاة والطقس أسفل زر «أضف مهنتك» وشريط البحث */
+.ganzour-prayer-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin: 14px auto 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 2px solid #bcdbf7;
+  background: linear-gradient(180deg, #ffffff 0%, #f2f8ff 100%);
+  color: #103252;
+  box-shadow: 0 10px 26px rgba(9, 76, 138, .1);
+  text-align: right;
+}
+.ganzour-prayer-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #cde2f7;
+}
+.prayer-next-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.prayer-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0878c9, #065a9e);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+.prayer-next-summary strong {
+  display: block;
+  font-size: .9rem;
+  font-weight: 900;
+  color: #0d365c;
+  line-height: 1.35;
+}
+.prayer-next-summary span {
+  display: block;
+  font-size: .8rem;
+  color: #365a7d;
+}
+.prayer-next-summary b {
+  color: #0878c9;
+  font-weight: 900;
+}
+.prayer-weather-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eaf4ff;
+  border: 1px solid #c6dff7;
+  color: #0f3d68;
+  font-size: .8rem;
+  font-weight: 800;
+}
+.prayer-weather-summary svg {
+  color: #f59e0b;
+}
+.ganzour-prayer-boxes {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.ganzour-prayer-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid #d7e7f7;
+  transition: all .16s ease;
+}
+.ganzour-prayer-box .prayer-box-name {
+  font-size: .78rem;
+  font-weight: 800;
+  color: #466685;
+}
+.ganzour-prayer-box .prayer-box-time {
+  font-size: .84rem;
+  font-weight: 900;
+  color: #0f3254;
+  direction: ltr;
+}
+.ganzour-prayer-box.is-upcoming {
+  background: linear-gradient(135deg, #0878c9, #055ba0);
+  border-color: #0878c9;
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(8, 120, 201, .24);
+}
+.ganzour-prayer-box.is-upcoming .prayer-box-name,
+.ganzour-prayer-box.is-upcoming .prayer-box-time {
+  color: #ffffff;
+}
+.prayer-box-tag {
+  font-size: .66rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .22);
+  color: #ffffff;
+}
+
+/* 5. تنسيق الزر العلوي وهيدر الإدارة المتمدد للأسفل بدون تكرار أو تفاوت أحجام الخط */
+.admin-sidebar > .brand.brand-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-sidebar-label {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #d6eef2 !important;
+  margin: 6px 0 12px !important;
+}
+.admin-topbar {
+  padding: 14px 18px !important;
+  margin-bottom: 16px !important;
+  border-radius: 16px !important;
+}
+.admin-topbar-title h1 {
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  color: #143757;
+  margin: 0;
+}
+.admin-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #eff6fc;
+  border: 1px solid #d5e5f4;
+}
+.admin-user > span {
+  width: 28px !important;
+  height: 28px !important;
+}
+.admin-user strong {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+@media (max-width: 850px) {
+  .admin-sidebar {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 10px 14px !important;
+    border-radius: 0 0 16px 16px !important;
+  }
+  .admin-sidebar > .brand.brand-compact {
+    width: 38px !important;
+    height: 38px !important;
+    margin: 0 !important;
+  }
+  .admin-sidebar > .brand.brand-compact .brand-symbol {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .admin-mobile-menu-toggle {
+    grid-column: 2 / -1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    min-height: 44px !important;
+    padding: 8px 14px !important;
+    border-radius: 12px !important;
+    border: 1.5px solid rgba(255, 255, 255, .24) !important;
+    background: rgba(255, 255, 255, .1) !important;
+    color: #ffffff !important;
+  }
+  .admin-mobile-toggle-title {
+    flex: 1;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: #ffffff;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .admin-mobile-toggle-pill {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .18);
+    color: #e2f5f7;
+    font-size: 11.5px !important;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .admin-mobile-chevron {
+    transition: transform .2s ease;
+    flex-shrink: 0;
+  }
+  .admin-mobile-chevron.is-open {
+    transform: rotate(180deg);
+  }
+  .admin-sidebar-open .admin-sidebar-menu {
+    padding: 12px !important;
+    border-radius: 16px !important;
+    gap: 10px !important;
+  }
+  .admin-sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+  .admin-sidebar nav button {
+    min-height: 44px !important;
+    padding: 9px 11px !important;
+    border-radius: 11px !important;
+    font-size: 12.5px !important;
+    font-weight: 800 !important;
+    background: rgba(255, 255, 255, .05);
+  }
+  .admin-sidebar nav button b {
+    font-size: 12.5px;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .admin-sidebar-bottom > a,
+  .admin-sidebar-bottom > button {
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, .07);
+  }
+}
+
+@media (max-width: 680px) {
+  .site-header .header-inner {
+    height: 60px;
+    gap: 8px;
+  }
+  .site-header-brand-img {
+    width: 34px;
+    height: 34px;
+  }
+  .site-header-brand-copy strong {
+    font-size: 13.5px;
+  }
+  .site-header-brand-copy span {
+    font-size: 9.5px;
+  }
+  .site-announcement-ticker-card {
+    border-radius: 16px;
+    padding: 8px 12px;
+  }
+  .ganzour-prayer-boxes {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .ganzour-prayer-box {
+    padding: 7px 3px;
+  }
+  .ganzour-prayer-box .prayer-box-name {
+    font-size: .72rem;
+  }
+  .ganzour-prayer-box .prayer-box-time {
+    font-size: .74rem;
+  }
+}
+
+@media (max-width: 440px) {
+  .admin-sidebar nav {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+html.dark .site-header-brand-copy strong,
+html.dark .admin-public-header .brand-copy strong,
+html.dark .availability-header .brand-copy strong {
+  color: #eaf4ff;
+}
+html.dark .admin-public-header,
+html.dark .availability-header,
+html.dark .ganzour-prayer-card {
+  background: #102338;
+  border-color: #244568;
+  color: #e4f1fe;
+}
+html.dark .prayer-next-summary strong {
+  color: #eaf4ff;
+}
+html.dark .prayer-next-summary span {
+  color: #b4cde6;
+}
+html.dark .ganzour-prayer-box {
+  background: #0c1b2c;
+  border-color: #234365;
+}
+html.dark .ganzour-prayer-box .prayer-box-name {
+  color: #9ec0e0;
+}
+html.dark .ganzour-prayer-box .prayer-box-time {
+  color: #eaf4ff;
+}
+html.dark .prayer-weather-summary {
+  background: #162f4a;
+  border-color: #2a4f75;
+  color: #e2effd;
+}
+
+
 
 
 

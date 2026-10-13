@@ -16,11 +16,19 @@ export function MainCategoryIcon({ icon, size }: { icon: string; size?: number }
   return <svg className="main-category-art" viewBox="0 0 128 128" style={size ? { width: size, height: size } : undefined} aria-hidden="true"><use href={`/images/category-3d.svg#${dimensionalCategoryIcons[icon] ?? "other"}`}/></svg>;
 }
 export function Logo({ compact = false, footer = false, name = defaultSettings.siteName, logoUrl = "" }: { compact?: boolean; footer?: boolean; name?: string; description?: string; logoUrl?: string }) {
-  return <Link href="/" className={`brand ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
-    {/* eslint-disable-next-line @next/next/no-img-element -- Custom admin-configured logo URL can point to any asset */}
-    {logoUrl && <img src={logoUrl} alt="" className="brand-custom-logo"/>}
-    <span className="brand-copy"><strong>{name}</strong><span>دليل المهن والخدمات بقرية جنزور</span></span>
-  </Link>;
+  const shortTitle = name.includes("جنزور") ? "دليل قرية جنزور" : name;
+  return (
+    <Link href="/" className={`brand ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- Brand logo image */}
+      <img src={logoUrl || "/images/logo-daleel-transparent.png"} alt="" className="brand-symbol"/>
+      {!compact && (
+        <span className="brand-copy">
+          <strong>{shortTitle}</strong>
+          <span>المهن والخدمات في مكان واحد</span>
+        </span>
+      )}
+    </Link>
+  );
 }
 export function ServiceArt({ category, item }: { category: string; item?: CategoryRecord }) {
   const info = item ?? getCategory(category);
