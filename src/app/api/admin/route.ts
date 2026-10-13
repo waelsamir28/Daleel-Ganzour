@@ -6,7 +6,7 @@ import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { availabilityUpdate } from "@/lib/catalog";
+import { availabilityUpdate, sanitizeUtilityNumbers } from "@/lib/catalog";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -73,11 +73,14 @@ export async function PATCH(request: Request) {
     const body = objectInput(await request.json());
     const { type, action } = body;
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
-    const moderatorAllowed = type === "category" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "sold", "filled", "availability-link"].includes(String(action)));
+    const moderatorAllowed = type === "category" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "sold", "filled", "availability-link"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
       await db.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(settings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(settings) } });
+    } else if (type === "utility-numbers") {
+      const utilityNumbers = sanitizeUtilityNumbers(body.utilityNumbers);
+      await db.insert(directorySettings).values({ key: "utility_numbers", value: JSON.stringify(utilityNumbers) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(utilityNumbers) } });
     } else if (type === "notification") {
       if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), inArray(notifications.type, ["service", "community"])) : eq(notifications.read, false));
       else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), inArray(notifications.type, ["service", "community"])) : eq(notifications.id, uuid(body.id)));
@@ -121,7 +124,30 @@ export async function PATCH(request: Request) {
         const reviewNote = cleanText(body.reviewNote ?? "", 1000);
         if (reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوب استكمالها.");
         if (action === "request-info" && existing.status === "approved") throw new InputError("طلب الاستكمال متاح للطلبات غير المنشورة فقط.");
-        await db.update(services).set({ status: action === "reject" ? "rejected" : "needs-info", reviewNote, verified: false, featured: false }).where(eq(services.id, id));
+        await db.update(services).set({ status: action === "reject" ? "rejected" : "needs-info", reviewNote, ...(action === "request-info" ? { completionStatus: "requested", completionNote: reviewNote } : {}), verified: false, featured: false }).where(eq(services.id, id));
+      } else if (action === "request-completion") {
+        const completionNote = cleanText(body.completionNote ?? "", 500);
+        await db.update(services).set({ completionStatus: "requested", completionNote }).where(eq(services.id, id));
+      } else if (action === "approve-completion") {
+        const draft = existing.completionDraft;
+        const nextValues = draft
+          ? {
+              name: draft.name || existing.name,
+              category: draft.category || existing.category,
+              area: draft.area || existing.area,
+              address: draft.address || existing.address,
+              phone: draft.phone || existing.phone,
+              phoneSecondary: draft.phoneSecondary ?? existing.phoneSecondary,
+              description: draft.description || existing.description,
+              subSpecialties: Array.isArray(draft.subSpecialties) ? draft.subSpecialties : existing.subSpecialties,
+              serviceItems: Array.isArray(draft.serviceItems) ? draft.serviceItems : existing.serviceItems,
+              emergency: typeof draft.emergency === "boolean" ? draft.emergency : existing.emergency,
+            }
+          : {};
+        await db.update(services).set({ ...nextValues, completionStatus: "none", completionNote: "", completionDraft: null }).where(eq(services.id, id));
+      } else if (action === "reject-completion") {
+        const completionNote = cleanText(body.completionNote ?? "", 500) || "يرجى مراجعة البيانات المدخلة وتصحيح الخطأ ثم إعادة الإرسال.";
+        await db.update(services).set({ completionStatus: "rejected", completionNote }).where(eq(services.id, id));
       }
       else if (action === "feature" && existing.status === "approved") await db.update(services).set({ featured: !existing.featured }).where(eq(services.id, id));
       else throw new InputError("إجراء غير صحيح. لا يمكن تمييز خدمة قبل نشرها.");
