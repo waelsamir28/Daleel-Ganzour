@@ -379,7 +379,7 @@ test("iconArabicLabels provides an Arabic display name for every icon in iconNam
   }
 });
 
-test("sanitizeDesignSettings validates all 7 design customizer groups and falls back safely", () => {
+test("sanitizeDesignSettings validates all 8 design customizer groups and falls back safely", () => {
   assert.deepEqual(sanitizeDesignSettings(null), defaultDesignSettings);
   const custom = sanitizeDesignSettings({
     themePreset: "emerald",
@@ -393,6 +393,13 @@ test("sanitizeDesignSettings validates all 7 design customizer groups and falls 
     featuredDefaultOpen: true,
     authShowBanner: false,
     loginTitle: "أهلاً بك في جنزور",
+    announcementEnabled: true,
+    announcementText: "تنبيه هام لأهالي جنزور",
+    heroStyle: "compact-minimal",
+    searchBoxStyle: "pill",
+    providerCardLayout: "compact",
+    sectionDividerStyle: "gradient",
+    cardHoverEffect: "glow",
   });
   assert.equal(custom.themePreset, "emerald");
   assert.equal(custom.primaryColor, "#0d8a5f");
@@ -405,6 +412,12 @@ test("sanitizeDesignSettings validates all 7 design customizer groups and falls 
   assert.equal(custom.featuredDefaultOpen, true);
   assert.equal(custom.authShowBanner, false);
   assert.equal(custom.loginTitle, "أهلاً بك في جنزور");
+  assert.equal(custom.announcementEnabled, true);
+  assert.equal(custom.heroStyle, "compact-minimal");
+  assert.equal(custom.searchBoxStyle, "pill");
+  assert.equal(custom.providerCardLayout, "compact");
+  assert.equal(custom.sectionDividerStyle, "gradient");
+  assert.equal(custom.cardHoverEffect, "glow");
   assert.ok(Object.keys(designThemePresets).length >= 5);
 });
 

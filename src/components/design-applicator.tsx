@@ -16,6 +16,8 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-header-bg", design.headerBgColor);
   root.style.setProperty("--design-footer-bg", design.footerBgColor);
   root.style.setProperty("--design-auth-border", design.authInputBorderColor);
+  root.style.setProperty("--design-announcement-bg", design.announcementBgColor);
+  root.style.setProperty("--design-whatsapp-color", design.whatsappButtonColor);
   root.style.setProperty("--design-mobile-cols", design.mobileColumns);
   root.style.setProperty("--design-desktop-cols", design.desktopColumns);
 
@@ -41,6 +43,15 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-desktop-cols", design.desktopColumns);
   root.setAttribute("data-design-header-sticky", design.headerSticky ? "true" : "false");
   root.setAttribute("data-design-auth-layout", design.authFieldsLayout);
+  root.setAttribute("data-design-hero-style", design.heroStyle);
+  root.setAttribute("data-design-search-style", design.searchBoxStyle);
+  root.setAttribute("data-design-provider-layout", design.providerCardLayout);
+  root.setAttribute("data-design-provider-badges", design.showProviderBadges ? "true" : "false");
+  root.setAttribute("data-design-provider-share", design.showProviderShareBtn ? "true" : "false");
+  root.setAttribute("data-design-provider-whatsapp", design.showProviderWhatsappBtn ? "true" : "false");
+  root.setAttribute("data-design-section-spacing", design.sectionSpacing);
+  root.setAttribute("data-design-hover-effect", design.cardHoverEffect);
+  root.setAttribute("data-design-section-divider", design.sectionDividerStyle);
   root.setAttribute("data-design-splash-enabled", design.splashEnabled ? "true" : "false");
   root.setAttribute("data-design-splash-image", design.splashImageUrl || "/images/logo-daleel-transparent.png");
   root.setAttribute("data-design-splash-duration", design.splashDuration || "900");
