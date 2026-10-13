@@ -20,10 +20,10 @@ export async function POST(request: Request) {
     if (!username || !password || password.length > 200) throw new InputError("أدخل اسم المستخدم وكلمة المرور.");
     if (body.action === "register") {
       if (reservedUsername(username)) throw new InputError("اسم المستخدم ده محجوز. اختار اسمًا مختلفًا.");
-      if (!/^[a-z0-9_.-]{3,40}$/.test(username)) throw new InputError("اسم المستخدم من ٣ إلى ٤٠ حرفًا إنجليزيًا أو رقمًا، ويمكن استخدام النقطة والشرطة.");
+      if (username.length < 2 || username.length > 40) throw new InputError("اسم العضو يجب أن يكون من حرفين إلى ٤٠ حرفًا.");
       const name = cleanText(body.name, 120), phone = cleanPhone(body.phone);
       if (name.length < 3 || !validPhone(phone) || password.length < 6) throw new InputError("أدخل اسمك ورقم هاتف صحيح، وكلمة مرور لا تقل عن ٦ أحرف.");
-      if (body.confirmPassword !== password) throw new InputError("كلمتا المرور غير متطابقتين.");
+      if (body.confirmPassword !== undefined && body.confirmPassword !== password) throw new InputError("كلمتا المرور غير متطابقتين.");
       const passwordHash = await hashPassword(password);
       const member = await db.transaction(async (tx) => {
         const [created] = await tx.insert(members).values({ name, username, phone, passwordHash }).onConflictDoNothing().returning({ id: members.id, name: members.name, username: members.username });

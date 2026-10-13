@@ -1597,24 +1597,117 @@ html.dark .suggestion-chip, html.dark .field-suggestion-chip { background: #1327
 html.dark .suggestion-chip:hover, html.dark .field-suggestion-chip:hover { background: #193450; border-color: #366596; color: #fff; }
 html.dark .suggestion-chip.is-selected { background: #1d74d4; border-color: #1d74d4; color: #fff; }
 
-/* ===== زر مقدمو الخدمات المميزين القابل للطي والفتح + صف واحد مع متاح الآن على الموبايل ===== */
+/* ===== إخفاء شاشة البداية خارج الصفحة الأولى أو بعد أول فتح ===== */
+html.skip-splash .splash-screen { display: none !important; }
+
+/* ===== زر مقدمو الخدمات المميزين الكبير والعريض بحجم عرض وارتفاع الـ ٣ أزرار + أيقونة ٣D كبيرة على الشمال + زر متاح الآن ===== */
 .providers-section .section-heading.directory-section-heading { display: flex; flex-direction: row !important; align-items: center !important; justify-content: space-between; flex-wrap: nowrap; gap: 8px; }
 .providers-section .section-heading.directory-section-heading > div:first-child { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
-.directory-section-heading h2:has(.featured-providers-btn) { padding: 0; border: 0; background: transparent; box-shadow: none; max-width: 100%; }
-.directory-section-heading h2:has(.featured-providers-btn)::after { display: none; }
-.featured-providers-btn { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 7px 15px; border: 1px solid #b9d1e5; border-radius: 999px; background: linear-gradient(135deg, #17679c, #124b7a); box-shadow: 0 5px 13px rgba(18, 75, 122, .18), inset 0 1px 0 rgba(255, 255, 255, .2); color: #fff; font: inherit; font-size: inherit; font-weight: 900; white-space: nowrap; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
-.featured-providers-btn:hover { transform: translateY(-1px); background: linear-gradient(135deg, #1b75b1, #14558a); box-shadow: 0 8px 18px rgba(18, 75, 122, .26); }
-.featured-providers-btn .crown-icon { width: 30px; height: 30px; padding: 5px; border: 1px solid #d9eafa; border-radius: 10px; background: linear-gradient(145deg, #f4faff, #eaf5ff); color: #e09600; flex-shrink: 0; }
-.featured-providers-btn svg.is-rotated { transform: rotate(180deg); transition: transform .2s ease; flex-shrink: 0; }
-@media(max-width:600px) {
-  .providers-section .section-heading.directory-section-heading { gap: 6px; padding: 8px 9px; }
-  .featured-providers-btn { gap: 6px; padding: 6px 10px; font-size: 12.5px; }
-  .featured-providers-btn .crown-icon { width: 25px; height: 25px; padding: 4px; border-radius: 8px; }
-  .providers-section .availability-toggle { padding: 6px 10px; font-size: 11.5px; gap: 4px; flex-shrink: 0; }
+.featured-providers-banner-card.category-tile {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 162px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  text-align: right;
 }
-html.dark .featured-providers-btn { background: linear-gradient(135deg, #163759, #10263f); border-color: #2b4d70; color: #f0f7ff; }
-html.dark .featured-providers-btn:hover { background: linear-gradient(135deg, #1b436b, #14304f); }
-html.dark .featured-providers-btn .crown-icon { border-color: #2b4d70; background: linear-gradient(145deg, #16314c, #10243a); color: #ffc83d; }
+.featured-banner-right {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+}
+.featured-banner-main-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+}
+.featured-banner-main-btn h2 {
+  margin: 0;
+  color: #153c66;
+  font-size: clamp(18px, 2.4vw, 23px);
+  font-weight: 900;
+  line-height: 1.4;
+}
+.featured-banner-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  border: 1px solid #bcd8f2;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #e7f3fe, #d8ecfc);
+  color: #145391;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.featured-banner-status svg.is-rotated {
+  transform: rotate(180deg);
+  transition: transform .2s ease;
+}
+.featured-banner-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.featured-banner-icon-btn {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  margin-inline-start: auto;
+}
+.featured-banner-icon-btn .category-icon.featured-3d-icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  margin: 0;
+}
+.featured-banner-icon-btn .main-category-art {
+  width: 92px;
+  height: 92px;
+}
+@media(max-width:600px) {
+  .featured-providers-banner-card.category-tile {
+    min-height: 136px;
+    padding: 14px 15px;
+    gap: 12px;
+    border-radius: 15px;
+  }
+  .featured-banner-right { gap: 9px; }
+  .featured-banner-main-btn h2 { font-size: 16.5px; }
+  .featured-banner-status { padding: 4px 10px; font-size: 11.5px; }
+  .featured-banner-icon-btn .category-icon.featured-3d-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 20px;
+  }
+  .featured-banner-icon-btn .main-category-art {
+    width: 72px;
+    height: 72px;
+  }
+  .providers-section .availability-toggle { padding: 6px 12px; font-size: 12px; gap: 5px; }
+}
+html.dark .featured-banner-main-btn h2 { color: #eef6ff; }
+html.dark .featured-banner-status { background: #142b44; border-color: #274a6e; color: #93c5fd; }
 
 /* ===== الكروت الثلاثة (الصيدلية والعيادة المناوبة الآن + أرقام تهمك في جنزور + الخدمات السريعة) ===== */
 .feature-cards-section { margin-top: 26px; }
@@ -1636,18 +1729,256 @@ html.dark .featured-providers-btn .crown-icon { border-color: #2b4d70; backgroun
 html.dark .feature-card-title > span:first-child { color: #eef6ff; }
 html.dark .feature-card-title > span:last-child { color: #8ac8ff; }
 
-/* ===== تنسيق هيدر الشاشات العائمة (توسيط السطور + خلفية لبني مثل زر الاتصال) ===== */
-.modal-panel.modal-floating { overflow: hidden; }
-.modal-panel.modal-floating .modal-heading { position: relative; justify-content: center; align-items: center; text-align: center; padding: 18px 52px 15px; background: linear-gradient(135deg, #dcecfb 0%, #e7eef9 55%, #d6e9fb 100%); border-bottom: 1px solid #bfd8f2; }
-.modal-panel.modal-floating .modal-heading > div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-width: 0; }
-.modal-panel.modal-floating .modal-heading h2 { color: #164b88; text-align: center; width: 100%; font-size: 18px; font-weight: 900; }
-.modal-panel.modal-floating .modal-heading p { color: #2d5e91; text-align: center; width: 100%; margin-top: 4px; font-size: 12.5px; font-weight: 700; }
-.modal-panel.modal-floating .modal-heading .modal-close { position: absolute; top: 14px; inset-inline-end: 14px; background: rgba(255, 255, 255, .75); border: 1px solid #bfd8f2; color: #164b88; }
-.modal-panel.modal-floating .modal-heading .modal-close:hover { background: #fff; border-color: #96c0ea; }
+/* ===== تنسيق هيدر جميع الشاشات العائمة في التطبيق (توسيط السطور + خلفية لبني متناسقة مع لون زر الاتصال) ===== */
+.modal-panel { overflow: hidden; }
+.modal-panel .modal-heading,
+.modal-panel.modal-floating .modal-heading,
+.admin-shell .admin-sheet-heading {
+  position: relative;
+  display: flex;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  padding: 18px 52px 15px !important;
+  background: linear-gradient(135deg, #dcecfb 0%, #e7eef9 55%, #d6e9fb 100%) !important;
+  border-bottom: 1px solid #bfd8f2 !important;
+}
+.modal-panel .modal-heading > div,
+.admin-shell .admin-sheet-heading > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  min-width: 0;
+}
+.modal-panel .modal-heading h2,
+.admin-shell .admin-sheet-heading h2 {
+  color: #164b88 !important;
+  text-align: center !important;
+  width: 100%;
+  font-size: 18px;
+  font-weight: 900;
+}
+.modal-panel .modal-heading p,
+.admin-shell .admin-sheet-heading p,
+.admin-shell .admin-sheet-heading > div > span {
+  color: #2d5e91 !important;
+  text-align: center !important;
+  width: 100%;
+  margin-top: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.modal-panel .modal-heading .modal-close,
+.admin-shell .admin-sheet-heading .admin-sheet-close {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  background: rgba(255, 255, 255, .78) !important;
+  border: 1px solid #bfd8f2 !important;
+  color: #164b88 !important;
+}
+.modal-panel .modal-heading .modal-close:hover,
+.admin-shell .admin-sheet-heading .admin-sheet-close:hover {
+  background: #fff !important;
+  border-color: #96c0ea !important;
+}
 .quick-modal-grid { border: 0; padding: 4px 0 0; background: transparent; box-shadow: none; }
-html.dark .modal-panel.modal-floating .modal-heading { background: linear-gradient(135deg, #132c47 0%, #0d2236 60%, #15314f 100%); border-bottom-color: #244668; }
-html.dark .modal-panel.modal-floating .modal-heading h2 { color: #eef6ff; }
-html.dark .modal-panel.modal-floating .modal-heading p { color: #a9caec; }
-html.dark .modal-panel.modal-floating .modal-heading .modal-close { background: rgba(15, 32, 52, .75); border-color: #294d72; color: #cfe6ff; }
+html.dark .modal-panel .modal-heading,
+html.dark .modal-panel.modal-floating .modal-heading,
+html.dark .admin-shell .admin-sheet-heading {
+  background: linear-gradient(135deg, #132c47 0%, #0d2236 60%, #15314f 100%) !important;
+  border-bottom-color: #244668 !important;
+}
+html.dark .modal-panel .modal-heading h2,
+html.dark .admin-shell .admin-sheet-heading h2 { color: #eef6ff !important; }
+html.dark .modal-panel .modal-heading p,
+html.dark .admin-shell .admin-sheet-heading p,
+html.dark .admin-shell .admin-sheet-heading > div > span { color: #a9caec !important; }
+html.dark .modal-panel .modal-heading .modal-close,
+html.dark .admin-shell .admin-sheet-heading .admin-sheet-close {
+  background: rgba(15, 32, 52, .78) !important;
+  border-color: #294d72 !important;
+  color: #cfe6ff !important;
+}
+
+/* ===== تصغير الخانات وجعل كل خانتين جنب بعض في أضف مهنتك وتسجيل العضوية + توسيط زر الإرسال وجميع الملحوظات ===== */
+.form-row.compact-two-col {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  align-items: start;
+}
+.compact-service-form { gap: 10px !important; }
+.compact-service-form .field { font-size: 11.5px !important; }
+.compact-service-form .field > input,
+.compact-service-form .field > .ui-select {
+  min-height: 40px !important;
+  padding: 7px 10px !important;
+  font-size: 12.5px !important;
+}
+.compact-service-form .field > textarea {
+  min-height: 66px !important;
+  padding: 8px 10px !important;
+  font-size: 12.5px !important;
+}
+@media(max-width:600px) {
+  .form-row.compact-two-col { gap: 8px !important; }
+  .compact-service-form .field,
+  .compact-auth-form .field { font-size: 11px !important; }
+  .compact-service-form .field > input,
+  .compact-service-form .field > .ui-select {
+    min-height: 38px !important;
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+}
+.centered-checkbox {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-inline: auto;
+}
+.form-submit-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 4px;
+}
+.form-submit-center .form-submit {
+  width: auto !important;
+  min-width: min(260px, 100%);
+  padding-inline: 28px !important;
+  margin-inline: auto !important;
+  justify-content: center !important;
+}
+.modal-body .form-submit {
+  display: flex;
+  justify-content: center;
+  margin-inline: auto;
+}
+
+/* توسيط جميع الملحوظات في التطبيق في منتصف الشاشة الموجودة بها */
+.form-notice,
+.form-footnote,
+.emergency-contact-note,
+.member-rating-note,
+.rating-login-hint,
+.demo-note,
+.login-security,
+.input-help,
+.notification-help,
+.preview-mode-notice,
+.admin-review-notice {
+  text-align: center !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-inline: auto;
+}
+.form-notice {
+  display: flex !important;
+  flex-direction: row;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+/* ===== تنسيق شاشة تسجيل العضوية والدخول (تكست بوكس للكل واختصار المساحات) ===== */
+.registration-layout { min-height: 0 !important; max-width: 680px !important; grid-template-columns: 1fr !important; }
+.registration-layout .login-art { min-height: 0 !important; padding: 14px 20px !important; }
+.login-panel-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.login-panel-header .login-lock { margin-bottom: 10px; }
+.login-panel-header > p { margin: 4px 0 0 !important; color: #748ba1; font-size: 12.5px; }
+.login-form-panel .field > input {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid #d8e5ef;
+  border-radius: 11px;
+  background: #fbfdff;
+  color: #193f5c;
+  font-size: 13px;
+}
+.compact-auth-form { gap: 12px !important; }
+.compact-auth-form .login-input {
+  min-height: 43px;
+  padding-inline: 10px;
+  border: 1px solid #c8ddf0;
+  border-radius: 11px;
+  background: #f9fcff;
+}
+.compact-auth-form .login-input > input {
+  height: 41px;
+  font-size: 12.5px;
+}
+html.dark .login-form-panel .field > input,
+html.dark .compact-auth-form .login-input {
+  background: #0c1a2b;
+  border-color: #284766;
+  color: #eaf3fc;
+}
+
+/* ===== الاكتفاء بزر إجراءات داخل الدليل المنشور في الإدارة ===== */
+.admin-directory-only-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid #e8eff0;
+}
+.admin-directory-only-actions .admin-card-menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 120px;
+  min-height: 40px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 800;
+}
+@media(max-width:600px) {
+  .admin-directory-only-actions .admin-card-menu-button { width: 100%; }
+}
+html.dark .admin-directory-only-actions { border-top-color: #1f364e; }
+
+/* ===== زر وأيقونة إرسال إشعار في الردود الجاهزة + قائمة إشعارات الأعضاء والمهنيين ===== */
+.reply-card-head-tools { display: inline-flex; align-items: center; gap: 6px; }
+.reply-notify-icon { color: #0e6ecc; border-color: #cde1f4; background: #f2f8ff; }
+.reply-notify-icon:hover, .reply-notify-icon.is-active { background: #0e6ecc; color: #fff; border-color: #0e6ecc; }
+.reply-notify-btn.is-sent { background: #128a56; border-color: #128a56; }
+.member-notifications-feed { display: grid; gap: 10px; }
+.member-notif-item.is-completion {
+  border: 1px solid #b8d8f6 !important;
+  background: linear-gradient(135deg, #f2f9ff, #e6f3fe) !important;
+}
+.member-notif-item.is-completion.is-rejected {
+  border-color: #f3b2b9 !important;
+  background: linear-gradient(135deg, #fff5f6, #ffeaed) !important;
+}
+.notif-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #0e6ecc;
+  color: #fff !important;
+  font-weight: 800;
+  white-space: nowrap;
+}
+html.dark .reply-notify-icon { background: #14293f; border-color: #274a6e; color: #8ac5ff; }
+html.dark .member-notif-item.is-completion { background: #112438 !important; border-color: #25486c !important; }
+html.dark .member-notif-item.is-completion.is-rejected { background: rgba(220, 53, 69, .15) !important; border-color: rgba(220, 53, 69, .4) !important; }
 
 

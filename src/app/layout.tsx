@@ -33,6 +33,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  // The blocking script applies the saved (or system) theme before first paint to avoid a white flash.
-  return <html lang="ar" dir="rtl"><head><script dangerouslySetInnerHTML={{ __html: `(function(){try{var stored=localStorage.getItem("janzour-theme");var dark=stored?stored==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;if(dark)document.documentElement.classList.add("dark");if(localStorage.getItem("janzour-bigtext")==="1")document.documentElement.classList.add("big-text");}catch(e){}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
+  // The blocking script applies the saved (or system) theme before first paint to avoid a white flash,
+  // and hides the splash screen on any inner page or after the initial start screen has already been shown.
+  return <html lang="ar" dir="rtl"><head><script dangerouslySetInnerHTML={{ __html: `(function(){try{var stored=localStorage.getItem("janzour-theme");var dark=stored?stored==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;if(dark)document.documentElement.classList.add("dark");if(localStorage.getItem("janzour-bigtext")==="1")document.documentElement.classList.add("big-text");if(window.location.pathname!=="/"||sessionStorage.getItem("janzour-splash-shown")==="1"){document.documentElement.classList.add("skip-splash");}else{sessionStorage.setItem("janzour-splash-shown","1");}}catch(e){}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
 }

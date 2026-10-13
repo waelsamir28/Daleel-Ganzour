@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ne } from "drizzle-orm";
+import { and, count, desc, eq, notInArray } from "drizzle-orm";
 import { db } from "@/db";
 import { notifications } from "@/db/schema";
 import { isAdmin, sameOrigin } from "@/lib/auth";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   if (!(await isAdmin())) return Response.json({ error: "غير مصرح." }, { status: 401 });
   try {
-    const [items, totals] = await Promise.all([db.select().from(notifications).where(ne(notifications.type, "community")).orderBy(desc(notifications.createdAt)).limit(20), db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), ne(notifications.type, "community")))]);
+    const [items, totals] = await Promise.all([db.select().from(notifications).where(notInArray(notifications.type, ["community", "provider"])).orderBy(desc(notifications.createdAt)).limit(20), db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), notInArray(notifications.type, ["community", "provider"])))]);
     return Response.json({ notifications: items.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })), unread: totals[0]?.total ?? 0 });
   } catch (error) { return apiError(error); }
 }

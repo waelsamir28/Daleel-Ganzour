@@ -431,6 +431,7 @@ export type PublicDirectory = {
   services: ServiceRecord[]; categories: CategoryRecord[];
   areas: AreaRecord[]; settings: SiteSettings; memberCount: number; previewMode?: boolean;
   utilityNumbers?: PublicUtilityContact[];
+  providerNotifications?: NotificationRecord[];
 };
 export type RatingRecord = { id: string; serviceId: string; serviceName: string; memberName: string; stars: number; comment: string; status: string; createdAt: string };
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };
@@ -536,6 +537,49 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   "other-services": [["law", "المحاماة والاستشارات", "Scale"], ["transport", "النقل والمواصلات", "Truck"], ["cameras", "كاميرات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["cleaning", "النظافة والخدمات المنزلية", "Sparkles"], ["other", "خدمات متنوعة", "Ellipsis"]],
 };
 export const iconNames = ["Wrench", "Stethoscope", "Store", "GraduationCap", "HandHeart", "Grid2X2", "Hammer", "Droplets", "Zap", "Anvil", "Paintbrush", "BrickWall", "PanelsTopLeft", "Snowflake", "Cog", "Armchair", "Baby", "Smile", "HeartPulse", "Bone", "Sparkles", "Eye", "Activity", "ShoppingBasket", "Pill", "Shirt", "BookOpen", "Tv", "Utensils", "Smartphone", "Languages", "Calculator", "FlaskConical", "Globe", "Heart", "UsersRound", "Scale", "Truck", "Cctv", "Sun", "Ellipsis"];
+export const iconArabicLabels: Record<string, string> = {
+  Wrench: "مفتاح عدة (حرفيين وصيانة)",
+  Stethoscope: "سماعة طبيب (عيادات)",
+  Store: "متجر ومحل تجاري",
+  GraduationCap: "قبعة تخرج (مدرسين وتعليم)",
+  HandHeart: "يد وعطاء (جمعيات خيرية)",
+  Grid2X2: "شبكة أقسام (خدمات عامة)",
+  Hammer: "شاكوش (نجارة)",
+  Droplets: "قطرات مياه (سباكة)",
+  Zap: "كهرباء وطاقة",
+  Anvil: "سندان (حدادة)",
+  Paintbrush: "فرشاة دهان (نقاشة)",
+  BrickWall: "جدار طوب (بناء ومحارة)",
+  PanelsTopLeft: "ألواح وواجهات (سيراميك / ألوميتال / زجاج)",
+  Snowflake: "تبريد وتكييف",
+  Cog: "ترس ميكانيكا (سيارات ومعدات)",
+  Armchair: "مقعد وأثاث (تنجيد)",
+  Baby: "طفل (طب الأطفال)",
+  Smile: "ابتسامة (طب الأسنان)",
+  HeartPulse: "نبض القلب (نساء وتوليد / قلب)",
+  Bone: "عظام ومفاصل",
+  Sparkles: "بريق ولمعان (جلدية / نظافة)",
+  Eye: "عين (طب العيون)",
+  Activity: "نشاط وحركة (علاج طبيعي)",
+  ShoppingBasket: "سلة تسوق (بقالة وسوبر ماركت)",
+  Pill: "كبسولة دواء (صيدليات)",
+  Shirt: "ملابس وأزياء",
+  BookOpen: "كتاب مفتوح (مكتبات ولغة عربية)",
+  Tv: "شاشة وتلفزيون (أجهزة كهربائية)",
+  Utensils: "أدوات مائدة (مطاعم ومأكولات)",
+  Smartphone: "هاتف محمول (موبايلات وكمبيوتر)",
+  Languages: "لغات وترجمة (لغة إنجليزية)",
+  Calculator: "آلة حاسبة (رياضيات ومحاسبة)",
+  FlaskConical: "دورق معمل (تحاليل وعلوم)",
+  Globe: "كرة أرضية (دراسات وجغرافيا)",
+  Heart: "قلب (رعاية الأيتام)",
+  UsersRound: "مجموعة أفراد (تكافل ومجتمع)",
+  Scale: "ميزان العدالة (محاماة واستشارات)",
+  Truck: "سيارة نقل ومواصلات",
+  Cctv: "كاميرا مراقبة وأمان",
+  Sun: "شمس (طاقة شمسية)",
+  Ellipsis: "نقاط متنوعة (خدمات أخرى)",
+};
 export const initialCategories: CategoryRecord[] = roots.flatMap(([id, name, color, icon, description], sortOrder) => [
   { id, name, color, light: `${color}12`, icon, description: sectionDescriptions[id] ?? description, sortOrder, parentId: null, active: true },
   ...specialties[id].map(([childId, childName, childIcon], order) => ({ id: childId, name: childName, color, light: `${color}12`, icon: childIcon, description: `${specialtyDescriptions[childId] ?? `مقدمو خدمات ${childName} بقرية جنزور`} المجال: ${childName}.`, sortOrder: order, parentId: id, active: true })),
