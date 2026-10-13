@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Flame, Gift, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
-import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, parseSponsoredProviders, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type SponsoredProviderConfig, type TeacherStageId, type Viewer } from "@/lib/catalog";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Flame, FlaskConical, Gift, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Sparkles, Star, Stethoscope, Store, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { buildShopWhatsappOrderMessage, defaultDesignSettings, ganzourTransitRoutes, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getSponsorOfferCategoryGroup, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, parseSponsoredProviders, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DailyOfferFilterGroup, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type SponsoredProviderConfig, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import BusinessCardModal from "@/components/business-card-modal";
@@ -61,6 +61,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
   const [sponsorModalOpen, setSponsorModalOpen] = useState(false);
   const [sponsorModalAuto, setSponsorModalAuto] = useState(false);
+  const [dailyOfferFilter, setDailyOfferFilter] = useState<DailyOfferFilterGroup>("all");
   const [ratingStars, setRatingStars] = useState(0), [ratingComment, setRatingComment] = useState(""), [ratingMessage, setRatingMessage] = useState(""), [ratingBusy, setRatingBusy] = useState(false);
   const [followIds, setFollowIds] = useState<string[]>([]), [feedItems, setFeedItems] = useState<FollowFeedItem[]>([]), [feedOpen, setFeedOpen] = useState(false), [followBusy, setFollowBusy] = useState(false), [followError, setFollowError] = useState("");
   const [feedSeen, setFeedSeen] = useState(() => { try { return Number(localStorage.getItem("janzour-feed-seen")) || 0; } catch { return 0; } });
@@ -719,6 +720,67 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     </div></div></section>}
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => setModal("service")}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><Link href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></Link></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
     <main className="directory-main directory-ordered-main">
+      {!scoped && design.showSponsorsRibbon !== false && activeSponsors.length > 0 && (
+        <section
+          className="certified-sponsors-ribbon-card"
+          aria-label="رعاة الدليل المعتمدون بقرية جنزور"
+          style={{ order: -1 }}
+        >
+          <div className="sponsors-ribbon-head">
+            <span className="sponsors-ribbon-badge">
+              <Crown size={16}/>
+              <strong>رعاة الدليل المعتمدون 👑</strong>
+            </span>
+            <button
+              type="button"
+              className="sponsors-ribbon-join-link"
+              onClick={() => {
+                setSponsorModalAuto(false);
+                setSponsorModalOpen(true);
+              }}
+            >
+              <Gift size={14}/>
+              <span>انضم للرعاة (١٠ أيام مجاناً)</span>
+            </button>
+          </div>
+
+          <div className="sponsors-ribbon-track" role="list">
+            {activeSponsors.map((sp, idx) => {
+              const matchedService = services.find((srv) => srv.id === sp.serviceId);
+              const group = getSponsorOfferCategoryGroup(sp, services, categories);
+              const IconComp = group === "clinics" ? Stethoscope : group === "labs" ? FlaskConical : Store;
+
+              return (
+                <button
+                  key={`ribbon-${sp.serviceId}-${idx}`}
+                  type="button"
+                  role="listitem"
+                  className={`sponsor-ribbon-pill is-group-${group}`}
+                  onClick={() => {
+                    if (matchedService) {
+                      openDetail(matchedService);
+                    } else {
+                      setSponsorModalAuto(false);
+                      setSponsorModalOpen(true);
+                    }
+                  }}
+                >
+                  <span className="sponsor-ribbon-pill-icon">
+                    <IconComp size={18}/>
+                  </span>
+                  <div className="sponsor-ribbon-pill-copy">
+                    <strong>{sp.providerName}</strong>
+                    <small>{sp.categoryName}</small>
+                  </div>
+                  {sp.dailyOfferDiscount && (
+                    <span className="sponsor-ribbon-pill-tag">{sp.dailyOfferDiscount}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
       {!scoped && design.showDailyOffersSection && dailyOffers.length > 0 && (
         <section
           id="daily-offers"
@@ -749,8 +811,44 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             </button>
           </div>
 
+          <div className="daily-offers-filter-bar" role="tablist" aria-label="فلترة عروض اليوم حسب القسم">
+            {(
+              [
+                { id: "all" as DailyOfferFilterGroup, label: "🔥 كل العروض", icon: Flame },
+                { id: "clinics" as DailyOfferFilterGroup, label: "🩺 عروض العيادات", icon: Stethoscope },
+                { id: "labs" as DailyOfferFilterGroup, label: "🧪 عروض المعامل", icon: FlaskConical },
+                { id: "shops" as DailyOfferFilterGroup, label: "🛒 عروض المحلات والمطاعم", icon: Store },
+              ] as const
+            ).map((tabItem) => {
+              const count =
+                tabItem.id === "all"
+                  ? dailyOffers.length
+                  : dailyOffers.filter((item) => getSponsorOfferCategoryGroup(item, services, categories) === tabItem.id).length;
+              const isSelected = dailyOfferFilter === tabItem.id;
+              return (
+                <button
+                  key={tabItem.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  className={`daily-offer-filter-chip ${isSelected ? "is-active" : ""}`}
+                  onClick={() => setDailyOfferFilter(tabItem.id)}
+                >
+                  <span>{tabItem.label}</span>
+                  <b className="daily-offer-filter-count">{count}</b>
+                </button>
+              );
+            })}
+          </div>
+
           <div className="daily-offers-grid">
-            {dailyOffers.map((offer, idx) => {
+            {dailyOffers
+              .filter(
+                (offer) =>
+                  dailyOfferFilter === "all" ||
+                  getSponsorOfferCategoryGroup(offer, services, categories) === dailyOfferFilter,
+              )
+              .map((offer, idx) => {
               const matchedService = services.find((srv) => srv.id === offer.serviceId);
               const contactPhone = (offer.phone || matchedService?.phone || matchedService?.phoneSecondary || settings.phone).trim();
               const orderMsg = `مرحبًا (${offer.providerName})، شاهدت عرضكم (${offer.dailyOfferDiscount}: ${offer.dailyOfferTitle}) على دليل قرية جنزور وأود الاستفسار أو الحجز.`;

@@ -2,7 +2,9 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import {
+  AlertTriangle,
   Check,
+  Clock,
   Crown,
   Eye,
   Flame,
@@ -11,12 +13,14 @@ import {
   Megaphone,
   MessageCircle,
   Plus,
+  RotateCcw,
   Sparkles,
   Trash2,
 } from "lucide-react";
 import {
   defaultDesignSettings,
   getCategory,
+  getSponsorTrialStatus,
   parseSponsoredProviders,
   whatsappUrl,
   type CategoryRecord,
@@ -54,6 +58,25 @@ export default function AdminSponsors({
     () => services.filter((s) => s.status === "approved"),
     [services],
   );
+
+  const trialStats = useMemo(() => {
+    let activeCount = 0;
+    let trialCount = 0;
+    let vipCount = 0;
+    let expiredOrSoonCount = 0;
+    for (const sp of sponsors) {
+      if (!sp.active) continue;
+      activeCount += 1;
+      const st = getSponsorTrialStatus(sp);
+      if (st.isTrial) {
+        trialCount += 1;
+        if (st.isExpired || st.isExpiringSoon) expiredOrSoonCount += 1;
+      } else {
+        vipCount += 1;
+      }
+    }
+    return { activeCount, trialCount, vipCount, expiredOrSoonCount };
+  }, [sponsors]);
 
   function updateField<K extends keyof DesignSettings>(key: K, value: DesignSettings[K]) {
     setDraft((curr) => ({ ...curr, [key]: value }));
@@ -137,7 +160,7 @@ export default function AdminSponsors({
         </span>
         <h3>👑 إدارة باقات الرعاية والتميز (العيادات • المعامل • المحلات)</h3>
         <p>
-          تحكم كامل في الشاشة العائمة لباقات الرعاية التي تظهر بعد اللوجو لمدة ١٠ ثوانٍ، وتفعيل المميزات الذهبية (رقم ٧: عروض اليوم • رقم ٨: البرواز الذهبي وشارة راعي معتمد • رقم ٩: إعلان الشريط المتحرك).
+          تحكم كامل في الشاشة العائمة لباقات الرعاية، شريط الرعاة المعتمدين المتحرك بالأيقونات، قسم عروض اليوم مع الفلاتر، وعداد الأيام المتبقية في التجربة المجانية (١٠ أيام).
         </p>
         <div style={{ marginTop: 10, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button
@@ -151,17 +174,37 @@ export default function AdminSponsors({
         </div>
       </div>
 
+      {/* Summary Counter Bar for Suggestion #3 */}
+      <div className="sponsor-trial-summary-strip" role="region" aria-label="ملخص حالة الرعاة والتجربة المجانية">
+        <div className="sponsor-summary-stat is-gold">
+          <strong>{trialStats.activeCount}</strong>
+          <span>إجمالي الرعاة النشطين</span>
+        </div>
+        <div className="sponsor-summary-stat is-emerald">
+          <strong>{trialStats.trialCount}</strong>
+          <span>في تجربة الـ ١٠ أيام المجانية</span>
+        </div>
+        <div className="sponsor-summary-stat is-blue">
+          <strong>{trialStats.vipCount}</strong>
+          <span>مشتركو باقة التميز VIP</span>
+        </div>
+        <div className={`sponsor-summary-stat ${trialStats.expiredOrSoonCount > 0 ? "is-alert" : "is-neutral"}`}>
+          <strong>{trialStats.expiredOrSoonCount}</strong>
+          <span>تجارب انتهت أو قاربت الانتهاء</span>
+        </div>
+      </div>
+
       {/* Section 1: Floating Modal Settings */}
       <div className="admin-Visual-divider" role="separator">
         <span>
-          <Sparkles size={15} /> القسم ١: إعدادات الشاشة العائمة «باقات الرعاية والتميز» (بعد اللوجو مباشرة)
+          <Sparkles size={15} /> القسم ١: إعدادات الشاشة العائمة وشريط الرعاة وقسم عروض اليوم
         </span>
       </div>
 
       <section className="settings-section-card">
         <div className="settings-section-head">
-          <h4>التحكم في ظهور ونصوص شاشة باقات الرعاية والتميز</h4>
-          <p>تظهر تلقائياً بتأثير Fade-In بعد شاشة اللوجو وتظل لمدة ١٠ ثوانٍ قبل ظهور زر الإغلاق</p>
+          <h4>التحكم في ظهور ونصوص شاشة باقات الرعاية والتميز وشريط الرعاة</h4>
+          <p>تظهر الشاشة العائمة تلقائياً بتأثير Fade-In بعد شاشة اللوجو وتظل لمدة ١٠ ثوانٍ قبل ظهور زر الإغلاق</p>
         </div>
 
         <div className="settings-items-grid">
@@ -193,7 +236,7 @@ export default function AdminSponsors({
             <label className="settings-item-label" htmlFor="sponsor-delay-seconds">
               ٢. مدة بقاء الشاشة قبل ظهور زر الإغلاق (بالثواني)
             </label>
-            <small className="settings-item-hint">الافتراضي ١٠ ثوانٍ كما طلبت لجذب انتباه الزوار</small>
+            <small className="settings-item-hint">الافتراضي ١٠ ثوانٍ لجذب انتباه الزوار</small>
             <input
               id="sponsor-delay-seconds"
               type="number"
@@ -221,10 +264,34 @@ export default function AdminSponsors({
           </div>
 
           <div className="settings-item-box">
-            <label className="settings-item-label" htmlFor="sponsor-daily-offers-toggle">
-              ٤. قسم «عروض اليوم في جنزور 🔥» بالصفحة الرئيسية (ميزة #7)
+            <label className="settings-item-label" htmlFor="sponsor-ribbon-toggle">
+              ٤. شريط «رعاة الدليل المعتمدون 👑» المتحرك بالأيقونات (ميزة #7)
             </label>
-            <small className="settings-item-hint">عرض خصومات وعروض العيادات والمعامل والمحلات المشتركة</small>
+            <small className="settings-item-hint">شريط تفاعلي يعرض أسماء وأيقونات الرعاة ويفتح صفحاتهم بضغطة</small>
+            <div className="settings-toggle-textbox-row">
+              <input
+                id="sponsor-ribbon-toggle"
+                type="text"
+                readOnly
+                className={`studio-textbox is-status-textbox ${draft.showSponsorsRibbon ? "is-on" : "is-off"}`}
+                value={draft.showSponsorsRibbon ? "✅ مفعّل وظاهر في الصفحة الرئيسية" : "⏸️ مخفي حالياً"}
+                onClick={() => updateField("showSponsorsRibbon", !draft.showSponsorsRibbon)}
+              />
+              <button
+                type="button"
+                className={`button button-small ${draft.showSponsorsRibbon ? "button-primary" : "button-soft"}`}
+                onClick={() => updateField("showSponsorsRibbon", !draft.showSponsorsRibbon)}
+              >
+                {draft.showSponsorsRibbon ? "إيقاف" : "تفعيل"}
+              </button>
+            </div>
+          </div>
+
+          <div className="settings-item-box">
+            <label className="settings-item-label" htmlFor="sponsor-daily-offers-toggle">
+              ٥. قسم «عروض اليوم في جنزور 🔥» مع الفلاتر السريعة (ميزة #10)
+            </label>
+            <small className="settings-item-hint">عرض خصومات العيادات والمعامل والمحلات مع أزرار الفرز السريع</small>
             <div className="settings-toggle-textbox-row">
               <input
                 id="sponsor-daily-offers-toggle"
@@ -246,7 +313,7 @@ export default function AdminSponsors({
 
           <div className="settings-item-box is-full-span">
             <label className="settings-item-label" htmlFor="sponsor-modal-title">
-              ٥. العنوان الرئيسي للشاشة العائمة
+              ٦. العنوان الرئيسي للشاشة العائمة
             </label>
             <input
               id="sponsor-modal-title"
@@ -258,7 +325,7 @@ export default function AdminSponsors({
 
           <div className="settings-item-box is-full-span">
             <label className="settings-item-label" htmlFor="sponsor-modal-subtitle">
-              ٦. رسالة الترحيب وتوضيح أن الدليل مجاني لوجه الله
+              ٧. رسالة الترحيب وتوضيح أن الدليل مجاني لوجه الله
             </label>
             <textarea
               id="sponsor-modal-subtitle"
@@ -271,7 +338,7 @@ export default function AdminSponsors({
 
           <div className="settings-item-box is-full-span">
             <label className="settings-item-label" htmlFor="sponsor-modal-offer">
-              ٧. نص بنر «عرض ١٠ أيام مجاناً للعيادات والمعامل والمحلات»
+              ٨. نص بنر «عرض ١٠ أيام مجاناً للعيادات والمعامل والمحلات»
             </label>
             <textarea
               id="sponsor-modal-offer"
@@ -284,17 +351,17 @@ export default function AdminSponsors({
         </div>
       </section>
 
-      {/* Section 2: Managing Sponsored Providers (#7, #8, #9) */}
+      {/* Section 2: Managing Sponsored Providers & Automatic 10-Day Countdown */}
       <div className="admin-Visual-divider" role="separator">
         <span>
-          <Crown size={15} /> القسم ٢: تفعيل الرعاة والمشتركين (رقم ٧: عروض اليوم • رقم ٨: البرواز الذهبي • رقم ٩: الشريط المتحرك)
+          <Crown size={15} /> القسم ٢: إدارة الرعاة + عداد الـ ١٠ أيام المجانية التلقائي (ميزة #3)
         </span>
       </div>
 
       <section className="settings-section-card">
         <div className="settings-section-head">
-          <h4>إضافة وتفعيل باقة التميز لأي عيادة أو معمل أو محل</h4>
-          <p>اختر مقدم الخدمة من الدليل أو أضف راعياً جديداً لتفعيل البرواز الذهبي وعرض اليوم وإعلان الشريط المتحرك فوراً</p>
+          <h4>إضافة ومتابعة الرعاة المعتمدين وعداد التجربة المجانية (١٠ أيام)</h4>
+          <p>يحسب النظام تلقائياً الأيام المنقضية والأيام المتبقية لكل مشترك في عرض الـ ١٠ أيام المجانية مع زر مراسلة للتجديد</p>
         </div>
 
         <div className="sponsor-add-bar">
@@ -325,7 +392,9 @@ export default function AdminSponsors({
           {sponsors.map((item, idx) => {
             const origin = typeof window !== "undefined" ? window.location.origin : "https://daleel-ganzour.vercel.app";
             const directLink = `${origin}/?service=${encodeURIComponent(item.serviceId)}#services`;
-            const notifyWaMsg = `أهلاً بحضرتك في (${item.providerName}) 🌟\nتم تفعيل (${item.planType === "trial-10-days" ? "هدية التجربة المجانية لمدة ١٠ أيام" : "باقة الرعاية والتميز الذهبية 👑"}) لصفحتكم على دليل قرية جنزور:\n✅ البرواز الذهبي وشارة (${item.badgeLabel}) والظهور في أول الصفوف\n✅ عرضكم في قسم (عروض اليوم في جنزور 🔥)\n✅ إعلانكم في الشريط الإخباري المتحرك أعلى الموقع\n\nيمكنكم مشاهدة صفحتكم المميزة من الرابط:\n${directLink}`;
+            const trialStatus = getSponsorTrialStatus(item);
+            const notifyWaMsg = `أهلاً بحضرتك في (${item.providerName}) 🌟\nتم تفعيل (${item.planType === "trial-10-days" ? "هدية التجربة المجانية لمدة ١٠ أيام" : "باقة الرعاية والتميز الذهبية 👑"}) لصفحتكم على دليل قرية جنزور:\n✅ البرواز الذهبي وشارة (${item.badgeLabel}) والظهور في أول الصفوف\n✅ عرضكم في قسم (عروض اليوم في جنزور 🔥)\n✅ ظهوركم في شريط (رعاة الدليل المعتمدون 👑) والشريط الإخباري المتحرك\n\nيمكنكم مشاهدة صفحتكم المميزة من الرابط:\n${directLink}`;
+            const renewalWaMsg = `أهلاً بحضرتك في (${item.providerName}) 👑\nسعدنا جداً بتواجدكم كراعي معتمد في دليل قرية جنزور خلال فترة التجربة المجانية (١٠ أيام).\n${trialStatus.isExpired ? "انتهت اليوم فترة التجربة المجانية" : `متبقي ${trialStatus.remainingDays} أيام في فترة التجربة المجانية`}، ويسعدنا استمرار ظهوركم بالبرواز الذهبي وفي قسم (عروض اليوم 🔥) وشريط الرعاة المعتمدين.\nهل ترغبون في تفعيل باقة التميز الشهرية الآن؟`;
 
             return (
               <article
@@ -358,7 +427,7 @@ export default function AdminSponsors({
                       title="إرسال رسالة تفعيل الباقة عبر واتساب"
                     >
                       <MessageCircle size={15} />
-                      <span>إبلاغ المشترك واتساب</span>
+                      <span>إبلاغ بالتفعيل</span>
                     </a>
 
                     <button
@@ -368,6 +437,74 @@ export default function AdminSponsors({
                       aria-label="حذف من قائمة الرعاة"
                     >
                       <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Suggestion #3: Automatic 10-Day Trial Countdown & Renewal Box */}
+                <div className={`sponsor-trial-countdown-box is-tone-${trialStatus.tone}`}>
+                  <div className="sponsor-trial-countdown-top">
+                    <div className="sponsor-trial-status-title">
+                      {trialStatus.isExpired ? (
+                        <AlertTriangle size={18} />
+                      ) : trialStatus.isTrial ? (
+                        <Clock size={18} />
+                      ) : (
+                        <Crown size={18} />
+                      )}
+                      <strong>{trialStatus.statusLabel}</strong>
+                    </div>
+
+                    {trialStatus.isTrial && (
+                      <span className="sponsor-trial-dates-badge">
+                        البدء: <b dir="ltr">{item.trialStartDate}</b> • الانتهاء: <b dir="ltr">{trialStatus.endDateFormatted}</b>
+                      </span>
+                    )}
+                  </div>
+
+                  {trialStatus.isTrial && (
+                    <div className="sponsor-trial-bar-track" aria-hidden="true">
+                      <div
+                        className="sponsor-trial-bar-fill"
+                        style={{ width: `${trialStatus.progressPercent}%` }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="sponsor-trial-quick-actions">
+                    <a
+                      className="button button-small button-amber"
+                      href={whatsappUrl(item.phone || fallbackPhone, renewalWaMsg)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <MessageCircle size={15} />
+                      <span>إرسال رسالة تجديد الباقة عبر واتساب</span>
+                    </a>
+
+                    {item.planType === "trial-10-days" && (
+                      <button
+                        type="button"
+                        className="button button-small button-primary"
+                        onClick={() => updateSponsor(idx, { planType: "monthly-vip" })}
+                      >
+                        <Crown size={15} />
+                        <span>ترقية إلى باقة VIP مفعّلة</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      className="button button-small button-soft"
+                      onClick={() =>
+                        updateSponsor(idx, {
+                          planType: "trial-10-days",
+                          trialStartDate: new Date().toISOString().slice(0, 10),
+                        })
+                      }
+                    >
+                      <RotateCcw size={14} />
+                      <span>بدء ١٠ أيام جديدة من اليوم</span>
                     </button>
                   </div>
                 </div>
@@ -383,11 +520,12 @@ export default function AdminSponsors({
                   </div>
 
                   <div className="settings-item-box">
-                    <label className="settings-item-label">التخصص / القسم</label>
+                    <label className="settings-item-label">التخصص / القسم (يحدد فلتر العروض تلقائياً)</label>
                     <input
                       className="studio-textbox"
                       value={item.categoryName}
                       onChange={(e) => updateSponsor(idx, { categoryName: e.target.value })}
+                      placeholder="العيادات والأطباء / معامل التحاليل / المحلات التجارية"
                     />
                   </div>
 
@@ -430,7 +568,7 @@ export default function AdminSponsors({
 
                   <div className="settings-item-box">
                     <label className="settings-item-label">
-                      <Crown size={14} /> شارة التميز على الكارت (ميزة #8)
+                      <Crown size={14} /> شارة التميز على الكارت وفي شريط الرعاة
                     </label>
                     <input
                       className="studio-textbox"
@@ -442,7 +580,7 @@ export default function AdminSponsors({
 
                   <div className="settings-item-box">
                     <label className="settings-item-label">
-                      <Flame size={14} /> شارة الخصم في «عروض اليوم» (ميزة #7)
+                      <Flame size={14} /> شارة الخصم في «عروض اليوم»
                     </label>
                     <input
                       className="studio-textbox"
@@ -454,7 +592,7 @@ export default function AdminSponsors({
 
                   <div className="settings-item-box is-full-span">
                     <label className="settings-item-label">
-                      <Flame size={14} /> نص العرض الظاهر في قسم «عروض اليوم في جنزور 🔥» بالصفحة الرئيسية (ميزة #7)
+                      <Flame size={14} /> نص العرض الظاهر في قسم «عروض اليوم في جنزور 🔥» بالصفحة الرئيسية
                     </label>
                     <input
                       className="studio-textbox"
@@ -466,7 +604,7 @@ export default function AdminSponsors({
 
                   <div className="settings-item-box is-full-span">
                     <label className="settings-item-label">
-                      <Megaphone size={14} /> نص الإعلان المتحرك في «الشريط الإخباري العلوي» (ميزة #9)
+                      <Megaphone size={14} /> نص الإعلان المتحرك في «الشريط الإخباري العلوي»
                     </label>
                     <input
                       className="studio-textbox"
