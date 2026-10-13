@@ -785,6 +785,25 @@ export default function DesignCustomizer({
                     </SelectField>
                   </label>
                 </div>
+
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    سرعة ونعومة الحركات البصرية للكروت والنوافذ
+                    <SelectField value={draft.cardAnimationSpeed} onChange={(e) => updateField("cardAnimationSpeed", e.target.value as DesignSettings["cardAnimationSpeed"])}>
+                      <option value="normal">متوازنة وسريعة (الافتراضي)</option>
+                      <option value="smooth">ناعمة وانسيابية هادئة</option>
+                      <option value="instant">فورية بدون حركات انتقالية</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    عداد الخدمات داخل كروت الأقسام
+                    <SelectField value={draft.showCategoryCounts ? "show" : "hide"} onChange={(e) => updateField("showCategoryCounts", e.target.value === "show")}>
+                      <option value="show">إظهار عدد الخدمات والتخصصات (الافتراضي)</option>
+                      <option value="hide">إخفاء العداد لمظهر أبسط</option>
+                    </SelectField>
+                  </label>
+                </div>
               </div>
             )}
           </section>
@@ -950,9 +969,28 @@ export default function DesignCustomizer({
                   </div>
                 </div>
 
-                <InnerDivider title="ميزات الموبايل والمجتمع اليومية" subtitle="تحكم في شريط الصلاة والطقس، شريط التنقل السفلي، تثبيت التطبيق، والتعديل السريع" />
+                <InnerDivider title="تخصيص مستطيل مواقيت الصلاة والميزات التفاعلية" subtitle="تحكم في لون وحالة مستطيل مواقيت الصلاة، دليل المواصلات، وتثبيت التطبيق" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    لون وتصميم مستطيل مواقيت الصلاة
+                    <SelectField value={draft.prayerCardStyle} onChange={(e) => updateField("prayerCardStyle", e.target.value as DesignSettings["prayerCardStyle"])}>
+                      <option value="dark-sky">لبني غامق متدرج (الافتراضي)</option>
+                      <option value="royal-navy">كحلي ملكي داكن</option>
+                      <option value="emerald">أخضر زمردي هادئ</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    حالة مستطيل مواقيت الصلاة عند فتح الصفحة
+                    <SelectField value={draft.prayerDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("prayerDefaultOpen", e.target.value === "open")}>
+                      <option value="closed">مطوي ويفتح عند الضغط (الافتراضي)</option>
+                      <option value="open">مفرود بالكامل عند فتح الموقع</option>
+                    </SelectField>
+                  </label>
+                </div>
+
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showPrayerWeatherBar} onChange={(e) => updateField("showPrayerWeatherBar", e.target.checked)}/>إظهار شريط مواقيت الصلاة والطقس في جنزور</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showPrayerWeatherBar} onChange={(e) => updateField("showPrayerWeatherBar", e.target.checked)}/>إظهار مستطيل مواقيت الصلاة في جنزور</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showTransitGuide} onChange={(e) => updateField("showTransitGuide", e.target.checked)}/>إظهار قسم «دليل المواصلات وخطوط السير بجنزور»</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.mobileBottomNavEnabled} onChange={(e) => updateField("mobileBottomNavEnabled", e.target.checked)}/>تفعيل شريط التنقل السفلي السريع للموبايل (App Bar)</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showInstallAppBanner} onChange={(e) => updateField("showInstallAppBanner", e.target.checked)}/>إظهار زر وبطاقة «تثبيت تطبيق دليل جنزور» على الهاتف</label>
@@ -997,6 +1035,25 @@ export default function DesignCustomizer({
                       <option value="rounded">زوايا ناعمة كلاسيكية (الافتراضي)</option>
                       <option value="pill">كبسولة دائرية بالكامل (Pill Search)</option>
                       <option value="floating-glass">زجاجي عائم بظل بارز</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    طريقة ظهور البحث داخل صفحات الأقسام والتخصصات
+                    <SelectField value={draft.categorySearchDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("categorySearchDefaultOpen", e.target.value === "open")}>
+                      <option value="closed">زر وأيقونة بحث في منتصف الشاشة يتحول لمربع بحث (الافتراضي)</option>
+                      <option value="open">مربع البحث مفتوح تلقائياً عند دخول القسم</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    ستايل شريط أزرار الاتصال السريع داخل كارت المهني
+                    <SelectField value={draft.providerCallStripStyle} onChange={(e) => updateField("providerCallStripStyle", e.target.value as DesignSettings["providerCallStripStyle"])}>
+                      <option value="sky">سماوي كلاسيكي هادئ (الافتراضي)</option>
+                      <option value="emerald">أخضر زمردي بارز</option>
+                      <option value="solid-blue">أزرق ملكي عالي التباين</option>
                     </SelectField>
                   </label>
                 </div>

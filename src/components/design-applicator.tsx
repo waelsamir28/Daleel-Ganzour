@@ -58,6 +58,10 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-header-pattern", design.headerPattern || "none");
   root.setAttribute("data-design-hero-pattern", design.heroPattern || "none");
   root.setAttribute("data-design-pattern-opacity", design.patternOpacity || "subtle");
+  root.setAttribute("data-design-prayer-style", design.prayerCardStyle || "dark-sky");
+  root.setAttribute("data-design-category-counts", design.showCategoryCounts !== false ? "true" : "false");
+  root.setAttribute("data-design-call-strip", design.providerCallStripStyle || "sky");
+  root.setAttribute("data-design-animation-speed", design.cardAnimationSpeed || "normal");
   root.setAttribute("data-design-splash-enabled", design.splashEnabled ? "true" : "false");
   root.setAttribute("data-design-splash-image", design.splashImageUrl || "/images/logo-daleel-transparent.png");
   root.setAttribute("data-design-splash-duration", design.splashDuration || "900");

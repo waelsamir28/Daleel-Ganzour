@@ -5710,6 +5710,426 @@ html.dark .detail-shop-delivery-check {
   color: #eaf4ff;
 }
 
+/* ==========================================================================
+   تحديثات لوحة التحكم والصفحات التفاعلية:
+   1. فواصل وتنسيق صفحات المنشورات والردود الجاهزة وأزرار الأيقونات
+   2. تنسيق وتوسيط صفحة إعدادات الموقع مع الفواصل
+   3. برواز وخلفية لعنوان مقدمي الخدمات المميزين مثل عناوين الأقسام
+   4. زر البحث المتمدد في منتصف صفحات الأقسام والتخصصات مع سهم الطي السفلي
+   5. خصائص إضافية لاستوديو المظهر
+   ========================================================================== */
+
+/* الفواصل المنسقة داخل صفحات الإدارة (المنشورات / الردود / إعدادات الموقع) */
+.admin-Visual-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+  width: 100%;
+  text-align: center;
+}
+.admin-Visual-divider::before,
+.admin-Visual-divider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(8, 120, 201, 0.06), rgba(8, 120, 201, 0.35), rgba(8, 120, 201, 0.06));
+}
+.admin-Visual-divider > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #bee0fb;
+  background: linear-gradient(135deg, #f0f8ff, #e0f2fe);
+  color: #075996;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(8, 120, 201, 0.08);
+}
+
+/* بانر وتنسيق صفحة الردود الجاهزة وأزرار الأيقونات */
+.replies-page-banner {
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1.5px solid #cbe4fb;
+  background: linear-gradient(135deg, #f7fbff 0%, #eaf5ff 100%);
+  box-shadow: 0 8px 22px rgba(8, 120, 201, 0.08);
+}
+.replies-picker-head {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1.5px dashed #d3e5f6;
+  text-align: center;
+  color: #0b4a7d;
+  font-size: 14px;
+}
+.reply-card-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.reply-item-divider {
+  margin: 10px 0 12px;
+}
+.reply-item-divider > span {
+  font-size: 12px;
+  padding: 3px 12px;
+}
+.reply-card-divider {
+  height: 1.5px;
+  margin: 10px 0 12px;
+  background: linear-gradient(90deg, transparent, #cde2f5, transparent);
+}
+.reply-actions-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.reply-action-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1.5px solid #cfe2f3;
+  background: #f5faff;
+  color: #0a5896;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  text-decoration: none;
+}
+.reply-action-icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(8, 120, 201, 0.16);
+}
+.reply-action-icon-btn.is-copy {
+  background: #f0f8ff;
+  border-color: #93ccf8;
+  color: #0878c9;
+}
+.reply-action-icon-btn.is-copy.is-active {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+}
+.reply-action-icon-btn.is-notify {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+.reply-action-icon-btn.is-notify.is-active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+.reply-action-icon-btn.is-whatsapp {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #059669;
+}
+.reply-action-icon-btn.is-whatsapp:hover {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+/* تنسيق وتوسيط صفحة إعدادات الموقع بالكامل */
+.settings-formatted-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+}
+.settings-page-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 18px;
+  border-radius: 18px;
+  border: 1.5px solid #bfe0fb;
+  background: linear-gradient(135deg, #f4faff 0%, #e4f3ff 100%);
+  text-align: center;
+  box-shadow: 0 8px 22px rgba(8, 120, 201, 0.08);
+}
+.settings-banner-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0878c9, #055ba0);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(8, 120, 201, 0.25);
+}
+.settings-page-banner h3 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 900;
+  color: #083963;
+}
+.settings-page-banner p {
+  margin: 0;
+  font-size: 13.5px;
+  color: #3b6990;
+  max-width: 620px;
+}
+.settings-section-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1.5px solid #d7e7f7;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(12, 64, 114, 0.05);
+}
+.settings-centered-grid {
+  text-align: center;
+}
+.settings-centered-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.settings-centered-field > span {
+  text-align: center;
+  justify-content: center;
+  width: 100%;
+  font-weight: 800;
+  color: #0b4475;
+}
+.settings-centered-field input {
+  text-align: center !important;
+  font-weight: 700;
+}
+.settings-toggles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.settings-centered-checkbox {
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 11px 14px !important;
+  border-radius: 13px !important;
+  border: 1.5px solid #d5e6f6 !important;
+  background: #f8fbff !important;
+  font-weight: 800;
+}
+.settings-centered-alerts {
+  text-align: center;
+}
+.settings-centered-alerts .whatsapp-alerts-head {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.settings-centered-alerts .whatsapp-alerts-steps {
+  text-align: center;
+  list-style-position: inside;
+  padding-inline: 10px;
+}
+.settings-centered-alerts .whatsapp-alerts-actions {
+  justify-content: center;
+}
+.settings-submit-bar {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+.settings-save-btn {
+  min-width: 260px;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 900;
+  padding: 12px 26px;
+}
+
+/* برواز وخلفية لعنوان مقدمي الخدمات المميزين مثل عناوين الأقسام */
+.featured-banner-main-btn h2.featured-framed-heading {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  padding: 8px 18px !important;
+  border: 1.5px solid #b9d1e5 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #17679c, #124b7a) !important;
+  box-shadow: 0 5px 14px rgba(18, 75, 122, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  font-size: clamp(15.5px, 2vw, 19px) !important;
+}
+.featured-banner-main-btn h2.featured-framed-heading > svg {
+  width: 28px;
+  height: 28px;
+  padding: 5px;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #20b9e8, #0876c9);
+  color: #ffffff !important;
+  flex-shrink: 0;
+}
+
+/* زر البحث المتمركز داخل صفحات الأقسام والتخصصات وسهم الإغلاق السفلي */
+.scoped-search-trigger-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 14px auto 8px;
+  width: 100%;
+}
+.scoped-search-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 11px 28px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  background: linear-gradient(135deg, #0878c9 0%, #045594 100%);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(4, 48, 92, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.scoped-search-trigger-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 30px rgba(4, 48, 92, 0.36);
+}
+.scoped-search-trigger-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-search-expandable-wrap.is-scoped-expanded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  animation: scopedSearchFadeIn 0.2s ease-out;
+}
+@keyframes scopedSearchFadeIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.scoped-search-collapse-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 7px;
+  width: 100%;
+}
+.scoped-search-collapse-btn {
+  width: 34px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(135deg, #096bb4, #054a82);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(4, 45, 86, 0.25);
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+.scoped-search-collapse-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #0b7dd0, #065a9c);
+}
+
+/* خصائص إضافية لاستوديو المظهر (Design Studio Extended Rules) */
+html[data-design-prayer-style="royal-navy"] .ganzour-prayer-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 52%, #172554 100%) !important;
+  border-color: #60a5fa !important;
+}
+html[data-design-prayer-style="emerald"] .ganzour-prayer-card {
+  background: linear-gradient(135deg, #064e3b 0%, #047857 52%, #065f46 100%) !important;
+  border-color: #34d399 !important;
+}
+html[data-design-category-counts="false"] .category-tile .category-meta {
+  display: none !important;
+}
+html[data-design-call-strip="emerald"] .provider-call-strip {
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5) !important;
+  border-color: #6ee7b7 !important;
+  color: #065f46 !important;
+}
+html[data-design-call-strip="solid-blue"] .provider-call-strip {
+  background: linear-gradient(135deg, #0878c9, #055a99) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+}
+html[data-design-call-strip="solid-blue"] .provider-call-strip * {
+  color: #ffffff !important;
+}
+html[data-design-animation-speed="instant"] *,
+html[data-design-animation-speed="instant"] *::before,
+html[data-design-animation-speed="instant"] *::after {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+}
+html[data-design-animation-speed="smooth"] .category-tile,
+html[data-design-animation-speed="smooth"] .provider-card {
+  transition-duration: 0.36s !important;
+}
+
+/* الوضع الليلي للتنسيقات الجديدة */
+html.dark .admin-Visual-divider > span {
+  background: linear-gradient(135deg, #10253c, #0c1d30);
+  border-color: #274c73;
+  color: #93c5fd;
+}
+html.dark .replies-page-banner,
+html.dark .settings-page-banner,
+html.dark .settings-section-card {
+  background: #102338;
+  border-color: #244568;
+  color: #eaf4ff;
+}
+html.dark .settings-page-banner h3,
+html.dark .settings-centered-field > span,
+html.dark .replies-picker-head {
+  color: #eaf4ff;
+}
+html.dark .settings-page-banner p {
+  color: #a8c5e2;
+}
+html.dark .settings-centered-checkbox {
+  background: #0c1b2c !important;
+  border-color: #244568 !important;
+  color: #e2f0fe !important;
+}
+html.dark .reply-action-icon-btn {
+  background: #0d1f33;
+  border-color: #284b70;
+  color: #93c5fd;
+}
+html.dark .reply-action-icon-btn.is-whatsapp {
+  background: #0a2922;
+  border-color: #059669;
+  color: #6ee7b7;
+}
+
+
 
 
 
