@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Activity, Anvil, Armchair, Baby, Bone, BookOpen, BrickWall, Calculator, Cctv, Cog, Droplets, Ellipsis, Eye, FlaskConical, Globe, GraduationCap, Grid2X2, Hammer, HandHeart, Heart, HeartPulse, Languages, Paintbrush, PanelsTopLeft, Pill, Scale, Shirt, ShoppingBasket, Smartphone, Smile, Snowflake, Sparkles, Stethoscope, Store, Sun, Truck, Tv, UsersRound, Utensils, Wrench, X, Zap, type LucideIcon } from "lucide-react";
 import { defaultSettings, getCategory, type CategoryRecord } from "@/lib/catalog";
 
@@ -12,13 +11,13 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
-const dimensionalCategoryIcons: Record<string, string> = { Wrench: "crafts", Stethoscope: "clinics", FlaskConical: "labs", Store: "shops", GraduationCap: "teachers", HandHeart: "charities", Grid2X2: "other", duty: "duty", utilities: "utilities", quick: "quick" };
+const dimensionalCategoryIcons: Record<string, string> = { Wrench: "crafts", Stethoscope: "clinics", FlaskConical: "labs", Store: "shops", GraduationCap: "teachers", HandHeart: "charities", Grid2X2: "other", duty: "duty", utilities: "utilities", quick: "quick", featured: "featured" };
 export function MainCategoryIcon({ icon }: { icon: string }) {
   return <svg className="main-category-art" viewBox="0 0 128 128" aria-hidden="true"><use href={`/images/category-3d.svg#${dimensionalCategoryIcons[icon] ?? "other"}`}/></svg>;
 }
 export function Logo({ compact = false, footer = false, name = defaultSettings.siteName }: { compact?: boolean; footer?: boolean; name?: string; description?: string }) {
-  return <Link href="/" className={`brand brand-logo-only ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
-    <Image className="brand-symbol" src="/images/logo-daleel-transparent.png" alt="" width={800} height={800} sizes="58px"/>
+  return <Link href="/" className={`brand ${footer ? "brand-light" : ""} ${compact ? "brand-compact" : ""}`} aria-label={`${name} - الرئيسية`}>
+    <span className="brand-copy"><strong>{name}</strong><span>دليل المهن والخدمات بقرية جنزور</span></span>
   </Link>;
 }
 export function ServiceArt({ category, item }: { category: string; item?: CategoryRecord }) {

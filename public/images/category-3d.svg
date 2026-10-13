@@ -94,4 +94,17 @@
       <path d="m38 35 1.8 3.5 3.7 1.5-3.7 1.5L38 45l-1.8-3.5-3.7-1.5 3.7-1.5z" fill="#fff"/>
     </g>
   </symbol>
+  <symbol id="featured" viewBox="0 0 128 128">
+    <ellipse cx="64" cy="110" rx="42" ry="7" fill="#c8d5e3" opacity=".45"/>
+    <g filter="url(#shadow)">
+      <rect x="22" y="26" width="84" height="74" rx="22" fill="url(#blue)" stroke="#07508e" stroke-width="3"/>
+      <path d="M32 76 26 42l20 14 18-24 18 24 20-14-6 34z" fill="url(#gold)" stroke="#9a520d" stroke-width="2.6" stroke-linejoin="round"/>
+      <rect x="31" y="76" width="66" height="11" rx="5" fill="url(#gold)" stroke="#9a520d" stroke-width="2.4"/>
+      <circle cx="26" cy="39" r="5" fill="url(#red)" stroke="#9c1934" stroke-width="1.8"/>
+      <circle cx="64" cy="29" r="6" fill="url(#green)" stroke="#086b45" stroke-width="2"/>
+      <circle cx="102" cy="39" r="5" fill="url(#red)" stroke="#9c1934" stroke-width="1.8"/>
+      <circle cx="94" cy="84" r="13" fill="url(#green)" stroke="#086b45" stroke-width="2.2"/>
+      <path d="m88 84 4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </symbol>
 </svg>

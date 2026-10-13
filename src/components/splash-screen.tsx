@@ -1,25 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 
-// The splash lives in the root layout, which Next.js mounts only on a full page load — never on a
-// client-side navigation — so it appears when the site is opened and stays out of the way afterwards.
-// It covers the screen for about a second, fades out, then removes itself from the DOM.
 const VISIBLE_MS = 1000;
 const FADE_MS = 480;
 
 export default function SplashScreen({ tagline = "دليل المهن والخدمات.. من أهل القرية لأهلها" }: { tagline?: string }) {
+  const pathname = usePathname();
   const [leaving, setLeaving] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return document.documentElement.classList.contains("skip-splash") || window.location.pathname !== "/";
+  });
 
   useEffect(() => {
+    if (pathname !== "/" || document.documentElement.classList.contains("skip-splash")) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Immediately hide splash on non-home pages or subsequent navigations.
+      setHidden(true);
+      return;
+    }
+    try { sessionStorage.setItem("janzour-splash-shown", "1"); } catch { /* Ignore storage issues. */ }
     const fade = window.setTimeout(() => setLeaving(true), VISIBLE_MS);
-    const remove = window.setTimeout(() => setHidden(true), VISIBLE_MS + FADE_MS);
+    const remove = window.setTimeout(() => {
+      setHidden(true);
+      document.documentElement.classList.add("skip-splash");
+    }, VISIBLE_MS + FADE_MS);
     return () => { window.clearTimeout(fade); window.clearTimeout(remove); };
-  }, []);
+  }, [pathname]);
 
-  if (hidden) return null;
+  if (hidden || pathname !== "/") return null;
   return <div className={`splash-screen ${leaving ? "is-leaving" : ""}`} aria-hidden="true">
     <Image className="splash-icon" src="/images/logo-daleel-transparent.png" alt="" width={250} height={250} priority sizes="(max-width: 420px) 54vw, 250px"/>
     <strong className="splash-title">دليل جنزور</strong>
@@ -27,3 +38,4 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
     <span className="splash-dots"><i/><i/><i/></span>
   </div>;
 }
+

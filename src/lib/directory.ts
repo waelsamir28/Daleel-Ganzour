@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, avg, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, inArray, ne, notInArray, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
 import { areas, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeSettings, sanitizeUtilityNumbers, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
@@ -124,6 +124,7 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     if (list.length < 5) list.push({ stars: row.stars, comment: row.comment, member: row.memberName.trim().split(/\s+/)[0], date: row.createdAt.toISOString() });
     commentsByService.set(row.serviceId, list);
   }
+  const providerNotificationRows = await db.select().from(notifications).where(eq(notifications.type, "provider")).orderBy(desc(notifications.createdAt)).limit(60);
   // Approved member ratings blend into the seeded score, weighted by the existing review count.
   const blended = providers.map((row) => {
     const record = serializeService(row);
@@ -137,17 +138,18 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     if (comments?.length) record.comments = comments;
     return record;
   });
-  return { ...catalog, categories: visibleCategories, services: blended };
+  return { ...catalog, categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
   const reviewNotificationTypes = ["service", "rating"];
+  const excludedAdminNotificationTypes = ["community", "provider"];
   const [providers, communityRows, memberRows, notificationRows, unreadTotal] = await Promise.all([
     db.select().from(services).orderBy(desc(services.createdAt)),
     Promise.resolve([] as (typeof communityListings.$inferSelect)[]),
     role === "admin" ? db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, role: members.role, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)) : Promise.resolve([]),
-    role === "admin" ? db.select().from(notifications).where(ne(notifications.type, "community")).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, reviewNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200),
-    role === "admin" ? db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), ne(notifications.type, "community"))) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, reviewNotificationTypes))),
+    role === "admin" ? db.select().from(notifications).where(notInArray(notifications.type, excludedAdminNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, reviewNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200),
+    role === "admin" ? db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), notInArray(notifications.type, excludedAdminNotificationTypes))) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, reviewNotificationTypes))),
   ]);
   const ratingRows = await db.select({ id: serviceRatings.id, serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, status: serviceRatings.status, createdAt: serviceRatings.createdAt, memberName: members.name, serviceName: services.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).innerJoin(services, eq(serviceRatings.serviceId, services.id)).orderBy(desc(serviceRatings.createdAt)).limit(200);
   return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0 };

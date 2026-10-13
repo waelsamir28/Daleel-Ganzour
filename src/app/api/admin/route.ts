@@ -73,7 +73,7 @@ export async function PATCH(request: Request) {
     const body = objectInput(await request.json());
     const { type, action } = body;
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
-    const moderatorAllowed = type === "category" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "sold", "filled", "availability-link"].includes(String(action)));
+    const moderatorAllowed = type === "category" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
@@ -125,9 +125,18 @@ export async function PATCH(request: Request) {
         if (reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوب استكمالها.");
         if (action === "request-info" && existing.status === "approved") throw new InputError("طلب الاستكمال متاح للطلبات غير المنشورة فقط.");
         await db.update(services).set({ status: action === "reject" ? "rejected" : "needs-info", reviewNote, ...(action === "request-info" ? { completionStatus: "requested", completionNote: reviewNote } : {}), verified: false, featured: false }).where(eq(services.id, id));
+        if (action === "request-info") {
+          await db.insert(notifications).values({ type: "provider", title: `مطلوب استكمال بيانات: ${existing.name}`, message: reviewNote.slice(0, 300), entityId: existing.id });
+        }
       } else if (action === "request-completion") {
         const completionNote = cleanText(body.completionNote ?? "", 500);
         await db.update(services).set({ completionStatus: "requested", completionNote }).where(eq(services.id, id));
+        await db.insert(notifications).values({
+          type: "provider",
+          title: `مطلوب استكمال بيانات: ${existing.name}`,
+          message: (completionNote || `يرجى الضغط على زر استكمال البيانات لتحديث بيانات مهنتك «${existing.name}» في دليل جنزور.`).slice(0, 300),
+          entityId: existing.id,
+        });
       } else if (action === "approve-completion") {
         const draft = existing.completionDraft;
         const nextValues = draft
@@ -145,9 +154,31 @@ export async function PATCH(request: Request) {
             }
           : {};
         await db.update(services).set({ ...nextValues, completionStatus: "none", completionNote: "", completionDraft: null }).where(eq(services.id, id));
+        await db.insert(notifications).values({
+          type: "provider",
+          title: `تمت الموافقة على استكمال بيانات: ${existing.name}`,
+          message: `اعتمدت الإدارة التحديثات الجديدة لبيانات «${existing.name}» في دليل جنزور.`,
+          entityId: existing.id,
+        });
       } else if (action === "reject-completion") {
         const completionNote = cleanText(body.completionNote ?? "", 500) || "يرجى مراجعة البيانات المدخلة وتصحيح الخطأ ثم إعادة الإرسال.";
         await db.update(services).set({ completionStatus: "rejected", completionNote }).where(eq(services.id, id));
+        await db.insert(notifications).values({
+          type: "provider",
+          title: `مطلوب تصحيح بيانات: ${existing.name}`,
+          message: completionNote.slice(0, 300),
+          entityId: existing.id,
+        });
+      } else if (action === "notify-provider") {
+        const notifTitle = cleanText(body.title ?? "", 160) || `إشعار إلى ${existing.name}`;
+        const notifMessage = cleanText(body.message ?? "", 300);
+        if (!notifMessage) throw new InputError("نص الإشعار مطلوب.");
+        await db.insert(notifications).values({
+          type: "provider",
+          title: notifTitle,
+          message: notifMessage,
+          entityId: existing.id,
+        });
       }
       else if (action === "feature" && existing.status === "approved") await db.update(services).set({ featured: !existing.featured }).where(eq(services.id, id));
       else throw new InputError("إجراء غير صحيح. لا يمكن تمييز خدمة قبل نشرها.");
