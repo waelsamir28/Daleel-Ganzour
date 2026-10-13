@@ -32,9 +32,13 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
   if (!address) address = area;
   const hours = cleanText(body.hours ?? "", 120), menuUrl = cleanText(body.menuUrl ?? "", 500), menuWhatsapp = cleanPhone(body.menuWhatsapp ?? "");
   let workingHours, serviceItems, subSpecialties;
-  try { workingHours = parseWorkingHours(admin ? body.workingHours : undefined); serviceItems = parseServiceItems(admin ? body.serviceItems : undefined); subSpecialties = parseServiceItems(admin ? body.subSpecialties : undefined); }
+  try {
+    workingHours = parseWorkingHours(admin ? body.workingHours : undefined);
+    serviceItems = parseServiceItems(body.serviceItems);
+    subSpecialties = parseServiceItems(body.subSpecialties);
+  }
   catch (error) { throw new InputError(error instanceof Error ? error.message : "مواعيد العمل غير صحيحة."); }
-  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, hours, menuUrl, menuWhatsapp, ...(admin ? { workingHours, serviceItems, subSpecialties, neededRank: integerInput(body.neededRank ?? 0, 0, 1000, "ترتيب الأكثر احتياجًا") } : {}) };
+  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, hours, menuUrl, menuWhatsapp, serviceItems, subSpecialties, ...(admin ? { workingHours, neededRank: integerInput(body.neededRank ?? 0, 0, 1000, "ترتيب الأكثر احتياجًا") } : {}) };
 }
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);

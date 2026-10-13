@@ -32,6 +32,7 @@ import {
 import {
   defaultDesignSettings,
   designThemePresets,
+  parseAnnouncementItems,
   sanitizeDesignSettings,
   type DesignSettings,
 } from "@/lib/catalog";
@@ -180,13 +181,13 @@ export default function DesignCustomizer({
       themePreset: presetKey,
       ...preset.colors,
       ...(presetKey === "ramadan"
-        ? { seasonalRibbon: "ramadan" as const }
+        ? { seasonalRibbon: "ramadan" as const, heroPattern: "islamic" as const }
         : presetKey === "eid"
-          ? { seasonalRibbon: "eid" as const }
+          ? { seasonalRibbon: "eid" as const, heroPattern: "stars" as const }
           : presetKey === "schools"
-            ? { seasonalRibbon: "schools" as const }
+            ? { seasonalRibbon: "schools" as const, heroPattern: "grid" as const }
             : presetKey === "winter-emergency"
-              ? { seasonalRibbon: "winter" as const }
+              ? { seasonalRibbon: "winter" as const, heroPattern: "waves" as const }
               : {}),
     }));
   }
@@ -352,12 +353,23 @@ export default function DesignCustomizer({
           {draft.announcementEnabled && (
             <div className="design-preview-announcement" style={{ background: draft.announcementBgColor }}>
               <Sparkles size={12}/>
-              <span>{draft.announcementText}</span>
+              <span>
+                {draft.announcementTickerMode === "single"
+                  ? draft.announcementText
+                  : parseAnnouncementItems(draft).join("  •  ") || draft.announcementText}
+              </span>
             </div>
           )}
-          <div className="design-preview-head" style={{ background: draft.modalHeaderBg }}>
-            <strong>هيدر الشاشات العائمة باللون والتنسيق المختار</strong>
-            <small>العنوان والسطر الفرعي متوسطن بخلفية مخصصة</small>
+          <div
+            className={`design-preview-head is-pattern-${draft.heroPattern || "none"} is-opacity-${draft.patternOpacity || "subtle"}`}
+            style={{ background: draft.modalHeaderBg }}
+          >
+            <strong>هيدر الشاشات والبانر باللون والنقشة المختارة</strong>
+            <small>
+              {draft.heroPattern !== "none" || draft.headerPattern !== "none"
+                ? `نقشة البانر: ${draft.heroPattern} • نقشة الهيدر: ${draft.headerPattern}`
+                : "العنوان والسطر الفرعي متوسطن بخلفية مخصصة"}
+            </small>
           </div>
           <div className="design-preview-body" style={{ background: draft.pageBgColor }}>
             <div
@@ -989,6 +1001,41 @@ export default function DesignCustomizer({
                   </label>
                 </div>
 
+                <InnerDivider title="نقشات وزخارف خلفية الهيدر والبانر الرئيسي (Subtle Patterns)" subtitle="أضف نقشة هندسية أو إسلامية أو نجوم خلف الهيدر والبانر الترحيبي" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    نقشة خلفية الهيدر العلوي (Header Pattern)
+                    <SelectField value={draft.headerPattern} onChange={(e) => updateField("headerPattern", e.target.value as DesignSettings["headerPattern"])}>
+                      <option value="none">بدون نقشة — خلفية سادة (الافتراضي)</option>
+                      <option value="dots">نقاط هندسية ناعمة (Dots)</option>
+                      <option value="grid">شبكة خطوط عصرية خفيفة (Grid)</option>
+                      <option value="islamic">زخرفة عربية وإسلامية راقية (Islamic)</option>
+                      <option value="waves">تموجات انسيابية هادئة (Waves)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    نقشة خلفية البانر الترحيبي وهيدر النوافذ (Hero Pattern)
+                    <SelectField value={draft.heroPattern} onChange={(e) => updateField("heroPattern", e.target.value as DesignSettings["heroPattern"])}>
+                      <option value="none">بدون نقشة إضافية (الافتراضي)</option>
+                      <option value="dots">نقاط هندسية ناعمة (Dots)</option>
+                      <option value="grid">شبكة خطوط عصرية (Grid)</option>
+                      <option value="islamic">زخرفة عربية وإسلامية (رمضان والأعياد)</option>
+                      <option value="waves">تموجات انسيابية (Waves)</option>
+                      <option value="stars">نجوم وهلال متلألئة (Stars)</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <label className="field">
+                  درجة وضوح وشفافية النقشة الخلفية
+                  <SelectField value={draft.patternOpacity} onChange={(e) => updateField("patternOpacity", e.target.value as DesignSettings["patternOpacity"])}>
+                    <option value="subtle">هادئة وخفيفة جداً (الافتراضي)</option>
+                    <option value="medium">متوسطة وواضحة</option>
+                    <option value="clear">بارزة وظاهرة بوضوح</option>
+                  </SelectField>
+                </label>
+
                 <InnerDivider title="تخصيص كروت المهنيين ومقدمي الخدمات" />
                 <label className="field">
                   تخطيط كارت مقدم الخدمة (Provider Card)
@@ -1026,28 +1073,97 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.header && (
               <div className="design-group-content">
-                <InnerDivider title="شريط الإعلان أو الترحيب العلوي (أعلى الهيدر)" subtitle="مثالي للتهنئة بالمناسبات أو كتابة تنبيه هام لأهل القرية" />
+                <InnerDivider title="شريط الإعلان أو الأخبار العلوي المتعدد (أعلى الهيدر)" subtitle="أضف خبراً واحداً أو عدة أخبار وتنبيهات متتالية لأهل القرية مع تحكم في الحركة والسرعة" />
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.announcementEnabled} onChange={(e) => updateField("announcementEnabled", e.target.checked)}/>تفعيل وإظهار شريط الإعلان والتنبيه أعلى الموقع</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.announcementEnabled} onChange={(e) => updateField("announcementEnabled", e.target.checked)}/>تفعيل وإظهار شريط الإعلانات والأخبار أعلى الموقع</label>
                 </div>
                 {draft.announcementEnabled && (
-                  <div className="form-row design-two-col">
-                    <label className="field">
-                      نص الشريط العلوي
-                      <input
-                        value={draft.announcementText}
-                        onChange={(e) => updateField("announcementText", e.target.value)}
-                        maxLength={240}
-                        placeholder="اكتب نص الترحيب أو الإعلان..."
+                  <>
+                    <div className="form-row design-two-col">
+                      <label className="field">
+                        طريقة عرض الأخبار في الشريط العلوي
+                        <SelectField value={draft.announcementTickerMode} onChange={(e) => updateField("announcementTickerMode", e.target.value as DesignSettings["announcementTickerMode"])}>
+                          <option value="rotate">متقلب تلقائياً بين عدة أخبار (Rotate - الافتراضي)</option>
+                          <option value="marquee">شريط إخباري متحرك مستمر (Marquee Ticker)</option>
+                          <option value="single">خبر أو إعلان واحد ثابت</option>
+                        </SelectField>
+                      </label>
+
+                      <label className="field">
+                        سرعة تبديل أو حركة الشريط الإخباري
+                        <SelectField value={draft.announcementSpeed} onChange={(e) => updateField("announcementSpeed", e.target.value as DesignSettings["announcementSpeed"])}>
+                          <option value="slow">هادئة ومريحة للقراءة</option>
+                          <option value="normal">متوسطة متوازنة (الافتراضي)</option>
+                          <option value="fast">سريعة ونشطة</option>
+                        </SelectField>
+                      </label>
+                    </div>
+
+                    <div className="form-row design-two-col">
+                      <label className="field">
+                        تصميم إطار الشريط العلوي
+                        <SelectField value={draft.announcementStyle} onChange={(e) => updateField("announcementStyle", e.target.value as DesignSettings["announcementStyle"])}>
+                          <option value="static">شريط كامل بعرض الصفحة (الافتراضي)</option>
+                          <option value="badge">كبسولة أنيقة بحواف دائرية</option>
+                          <option value="soft">شريط ناعم بإطار خفيف</option>
+                        </SelectField>
+                      </label>
+
+                      <ColorPickerField
+                        label="لون خلفية الشريط العلوي"
+                        value={draft.announcementBgColor}
+                        swatches={QUICK_SWATCHES.button}
+                        onChange={(hex) => updateField("announcementBgColor", hex)}
                       />
-                    </label>
-                    <ColorPickerField
-                      label="لون خلفية الشريط العلوي"
-                      value={draft.announcementBgColor}
-                      swatches={QUICK_SWATCHES.button}
-                      onChange={(hex) => updateField("announcementBgColor", hex)}
-                    />
-                  </div>
+                    </div>
+
+                    {draft.announcementTickerMode === "single" ? (
+                      <label className="field">
+                        نص الإعلان أو الترحيب العلوي الثابت
+                        <input
+                          value={draft.announcementText}
+                          onChange={(e) => updateField("announcementText", e.target.value)}
+                          maxLength={240}
+                          placeholder="اكتب نص الترحيب أو الإعلان..."
+                        />
+                      </label>
+                    ) : (
+                      <div className="field">
+                        <span>قائمة الأخبار والتنبيهات المتعددة (اكتب كل خبر في سطر مستقل)</span>
+                        <textarea
+                          rows={4}
+                          value={draft.announcementItems}
+                          onChange={(e) => updateField("announcementItems", e.target.value)}
+                          maxLength={1200}
+                          placeholder={"أهلاً بكم في دليل جنزور — كل خدمات القرية في مكان واحد\nأضف مهنتك مجاناً وتواصل مع الأهالي مباشرة\nالصيدليات المناوبة وأرقام الطوارئ متاحة على مدار الساعة"}
+                        />
+                        <div className="suggestion-chips-wrap" style={{ marginTop: 6 }}>
+                          <span className="suggestion-chips-label">إضافة خبر جاهز بضغطة واحدة:</span>
+                          <div className="suggestion-chips-list">
+                            {[
+                              "🌙 صيدليات المناوبة الليلية وأرقام الطوارئ متاحة الآن بقسم المناوبات",
+                              "🎓 تصفح قسم المدرسين مع فلتر المراحل الدراسية (تأسيس • ابتدائي • إعدادي • ثانوي • أزهري)",
+                              "🛵 استخدم فلتر «يوجد توصيل للمنازل» للوصول السريع للصيدليات والمحلات والمعامل",
+                              "📢 أضف مهنتك أو نشاطك التجاري في دليل جنزور مجاناً وتواصل مع الأهالي مباشرة",
+                            ].map((sample) => (
+                              <button
+                                key={sample}
+                                type="button"
+                                className="suggestion-chip"
+                                onClick={() => {
+                                  const existing = (draft.announcementItems || "").trim();
+                                  if (existing.includes(sample)) return;
+                                  updateField("announcementItems", existing ? `${existing}\n${sample}` : sample);
+                                }}
+                              >
+                                + {sample.slice(0, 42)}...
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <InnerDivider title="ألوان وشعار الهيدر والفوتر" />

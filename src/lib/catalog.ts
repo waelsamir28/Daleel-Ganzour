@@ -510,6 +510,70 @@ const specialtyServiceItemSuggestions: Record<string, string[]> = {
   cleaning: ["تنظيف شامل للمنازل والشقق", "غسيل السجاد والانتريهات بالبخار", "مكافحة ورش الحشرات بمواد آمنة"],
 };
 
+export type TeacherStageId = "all" | "foundation" | "primary" | "prep" | "secondary" | "azhar";
+export type TeacherStageOption = {
+  id: Exclude<TeacherStageId, "all">;
+  label: string;
+  shortLabel: string;
+  keywords: string[];
+};
+
+export const TEACHER_STAGES: TeacherStageOption[] = [
+  { id: "foundation", label: "تأسيس ورياض أطفال", shortLabel: "تأسيس", keywords: ["تاسيس", "رياض اطفال", "كي جي", "حضانه", "قراءه وكتابه", "فونكس"] },
+  { id: "primary", label: "المرحلة الابتدائية", shortLabel: "ابتدائي", keywords: ["ابتدائي", "الابتدائيه", "ابتدائيه", "رابعه ابتدائي", "خامسه ابتدائي", "سته ابتدائي"] },
+  { id: "prep", label: "المرحلة الإعدادية", shortLabel: "إعدادي", keywords: ["اعدادي", "الاعداديه", "اعداديه", "تالته اعدادي", "الشهاده الاعداديه"] },
+  { id: "secondary", label: "المرحلة الثانوية", shortLabel: "ثانوي", keywords: ["ثانوي", "الثانويه", "ثانويه عامه", "اولي ثانوي", "تانيه ثانوي", "تالته ثانوي"] },
+  { id: "azhar", label: "التعليم الأزهري", shortLabel: "أزهري", keywords: ["ازهر", "ازهري", "الازهريه", "معهد ازهري", "قران", "تجويد", "شرعي"] },
+];
+
+export function getTeacherStagesForService(
+  service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties">,
+): TeacherStageOption[] {
+  const haystack = normalizeSearch(
+    `${service.name} ${service.description} ${(service.subSpecialties ?? []).join(" ")} ${(service.serviceItems ?? []).join(" ")}`,
+  );
+  const allStages = /كل المراحل|جميع المراحل|لكل المراحل/.test(haystack);
+  return TEACHER_STAGES.filter((stage) => {
+    if (stage.keywords.some((kw) => haystack.includes(normalizeSearch(kw)))) return true;
+    if (allStages && (stage.id === "primary" || stage.id === "prep" || stage.id === "secondary")) return true;
+    return false;
+  });
+}
+
+export function matchesTeacherStage(
+  service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties">,
+  stageId: TeacherStageId,
+): boolean {
+  if (!stageId || stageId === "all") return true;
+  const matched = getTeacherStagesForService(service);
+  return matched.some((item) => item.id === stageId);
+}
+
+export const HOME_DELIVERY_TAG = "خدمة التوصيل للمنازل بجنزور";
+const homeDeliveryRegex = /توصيل|دليفري|للمنازل|من المنازل|من المنزل|بالمنزل|منزلي|منزليه|زياره منزليه|كشف منزلي|سحب عينات من المنزل|لباب البيت/;
+
+export function supportsHomeDelivery(
+  service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties" | "category">,
+): boolean {
+  if (service.category === "transport") return true;
+  const haystack = normalizeSearch(
+    `${service.name} ${service.description} ${(service.serviceItems ?? []).join(" ")} ${(service.subSpecialties ?? []).join(" ")}`,
+  );
+  return homeDeliveryRegex.test(haystack);
+}
+
+export function parseAnnouncementItems(
+  design: Pick<DesignSettings, "announcementText" | "announcementItems">,
+): string[] {
+  const raw = (design.announcementItems || "").trim();
+  const list = raw
+    .split(/\n|\|/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (list.length > 0) return list;
+  return design.announcementText?.trim() ? [design.announcementText.trim()] : [];
+}
+
 export function getCompletionFieldSuggestions(
   categoryId: string,
   catalog: CategoryRecord[] = initialCategories,
@@ -551,16 +615,22 @@ export function getCompletionFieldSuggestions(
   ];
 
   const rawKeywords = specialtySynonyms[categoryId] ?? [];
-  const subSpecialties = rawKeywords.length > 0
-    ? rawKeywords.slice(0, 7)
-    : [`أعمال ${specName} العامة`, `صيانة ومتابعة دورية`, `استشارات ومعاينة`, `طوارئ وخدمة سريعة`];
+  const isTeacher = category.parentId === "teachers" || category.id === "teachers";
+  const subSpecialties = isTeacher
+    ? [...TEACHER_STAGES.map((stage) => stage.label), ...rawKeywords.slice(0, 4)]
+    : rawKeywords.length > 0
+      ? rawKeywords.slice(0, 7)
+      : [`أعمال ${specName} العامة`, `صيانة ومتابعة دورية`, `استشارات ومعاينة`, `طوارئ وخدمة سريعة`];
 
-  const serviceItems = specialtyServiceItemSuggestions[categoryId] ?? [
+  const baseItems = specialtyServiceItemSuggestions[categoryId] ?? [
     `خدمة ${specName} متكاملة`,
     "معاينة واستشارة فنية",
     "صيانة وإصلاح الأعطال",
     "خدمة طوارئ سريعة داخل جنزور",
   ];
+  const serviceItems = baseItems.some((item) => item.includes("توصيل") || item.includes("منزل"))
+    ? baseItems
+    : [...baseItems, HOME_DELIVERY_TAG];
 
   return { names, addresses, descriptions, subSpecialties, serviceItems };
 }
@@ -717,6 +787,13 @@ export type DesignSettings = {
   showTransitGuide: boolean;
   showInstallAppBanner: boolean;
   showAdminQuickEdit: boolean;
+  // 10. Multi-Item News Ticker & Subtle Background Patterns
+  announcementItems: string;
+  announcementTickerMode: "single" | "rotate" | "marquee";
+  announcementSpeed: "slow" | "normal" | "fast";
+  headerPattern: "none" | "dots" | "grid" | "islamic" | "waves";
+  heroPattern: "none" | "dots" | "grid" | "islamic" | "waves" | "stars";
+  patternOpacity: "subtle" | "medium" | "clear";
 };
 
 export const defaultDesignSettings: DesignSettings = {
@@ -798,6 +875,13 @@ export const defaultDesignSettings: DesignSettings = {
   showTransitGuide: true,
   showInstallAppBanner: true,
   showAdminQuickEdit: true,
+  announcementItems:
+    "أهلاً بكم في دليل جنزور — كل خدمات القرية في مكان واحد\nأضف مهنتك أو نشاطك التجاري مجاناً وتواصل مع الأهالي مباشرة\nالصيدليات والعيادات المناوبة وأرقام الطوارئ متاحة على مدار الساعة",
+  announcementTickerMode: "rotate",
+  announcementSpeed: "normal",
+  headerPattern: "none",
+  heroPattern: "none",
+  patternOpacity: "subtle",
 };
 
 export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; badge?: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
@@ -956,6 +1040,13 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.showTransitGuide = pickBool(record.showTransitGuide, defaultDesignSettings.showTransitGuide);
   next.showInstallAppBanner = pickBool(record.showInstallAppBanner, defaultDesignSettings.showInstallAppBanner);
   next.showAdminQuickEdit = pickBool(record.showAdminQuickEdit, defaultDesignSettings.showAdminQuickEdit);
+
+  next.announcementItems = pickText(record.announcementItems, defaultDesignSettings.announcementItems, 1200, true);
+  next.announcementTickerMode = pickEnum(record.announcementTickerMode, ["single", "rotate", "marquee"] as const, defaultDesignSettings.announcementTickerMode);
+  next.announcementSpeed = pickEnum(record.announcementSpeed, ["slow", "normal", "fast"] as const, defaultDesignSettings.announcementSpeed);
+  next.headerPattern = pickEnum(record.headerPattern, ["none", "dots", "grid", "islamic", "waves"] as const, defaultDesignSettings.headerPattern);
+  next.heroPattern = pickEnum(record.heroPattern, ["none", "dots", "grid", "islamic", "waves", "stars"] as const, defaultDesignSettings.heroPattern);
+  next.patternOpacity = pickEnum(record.patternOpacity, ["subtle", "medium", "clear"] as const, defaultDesignSettings.patternOpacity);
 
   return next;
 }

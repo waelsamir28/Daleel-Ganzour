@@ -3699,6 +3699,432 @@ html.dark .mobile-bottom-app-nav {
 }
 html.dark .mobile-bottom-app-nav > button { color: #b8d2ec; }
 
+/* ==========================================================================
+   إضافات المرحلة الجديدة:
+   1. فلتر المراحل الدراسية في قسم المدرسين
+   2. مؤشر وفلتر «يوجد توصيل للمنازل»
+   3. مولّد منشورات فيسبوك وواتساب جاهزة
+   4. شريط إعلانات متحرك متعدد الأخبار + نقشات خلفية للهيدر والبانر
+   ========================================================================== */
+
+/* 1. زر وشارة «يوجد توصيل للمنازل» */
+.hero-delivery-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, .48);
+  background: rgba(12, 48, 82, .62);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.hero-delivery-btn:hover,
+.hero-delivery-btn.is-active {
+  background: #0d9488;
+  border-color: #5eead4;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(13, 148, 136, .35);
+}
+.availability-toggle.delivery-filter-toggle.is-on {
+  background: #0d9488;
+  border-color: #0d9488;
+  color: #ffffff;
+}
+.trust-badge.is-delivery {
+  background: #e6fffa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
+  font-weight: 800;
+}
+.trust-badge.is-stage {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-weight: 800;
+}
+.detail-delivery {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #ccfbf1;
+  color: #0f766e;
+  border: 1px solid #5eead4;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.detail-stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.delivery-filter-tag,
+.stage-filter-tag {
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  border-color: #7dd3fc !important;
+}
+
+/* 2. فلتر المراحل الدراسية في قسم المدرسين */
+.teacher-stage-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin: 12px 0 16px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f0f7ff, #e6f2ff);
+  border: 1.5px solid #bcd8f6;
+  box-shadow: 0 6px 16px rgba(8, 120, 201, .06);
+}
+.teacher-stage-filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0b4f8a;
+  font-size: .9rem;
+}
+.teacher-stage-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.teacher-stage-chip {
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1.5px solid #bdd7f2;
+  background: #ffffff;
+  color: #164675;
+  font-weight: 800;
+  font-size: .82rem;
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.teacher-stage-chip:hover {
+  border-color: #0878c9;
+  color: #0878c9;
+}
+.teacher-stage-chip.is-active {
+  background: var(--design-primary, #0878c9);
+  border-color: var(--design-primary, #0878c9);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(8, 120, 201, .26);
+}
+.teacher-stages-picker {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f4f9ff;
+  border: 1px dashed #b6d4f2;
+}
+
+/* 3. شريط الإعلانات العلوي المتعدد (Rotate & Marquee) */
+.site-announcement-rotator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+.announcement-rotate-text {
+  font-weight: 800;
+  animation: announcementFadeIn .28s ease;
+}
+.announcement-rotate-counter {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .2);
+  font-size: .72rem;
+  font-weight: 800;
+}
+.announcement-nav-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  background: rgba(255, 255, 255, .14);
+  color: #ffffff;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.announcement-nav-btn:hover {
+  background: rgba(255, 255, 255, .28);
+}
+@keyframes announcementFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.site-announcement-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.site-announcement-marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+  animation: announcementMarquee 26s linear infinite;
+}
+.site-announcement-marquee.is-speed-slow .site-announcement-marquee-track {
+  animation-duration: 38s;
+}
+.site-announcement-marquee.is-speed-fast .site-announcement-marquee-track {
+  animation-duration: 16s;
+}
+.site-announcement-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  font-weight: 800;
+}
+.site-announcement-marquee-item i {
+  opacity: .65;
+  font-style: normal;
+}
+@keyframes announcementMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(50%); }
+}
+
+/* 4. نقشات وزخارف خلفية للهيدر والبانر (Subtle Background Patterns) */
+html[data-design-pattern-opacity="subtle"] { --pattern-alpha: 0.06; }
+html[data-design-pattern-opacity="medium"] { --pattern-alpha: 0.12; }
+html[data-design-pattern-opacity="clear"] { --pattern-alpha: 0.2; }
+
+html[data-design-header-pattern="dots"] .site-header {
+  background-image: radial-gradient(rgba(8, 120, 201, var(--pattern-alpha, 0.07)) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+html[data-design-header-pattern="grid"] .site-header {
+  background-image:
+    linear-gradient(to right, rgba(8, 120, 201, var(--pattern-alpha, 0.06)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(8, 120, 201, var(--pattern-alpha, 0.06)) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+html[data-design-header-pattern="islamic"] .site-header {
+  background-image:
+    radial-gradient(circle at 50% 50%, transparent 9px, rgba(180, 83, 9, var(--pattern-alpha, 0.07)) 10px, transparent 11px),
+    radial-gradient(circle at 0% 0%, transparent 9px, rgba(8, 120, 201, var(--pattern-alpha, 0.07)) 10px, transparent 11px);
+  background-size: 28px 28px;
+}
+html[data-design-header-pattern="waves"] .site-header {
+  background-image: repeating-radial-gradient(circle at 0 100%, transparent 0, transparent 10px, rgba(8, 120, 201, var(--pattern-alpha, 0.06)) 11px, transparent 12px);
+  background-size: 24px 24px;
+}
+
+html[data-design-hero-pattern="dots"] .hero::after,
+html[data-design-hero-pattern="dots"] .modal-header,
+.design-preview-head.is-pattern-dots {
+  background-image: radial-gradient(rgba(8, 120, 201, var(--pattern-alpha, 0.09)) 1.7px, transparent 1.7px);
+  background-size: 16px 16px;
+}
+html[data-design-hero-pattern="grid"] .hero::after,
+html[data-design-hero-pattern="grid"] .modal-header,
+.design-preview-head.is-pattern-grid {
+  background-image:
+    linear-gradient(to right, rgba(8, 120, 201, var(--pattern-alpha, 0.08)) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(8, 120, 201, var(--pattern-alpha, 0.08)) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+html[data-design-hero-pattern="islamic"] .hero::after,
+html[data-design-hero-pattern="islamic"] .modal-header,
+.design-preview-head.is-pattern-islamic {
+  background-image:
+    radial-gradient(circle at 50% 50%, transparent 10px, rgba(180, 83, 9, var(--pattern-alpha, 0.1)) 11px, transparent 12px),
+    radial-gradient(circle at 0% 0%, transparent 10px, rgba(8, 120, 201, var(--pattern-alpha, 0.09)) 11px, transparent 12px);
+  background-size: 28px 28px;
+}
+html[data-design-hero-pattern="waves"] .hero::after,
+html[data-design-hero-pattern="waves"] .modal-header,
+.design-preview-head.is-pattern-waves {
+  background-image: repeating-radial-gradient(circle at 50% 100%, transparent 0, transparent 11px, rgba(8, 120, 201, var(--pattern-alpha, 0.08)) 12px, transparent 13px);
+  background-size: 28px 28px;
+}
+html[data-design-hero-pattern="stars"] .hero::after,
+html[data-design-hero-pattern="stars"] .modal-header,
+.design-preview-head.is-pattern-stars {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(217, 119, 6, var(--pattern-alpha, 0.14)) 2px, transparent 2.5px),
+    radial-gradient(circle at 75% 65%, rgba(8, 120, 201, var(--pattern-alpha, 0.12)) 1.8px, transparent 2.2px);
+  background-size: 32px 32px;
+}
+html[data-design-hero-pattern]:not([data-design-hero-pattern="none"]) .hero {
+  position: relative;
+}
+html[data-design-hero-pattern]:not([data-design-hero-pattern="none"]) .hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 5. مولّد منشورات فيسبوك وواتساب الجاهزة في لوحة الإدارة */
+.admin-replies-stack {
+  display: grid;
+  gap: 20px;
+}
+.social-post-generator-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  border: 1.5px solid #cfe2f5;
+  box-shadow: 0 8px 24px rgba(10, 52, 94, .06);
+}
+.social-post-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.social-post-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.social-post-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: #e6f3ff;
+  color: #0878c9;
+  flex-shrink: 0;
+}
+.social-post-title-wrap h3 {
+  margin: 0;
+  font-size: 1.04rem;
+  font-weight: 900;
+  color: #0f3152;
+}
+.social-post-title-wrap p {
+  margin: 3px 0 0;
+  font-size: .83rem;
+  color: #4f6c88;
+}
+.social-post-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eaf5ff;
+  color: #0878c9;
+  font-size: .8rem;
+  font-weight: 800;
+}
+.social-post-type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.social-post-tab {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #d2e3f3;
+  background: #ffffff;
+  color: #1c446c;
+  font-weight: 800;
+  font-size: .83rem;
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.social-post-tab:hover {
+  border-color: #0878c9;
+  color: #0878c9;
+}
+.social-post-tab.is-active {
+  background: #0878c9;
+  border-color: #0878c9;
+  color: #ffffff;
+  box-shadow: 0 5px 14px rgba(8, 120, 201, .24);
+}
+.social-post-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #eff6fe;
+  border: 1px solid #cde0f4;
+}
+.social-post-editor-box {
+  display: grid;
+  gap: 10px;
+}
+.social-post-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid #c5dbf0;
+  background: #ffffff;
+  color: #0f2c49;
+  font-family: inherit;
+  font-size: .88rem;
+  line-height: 1.68;
+  resize: vertical;
+}
+.social-post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .social-post-filters {
+    grid-template-columns: 1fr;
+  }
+  .teacher-stage-filter-bar {
+    padding: 10px 12px;
+  }
+}
+
+html.dark .teacher-stage-filter-bar,
+html.dark .social-post-generator-card,
+html.dark .social-post-filters {
+  background: #11243a;
+  border-color: #244568;
+}
+html.dark .teacher-stage-filter-label,
+html.dark .social-post-title-wrap h3 {
+  color: #eaf4ff;
+}
+html.dark .teacher-stage-chip,
+html.dark .social-post-tab,
+html.dark .social-post-textarea {
+  background: #0d1d30;
+  border-color: #284b70;
+  color: #d8ebff;
+}
+html.dark .teacher-stage-chip.is-active,
+html.dark .social-post-tab.is-active {
+  background: #0878c9;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+
 
 
 

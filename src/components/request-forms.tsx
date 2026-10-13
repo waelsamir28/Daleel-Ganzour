@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Check, CheckCircle2, CirclePlus, Clock3, LoaderCircle, MapPin, ShieldCheck } from "lucide-react";
-import { areas, initialCategories, OTHER_ADDRESS, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
+import { areas, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, TEACHER_STAGES, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 
 type FormOptions = { catalog: CategoryRecord[]; areaOptions: AreaRecord[] };
@@ -17,13 +17,27 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   const selected = catalog.find((category) => category.id === initialCategory);
   const [root, setRoot] = useState(selected?.parentId ?? (selected && !selected.parentId ? selected.id : ""));
   const [specialty, setSpecialty] = useState(selected?.parentId ? selected.id : "");
+  const [selectedStages, setSelectedStages] = useState<string[]>([]);
+  const [homeDelivery, setHomeDelivery] = useState(false);
   const knownArea = areaOptions.some((item) => item.name === initialArea);
   const [area, setArea] = useState(initialArea ? (knownArea ? initialArea : OTHER_ADDRESS) : "");
+  function toggleStage(stageLabel: string) {
+    setSelectedStages((curr) => curr.includes(stageLabel) ? curr.filter((item) => item !== stageLabel) : [...curr, stageLabel]);
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
     try {
-      const response = await fetch("/api/services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(form), emergency: form.get("emergency") === "on" }) });
+      const response = await fetch("/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...Object.fromEntries(form),
+          emergency: form.get("emergency") === "on",
+          subSpecialties: root === "teachers" ? selectedStages : [],
+          serviceItems: homeDelivery ? [HOME_DELIVERY_TAG] : [],
+        }),
+      });
       const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "تعذر إرسال الطلب.");
       try {
         const stored: unknown = JSON.parse(localStorage.getItem("janzour-owned-services") ?? "[]");
@@ -53,7 +67,28 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
       <label className="field">رقم هاتف إضافي<input name="phoneSecondary" type="tel" inputMode="tel" dir="ltr" placeholder="اختياري" maxLength={16}/></label>
     </div>
     <label className="field">وصف الخدمة <span className="required">*</span><textarea name="description" placeholder="عرّف أهل جنزور بالخدمة اللي بتقدمها وخبرتك..." required minLength={10} maxLength={1000} rows={2}/></label>
-    <label className="checkbox-field centered-checkbox"><input name="emergency" type="checkbox"/><span>متاح لخدمات الطوارئ والمساعدة العاجلة</span></label>
+    {root === "teachers" && (
+      <div className="field teacher-stages-picker">
+        <span>🎓 المراحل الدراسية التي تدرّسها (اختر مرحلة أو أكثر):</span>
+        <div className="field-suggestions" aria-label="المراحل الدراسية">
+          {TEACHER_STAGES.map((stage) => (
+            <button
+              key={stage.id}
+              type="button"
+              className={`suggestion-chip ${selectedStages.includes(stage.label) ? "is-selected" : ""}`}
+              onClick={() => toggleStage(stage.label)}
+            >
+              {selectedStages.includes(stage.label) ? <Check size={12}/> : <CirclePlus size={12}/>}
+              {stage.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+    <div className="editor-checkboxes">
+      <label className="checkbox-field"><input name="emergency" type="checkbox"/><span>متاح لخدمات الطوارئ والمساعدة العاجلة</span></label>
+      <label className="checkbox-field"><input type="checkbox" checked={homeDelivery} onChange={(e) => setHomeDelivery(e.target.checked)}/><span>🛵 متاح توصيل للمنازل / زيارة أو خدمة منزلية بجنزور</span></label>
+    </div>
     {error && <div role="alert" className="form-error">{error}</div>}
     <div className="form-submit-center"><button type="submit" className="button button-primary form-submit" disabled={busy}>{busy ? <LoaderCircle size={19} className="spin"/> : <CirclePlus size={19}/>} {busy ? "جاري إرسال الطلب..." : "إرسال طلب إضافة مهنتك"}</button></div>
     <p className="form-footnote">الإضافة مجانية. بيانات التواصل تُنشر فقط بعد موافقة الإدارة.</p>
