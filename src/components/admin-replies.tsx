@@ -158,14 +158,12 @@ export default function AdminReplies({
   }
 
   const serviceUrl = selected ? `${origin}/?service=${encodeURIComponent(selected.id)}#services` : origin;
-  const completeProfileUrl = selected ? `${origin}/?completeService=${encodeURIComponent(selected.id)}` : origin;
   const selectedName = selected?.name ?? "اسم المهني";
   const selectedCategoryName = selected ? getCategory(selected.category, categories).name : "التخصص";
   const selectedArea = selected?.area ?? "المنطقة";
   const templates = [
     { id: "approved", title: "رسالة قبول ونشر المهنة", text: `أهلاً بحضرتك يا ${selectedName} في دليل قرية جنزور.\nتمت الموافقة على إضافة خدمتك في قسم (${selectedCategoryName} - ${selectedArea}) وظهرت الآن لكل أهل القرية على الموقع.\n\nرابط صفحتك المباشر للمشاركة على واتساب وفيسبوك:\n${serviceUrl}` },
     { id: "share", title: "رسالة مشاركة الصفحة", text: `دي صفحتك على دليل المهن والخدمات بقرية جنزور يا ${selectedName} (${selectedCategoryName}):\n${serviceUrl}\n\nتقدر تبعت الرابط لأي عميل أو تنشره في جروبات جنزور علشان الناس توصلك بسهولة.` },
-    { id: "complete-data", title: "طلب استكمال البيانات مباشرة", text: `أهلاً بحضرتك يا ${selectedName}، صفحتك على دليل قرية جنزور شغالة في قسم (${selectedCategoryName}).\nعلشان صفحتك تظهر بشكل أقوى وتجيب تواصل أكتر من الأهالي، اضغط على الرابط ده وكمل باقي بياناتك (مواعيد العمل - التخصصات الفرعية - قائمة الخدمات والأسعار - رقم إضافي) وهتتحفظ فوراً:\n${completeProfileUrl}` },
     { id: "update", title: "رسالة تأكيد تحديث البيانات", text: `تم تحديث بيانات صفحة (${selectedName}) على دليل قرية جنزور بنجاح.\nتقدر تراجع التعديل من الرابط ده:\n${serviceUrl}` },
   ];
 

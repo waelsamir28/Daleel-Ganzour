@@ -55,6 +55,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [logoutError, setLogoutError] = useState("");
   const [suggestOpen, setSuggestOpen] = useState(false), [suggestActive, setSuggestActive] = useState(-1);
   const [detailQr, setDetailQr] = useState(false), [detailUpdate, setDetailUpdate] = useState(false);
+  const [detailRatingOpen, setDetailRatingOpen] = useState(false);
+  const [detailClinicOpen, setDetailClinicOpen] = useState(false);
+  const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
   const [ratingStars, setRatingStars] = useState(0), [ratingComment, setRatingComment] = useState(""), [ratingMessage, setRatingMessage] = useState(""), [ratingBusy, setRatingBusy] = useState(false);
   const [followIds, setFollowIds] = useState<string[]>([]), [feedItems, setFeedItems] = useState<FollowFeedItem[]>([]), [feedOpen, setFeedOpen] = useState(false), [followBusy, setFollowBusy] = useState(false), [followError, setFollowError] = useState("");
   const [feedSeen, setFeedSeen] = useState(() => { try { return Number(localStorage.getItem("janzour-feed-seen")) || 0; } catch { return 0; } });
@@ -70,6 +73,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     withViewTransition(() => {
       source?.style.setProperty("view-transition-name", "provider-detail");
       setDetail(null);
+      setDetailRatingOpen(false);
+      setDetailClinicOpen(false);
     }, () => source?.style.removeProperty("view-transition-name"));
   }, [detail]);
   function openDetail(service: ServiceRecord) {
@@ -79,7 +84,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     withViewTransition(() => {
       source?.style.removeProperty("view-transition-name");
       setDetail(service);
-      setDetailQr(false); setDetailUpdate(false); setRatingStars(0); setRatingComment(""); setRatingMessage("");
+      setDetailQr(false); setDetailUpdate(false); setDetailRatingOpen(false); setDetailClinicOpen(false);
+      setDetailBadgesOpen(Boolean(design.badgesDefaultOpen));
+      setRatingStars(0); setRatingComment(""); setRatingMessage("");
       setSelectedShopItems([]); setShopOrderNote(""); setShopOrderDelivery(supportsHomeDelivery(service));
     });
   }
@@ -348,14 +355,26 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   };
   const prayerWeather = useMemo(() => getGanzourPrayerAndWeather(now > 0 ? now : undefined), [now]);
   const announcementList = parseAnnouncementItems(design);
+  const isRotatingTickerMode =
+    design.announcementTickerMode === "rotate" ||
+    design.announcementTickerMode === "vertical-slide" ||
+    design.announcementTickerMode === "pulse-glow" ||
+    design.announcementTickerMode === "bounce";
   useEffect(() => {
-    if (!design.announcementEnabled || design.announcementTickerMode !== "rotate" || announcementList.length <= 1) return;
-    const ms = design.announcementSpeed === "fast" ? 3200 : design.announcementSpeed === "slow" ? 7000 : 4800;
+    if (!design.announcementEnabled || !isRotatingTickerMode || announcementList.length <= 1) return;
+    const speedMap: Record<string, number> = {
+      "very-slow": 9500,
+      slow: 7000,
+      normal: 4800,
+      fast: 3000,
+      turbo: 1900,
+    };
+    const ms = speedMap[design.announcementSpeed] ?? 4800;
     const timer = window.setInterval(() => {
       setTickerIndex((curr) => (curr + 1) % announcementList.length);
     }, ms);
     return () => window.clearInterval(timer);
-  }, [design.announcementEnabled, design.announcementTickerMode, design.announcementSpeed, announcementList.length]);
+  }, [design.announcementEnabled, isRotatingTickerMode, design.announcementSpeed, announcementList.length]);
 
   return <>
     <DesignApplicator design={design}/>
@@ -374,6 +393,33 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </div>
         </Link>
         <div className="header-actions">
+          {viewer.role === "admin" ? (
+            <Link href="/admin" className="header-auth-btn is-admin">
+              <ShieldCheck size={16}/>
+              <span>لوحة التحكم</span>
+            </Link>
+          ) : viewer.role === "moderator" ? (
+            <Link href="/admin" className="header-auth-btn is-admin">
+              <ShieldCheck size={16}/>
+              <span>لوحة المشرف</span>
+            </Link>
+          ) : viewer.role === "member" ? (
+            <Link href="/account" className="header-auth-btn is-member">
+              <UserRound size={16}/>
+              <span>حسابي ({viewer.name?.split(" ")[0]})</span>
+            </Link>
+          ) : design.showHeaderLoginBtn ? (
+            <div className="header-auth-buttons-group">
+              <Link href="/login" className="header-auth-btn is-login">
+                <UserRound size={15}/>
+                <span>تسجيل الدخول</span>
+              </Link>
+              <Link href="/register" className="header-auth-btn is-register">
+                <UserPlus size={15}/>
+                <span>إنشاء عضوية</span>
+              </Link>
+            </div>
+          ) : null}
           {design.showHeaderDarkToggle && (
             <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي والنهاري" title="وضع الليل والنهار" onClick={toggleTheme}>
               <span className="theme-toggle-track">
@@ -428,7 +474,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <span>اتصل بنا</span>
           </button>
           <div className="header-menu-divider" role="separator"/>
-          <div className="header-menu-section-title">الأدوات والحساب</div>
+          <div className="header-menu-section-title">الأدوات</div>
           {design.showHeaderBell && (
             <button type="button" onClick={() => { setMenuOpen(false); openFeed(); }}>
               <BellRing size={17}/>
@@ -441,33 +487,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <span>حجم الخط الكبير</span>
             <span className={`nav-count ${bigText ? "is-on" : ""}`}>{bigText ? "مفعّل" : "عادي"}</span>
           </button>
-          {viewer.role === "admin" ? (
-            <Link href="/admin" onClick={() => setMenuOpen(false)}>
-              <ShieldCheck size={17}/>
-              <span>لوحة التحكم الإدارية</span>
-            </Link>
-          ) : viewer.role === "moderator" ? (
-            <Link href="/admin" onClick={() => setMenuOpen(false)}>
-              <ShieldCheck size={17}/>
-              <span>لوحة المشرف</span>
-            </Link>
-          ) : viewer.role === "member" ? (
-            <Link href="/account" onClick={() => setMenuOpen(false)}>
-              <UserRound size={17}/>
-              <span>حسابي ({viewer.name?.split(" ")[0]})</span>
-            </Link>
-          ) : design.showHeaderLoginBtn ? (
-            <>
-              <Link href="/login" onClick={() => setMenuOpen(false)}>
-                <UserRound size={17}/>
-                <span>تسجيل الدخول</span>
-              </Link>
-              <Link href="/register" onClick={() => setMenuOpen(false)}>
-                <UserPlus size={17}/>
-                <span>إنشاء عضوية جديدة</span>
-              </Link>
-            </>
-          ) : null}
           {viewer.role !== "guest" && (
             <button type="button" className="menu-logout-item" onClick={() => { setMenuOpen(false); void logout(); }}>
               <LogOut size={17}/>
@@ -486,8 +505,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         style={{ "--ticker-bg": design.announcementBgColor } as CSSProperties}
       >
         <span className="ticker-badge-icon"><Sparkles size={15}/></span>
-        {design.announcementTickerMode === "marquee" ? (
-          <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"}`} aria-label="شريط الأخبار والتنبيهات">
+        {design.announcementTickerMode === "marquee" || design.announcementTickerMode === "marquee-reverse" ? (
+          <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"} ${design.announcementTickerMode === "marquee-reverse" ? "is-reverse" : ""}`} aria-label="شريط الأخبار والتنبيهات">
             <div className="site-announcement-marquee-track">
               {[...announcementList, ...announcementList].map((item, idx) => (
                 <span key={`${idx}-${item}`} className="site-announcement-marquee-item">
@@ -497,8 +516,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               ))}
             </div>
           </div>
-        ) : design.announcementTickerMode === "rotate" && announcementList.length > 1 ? (
-          <div className="site-announcement-rotator">
+        ) : isRotatingTickerMode && announcementList.length > 1 ? (
+          <div className={`site-announcement-rotator is-anim-${design.announcementTickerMode}`}>
             <button
               type="button"
               className="announcement-nav-btn"
@@ -507,7 +526,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             >
               <ChevronRight size={14}/>
             </button>
-            <span className="announcement-rotate-text" key={tickerIndex % announcementList.length}>
+            <span className={`announcement-rotate-text is-anim-${design.announcementTickerMode}`} key={tickerIndex % announcementList.length}>
               {announcementList[tickerIndex % announcementList.length]}
             </span>
             <span className="announcement-rotate-counter">
@@ -527,13 +546,13 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         )}
       </div>
     )}
-    {scoped && !scopedSearchOpen && !query && !area ? (
+    {!scopedSearchOpen && !query && !area ? (
       <div className="scoped-search-trigger-wrap">
         <button
           type="button"
           className="scoped-search-trigger-btn"
           aria-expanded={false}
-          aria-label={`فتح البحث في ${title}`}
+          aria-label={scoped ? `فتح البحث في ${title}` : "فتح مربع البحث عن مهنة أو خدمة"}
           onClick={() => {
             setScopedSearchOpen(true);
             setTimeout(() => {
@@ -544,25 +563,23 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <span className="scoped-search-trigger-icon">
             <Search size={20}/>
           </span>
-          <span>ابحث في {title}</span>
+          <span>{scoped ? `ابحث في ${title}` : "ابحث عن مهنة، طبيب أو خدمة في جنزور"}</span>
         </button>
       </div>
     ) : (
-      <div className={`hero-search-expandable-wrap ${scoped ? "is-scoped-expanded" : ""}`}>
+      <div className="hero-search-expandable-wrap is-scoped-expanded">
         <form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>
-        {scoped && (
-          <div className="scoped-search-collapse-row">
-            <button
-              type="button"
-              className="scoped-search-collapse-btn"
-              onClick={() => setScopedSearchOpen(false)}
-              aria-label="طي مربع البحث وإرجاعه إلى زر"
-              title="طي مربع البحث"
-            >
-              <ChevronUp size={17}/>
-            </button>
-          </div>
-        )}
+        <div className="scoped-search-collapse-row">
+          <button
+            type="button"
+            className="scoped-search-collapse-btn"
+            onClick={() => setScopedSearchOpen(false)}
+            aria-label="طي مربع البحث وإرجاعه إلى زر"
+            title="طي مربع البحث"
+          >
+            <ChevronUp size={17}/>
+          </button>
+        </div>
       </div>
     )}
     {(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}
@@ -778,59 +795,51 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </section>
       )}
       {(scoped || isFiltering || design.showFeaturedSection) && <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`} style={scoped ? { order: 3 } : { order: sectionOrderIndex("featured", 2) }}>{isFeaturedCollapsible ? (
-        <>
-          <div className="section-heading directory-section-heading featured-section-heading">
-            <div>
-              <h2><Crown size={23}/>{providerTitle}</h2>
-            </div>
-            <span className="section-count">{visibleServices.length} خدمة مميزة</span>
-          </div>
-          <div
-            className={`category-tile featured-providers-banner-card ${featuredOpen ? "is-open" : ""}`}
-            style={{ "--category-color": "#078cf0", "--category-light": "#078cf012" } as CSSProperties}
-          >
-            <div className="featured-banner-right">
-              <button
-                type="button"
-                className={`featured-banner-main-btn ${featuredOpen ? "is-open" : ""}`}
-                aria-expanded={featuredOpen}
-                onClick={() => setFeaturedOpen((open) => !open)}
-              >
-                <h2 className="featured-framed-heading"><Crown size={20}/><span>{providerTitle}</span></h2>
-                <p className="featured-banner-subtitle">نخبة من المهنيين والخدمات المميزة في قرية جنزور</p>
-                <span className="featured-banner-status">
-                  <span>{featuredOpen ? "إخفاء المميزين" : "اضغط لعرض المميزين"}</span>
-                  <ChevronDown size={18} className={featuredOpen ? "is-rotated" : ""}/>
-                </span>
-              </button>
-              {isShopsContext && (
-                <div className="featured-banner-actions">
-                  <button
-                    type="button"
-                    className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`}
-                    aria-pressed={deliveryOnly}
-                    onClick={() => {
-                      const next = !deliveryOnly;
-                      setDeliveryOnly(next);
-                      if (next) setFeaturedOpen(true);
-                    }}
-                  >
-                    <Truck size={15} aria-hidden="true"/>
-                    <span>يوجد توصيل</span>
-                  </button>
-                </div>
-              )}
-            </div>
+        <div
+          className={`category-tile featured-providers-banner-card ${featuredOpen ? "is-open" : ""}`}
+          style={{ "--category-color": "#078cf0", "--category-light": "#078cf012" } as CSSProperties}
+        >
+          <div className="featured-banner-right">
             <button
               type="button"
-              className="featured-banner-icon-btn"
-              aria-label={providerTitle}
+              className={`featured-banner-main-btn ${featuredOpen ? "is-open" : ""}`}
+              aria-expanded={featuredOpen}
               onClick={() => setFeaturedOpen((open) => !open)}
             >
-              <span className="category-icon featured-3d-icon"><MainCategoryIcon icon="featured"/></span>
+              <h2 className="featured-framed-heading"><Crown size={20}/><span>{providerTitle}</span></h2>
+              <p className="featured-banner-subtitle">نخبة من المهنيين والخدمات المميزة في قرية جنزور</p>
+              <span className="featured-banner-status">
+                <span>{featuredOpen ? "إخفاء المميزين" : "اضغط لعرض المميزين"}</span>
+                <ChevronDown size={18} className={featuredOpen ? "is-rotated" : ""}/>
+              </span>
             </button>
+            {isShopsContext && (
+              <div className="featured-banner-actions">
+                <button
+                  type="button"
+                  className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`}
+                  aria-pressed={deliveryOnly}
+                  onClick={() => {
+                    const next = !deliveryOnly;
+                    setDeliveryOnly(next);
+                    if (next) setFeaturedOpen(true);
+                  }}
+                >
+                  <Truck size={15} aria-hidden="true"/>
+                  <span>يوجد توصيل</span>
+                </button>
+              </div>
+            )}
           </div>
-        </>
+          <button
+            type="button"
+            className="featured-banner-icon-btn"
+            aria-label={providerTitle}
+            onClick={() => setFeaturedOpen((open) => !open)}
+          >
+            <span className="category-icon featured-3d-icon"><MainCategoryIcon icon="featured"/></span>
+          </button>
+        </div>
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || activeSpecialtyCategory) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
@@ -1145,9 +1154,67 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     {detail && <Modal floating title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details">
       <div className="detail-hero" style={categoryTheme(getCategory(detail.category, categories))}>
         <ServiceArt category={detail.category} item={getCategory(detail.category, categories)}/>
-        <div className="detail-hero-copy"><h3>{detail.name}</h3><span className="detail-hero-category"><CategoryIcon icon={getCategory(detail.category, categories).icon} size={14}/>{getCategory(detail.category, categories).name}</span><ProviderRating value={detail.rating} reviews={detail.reviews}/></div>
+        <div className="detail-name-colored-box">
+          <div className="detail-name-box-top">
+            <div className="detail-name-box-copy">
+              <h3>{detail.name}</h3>
+              <span className="detail-hero-category"><CategoryIcon icon={getCategory(detail.category, categories).icon} size={14}/>{getCategory(detail.category, categories).name}</span>
+            </div>
+            <div className="detail-name-left-actions" role="group" aria-label="المشاركة والمفضلة">
+              <button
+                type="button"
+                className="detail-header-icon-btn is-share"
+                onClick={() => void shareService(detail)}
+                aria-label={`مشاركة ${detail.name}`}
+                title="مشاركة الصفحة"
+              >
+                <Share2 size={17}/>
+              </button>
+              <button
+                type="button"
+                className={`detail-header-icon-btn is-favorite ${favorites.includes(detail.id) ? "is-active" : ""}`}
+                onClick={() => toggleFavorite(detail.id)}
+                aria-pressed={favorites.includes(detail.id)}
+                aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`}
+                title={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+              >
+                <Heart size={17} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/>
+              </button>
+            </div>
+          </div>
+          <div className="detail-name-box-rating">
+            <ProviderRating value={detail.rating} reviews={detail.reviews}/>
+          </div>
+        </div>
       </div>
-      <div className="details-badges">{detail.verified && <span className="detail-verified"><ShieldCheck size={14}/>تم التحقق بالمعاينة</span>}{liveDetail && now > 0 && isAvailableNow(liveDetail, now) && <span className="detail-open"><span/>متاح الآن</span>}{supportsHomeDelivery(liveDetail ?? detail) && <span className="detail-delivery"><Truck size={14}/>🛵 يوجد توصيل للمنازل</span>}{getCategory(detail.category, categories).parentId === "teachers" && getTeacherStagesForService(liveDetail ?? detail).map((stage) => <span key={stage.id} className="detail-stage-badge"><GraduationCap size={14}/>{stage.label}</span>)}{detail.emergency && <span className="detail-emergency"><Siren size={14}/>متاح للطوارئ</span>}{detail.featured && <span className="detail-featured"><Crown size={14}/>خدمة مميزة</span>}{isTopRated(detail) && <span className="detail-toprated"><Medal size={14}/>الأعلى تقييمًا</span>}{isNewService(detail) && <span className="detail-new"><Sparkles size={14}/>جديد</span>}{getServiceTrustBadges(liveDetail ?? detail, now).map((badge) => <span key={badge.id} className={`detail-trust-badge is-${badge.tone}`}><Award size={14}/>{badge.label}</span>)}</div>
+
+      <div className="detail-badges-fold-wrap">
+        <button
+          type="button"
+          className={`detail-badges-fold-btn ${detailBadgesOpen ? "is-open" : ""}`}
+          aria-expanded={detailBadgesOpen}
+          onClick={() => setDetailBadgesOpen((open) => !open)}
+          title={detailBadgesOpen ? "طي الأوسمة والشارات" : "عرض الأوسمة والشارات"}
+        >
+          <Award size={14}/>
+          <span>{detailBadgesOpen ? "إخفاء الأوسمة" : "عرض الأوسمة والشارات"}</span>
+          {detailBadgesOpen ? <ChevronUp size={15}/> : <ChevronDown size={15}/>}
+        </button>
+        {detailBadgesOpen && (
+          <div className="details-badges">
+            {detail.verified && <span className="detail-verified"><ShieldCheck size={14}/>تم التحقق بالمعاينة</span>}
+            {liveDetail && now > 0 && isAvailableNow(liveDetail, now) && <span className="detail-open"><span/>متاح الآن</span>}
+            {supportsHomeDelivery(liveDetail ?? detail) && <span className="detail-delivery"><Truck size={14}/>🛵 يوجد توصيل للمنازل</span>}
+            {getCategory(detail.category, categories).parentId === "teachers" && getTeacherStagesForService(liveDetail ?? detail).map((stage) => <span key={stage.id} className="detail-stage-badge"><GraduationCap size={14}/>{stage.label}</span>)}
+            {detail.emergency && <span className="detail-emergency"><Siren size={14}/>متاح للطوارئ</span>}
+            {detail.featured && <span className="detail-featured"><Crown size={14}/>خدمة مميزة</span>}
+            {isTopRated(detail) && <span className="detail-toprated"><Medal size={14}/>الأعلى تقييمًا</span>}
+            {isNewService(detail) && <span className="detail-new"><Sparkles size={14}/>جديد</span>}
+            {getServiceTrustBadges(liveDetail ?? detail, now).map((badge) => <span key={badge.id} className={`detail-trust-badge is-${badge.tone}`}><Award size={14}/>{badge.label}</span>)}
+          </div>
+        )}
+      </div>
+
       {detail.demo && <div className="form-notice notice-amber"><span>هذه بطاقة تجريبية لتوضيح شكل الدليل، وليست بيانات مقدم خدمة حقيقي.</span></div>}
       <dl className="detail-data">
         <div><dt>التخصص</dt><dd>{getCategory(detail.category, categories).name}</dd></div>
@@ -1156,45 +1223,39 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         {detail.phoneSecondary && <div><dt>هاتف إضافي</dt><dd dir="ltr">{detail.phoneSecondary}</dd></div>}
       </dl>
       {detail.menuUrl && <a className="button button-soft detail-menu-button" href={detail.menuUrl} target="_blank" rel="noopener noreferrer">عرض المنيو</a>}
-      {getCategory(detail.category, categories).parentId === "clinics" && (() => {
-        const currentDoc = liveDetail ?? detail;
-        const bookingMode = getClinicBookingMode(currentDoc);
-        const schedule = getClinicScheduleSummary(currentDoc, now || undefined);
-        return (
-          <section className="detail-clinic-schedule-card" aria-label="نظام الكشف ومواعيد تواجد الطبيب">
-            <div className="detail-clinic-schedule-head">
-              <span className="detail-clinic-schedule-icon"><Stethoscope size={19}/></span>
-              <div>
-                <h4>نظام الكشف وأيام التواجد بالعيادة</h4>
-                <span className={`detail-clinic-mode-pill is-${bookingMode}`}>
-                  <CalendarCheck size={13}/>
-                  {getClinicBookingLabel(bookingMode)}
-                </span>
-              </div>
-              <span className={`detail-clinic-today-pill ${schedule.isOpenToday ? "is-open" : "is-closed"}`}>
-                {schedule.todayHoursText}
-              </span>
+
+      <div className="detail-popup-icons-bar" role="group" aria-label="نوافذ التقييم ومواعيد العيادة">
+        {getCategory(detail.category, categories).parentId === "clinics" && (
+          <button
+            type="button"
+            className="detail-popup-trigger-btn is-clinic"
+            onClick={() => setDetailClinicOpen(true)}
+            aria-haspopup="dialog"
+          >
+            <span className="detail-popup-trigger-icon"><Stethoscope size={19}/></span>
+            <div className="detail-popup-trigger-copy">
+              <strong>نظام الكشف وأيام التواجد بالعيادة</strong>
+              <small>اضغط لعرض مواعيد الطبيب وطريقة الحجز</small>
             </div>
-            <div className="detail-clinic-days-row">
-              <Clock size={15}/>
-              <span>{schedule.daysText}</span>
-            </div>
-            <a
-              href={whatsappUrl(
-                detail.phone,
-                `مرحبًا ${detail.name}، وصلت إليك من دليل جنزور. أود الاستفسار عن مواعيد الكشف (${getClinicBookingLabel(bookingMode)})${contactArea ? ` — العنوان: ${contactArea}` : ""}.`,
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="button button-whatsapp button-small detail-clinic-book-btn"
-              onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
-            >
-              <MessageCircle size={16}/>
-              <span>احجز أو استفسر عن موعد عبر واتساب</span>
-            </a>
-          </section>
-        );
-      })()}
+            <ChevronLeft size={16}/>
+          </button>
+        )}
+
+        <button
+          type="button"
+          className="detail-popup-trigger-btn is-rating"
+          onClick={() => setDetailRatingOpen(true)}
+          aria-haspopup="dialog"
+        >
+          <span className="detail-popup-trigger-icon"><Star size={19} fill="currentColor"/></span>
+          <div className="detail-popup-trigger-copy">
+            <strong>التقييمات وآراء الأهالي ({detail.reviews || detail.comments?.length || 0})</strong>
+            <small>اضغط لعرض التقييمات أو إضافة تقييمك</small>
+          </div>
+          <ChevronLeft size={16}/>
+        </button>
+      </div>
+
       {getCategory(detail.category, categories).parentId === "shops" && (() => {
         const currentShop = liveDetail ?? detail;
         const catalogItems = getShopCatalogItems(currentShop);
@@ -1291,22 +1352,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       <div className="detail-about"><h4>نبذة عن الخدمة</h4><p>{detail.description}</p></div>
       {liveDetail?.subSpecialties?.length ? <section className="detail-subspec"><h4>التخصصات الفرعية</h4><ul>{liveDetail.subSpecialties.map((item) => <li key={item}>{item}</li>)}</ul></section> : null}
       {liveDetail?.serviceItems?.length && getCategory(detail.category, categories).parentId !== "shops" ? <section className="detail-service-items"><h4>الخدمات التفصيلية</h4><ul>{liveDetail.serviceItems.map((item) => <li key={item}>{item} <a href={whatsappUrl(detail.phone, serviceWhatsappMessage(detail, getCategory(detail.category, categories).name, contactArea, item))} target="_blank" rel="noopener noreferrer">اسأل على واتساب</a></li>)}</ul></section> : null}
-      {detail.comments?.length ? <section className="detail-comments"><h4>آراء الأعضاء ({detail.comments.length})</h4><ul>{detail.comments.map((item, index) => <li key={index}><span className="comment-stars" aria-label={`${item.stars} من 5`}>{[1, 2, 3, 4, 5].map((step) => <Star key={step} size={13} fill={step <= item.stars ? "currentColor" : "none"}/>)}</span><p>{item.comment}</p><small>{item.member} • {new Date(item.date).toLocaleDateString("ar-EG")}</small></li>)}</ul></section> : null}
-      {viewer.role === "guest" ? <p className="rating-login-hint"><Star size={14}/><span>عندك عضوية؟ <a href="/login">سجّل دخولك</a> لتقييم {detail.name}.. تقييمات الأعضاء بتظهر بعد مراجعة الإدارة.</span></p> : <div className="member-rating"><h4>قيّم {detail.name}</h4><div className="member-rating-stars">{[1, 2, 3, 4, 5].map((step) => <button type="button" key={step} className={step <= ratingStars ? "is-on" : ""} aria-label={`تقييم ${step} من 5`} aria-pressed={ratingStars === step} onClick={() => setRatingStars(step)}><Star size={21} fill={step <= ratingStars ? "currentColor" : "none"}/></button>)}</div><input value={ratingComment} onChange={(event) => setRatingComment(event.target.value)} placeholder="تعليق اختياري.." maxLength={300}/><button type="button" className="button button-success button-small" disabled={!ratingStars || ratingBusy} onClick={() => void submitRating()}>{ratingBusy ? "جاري الإرسال.." : "إرسال التقييم"}</button>{ratingMessage && <small role="status">{ratingMessage}</small>}<small className="member-rating-note">تقييمك يظهر بعد مراجعة الإدارة، ولو قيّمت قبل كده تقييمك الجديد يحل محله.</small></div>}
       <div className="detail-tools">
-        {(liveDetail?.completionStatus === "requested" || liveDetail?.completionStatus === "rejected") && (
-          <button type="button" className={`provider-complete-btn ${liveDetail.completionStatus === "rejected" ? "is-rejected" : ""}`} onClick={() => setCompletionService(liveDetail)}>
-            <ClipboardList size={17}/>
-            <span>استكمال بيانات</span>
-            {liveDetail.completionStatus === "rejected" && <span className="completion-red-dot" title="طلبت الإدارة تصحيح البيانات"/>}
-          </button>
-        )}
-        {liveDetail?.completionStatus === "submitted" && (
-          <button type="button" className="provider-complete-btn is-submitted" disabled>
-            <CheckCircle2 size={16}/>
-            <span>تم إرسال الاستكمال للمراجعة</span>
-          </button>
-        )}
         <button type="button" className={detailQr ? "is-open" : ""} aria-expanded={detailQr} onClick={() => { setDetailQr(true); setDetailUpdate(false); }}><QrCode size={17}/>بطاقة عمل و QR</button>
         {isAdmin && design.showAdminQuickEdit && (
           <Link href={`/admin?tab=directory&editService=${encodeURIComponent(detail.id)}`} className="button button-soft button-small">
@@ -1316,11 +1362,150 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         {isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && (
           <button type="button" className={detailUpdate ? "is-open" : ""} aria-expanded={detailUpdate} onClick={() => { setDetailUpdate(true); setDetailQr(false); setUpdateMessage(""); }}><Pencil size={17}/>تحديث البيانات</button>
         )}
-        <button type="button" className="detail-share detail-icon-only" onClick={() => void shareService(detail)} aria-label={`مشاركة ${detail.name}`} title="مشاركة"><Share2 size={18}/></button>
-        <button type="button" className={`detail-favorite detail-icon-only ${favorites.includes(detail.id) ? "is-favorite" : ""}`} onClick={() => toggleFavorite(detail.id)} aria-pressed={favorites.includes(detail.id)} aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`} title={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}><Heart size={18} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/></button>
       </div>
-      <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer" onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><MessageCircle size={19}/>واتساب</a></div>
+      <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, design.whatsappDefaultGreeting || "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer" onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><MessageCircle size={19}/>واتساب</a></div>
     </div></Modal>}
+    {detail && detailClinicOpen && (() => {
+      const currentDoc = liveDetail ?? detail;
+      const bookingMode = getClinicBookingMode(currentDoc);
+      const schedule = getClinicScheduleSummary(currentDoc, now || undefined);
+      return (
+        <Modal
+          floating
+          title="نظام الكشف وأيام التواجد بالعيادة"
+          subtitle={`${detail.name} — ${getCategory(detail.category, categories).name}`}
+          onClose={() => setDetailClinicOpen(false)}
+        >
+          <div className="floating-submodal-body clinic-submodal-body">
+            <div className="clinic-submodal-grid">
+              <div className="clinic-submodal-item">
+                <span className="clinic-submodal-label"><CalendarCheck size={16}/> نظام الكشف والحجز</span>
+                <strong className={`detail-clinic-mode-pill is-${bookingMode}`}>
+                  {getClinicBookingLabel(bookingMode)}
+                </strong>
+              </div>
+              <div className="clinic-submodal-item">
+                <span className="clinic-submodal-label"><Clock size={16}/> حالة العيادة اليوم</span>
+                <strong className={`detail-clinic-today-pill ${schedule.isOpenToday ? "is-open" : "is-closed"}`}>
+                  {schedule.todayHoursText}
+                </strong>
+              </div>
+            </div>
+            <div className="clinic-submodal-days-box">
+              <h5>📅 أيام ومواعيد التواجد بالعيادة</h5>
+              <p>{schedule.daysText}</p>
+            </div>
+            <div className="floating-submodal-actions">
+              <a
+                href={whatsappUrl(
+                  detail.phone,
+                  `مرحبًا ${detail.name}، وصلت إليك من دليل جنزور. أود الاستفسار عن مواعيد الكشف (${getClinicBookingLabel(bookingMode)})${contactArea ? ` — العنوان: ${contactArea}` : ""}.`,
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button button-whatsapp"
+                onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+              >
+                <MessageCircle size={17}/>
+                <span>احجز أو استفسر عبر واتساب</span>
+              </a>
+              <button
+                type="button"
+                className="button button-soft detail-floating-close"
+                onClick={() => setDetailClinicOpen(false)}
+              >
+                <X size={17}/>
+                <span>إغلاق</span>
+              </button>
+            </div>
+          </div>
+        </Modal>
+      );
+    })()}
+    {detail && detailRatingOpen && (
+      <Modal
+        floating
+        title={`التقييمات وآراء الأهالي — ${detail.name}`}
+        subtitle={getCategory(detail.category, categories).name}
+        onClose={() => setDetailRatingOpen(false)}
+      >
+        <div className="floating-submodal-body rating-submodal-body">
+          <div className="rating-submodal-summary">
+            <ProviderRating value={detail.rating} reviews={detail.reviews}/>
+          </div>
+          {viewer.role === "guest" ? (
+            <p className="rating-login-hint">
+              <Star size={15}/>
+              <span>عندك عضوية؟ <a href="/login">سجّل دخولك</a> لتقييم {detail.name}.. تقييمات الأعضاء تظهر بعد مراجعة الإدارة.</span>
+            </p>
+          ) : (
+            <div className="member-rating">
+              <h4>قيّم {detail.name}</h4>
+              <div className="member-rating-stars">
+                {[1, 2, 3, 4, 5].map((step) => (
+                  <button
+                    type="button"
+                    key={step}
+                    className={step <= ratingStars ? "is-on" : ""}
+                    aria-label={`تقييم ${step} من 5`}
+                    aria-pressed={ratingStars === step}
+                    onClick={() => setRatingStars(step)}
+                  >
+                    <Star size={22} fill={step <= ratingStars ? "currentColor" : "none"}/>
+                  </button>
+                ))}
+              </div>
+              <input
+                value={ratingComment}
+                onChange={(event) => setRatingComment(event.target.value)}
+                placeholder="اكتب تعليقك أو تجربتك (اختياري).."
+                maxLength={300}
+              />
+              <button
+                type="button"
+                className="button button-success button-small"
+                disabled={!ratingStars || ratingBusy}
+                onClick={() => void submitRating()}
+              >
+                {ratingBusy ? "جاري الإرسال.." : "إرسال التقييم"}
+              </button>
+              {ratingMessage && <small role="status">{ratingMessage}</small>}
+              <small className="member-rating-note">تقييمك يظهر بعد مراجعة الإدارة، ولو قيّمت قبل كده تقييمك الجديد يحل محله.</small>
+            </div>
+          )}
+          {detail.comments?.length ? (
+            <section className="detail-comments">
+              <h4>آراء وتعليقات الأعضاء ({detail.comments.length})</h4>
+              <ul>
+                {detail.comments.map((item, index) => (
+                  <li key={index}>
+                    <span className="comment-stars" aria-label={`${item.stars} من 5`}>
+                      {[1, 2, 3, 4, 5].map((step) => (
+                        <Star key={step} size={13} fill={step <= item.stars ? "currentColor" : "none"}/>
+                      ))}
+                    </span>
+                    <p>{item.comment}</p>
+                    <small>{item.member} • {new Date(item.date).toLocaleDateString("ar-EG")}</small>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : (
+            <p className="rating-empty-note">لا توجد تعليقات منشورة بعد — كن أول من يشارك تجربته!</p>
+          )}
+          <div className="floating-submodal-actions">
+            <button
+              type="button"
+              className="button button-soft detail-floating-close"
+              onClick={() => setDetailRatingOpen(false)}
+            >
+              <X size={17}/>
+              <span>إغلاق نافذة التقييمات</span>
+            </button>
+          </div>
+        </div>
+      </Modal>
+    )}
     {detail && detailQr && <BusinessCardModal service={liveDetail ?? detail} category={getCategory(detail.category, categories)} siteName={settings.siteName} now={now} onClose={() => setDetailQr(false)}/>}
     {detail && detailUpdate && isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && <Modal floating title="تحديث البيانات" subtitle={`تحديث بيانات ${detail.name} — ستراجعها الإدارة`} onClose={() => setDetailUpdate(false)}><div className="detail-update"><h4>هل هذه بياناتك؟</h4><p>حدّث رقم الهاتف أو أضف ملاحظة وسيراجعها فريق الإدارة.</p><input value={updatePhone} onChange={(event) => setUpdatePhone(event.target.value)} placeholder="رقم الهاتف الصحيح" inputMode="tel"/><input value={updateNote} onChange={(event) => setUpdateNote(event.target.value)} placeholder="ملاحظة أو رقم إضافي"/><div className="detail-update-actions"><button type="button" className="button button-primary" onClick={() => void requestServiceUpdate()}>حدّثها الآن</button><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailUpdate(false)}><X size={17}/>إغلاق</button></div>{updateMessage && <small role="status">{updateMessage}</small>}</div></Modal>}
     {!scoped && neededServices.length > 0 && <section className="container search-assistance most-needed"><h2>الأكثر احتياجًا</h2><p>خدمات تختارها وترتبها الإدارة لاحتياجات أهل القرية، وليست ترتيبًا حسب المشاهدات.</p>{neededServices.map((service) => <button className="button button-soft" key={service.id} onClick={() => openDetail(service)}>{service.name} — {getCategory(service.category, categories).name}</button>)}</section>}
@@ -1348,101 +1533,63 @@ type ProviderCardProps = {
   onShare: (service: ServiceRecord) => void;
   onToggleFavorite: (id: string) => void;
 };
-// Card layout: 54px category icon, red name, blue specialty, five gold stars, blue address,
-// favourite above share on the left, and a light-blue call strip with the number and an "اتصال" button.
-// Tapping anywhere on the card — including that button — opens the details overlay; calling happens there only.
-function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, onOpen, onOpenCompletion, onShare, onToggleFavorite }: ProviderCardProps) {
-  const [copied, setCopied] = useState(false);
-  const trustBadges = getServiceTrustBadges(service, now);
-  const hasDelivery = supportsHomeDelivery(service);
-  const teacherStages = category.parentId === "teachers" ? getTeacherStagesForService(service) : [];
-  const isClinic = category.parentId === "clinics";
-  const clinicMode = isClinic ? getClinicBookingMode(service) : null;
-  const clinicSchedule = isClinic ? getClinicScheduleSummary(service, now || undefined) : null;
-  const isShop = category.parentId === "shops";
-  const shopItemsCount = isShop ? getShopCatalogItems(service).length : 0;
-  const completionStatus = service.completionStatus ?? "none";
-  async function copyNumber(event: MouseEvent) { event.stopPropagation(); try { await navigator.clipboard.writeText(service.phone); setCopied(true); window.setTimeout(() => setCopied(false), 1600); } catch { /* Clipboard permissions may be unavailable. */ } }
-  return <article className="provider-card" data-service-id={service.id} role="button" tabIndex={0} aria-label={`عرض تفاصيل ${service.name}`} style={categoryTheme(category)} onClick={() => onOpen(service)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen(service); } }}>
-    <div className="provider-card-main">
-      <span className="provider-card-icon" aria-hidden="true"><CategoryIcon icon={category.icon} size={26}/></span>
-      <div className="provider-card-copy">
-        <h3 className="provider-name">{service.name}</h3>
-        <span className="provider-specialty">{category.name}</span>{service.verified && <span className="provider-verified"><ShieldCheck size={13}/>تم التحقق بالمعاينة</span>}
-        <ProviderRating value={service.rating} reviews={service.reviews}/>
-        <span className="provider-address"><MapPin size={13}/>{service.address || service.area}</span>
-        {(hasDelivery || isClinic || shopItemsCount > 0 || teacherStages.length > 0 || trustBadges.length > 0) && (
-          <div className="provider-trust-badges">
-            {isClinic && clinicMode && (
-              <span className={`trust-badge is-clinic-booking is-${clinicMode}`}>
-                <CalendarCheck size={11}/> {getClinicBookingLabel(clinicMode)}
-              </span>
-            )}
-            {isClinic && clinicSchedule && (
-              <span className={`trust-badge is-clinic-days ${clinicSchedule.isOpenToday ? "is-today-open" : ""}`}>
-                <Clock size={11}/> {clinicSchedule.daysText}
-              </span>
-            )}
-            {isShop && shopItemsCount > 0 && (
-              <span className="trust-badge is-shop-menu">
-                <ShoppingBag size={11}/> قائمة الأصناف والطلب ({shopItemsCount})
-              </span>
-            )}
-            {hasDelivery && (
-              <span className="trust-badge is-delivery">
-                <Truck size={11}/> 🛵 يوجد توصيل للمنازل
-              </span>
-            )}
-            {teacherStages.map((stage) => (
-              <span key={stage.id} className="trust-badge is-stage">
-                <GraduationCap size={11}/> {stage.shortLabel}
-              </span>
-            ))}
-            {trustBadges.map((badge) => (
-              <span key={badge.id} className={`trust-badge is-${badge.tone}`}>
-                <Award size={11}/>{badge.label}
-              </span>
-            ))}
+// Outer card layout: shows ONLY Provider Name, Specialty, Stars, and Call Button.
+// All other details appear inside the Service Provider Detail Modal.
+function ProviderCard({ service, category, showAdminQuickEdit, onOpen }: ProviderCardProps) {
+  return (
+    <article
+      className="provider-card provider-card-minimal"
+      data-service-id={service.id}
+      role="button"
+      tabIndex={0}
+      aria-label={`عرض تفاصيل ${service.name}`}
+      style={categoryTheme(category)}
+      onClick={() => onOpen(service)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen(service);
+        }
+      }}
+    >
+      <div className="provider-card-main provider-card-minimal-main">
+        <span className="provider-card-icon" aria-hidden="true">
+          <CategoryIcon icon={category.icon} size={26}/>
+        </span>
+        <div className="provider-card-copy provider-card-minimal-copy">
+          <h3 className="provider-name">{service.name}</h3>
+          <span className="provider-specialty">{category.name}</span>
+          <ProviderRating value={service.rating} reviews={service.reviews}/>
+        </div>
+        {showAdminQuickEdit && (
+          <div className="provider-card-side">
+            <Link
+              href={`/admin?tab=directory&editService=${encodeURIComponent(service.id)}`}
+              className="provider-admin-edit-btn"
+              onClick={(event) => event.stopPropagation()}
+              aria-label={`تعديل سريع لـ ${service.name} كأدمن`}
+              title="تعديل سريع كأدمن"
+            >
+              <Pencil size={14}/>
+            </Link>
           </div>
         )}
       </div>
-      <div className="provider-card-side">
-        <button type="button" className={`favorite-button ${favorite ? "is-favorite" : ""}`} onClick={(event) => { event.stopPropagation(); onToggleFavorite(service.id); }} aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`} aria-pressed={favorite}><Heart size={16} fill={favorite ? "currentColor" : "none"}/></button>
-        <button type="button" className="provider-share-button" onClick={(event) => { event.stopPropagation(); onShare(service); }} aria-label={`مشاركة ${service.name}`} title="مشاركة"><Share2 size={15}/></button>
-        {showAdminQuickEdit && (
-          <Link
-            href={`/admin?tab=directory&editService=${encodeURIComponent(service.id)}`}
-            className="provider-admin-edit-btn"
-            onClick={(event) => event.stopPropagation()}
-            aria-label={`تعديل سريع لـ ${service.name} كأدمن`}
-            title="تعديل سريع كأدمن"
-          >
-            <Pencil size={14}/>
-          </Link>
-        )}
+      <div className="provider-call-strip provider-minimal-call-strip">
+        <a
+          href={`tel:${service.phone}`}
+          className="provider-direct-call-btn"
+          onClick={(event) => {
+            event.stopPropagation();
+            trackDirectoryEvent({ kind: "call", label: service.name, serviceId: service.id, categoryId: service.category });
+          }}
+          aria-label={`اتصال بـ ${service.name} على رقم ${service.phone}`}
+        >
+          <PhoneCall size={16}/>
+          <span>اتصال مباشر</span>
+          <b dir="ltr">{service.phone}</b>
+        </a>
       </div>
-    </div>
-    {(completionStatus === "requested" || completionStatus === "rejected" || completionStatus === "submitted") && (
-      <div className="provider-completion-strip" onClick={(event) => event.stopPropagation()}>
-        {completionStatus === "submitted" ? (
-          <button type="button" className="provider-complete-btn is-submitted" disabled>
-            <CheckCircle2 size={14}/>
-            <span>تم إرسال الاستكمال للمراجعة</span>
-          </button>
-        ) : (
-          <button type="button" className={`provider-complete-btn ${completionStatus === "rejected" ? "is-rejected" : ""}`} onClick={() => onOpenCompletion(service)}>
-            <ClipboardList size={15}/>
-            <span>استكمال بيانات</span>
-            {completionStatus === "rejected" && <span className="completion-red-dot" aria-label="نقطة حمراء لتصحيح البيانات وإعادة الاستكمال"/>}
-          </button>
-        )}
-      </div>
-    )}
-    <div className="provider-call-strip">
-      <span className="provider-call-number"><Phone size={15}/><span dir="ltr">{service.phone}</span><button type="button" className="provider-copy-phone" onClick={copyNumber} aria-label="نسخ رقم الهاتف" title={copied ? "تم نسخ الرقم" : "نسخ الرقم"}>{copied ? <ClipboardCheck size={14}/> : <Clipboard size={14}/>}</button></span>
-      <span className="provider-call-button"><PhoneCall size={15}/>اتصال</span>
-    </div>
-    {!isNewService(service) && isTopRated(service) && <span className="top-rated-flag"><Medal size={12}/>الأعلى تقييمًا</span>}
-    {isNewService(service) && <span className="new-flag">جديد</span>}
-  </article>;
+    </article>
+  );
 }
