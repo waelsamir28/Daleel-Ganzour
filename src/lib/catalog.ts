@@ -390,7 +390,37 @@ export type CommunityListingRecord = {
   id: string; type: CommunityListingType; title: string; profession: string; description: string;
   phone: string; whatsapp: string; area: string; price: string; status: string; createdAt: string;
 };
-export type Viewer = { role: "guest" | "member" | "moderator" | "admin"; id?: string; name?: string; username?: string };
+export type Viewer = { role: "guest" | "member" | "moderator" | "admin"; id?: string; name?: string; username?: string; phone?: string };
+
+export function normalizePhoneForMatch(phone: string): string {
+  const digits = (phone || "").replace(/\D/g, "");
+  if (digits.startsWith("0020")) return `0${digits.slice(4)}`;
+  if (digits.startsWith("20") && digits.length === 12) return `0${digits.slice(2)}`;
+  return digits;
+}
+
+export function isServiceOwner(
+  service: Pick<ServiceRecord, "id" | "name" | "phone" | "phoneSecondary">,
+  viewer: Viewer,
+  ownedServiceIds: string[] = [],
+): boolean {
+  if (ownedServiceIds.includes(service.id)) return true;
+  if (!viewer || viewer.role === "guest") return false;
+  if (viewer.phone) {
+    const viewerPhone = normalizePhoneForMatch(viewer.phone);
+    if (viewerPhone.length >= 7) {
+      const primary = normalizePhoneForMatch(service.phone || "");
+      const secondary = normalizePhoneForMatch(service.phoneSecondary || "");
+      if (viewerPhone === primary || (secondary && viewerPhone === secondary)) return true;
+    }
+  }
+  if (viewer.name && service.name) {
+    const vName = normalizeSearch(viewer.name.trim());
+    const sName = normalizeSearch(service.name.trim());
+    if (vName.length >= 3 && vName === sName) return true;
+  }
+  return false;
+}
 export type SiteSettings = {
   siteName: string; heroSubtitle: string; heroEyebrow: string; tagline: string;
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;

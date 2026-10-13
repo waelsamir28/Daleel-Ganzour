@@ -1597,4 +1597,15 @@ html.dark .suggestion-chip, html.dark .field-suggestion-chip { background: #1327
 html.dark .suggestion-chip:hover, html.dark .field-suggestion-chip:hover { background: #193450; border-color: #366596; color: #fff; }
 html.dark .suggestion-chip.is-selected { background: #1d74d4; border-color: #1d74d4; color: #fff; }
 
+/* ===== زر مقدمو الخدمات المميزين القابل للطي والفتح ===== */
+.directory-section-heading h2:has(.featured-providers-btn) { padding: 0; border: 0; background: transparent; box-shadow: none; }
+.directory-section-heading h2:has(.featured-providers-btn)::after { display: none; }
+.featured-providers-btn { display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; border: 1px solid #b9d1e5; border-radius: 999px; background: linear-gradient(135deg, #17679c, #124b7a); box-shadow: 0 5px 13px rgba(18, 75, 122, .18), inset 0 1px 0 rgba(255, 255, 255, .2); color: #fff; font: inherit; font-size: inherit; font-weight: 900; cursor: pointer; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+.featured-providers-btn:hover { transform: translateY(-1px); background: linear-gradient(135deg, #1b75b1, #14558a); box-shadow: 0 8px 18px rgba(18, 75, 122, .26); }
+.featured-providers-btn .crown-icon { width: 32px; height: 32px; padding: 6px; border: 1px solid #d9eafa; border-radius: 10px; background: linear-gradient(145deg, #f4faff, #eaf5ff); color: #e09600; flex-shrink: 0; }
+.featured-providers-btn svg.is-rotated { transform: rotate(180deg); transition: transform .2s ease; }
+html.dark .featured-providers-btn { background: linear-gradient(135deg, #163759, #10263f); border-color: #2b4d70; color: #f0f7ff; }
+html.dark .featured-providers-btn:hover { background: linear-gradient(135deg, #1b436b, #14304f); }
+html.dark .featured-providers-btn .crown-icon { border-color: #2b4d70; background: linear-gradient(145deg, #16314c, #10243a); color: #ffc83d; }
+
 

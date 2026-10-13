@@ -22,7 +22,15 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
     const form = new FormData(event.currentTarget);
     try {
       const response = await fetch("/api/services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(form), emergency: form.get("emergency") === "on" }) });
-      const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "تعذر إرسال الطلب."); setSubmitted(result);
+      const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "تعذر إرسال الطلب.");
+      try {
+        const stored: unknown = JSON.parse(localStorage.getItem("janzour-owned-services") ?? "[]");
+        const next = Array.isArray(stored) ? stored.filter((id): id is string => typeof id === "string") : [];
+        if (typeof result.id === "string" && !next.includes(result.id)) {
+          localStorage.setItem("janzour-owned-services", JSON.stringify([...next, result.id]));
+        }
+      } catch { /* Ignore storage issues. */ }
+      setSubmitted(result);
     } catch (err) { setError(err instanceof Error ? err.message : "تعذر الاتصال. حاول مرة أخرى."); }
     finally { setBusy(false); }
   }

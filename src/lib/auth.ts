@@ -45,8 +45,8 @@ export async function getViewer(): Promise<Viewer> {
   const token = (await cookies()).get(MEMBER_COOKIE)?.value;
   if (!token || token.length !== 64) return { role: "guest" };
   await ensureSeed();
-  const [member] = await db.select({ id: members.id, name: members.name, username: members.username, role: members.role }).from(memberSessions).innerJoin(members, eq(memberSessions.memberId, members.id)).where(and(eq(memberSessions.id, hash(token)), gt(memberSessions.expiresAt, new Date()), eq(members.active, true))).limit(1);
-  return member ? { role: member.role === "moderator" ? "moderator" : "member", id: member.id, name: member.name, username: member.username } : { role: "guest" };
+  const [member] = await db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, role: members.role }).from(memberSessions).innerJoin(members, eq(memberSessions.memberId, members.id)).where(and(eq(memberSessions.id, hash(token)), gt(memberSessions.expiresAt, new Date()), eq(members.active, true))).limit(1);
+  return member ? { role: member.role === "moderator" ? "moderator" : "member", id: member.id, name: member.name, username: member.username, phone: member.phone } : { role: "guest" };
 }
 export function sameOrigin(request: Request) {
   const origin = request.headers.get("origin");
