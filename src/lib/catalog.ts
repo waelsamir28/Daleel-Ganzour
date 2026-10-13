@@ -1040,7 +1040,98 @@ export type DesignSettings = {
   outerCardStyle: "modern" | "bordered" | "soft-gradient";
   searchTriggerStyle: "pill-gradient" | "glass-outline" | "gold-accent";
   badgesDefaultOpen: boolean;
+  // 12. Sponsorship & VIP Packages (باقات الرعاية والتميز)
+  sponsorModalEnabled: boolean;
+  sponsorModalDelaySeconds: number;
+  sponsorModalTitle: string;
+  sponsorModalSubtitle: string;
+  sponsorModalOfferBanner: string;
+  sponsorModalPhone: string;
+  showDailyOffersSection: boolean;
+  sponsoredProvidersJson: string;
 };
+
+export type SponsoredProviderConfig = {
+  serviceId: string;
+  providerName: string;
+  categoryName: string;
+  phone: string;
+  active: boolean;
+  planType: "trial-10-days" | "monthly-vip";
+  badgeLabel: string;
+  dailyOfferTitle: string;
+  dailyOfferDiscount: string;
+  tickerAdText: string;
+  trialStartDate: string;
+};
+
+export const defaultSponsoredProviders: SponsoredProviderConfig[] = [
+  {
+    serviceId: "00000000-0000-4000-8000-000000000007",
+    providerName: "د. سارة أحمد — عيادة طب الأسرة والباطنة",
+    categoryName: "العيادات والأطباء",
+    phone: OFFICE_PHONE,
+    active: true,
+    planType: "trial-10-days",
+    badgeLabel: "راعي معتمد 👑",
+    dailyOfferTitle: "حجز كشف واستشارة طبية فورية عبر واتساب مع متابعة دورية شاملة لأهالي جنزور",
+    dailyOfferDiscount: "حجز مباشر 🩺",
+    tickerAdText: "👑 عيادة د. سارة أحمد لطب الأسرة والباطنة — متاح الآن الحجز والاستفسار المباشر عبر دليل قرية جنزور",
+    trialStartDate: "2026-10-13",
+  },
+  {
+    serviceId: "sponsor-demo-lab",
+    providerName: "معمل التحاليل الطبية الشامل بجنزور (نموذج باقة التميز)",
+    categoryName: "معامل التحاليل",
+    phone: OFFICE_PHONE,
+    active: true,
+    planType: "trial-10-days",
+    badgeLabel: "راعي معتمد 👑",
+    dailyOfferTitle: "خصم ٢٠٪ على باقة الفحص الشامل + خدمة سحب العينات من المنزل وإرسال النتيجة على واتساب",
+    dailyOfferDiscount: "خصم ٢٠٪ 🔥",
+    tickerAdText: "👑 عرض خاص بمعامل التحاليل المشتركة في باقة التميز: خصومات لأهالي جنزور وسحب عينات من المنزل",
+    trialStartDate: "2026-10-13",
+  },
+  {
+    serviceId: "sponsor-demo-shop",
+    providerName: "عروض المحلات والسوبر ماركت بجنزور (نموذج باقة التميز)",
+    categoryName: "المحلات التجارية",
+    phone: OFFICE_PHONE,
+    active: true,
+    planType: "trial-10-days",
+    badgeLabel: "راعي معتمد 👑",
+    dailyOfferTitle: "اطلب احتياجات منزلك من المنيو التفاعلي بالأسعار مع توصيل سريع لباب البيت في جنزور",
+    dailyOfferDiscount: "توصيل مجاني 🛵",
+    tickerAdText: "👑 انضم الآن لباقة الرعاية والتميز للعيادات والمعامل والمحلات بقرية جنزور — ١٠ أيام تجربة مجانية كاملة!",
+    trialStartDate: "2026-10-13",
+  },
+];
+
+export function parseSponsoredProviders(jsonText: string | undefined | null): SponsoredProviderConfig[] {
+  if (!jsonText || !jsonText.trim()) return defaultSponsoredProviders;
+  try {
+    const parsed = JSON.parse(jsonText);
+    if (!Array.isArray(parsed)) return defaultSponsoredProviders;
+    return parsed
+      .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+      .map((item) => ({
+        serviceId: typeof item.serviceId === "string" ? item.serviceId.trim() : "",
+        providerName: typeof item.providerName === "string" ? item.providerName.trim().slice(0, 140) : "",
+        categoryName: typeof item.categoryName === "string" ? item.categoryName.trim().slice(0, 80) : "العيادات والمعامل والمحلات",
+        phone: typeof item.phone === "string" && item.phone.trim() ? item.phone.trim().slice(0, 30) : OFFICE_PHONE,
+        active: typeof item.active === "boolean" ? item.active : true,
+        planType: item.planType === "monthly-vip" ? ("monthly-vip" as const) : ("trial-10-days" as const),
+        badgeLabel: typeof item.badgeLabel === "string" && item.badgeLabel.trim() ? item.badgeLabel.trim().slice(0, 60) : "راعي معتمد 👑",
+        dailyOfferTitle: typeof item.dailyOfferTitle === "string" ? item.dailyOfferTitle.trim().slice(0, 260) : "",
+        dailyOfferDiscount: typeof item.dailyOfferDiscount === "string" ? item.dailyOfferDiscount.trim().slice(0, 50) : "عرض مميز 🔥",
+        tickerAdText: typeof item.tickerAdText === "string" ? item.tickerAdText.trim().slice(0, 260) : "",
+        trialStartDate: typeof item.trialStartDate === "string" ? item.trialStartDate.trim().slice(0, 30) : "2026-10-13",
+      }))
+      .filter((item) => Boolean(item.serviceId || item.providerName));
+  } catch {
+    return defaultSponsoredProviders;
+  }
+}
 
 export const defaultDesignSettings: DesignSettings = {
   themePreset: "classic-blue",
@@ -1142,6 +1233,16 @@ export const defaultDesignSettings: DesignSettings = {
   outerCardStyle: "modern",
   searchTriggerStyle: "pill-gradient",
   badgesDefaultOpen: false,
+  sponsorModalEnabled: true,
+  sponsorModalDelaySeconds: 10,
+  sponsorModalTitle: "باقات الرعاية والتميز للعيادات والمعامل والمحلات التجارية",
+  sponsorModalSubtitle:
+    "دليل قرية جنزور خدمة مجانية ١٠٠٪ لوجه الله لجميع المهن والحرفيين والأهالي.. ولضمان استمرار الموقع وتطويره بأعلى جودة، خصصنا (باقة الرعاية والتميز الذهبية) للعيادات والمعامل والمحلات التجارية الراغبة في ظهور استثنائي وخدمات إلكترونية متكاملة.",
+  sponsorModalOfferBanner:
+    "🎁 عرض خاص لفترة محدودة: تجربة مجانية كاملة لمدة ١٠ أيام للعيادات والمعامل والمحلات التجارية بقرية جنزور — فعّل باقتك الآن وجرّب كل المميزات الذهبية بنفسك أولاً مجاناً وبدون أي التزام!",
+  sponsorModalPhone: OFFICE_PHONE,
+  showDailyOffersSection: true,
+  sponsoredProvidersJson: JSON.stringify(defaultSponsoredProviders),
 };
 
 export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; badge?: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
@@ -1360,6 +1461,18 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.outerCardStyle = pickEnum(record.outerCardStyle, ["modern", "bordered", "soft-gradient"] as const, defaultDesignSettings.outerCardStyle);
   next.searchTriggerStyle = pickEnum(record.searchTriggerStyle, ["pill-gradient", "glass-outline", "gold-accent"] as const, defaultDesignSettings.searchTriggerStyle);
   next.badgesDefaultOpen = pickBool(record.badgesDefaultOpen, defaultDesignSettings.badgesDefaultOpen);
+
+  next.sponsorModalEnabled = pickBool(record.sponsorModalEnabled, defaultDesignSettings.sponsorModalEnabled);
+  const rawDelay = typeof record.sponsorModalDelaySeconds === "number" ? record.sponsorModalDelaySeconds : Number(record.sponsorModalDelaySeconds);
+  next.sponsorModalDelaySeconds = Number.isFinite(rawDelay) && rawDelay >= 0 && rawDelay <= 60 ? Math.round(rawDelay) : defaultDesignSettings.sponsorModalDelaySeconds;
+  next.sponsorModalTitle = pickText(record.sponsorModalTitle, defaultDesignSettings.sponsorModalTitle, 200);
+  next.sponsorModalSubtitle = pickText(record.sponsorModalSubtitle, defaultDesignSettings.sponsorModalSubtitle, 600);
+  next.sponsorModalOfferBanner = pickText(record.sponsorModalOfferBanner, defaultDesignSettings.sponsorModalOfferBanner, 400);
+  next.sponsorModalPhone = pickText(record.sponsorModalPhone, defaultDesignSettings.sponsorModalPhone, 30);
+  next.showDailyOffersSection = pickBool(record.showDailyOffersSection, defaultDesignSettings.showDailyOffersSection);
+  next.sponsoredProvidersJson = typeof record.sponsoredProvidersJson === "string" && record.sponsoredProvidersJson.trim()
+    ? JSON.stringify(parseSponsoredProviders(record.sponsoredProvidersJson))
+    : defaultDesignSettings.sponsoredProvidersJson;
 
   return next;
 }

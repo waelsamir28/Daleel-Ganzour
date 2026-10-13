@@ -6790,6 +6790,770 @@ html.dark .clinic-floating-row strong {
   color: #f0f9ff;
 }
 
+/* =========================================================================
+   8. الشاشة العائمة الاحترافية «باقات الرعاية والتميز» (Fade-In + 10s Countdown)
+   ========================================================================= */
+.sponsor-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(6, 17, 33, 0.82);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  animation: sponsorModalOverlayFadeIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes sponsorModalOverlayFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.sponsor-modal-card {
+  width: min(760px, 100%);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(165deg, #0b1f3a 0%, #09172b 55%, #102a4c 100%);
+  color: #ffffff;
+  border-radius: 26px;
+  border: 2.5px solid #f59e0b;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.65),
+    0 0 36px rgba(245, 158, 11, 0.32);
+  overflow: hidden;
+  animation: sponsorModalCardEnter 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes sponsorModalCardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sponsor-modal-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 18px;
+  background: rgba(15, 36, 66, 0.92);
+  border-bottom: 1.5px solid rgba(245, 158, 11, 0.35);
+  flex-wrap: wrap;
+}
+.sponsor-modal-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.16));
+  border: 1.5px solid #fbbf24;
+  color: #fef08a;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+.sponsor-modal-timer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(253, 224, 71, 0.55);
+  color: #fde047;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+.sponsor-modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 2px solid #fbbf24;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #09172b;
+  font-size: 0.92rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+  animation: sponsorCloseBtnPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sponsor-modal-close-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+@keyframes sponsorCloseBtnPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sponsor-modal-progress-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.sponsor-modal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fde047, #f59e0b, #10b981);
+  transition: width 0.95s linear;
+}
+
+.sponsor-modal-scroll-body {
+  padding: 22px 22px 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sponsor-hero-box {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 4px;
+}
+.sponsor-hero-crown-ring {
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #081526;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 28px rgba(245, 158, 11, 0.45);
+}
+.sponsor-hero-title {
+  margin: 0;
+  font-size: clamp(1.32rem, 3.2vw, 1.78rem);
+  font-weight: 900;
+  color: #fef08a !important;
+  line-height: 1.4;
+}
+.sponsor-hero-subtitle {
+  margin: 0;
+  max-width: 650px;
+  font-size: clamp(1rem, 2.2vw, 1.14rem);
+  font-weight: 700;
+  color: #e2f1ff;
+  line-height: 1.75;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(147, 197, 253, 0.25);
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+.sponsor-inline-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline-end: 6px;
+  color: #38bdf8;
+}
+
+/* بنر الـ 10 أيام مجاناً */
+.sponsor-free-trial-banner {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fde68a 100%);
+  color: #0f172a;
+  border: 2.5px solid #f59e0b;
+  border-radius: 22px;
+  padding: 18px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 12px 30px rgba(245, 158, 11, 0.25);
+}
+.sponsor-trial-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: #b45309;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+.sponsor-trial-headline {
+  margin: 0;
+  font-size: clamp(1.22rem, 2.8vw, 1.55rem);
+  font-weight: 900;
+  color: #78350f !important;
+  line-height: 1.4;
+}
+.sponsor-trial-text {
+  margin: 0;
+  font-size: clamp(1rem, 2.1vw, 1.12rem);
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.65;
+}
+.sponsor-target-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.sponsor-target-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fef08a;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+/* شبكة مميزات الباقة */
+.sponsor-benefits-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sponsor-section-heading {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: clamp(1.12rem, 2.4vw, 1.32rem);
+  font-weight: 900;
+  color: #fde047 !important;
+  text-align: center;
+}
+.sponsor-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+}
+.sponsor-benefit-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+}
+.sponsor-benefit-card.is-gold {
+  border-color: rgba(251, 191, 36, 0.55);
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.16), rgba(15, 23, 42, 0.6));
+}
+.sponsor-benefit-card.is-fire {
+  border-color: rgba(251, 146, 60, 0.55);
+  background: linear-gradient(145deg, rgba(234, 88, 12, 0.16), rgba(15, 23, 42, 0.6));
+}
+.sponsor-benefit-card.is-sky {
+  border-color: rgba(56, 189, 248, 0.55);
+  background: linear-gradient(145deg, rgba(2, 132, 199, 0.18), rgba(15, 23, 42, 0.6));
+}
+.sponsor-benefit-card.is-emerald {
+  border-color: rgba(52, 211, 153, 0.55);
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.16), rgba(15, 23, 42, 0.6));
+}
+.sponsor-benefit-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fde047;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sponsor-benefit-body h4 {
+  margin: 0 0 5px;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff !important;
+  line-height: 1.4;
+}
+.sponsor-benefit-body p {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: #dbeafe;
+  line-height: 1.65;
+}
+
+.sponsor-reassurance-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1.5px solid rgba(52, 211, 153, 0.45);
+  color: #ecfdf5;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+.sponsor-reassurance-note svg {
+  flex-shrink: 0;
+  color: #34d399;
+}
+
+/* كارت رقم التواصل والواتساب الشيك */
+.sponsor-contact-showcase {
+  background: linear-gradient(135deg, #0f294a 0%, #153e6c 100%);
+  border: 2px solid #38bdf8;
+  border-radius: 22px;
+  padding: 18px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 28px rgba(2, 132, 199, 0.28);
+}
+.sponsor-contact-header h4 {
+  margin: 0 0 4px;
+  font-size: clamp(1.12rem, 2.5vw, 1.35rem);
+  font-weight: 900;
+  color: #fef08a !important;
+}
+.sponsor-contact-header p {
+  margin: 0;
+  font-size: 0.96rem;
+  color: #e0f2fe;
+  font-weight: 700;
+}
+.sponsor-phone-number-box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 26px;
+  border-radius: 18px;
+  background: #071526;
+  border: 2px solid #fbbf24;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.sponsor-phone-badge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #93c5fd;
+}
+.sponsor-phone-digits {
+  font-size: clamp(1.45rem, 3.6vw, 1.9rem);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #fde047;
+}
+.sponsor-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+.sponsor-action-btn {
+  flex: 1 1 230px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 13px 20px;
+  border-radius: 16px;
+  font-size: 1.02rem;
+  font-weight: 900;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.sponsor-action-btn.is-whatsapp {
+  background: linear-gradient(135deg, #16a34a, #059669);
+  color: #ffffff !important;
+  border: 2px solid #6ee7b7;
+  box-shadow: 0 8px 22px rgba(22, 163, 74, 0.38);
+}
+.sponsor-action-btn.is-call {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #09172b !important;
+  border: 2px solid #fde047;
+  box-shadow: 0 8px 22px rgba(245, 158, 11, 0.35);
+}
+.sponsor-action-btn:hover {
+  transform: translateY(-2px);
+}
+
+.sponsor-modal-footer {
+  padding: 13px 20px;
+  background: rgba(9, 23, 43, 0.96);
+  border-top: 1.5px solid rgba(245, 158, 11, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sponsor-footer-close-btn {
+  width: 100%;
+  max-width: 420px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 14px;
+  border: 2px solid #fbbf24;
+  background: linear-gradient(135deg, #fde047, #f59e0b);
+  color: #09172b;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35);
+}
+.sponsor-footer-waiting {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fde047;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+/* =========================================================================
+   9. زر «باقات الرعاية والتميز» في الصفحة الرئيسية والقائمة
+   ========================================================================= */
+.hero-sponsor-packages-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #09172b !important;
+  border: 2px solid #fef08a !important;
+  font-size: 0.92rem !important;
+  font-weight: 900 !important;
+  box-shadow: 0 8px 22px rgba(245, 158, 11, 0.36) !important;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.hero-sponsor-packages-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(245, 158, 11, 0.5) !important;
+}
+.menu-sponsor-item {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
+  color: #92400e !important;
+  border: 1.5px solid #f59e0b !important;
+  font-weight: 900 !important;
+}
+
+/* =========================================================================
+   10. قسم «عروض اليوم في جنزور 🔥» بالصفحة الرئيسية (ميزة #7)
+   ========================================================================= */
+.daily-offers-section {
+  margin: 14px 0 22px;
+  padding: 20px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #fffbeb 0%, #fff7ed 55%, #fef3c7 100%);
+  border: 2px solid #f59e0b;
+  box-shadow: 0 12px 32px rgba(245, 158, 11, 0.15);
+}
+.daily-offers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.daily-offers-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.daily-offers-flame-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #ea580c, #f59e0b);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(234, 88, 12, 0.3);
+}
+.daily-offers-title-group h2 {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.3vw, 1.35rem);
+  font-weight: 900;
+  color: #7c2d12;
+}
+.daily-offers-title-group p {
+  margin: 3px 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #9a3412;
+}
+.daily-offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+  gap: 14px;
+}
+.daily-offer-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 2px solid #fcd34d;
+  box-shadow: 0 6px 18px rgba(180, 83, 9, 0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.daily-offer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(245, 158, 11, 0.2);
+}
+.daily-offer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.daily-offer-crown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+.daily-offer-discount-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #dc2626, #ea580c);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+.daily-offer-provider {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+.daily-offer-category {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0369a1;
+  background: #e0f2fe;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+.daily-offer-description {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #334155;
+  line-height: 1.6;
+}
+.daily-offer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.daily-offer-wa-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #16a34a, #059669);
+  color: #ffffff !important;
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+.daily-offer-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1.5px solid #cbd5e1;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* =========================================================================
+   11. البرواز الذهبي المتوهج + شارة «راعي معتمد 👑» للكروت (ميزة #8)
+   ========================================================================= */
+.provider-card.is-vip-sponsor {
+  border: 2.5px solid #f59e0b !important;
+  background: linear-gradient(160deg, #ffffff 0%, #fffbeb 100%) !important;
+  box-shadow:
+    0 10px 26px rgba(245, 158, 11, 0.2),
+    0 0 0 3px rgba(251, 191, 36, 0.22) !important;
+  position: relative;
+}
+.vip-sponsor-card-ribbon {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+
+/* =========================================================================
+   12. تنسيقات صفحة إدارة باقات الرعاية والتميز (Admin Sponsors Tab)
+   ========================================================================= */
+.sponsor-admin-banner {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border-color: #f59e0b !important;
+}
+.sponsor-admin-icon {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #ffffff !important;
+}
+.sponsor-add-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.sponsor-add-bar .studio-textbox {
+  flex: 1 1 280px;
+}
+.sponsor-cards-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sponsor-admin-item-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 2px solid #fbbf24;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.1);
+}
+.sponsor-admin-item-card.is-inactive {
+  opacity: 0.72;
+  border-color: #cbd5e1;
+}
+.sponsor-admin-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #fde68a;
+}
+.sponsor-admin-item-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sponsor-admin-item-title h5 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+.sponsor-crown-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+.sponsor-admin-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* الوضع الليلي للأقسام الجديدة */
+html.dark .daily-offers-section {
+  background: linear-gradient(145deg, #17130a 0%, #1e1b10 100%);
+  border-color: #d97706;
+}
+html.dark .daily-offers-title-group h2 {
+  color: #fef08a;
+}
+html.dark .daily-offers-title-group p {
+  color: #fde68a;
+}
+html.dark .daily-offer-card {
+  background: #0f2135;
+  border-color: #d97706;
+}
+html.dark .daily-offer-provider {
+  color: #f8fafc;
+}
+html.dark .daily-offer-description {
+  color: #cbd5e1;
+}
+html.dark .provider-card.is-vip-sponsor {
+  background: linear-gradient(160deg, #102338 0%, #1f1a0d 100%) !important;
+  border-color: #fbbf24 !important;
+}
+html.dark .sponsor-admin-item-card {
+  background: #0f2135;
+  border-color: #d97706;
+}
+html.dark .sponsor-admin-item-title h5 {
+  color: #f8fafc;
+}
+
+
 
 
 
