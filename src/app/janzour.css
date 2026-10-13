@@ -8250,6 +8250,160 @@ html.dark .daily-offers-double-arrow-btn {
   border-color: #d97706;
 }
 
+/* بطاقة الراعي المعتمد وعرض اليوم داخل نافذة تفاصيل مقدم الخدمة (#5) */
+.detail-vip-sponsor-banner {
+  margin: 10px 0 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 2px solid #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.detail-vip-sponsor-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.detail-vip-crown-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #78350f, #b45309);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+.detail-vip-crown-pill svg {
+  color: #fde047;
+}
+.detail-vip-discount-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ea580c;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+.detail-vip-offer-desc {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #7c2d12;
+  line-height: 1.55;
+}
+.detail-vip-claim-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #16a34a, #059669);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.28);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.detail-vip-claim-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 9px 20px rgba(16, 185, 129, 0.36);
+}
+
+/* شريط الأثر وشهادات الرعاة داخل نافذة باقات الرعاية (#2 & #4) */
+.sponsor-impact-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+.sponsor-impact-item {
+  padding: 12px 10px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(251, 191, 36, 0.45);
+  background: rgba(255, 251, 235, 0.9);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sponsor-impact-item strong {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #b45309;
+}
+.sponsor-impact-item span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #78350f;
+}
+.sponsor-testimonials-box {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  background: rgba(255, 251, 235, 0.75);
+  text-align: center;
+}
+.sponsor-testimonials-title {
+  margin: 0 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 0.96rem;
+  font-weight: 900;
+  color: #78350f;
+}
+.sponsor-testimonials-title svg {
+  color: #f59e0b;
+}
+.sponsor-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.sponsor-testimonial-pill {
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #fde68a;
+  text-align: center;
+}
+.sponsor-testimonial-pill p {
+  margin: 0 0 5px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #451a03;
+  line-height: 1.55;
+}
+.sponsor-testimonial-pill small {
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: #b45309;
+}
+html.dark .detail-vip-sponsor-banner {
+  background: linear-gradient(135deg, #231907 0%, #2d1f08 100%);
+  border-color: #d97706;
+}
+html.dark .detail-vip-offer-desc {
+  color: #fde68a;
+}
+
+
 
 
 

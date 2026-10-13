@@ -284,15 +284,28 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   }
 
   const suggestions = query && filteredServices.length === 0 && view !== "favorites" ? suggestSpecialties(query, categories, services, rootId) : [];
-  // Live autocomplete: matching specialties open their page, matching services jump straight to the results.
+  // Live autocomplete: matching specialties open their page, matching services jump straight to the results (with VIP sponsors prioritized first #6).
   const searchSuggestions = useMemo(() => {
     const term = normalizeSearch(queryDraft.trim());
     if (term.length < 2) return [];
-    const specialties = categories.flatMap((category) => category.active && category.parentId && (!rootId || category.parentId === rootId) && normalizeSearch(`${category.name} ${getSpecialtyKeywords(category.id)}`).includes(term) ? [{ kind: "specialty" as const, id: category.id, label: category.name, hint: `تخصص • ${getCategory(category.parentId, categories).name}`, href: `/categories/${category.parentId}/${category.id}` }] : []);
-    const services_ = services.filter((service) => matchesServiceQuery(service, getCategory(service.category, categories).name, queryDraft)).slice(0, 4)
-      .map((service) => ({ kind: "service" as const, id: service.id, label: service.name, hint: getCategory(service.category, categories).name, href: "" }));
-    return [...specialties, ...services_].slice(0, 6);
-  }, [queryDraft, categories, services, rootId]);
+    const specialties = categories.flatMap((category) => category.active && category.parentId && (!rootId || category.parentId === rootId) && normalizeSearch(`${category.name} ${getSpecialtyKeywords(category.id)}`).includes(term) ? [{ kind: "specialty" as const, id: category.id, label: category.name, hint: `تخصص • ${getCategory(category.parentId, categories).name}`, href: `/categories/${category.parentId}/${category.id}`, isSponsor: false }] : []);
+    const services_ = services
+      .filter((service) => matchesServiceQuery(service, getCategory(service.category, categories).name, queryDraft))
+      .sort((a, b) => (activeSponsorMap.has(b.id) ? 1 : 0) - (activeSponsorMap.has(a.id) ? 1 : 0))
+      .slice(0, 4)
+      .map((service) => {
+        const sp = activeSponsorMap.get(service.id);
+        return {
+          kind: "service" as const,
+          id: service.id,
+          label: service.name,
+          hint: sp ? `👑 راعي معتمد • ${getCategory(service.category, categories).name}` : getCategory(service.category, categories).name,
+          href: "",
+          isSponsor: Boolean(sp),
+        };
+      });
+    return [...services_.filter((s) => s.isSponsor), ...specialties, ...services_.filter((s) => !s.isSponsor)].slice(0, 6);
+  }, [queryDraft, categories, services, rootId, activeSponsorMap]);
   function chooseSearchSuggestion(item: (typeof searchSuggestions)[number]) {
     setSuggestOpen(false); setSuggestActive(-1);
     setSearchModalOpen(false);
@@ -1458,6 +1471,40 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </div>
         </div>
       </div>
+
+      {activeSponsorMap.has(detail.id) && (() => {
+        const sp = activeSponsorMap.get(detail.id)!;
+        const contactNum = (sp.phone || detail.phone || detail.phoneSecondary || settings.phone).trim();
+        const couponMsg = `مرحبًا (${detail.name})، شاهدت عرضكم الحصري كراعي معتمد على دليل قرية جنزور (${sp.dailyOfferDiscount ? `${sp.dailyOfferDiscount}: ` : ""}${sp.dailyOfferTitle || "عرض الرعاية والتميز"}) وأود الحجز أو الاستفسار.`;
+        return (
+          <div className="detail-vip-sponsor-banner" role="region" aria-label="عرض الراعي المعتمد">
+            <div className="detail-vip-sponsor-top">
+              <span className="detail-vip-crown-pill">
+                <Crown size={15}/>
+                <strong>{sp.badgeLabel || "راعي معتمد بدليل جنزور 👑"}</strong>
+              </span>
+              {sp.dailyOfferDiscount && (
+                <span className="detail-vip-discount-tag">
+                  <Flame size={14}/>
+                  <span>{sp.dailyOfferDiscount}</span>
+                </span>
+              )}
+            </div>
+            {sp.dailyOfferTitle && (
+              <p className="detail-vip-offer-desc">{sp.dailyOfferTitle}</p>
+            )}
+            <a
+              href={whatsappUrl(contactNum, couponMsg)}
+              target="_blank"
+              rel="noreferrer"
+              className="detail-vip-claim-btn"
+            >
+              <MessageCircle size={17}/>
+              <span>اطلب عرض اليوم الحصري عبر واتساب</span>
+            </a>
+          </div>
+        );
+      })()}
 
       <div className="detail-badges-fold-wrap">
         <button
