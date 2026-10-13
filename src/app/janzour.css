@@ -4133,36 +4133,89 @@ html.dark .social-post-tab.is-active {
    5. تنسيق هيدر الإدارة والزر العلوي المتمدد للأسفل بدون تكرار أو تفاوت خطوط
    ========================================================================== */
 
-/* 1. تنسيق موحد للهيدر في جميع الصفحات */
+/* ==========================================================================
+   تحديثات التنسيق الشاملة ومحاذاة الشاشة والهيدر والقائمة:
+   1. ضبط محاذاة الشاشة ومنع الخروج خارج السياق (Overflow-X) في جميع الصفحات
+   2. الهيدر الموحد (الشعار + زر الوضع الليلي + زر القائمة الشامل لكل الأيقونات)
+   3. إزالة البار السفلي الثابت بالكامل
+   4. الشريط المتحرك أسفل البانر الترحيبي ومواقيت الصلاة أسفل البحث
+   5. قسم المحلات (زر التوصيل فقط داخله) وقسم المدرسين (المراحل أولاً ثم التخصصات)
+   6. تنسيق هيدر الإدارة والزر العلوي المتمدد للأسفل
+   ========================================================================== */
+
+/* 1. منع خروج أي عنصر خارج عرض الشاشة في جميع الصفحات */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+.site-header,
+.hero,
+.hero-inner,
+.hero-copy,
+.directory-layout,
+.directory-main,
+.site-footer,
+.admin-login-page,
+.availability-page,
+.admin-shell,
+.admin-main {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.hero-copy {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-inline: clamp(12px, 3.5vw, 28px);
+  box-sizing: border-box;
+}
+
+/* 2. تنسيق الهيدر الموحد وزر القائمة الشامل لكل الأيقونات */
 .site-header {
-  min-height: 68px;
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  min-height: 64px;
   display: flex;
   align-items: center;
 }
 .site-header .header-inner {
-  height: 68px;
+  position: relative;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
+  min-width: 0;
 }
 .site-header-brand {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  flex-shrink: 0;
+  min-width: 0;
+  flex-shrink: 1;
   text-decoration: none;
 }
 .site-header-brand-img {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
   flex-shrink: 0;
 }
 .site-header-brand-copy {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   line-height: 1.25;
 }
 .site-header-brand-copy strong {
@@ -4170,46 +4223,168 @@ html.dark .social-post-tab.is-active {
   font-weight: 900;
   color: #0f3a65;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .site-header-brand-copy span {
   font-size: 10.5px;
   font-weight: 700;
   color: #0878c9;
   white-space: nowrap;
-}
-.site-header .main-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: auto;
-}
-.site-header .main-nav > a,
-.site-header .main-nav > button {
-  height: 38px;
-  padding: 0 13px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 800;
-  color: #19456e;
-  transition: all .16s ease;
-}
-.site-header .main-nav > a:hover,
-.site-header .main-nav > button:hover {
-  background: #edf6ff;
-  color: #0878c9;
-}
-.site-header .main-nav .active {
-  background: #e3f1ff;
-  color: #0767b8;
-}
-.site-header .main-nav .active::after {
-  display: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .site-header .header-actions {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* زر القائمة الموحد (يظهر في كل الشاشات ويضم كل الروابط والأيقونات) */
+.site-header .header-menu-toggle-btn {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1.5px solid #c6def5;
+  background: #f2f8ff;
+  color: #0d4b85;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.site-header .header-menu-toggle-btn:hover,
+.site-header .header-menu-toggle-btn.is-open {
+  background: #0878c9;
+  border-color: #0878c9;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(8, 120, 201, .24);
+}
+.header-menu-toggle-label {
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1;
+}
+.header-menu-unread-dot {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ef4444;
+  border: 2px solid #ffffff;
+}
+.header-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 82;
+  background: rgba(10, 30, 54, .18);
+}
+
+/* القائمة المنسدلة التي تضم جميع الأيقونات والروابط */
+.site-header .main-nav.header-dropdown-menu {
+  display: none !important;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: clamp(12px, 3.5vw, 28px);
+  right: auto;
+  width: min(310px, calc(100vw - 24px));
+  max-height: calc(100dvh - 80px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 90;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  height: auto;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1.5px solid #cde2f6;
+  background: #ffffff;
+  box-shadow: 0 20px 44px rgba(10, 42, 78, .22);
+}
+.site-header .main-nav.header-dropdown-menu.nav-open {
+  display: flex !important;
+  animation: modal-in .18s ease;
+}
+.header-menu-section-title {
+  padding: 4px 10px 2px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64829e;
+}
+.header-menu-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: #e2edf7;
+}
+.site-header .main-nav.header-dropdown-menu > a,
+.site-header .main-nav.header-dropdown-menu > button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 41px;
+  height: auto;
+  padding: 8px 12px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #163d64;
+  text-align: right;
+  transition: background .15s ease, color .15s ease;
+}
+.site-header .main-nav.header-dropdown-menu > a svg,
+.site-header .main-nav.header-dropdown-menu > button svg {
+  color: #0878c9;
+  flex-shrink: 0;
+}
+.site-header .main-nav.header-dropdown-menu > a:hover,
+.site-header .main-nav.header-dropdown-menu > button:hover {
+  background: #edf6ff;
+  color: #0878c9;
+}
+.site-header .main-nav.header-dropdown-menu .active {
+  background: #e3f1ff;
+  color: #0767b8;
+}
+.site-header .main-nav.header-dropdown-menu .active::after {
+  display: none;
+}
+.site-header .main-nav.header-dropdown-menu .nav-count {
+  margin-inline-start: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eaf4ff;
+  color: #0878c9;
+  font-size: 11px;
+  font-weight: 800;
+}
+.site-header .main-nav.header-dropdown-menu .nav-count.is-alert {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.site-header .main-nav.header-dropdown-menu .nav-count.is-on {
+  background: #dcfce7;
+  color: #15803d;
+}
+.site-header .main-nav.header-dropdown-menu .menu-logout-item {
+  color: #dc2626;
+}
+.site-header .main-nav.header-dropdown-menu .menu-logout-item svg {
+  color: #dc2626;
+}
+.site-header .main-nav.header-dropdown-menu .menu-logout-item:hover {
+  background: #fff1f2;
+  color: #b91c1c;
 }
 
 /* توحيد هيدر صفحات الدخول والعضوية والحساب ومتابعة الطلب وتجديد الإتاحة */
@@ -4218,73 +4393,185 @@ html.dark .social-post-tab.is-active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   max-width: 1120px;
-  min-height: 68px;
+  min-height: 64px;
   margin-inline: auto;
-  padding: 10px 20px;
+  padding: 10px clamp(12px, 3.5vw, 24px);
   background: #ffffff;
   border-bottom: 1.5px solid #dceafa;
   border-radius: 0 0 18px 18px;
   box-shadow: 0 6px 20px rgba(15, 52, 92, .05);
+  box-sizing: border-box;
 }
 .admin-public-header .brand,
 .availability-header .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+  min-width: 0;
+  flex-shrink: 1;
 }
 .admin-public-header .brand-symbol,
 .availability-header .brand-symbol {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
+  flex-shrink: 0;
+}
+.admin-public-header .brand-copy,
+.availability-header .brand-copy {
+  min-width: 0;
 }
 .admin-public-header .brand-copy strong,
 .availability-header .brand-copy strong {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 900;
   color: #0f3a65;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .admin-public-header .brand-copy span,
 .availability-header .brand-copy span {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #0878c9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .admin-public-header > a:last-child {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 7px 13px;
   border-radius: 999px;
   border: 1.5px solid #cfe3f7;
   background: #f2f8ff;
   color: #0b5ca8;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
+  flex-shrink: 0;
 }
 
-/* إظهار البحث وزر أضف مهنتك والشريط المتحرك في صفحات الأقسام أيضاً بتناسق كامل */
+/* تنسيق الهيرو والبحث في الرئيسية وصفحات الأقسام بدون أي خروج عن الشاشة */
 .category-page-hero .hero-inner {
-  grid-template-columns: 1fr;
-  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  gap: 0;
 }
 .category-page-hero .hero-visual {
   display: none !important;
 }
-.category-page-hero .hero-breadcrumb,
-.category-page-hero .hero-search,
-.category-page-hero .hero-trust {
+.category-page-hero .hero-breadcrumb {
   display: flex !important;
 }
 .category-page-hero .hero-search {
   display: grid !important;
+  grid-template-columns: minmax(175px, 1fr) repeat(2, minmax(150px, 180px)) 124px;
+  gap: 9px;
+  padding: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  border-radius: 18px;
+  background: #39b9f3;
+  box-shadow: 0 12px 24px #096cbb34;
+}
+.category-page-hero .search-input-wrap {
+  border-radius: 10px;
+  background: #fff;
+  color: #0878cf;
+  padding-inline: 12px;
+}
+.category-page-hero .ui-select {
+  min-width: 0;
+  min-height: 46px;
+  border: 1px solid #caebff;
+  border-radius: 10px;
+  background: #fff;
+  padding-inline: 10px;
+  color: #086fae;
+  gap: 6px;
+}
+.category-page-hero .hero-trust {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 9px;
+  width: min(100%, 730px);
+  margin: 12px auto 0;
+}
+.category-page-hero .hero-trust > span:not(:last-of-type) {
+  display: none !important;
+}
+.category-page-hero .hero-trust > span:last-of-type {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 118px;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid #cfe8f5;
+  border-radius: 12px;
+  background: #f0f9ff;
+  color: #245571;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.category-page-hero .hero-trust .search-add-service {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #07934c;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #0cb763, #07974e);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
 }
 
-/* 2. إزالة البار السفلي الثابت بالكامل */
+@media (max-width: 860px) {
+  .category-page-hero .hero-search {
+    grid-template-columns: minmax(150px, 1fr) repeat(2, minmax(115px, 1fr)) 102px !important;
+  }
+}
+@media (max-width: 700px) {
+  .category-page-hero .hero-search {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    padding: 7px !important;
+  }
+  .category-page-hero .search-input-wrap {
+    grid-column: 1 / -1 !important;
+    border: 0;
+    padding-inline: 10px;
+  }
+  .category-page-hero .ui-select {
+    min-width: 0 !important;
+  }
+  .category-page-hero .search-button {
+    grid-column: 1 / -1 !important;
+    min-height: 43px;
+  }
+}
+
+/* 3. إزالة البار السفلي الثابت بالكامل */
 .mobile-bottom-app-nav,
 .admin-homepage-quickbar {
   display: none !important;
@@ -4293,13 +4580,15 @@ html[data-design-mobile-nav="true"] .site-footer {
   padding-bottom: 0 !important;
 }
 
-/* 3. الشريط المتحرك أسفل البانر الترحيبي داخل مستطيل دائري ببوردر واضح */
+/* 4. الشريط المتحرك أسفل البانر الترحيبي داخل مستطيل دائري ببوردر واضح */
 .site-announcement-ticker-card {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin: 10px auto 12px;
   padding: 9px 16px;
   border-radius: 999px;
@@ -4333,13 +4622,17 @@ html[data-design-mobile-nav="true"] .site-footer {
   font-weight: 800;
   text-align: center;
   flex: 1;
+  min-width: 0;
 }
 
-/* 4. المستطيل المخصص لمواقيت الصلاة والطقس أسفل زر «أضف مهنتك» وشريط البحث */
+/* المستطيل المخصص لمواقيت الصلاة والطقس أسفل زر «أضف مهنتك» وشريط البحث */
 .ganzour-prayer-card {
   display: grid;
   gap: 12px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin: 14px auto 0;
   padding: 14px 16px;
   border-radius: 18px;
@@ -4362,6 +4655,7 @@ html[data-design-mobile-nav="true"] .site-footer {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 .prayer-icon-circle {
   width: 36px;
@@ -4421,6 +4715,7 @@ html[data-design-mobile-nav="true"] .site-footer {
   background: #ffffff;
   border: 1.5px solid #d7e7f7;
   transition: all .16s ease;
+  min-width: 0;
 }
 .ganzour-prayer-box .prayer-box-name {
   font-size: .78rem;
@@ -4452,7 +4747,78 @@ html[data-design-mobile-nav="true"] .site-footer {
   color: #ffffff;
 }
 
-/* 5. تنسيق الزر العلوي وهيدر الإدارة المتمدد للأسفل بدون تكرار أو تفاوت أحجام الخط */
+/* 5. تنسيق قسم المحلات (زر التوصيل للمنازل) وقسم المدرسين (المراحل أولاً ثم التخصصات) */
+.shops-delivery-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  border-radius: 18px;
+  border: 1.5px solid #bfe0fb;
+  background: linear-gradient(135deg, #f0f8ff, #ffffff);
+  box-shadow: 0 8px 22px rgba(8, 120, 201, .07);
+}
+.shops-delivery-filter-copy {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.shops-delivery-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #e0f2fe;
+  color: #0284c7;
+  flex-shrink: 0;
+}
+.shops-delivery-filter-copy strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f3a65;
+}
+.shops-delivery-filter-copy span {
+  display: block;
+  font-size: 11.5px;
+  color: #4b6b88;
+}
+.shops-delivery-toggle-btn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #0878c9;
+  background: #ffffff;
+  color: #0878c9;
+  font-size: 13px;
+  font-weight: 800;
+  transition: all .16s ease;
+}
+.shops-delivery-toggle-btn:hover,
+.shops-delivery-toggle-btn.is-active {
+  background: #0878c9;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(8, 120, 201, .24);
+}
+
+.teacher-stages-section {
+  margin-bottom: 24px;
+}
+.teacher-stage-tile {
+  cursor: pointer;
+  border: 1.5px solid rgba(145, 96, 223, .22);
+}
+.teacher-stage-tile.is-active {
+  border: 2px solid #7c3aed;
+  background: linear-gradient(145deg, #f5f0ff, #ede5ff);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, .18);
+}
+
+/* 6. تنسيق الزر العلوي وهيدر الإدارة المتمدد للأسفل بدون تكرار أو تفاوت أحجام الخط */
 .admin-sidebar > .brand.brand-compact {
   display: inline-flex;
   align-items: center;
@@ -4613,6 +4979,15 @@ html[data-design-mobile-nav="true"] .site-footer {
   .ganzour-prayer-box .prayer-box-time {
     font-size: .74rem;
   }
+  .shops-delivery-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+  }
+  .shops-delivery-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 440px) {
@@ -4626,18 +5001,62 @@ html.dark .admin-public-header .brand-copy strong,
 html.dark .availability-header .brand-copy strong {
   color: #eaf4ff;
 }
+html.dark .site-header .header-menu-toggle-btn {
+  background: #132942;
+  border-color: #294c70;
+  color: #d8ebff;
+}
+html.dark .site-header .header-menu-toggle-btn:hover,
+html.dark .site-header .header-menu-toggle-btn.is-open {
+  background: #0878c9;
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+html.dark .site-header .main-nav.header-dropdown-menu {
+  background: #0f2136;
+  border-color: #254668;
+  box-shadow: 0 20px 44px rgba(2, 8, 18, .65);
+}
+html.dark .header-menu-divider {
+  background: #1f3b58;
+}
+html.dark .site-header .main-nav.header-dropdown-menu > a,
+html.dark .site-header .main-nav.header-dropdown-menu > button {
+  color: #dcebfb;
+}
+html.dark .site-header .main-nav.header-dropdown-menu > a:hover,
+html.dark .site-header .main-nav.header-dropdown-menu > button:hover {
+  background: #162f4c;
+  color: #7cc4fa;
+}
 html.dark .admin-public-header,
 html.dark .availability-header,
-html.dark .ganzour-prayer-card {
+html.dark .ganzour-prayer-card,
+html.dark .shops-delivery-filter-bar {
   background: #102338;
   border-color: #244568;
   color: #e4f1fe;
 }
+html.dark .shops-delivery-filter-copy strong,
 html.dark .prayer-next-summary strong {
   color: #eaf4ff;
 }
+html.dark .shops-delivery-filter-copy span,
 html.dark .prayer-next-summary span {
   color: #b4cde6;
+}
+html.dark .shops-delivery-toggle-btn {
+  background: #0c1b2c;
+  border-color: #38bdf8;
+  color: #7cc4fa;
+}
+html.dark .shops-delivery-toggle-btn.is-active {
+  background: #0878c9;
+  color: #ffffff;
+}
+html.dark .teacher-stage-tile.is-active {
+  background: #1e1b3a;
+  border-color: #a78bfa;
 }
 html.dark .ganzour-prayer-box {
   background: #0c1b2c;
@@ -4654,6 +5073,7 @@ html.dark .prayer-weather-summary {
   border-color: #2a4f75;
   color: #e2effd;
 }
+
 
 
 

@@ -3,15 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Lightbulb, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
-import { defaultDesignSettings, ganzourTransitRoutes, getCategory, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOpenOrAvailableNow, isServiceOwner, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { defaultDesignSettings, ganzourTransitRoutes, getCategory, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import BusinessCardModal from "@/components/business-card-modal";
 import SelectField from "@/components/select-field";
 import { LocationPicker, ServiceForm } from "@/components/request-forms";
 import { ProviderCompletionModalForm } from "@/components/management-editor";
-import AdminBell from "@/components/admin-bell";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 
@@ -27,7 +26,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
   const [queryDraft, setQueryDraft] = useState(""), [query, setQuery] = useState(""), [rootFilter, setRootFilter] = useState(rootId ?? "");
   const [area, setArea] = useState(""), [customAddress, setCustomAddress] = useState(""), [emergency, setEmergency] = useState(false);
-  const [availableOnly, setAvailableOnly] = useState(false), [deliveryOnly, setDeliveryOnly] = useState(false), [teacherStage, setTeacherStage] = useState<TeacherStageId>("all"), [now, setNow] = useState(0);
+  const [deliveryOnly, setDeliveryOnly] = useState(false), [teacherStage, setTeacherStage] = useState<TeacherStageId>("all"), [now, setNow] = useState(0);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [dutyFilter, setDutyFilter] = useState<DutyFilter>("all"), [copiedUtilityId, setCopiedUtilityId] = useState("");
   const [completionService, setCompletionService] = useState<ServiceRecord | null>(null);
@@ -89,8 +88,20 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         // eslint-disable-next-line react-hooks/set-state-in-effect -- Open deep-linked service card from QR/shared link on mount.
         if (match) setDetail(match);
       }
+      const stageParam = params.get("stage");
+      if (stageParam && TEACHER_STAGES.some((stage) => stage.id === stageParam)) {
+        setTeacherStage(stageParam as TeacherStageId);
+      }
     } catch { /* Ignore URL parsing errors */ }
   }, [initialData.services]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrate browser-only favorites and owned services after server rendering.
     try { const stored: unknown = JSON.parse(localStorage.getItem("elgamal-favorites") ?? "[]"); if (Array.isArray(stored)) setFavorites(stored.filter((id): id is string => typeof id === "string")); } catch { /* Use session-only favorites if storage is unavailable. */ }
@@ -162,7 +173,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   }
   function selectLocation(value: string, custom = "") { setArea(value); setCustomAddress(custom); setView("all"); setModal(null); scrollToProviders(); }
   function showEmergency() { setModal("emergency"); setMenuOpen(false); }
-  function clearFilters() { setRootFilter(rootId ?? ""); setArea(""); setCustomAddress(""); setQuery(""); setQueryDraft(""); setEmergency(false); setAvailableOnly(false); setDeliveryOnly(false); setTeacherStage("all"); setView("all"); }
+  function clearFilters() { setRootFilter(rootId ?? ""); setArea(""); setCustomAddress(""); setQuery(""); setQueryDraft(""); setEmergency(false); setDeliveryOnly(false); setTeacherStage("all"); setView("all"); }
   function toggleBigText() {
     const on = document.documentElement.classList.toggle("big-text");
     setBigText(on);
@@ -185,10 +196,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   async function logout() { setLogoutError(""); try { const response = await fetch("/api/auth", { method: "DELETE" }); if (!response.ok) throw new Error(); window.location.assign("/"); } catch { setLogoutError("تعذر تسجيل الخروج. حاول مرة أخرى."); } }
   async function requestServiceUpdate() { if (!detail) return; setUpdateMessage(""); const response = await fetch("/api/service-updates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ serviceId: detail.id, phone: updatePhone, note: updateNote }) }); const result = await response.json(); setUpdateMessage(result.message ?? "تعذر إرسال الطلب."); if (response.ok) { setUpdatePhone(""); setUpdateNote(""); } }
   const isTeachersContext = Boolean(rootId === "teachers" || rootFilter === "teachers" || (specialty && specialty.parentId === "teachers"));
+  const isShopsContext = Boolean(rootId === "shops" || rootFilter === "shops" || (specialty && specialty.parentId === "shops"));
+  const activeDeliveryOnly = isShopsContext && deliveryOnly;
   const filteredServices = useMemo(() => services.filter((service) => {
     const item = getCategory(service.category, categories);
-    return (!availableOnly || (now > 0 && isServiceOpenOrAvailableNow(service, now)))
-      && (!deliveryOnly || supportsHomeDelivery(service))
+    return (!activeDeliveryOnly || supportsHomeDelivery(service))
       && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage))
       && (!specialtyId || service.category === specialtyId)
       && (!rootFilter || item.parentId === rootFilter)
@@ -197,16 +209,29 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress)))
       && (!emergency || service.emergency)
       && (view !== "favorites" || favorites.includes(service.id));
-  }), [services, categories, specialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, availableOnly, deliveryOnly, isTeachersContext, teacherStage, now]);
-  const isFiltering = Boolean(availableOnly || deliveryOnly || (isTeachersContext && teacherStage !== "all") || query || area || emergency || view === "favorites" || (!rootId && rootFilter));
+  }), [services, categories, specialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, activeDeliveryOnly, isTeachersContext, teacherStage]);
+  const isFiltering = Boolean(activeDeliveryOnly || (isTeachersContext && teacherStage !== "all") || query || area || emergency || view === "favorites" || (!rootId && rootFilter));
   const isFeaturedCollapsible = !isFiltering && !specialty;
   const showProvidersList = !isFeaturedCollapsible || featuredOpen;
   const featured = filteredServices.filter((service) => service.featured);
   const visibleServices = isFiltering || specialtyId ? filteredServices : (featured.length ? featured : filteredServices);
-  const providerTitle = view === "favorites" ? "خدماتك المفضلة" : emergency ? "خدمات الطوارئ" : deliveryOnly && !specialty ? "خدمات التوصيل للمنازل بجنزور" : specialty ? `${rootId === "clinics" ? "أطباء" : "مقدمو خدمات"} ${specialty.name}` : isFiltering ? "نتائج البحث" : root ? `خدمات ${root.name} المميزة في جنزور` : "مقدمو الخدمات المميزين";
-  const displayedCategories = root ? categories.filter((category) => category.parentId === root.id) : roots;
+  const providerTitle = view === "favorites" ? "خدماتك المفضلة" : emergency ? "خدمات الطوارئ" : activeDeliveryOnly && !specialty ? "محلات توفر التوصيل للمنازل بجنزور" : specialty ? `${rootId === "clinics" ? "أطباء" : "مقدمو خدمات"} ${specialty.name}` : isFiltering ? "نتائج البحث" : root ? `خدمات ${root.name} المميزة في جنزور` : "مقدمو الخدمات المميزين";
+  const displayedCategories = root ? categories.filter((category) => category.parentId === root.id) : isTeachersContext ? categories.filter((category) => category.parentId === "teachers") : roots;
   const title = specialty ? `${specialty.name} بقرية جنزور` : root ? `${root.name} بقرية جنزور` : settings.siteName;
-  function categoryCount(category: CategoryRecord) { return category.parentId ? services.filter((service) => service.category === category.id).length : categories.filter((item) => item.parentId === category.id).length; }
+  function categoryCount(category: CategoryRecord) {
+    if (category.parentId) {
+      return services.filter((service) => service.category === category.id && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage))).length;
+    }
+    return categories.filter((item) => item.parentId === category.id).length;
+  }
+  function teacherStageCount(stageId: TeacherStageId) {
+    return services.filter((service) => {
+      const cat = getCategory(service.category, categories);
+      if (cat.parentId !== "teachers") return false;
+      if (specialtyId && service.category !== specialtyId) return false;
+      return stageId === "all" || matchesTeacherStage(service, stageId);
+    }).length;
+  }
 
   const suggestions = query && filteredServices.length === 0 && view !== "favorites" ? suggestSpecialties(query, categories, services, rootId) : [];
   // Live autocomplete: matching specialties open their page, matching services jump straight to the results.
@@ -344,32 +369,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <span>المهن والخدمات</span>
           </div>
         </Link>
-        <nav className={`main-nav ${menuOpen ? "nav-open" : ""}`} aria-label="القائمة الرئيسية">
-          <Link href="/" className={isHome && !isFiltering ? "active" : ""} onClick={() => setMenuOpen(false)}>الرئيسية</Link>
-          <a href={isHome ? "#categories" : "/#categories"} className={scoped ? "active" : ""} onClick={() => setMenuOpen(false)}>التصنيفات</a>
-          {design.showHeaderFavorites && (
-            <button className={view === "favorites" ? "active" : ""} onClick={showFavorites}>
-              المفضلة <Heart size={15}/>
-              {favorites.length > 0 && <span className="nav-count">{favorites.length}</span>}
-            </button>
-          )}
-          <button onClick={() => { setModal("contact"); setMenuOpen(false); }}>اتصل بنا</button>
-          {viewer.role === "guest" && design.showHeaderLoginBtn && (
-            <Link className="mobile-register-link" href="/register">إنشاء عضوية</Link>
-          )}
-        </nav>
         <div className="header-actions">
-          {design.showHeaderBell && (
-            <button type="button" className="icon-button feed-bell" aria-label="إشعارات الأعضاء والمهنيين" title="إشعارات الأعضاء والمهنيين" onClick={openFeed}>
-              <BellRing size={18}/>
-              {feedUnread > 0 && <span className="feed-count">{feedUnread > 99 ? "99+" : feedUnread}</span>}
-            </button>
-          )}
-          <button type="button" className="icon-button font-toggle" aria-label="تكبير الخط" aria-pressed={bigText} title="الخط الكبير" onClick={toggleBigText}>
-            <ALargeSmall size={19}/>
-          </button>
           {design.showHeaderDarkToggle && (
-            <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي" title="الوضع الليلي" onClick={toggleTheme}>
+            <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي والنهاري" title="وضع الليل والنهار" onClick={toggleTheme}>
               <span className="theme-toggle-track">
                 <Moon className="icon-moon" size={15}/>
                 <Sun className="icon-sun" size={15}/>
@@ -377,28 +379,98 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               </span>
             </button>
           )}
-          {viewer.role === "admin" ? (
-            <>
-              <AdminBell/>
-              <Link href="/admin" className="admin-link"><ShieldCheck size={18}/><span>لوحة التحكم</span></Link>
-            </>
-          ) : viewer.role === "moderator" ? (
-            <Link href="/admin" className="admin-link"><ShieldCheck size={18}/><span>لوحة المشرف</span></Link>
-          ) : viewer.role === "member" ? (
-            <Link href="/account" className="member-account-link"><UserRound size={18}/><span>{viewer.name?.split(" ")[0]}</span></Link>
-          ) : design.showHeaderLoginBtn ? (
-            <div className="auth-links">
-              <Link href="/login"><UserRound size={17}/><span>تسجيل الدخول</span></Link>
-              <Link href="/register" className="register-link" aria-label="عضوية جديدة"><UserPlus size={17}/><span>عضوية جديدة</span></Link>
-            </div>
-          ) : null}
-          {viewer.role !== "guest" && (
-            <button className="icon-button logout-button" onClick={logout} aria-label="تسجيل الخروج"><LogOut size={17}/></button>
-          )}
-          <button className="icon-button mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"} aria-expanded={menuOpen}>
+          <button
+            type="button"
+            className={`header-menu-toggle-btn mobile-menu-button ${menuOpen ? "is-open" : ""}`}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
+            aria-expanded={menuOpen}
+          >
             {menuOpen ? <X size={19}/> : <Menu size={19}/>}
+            <span className="header-menu-toggle-label">القائمة</span>
+            {!menuOpen && feedUnread > 0 && <span className="header-menu-unread-dot" aria-hidden="true"/>}
           </button>
         </div>
+        {menuOpen && (
+          <div className="header-menu-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true"/>
+        )}
+        <nav className={`main-nav header-dropdown-menu ${menuOpen ? "nav-open" : ""}`} aria-label="القائمة الرئيسية وأدوات الموقع">
+          <div className="header-menu-section-title">التنقل السريع</div>
+          <Link href="/" className={isHome && !isFiltering ? "active" : ""} onClick={() => setMenuOpen(false)}>
+            <Search size={17}/>
+            <span>الرئيسية</span>
+          </Link>
+          <a href={isHome ? "#categories" : "/#categories"} className={scoped ? "active" : ""} onClick={() => setMenuOpen(false)}>
+            <Grid2X2 size={17}/>
+            <span>أقسام وتصنيفات الدليل</span>
+          </a>
+          <button type="button" onClick={() => { setMenuOpen(false); setModal("service"); }}>
+            <CirclePlus size={17}/>
+            <span>أضف مهنتك للدليل</span>
+          </button>
+          {design.showHeaderFavorites && (
+            <button type="button" className={view === "favorites" ? "active" : ""} onClick={showFavorites}>
+              <Heart size={17}/>
+              <span>المفضلة</span>
+              {favorites.length > 0 && <span className="nav-count">{favorites.length}</span>}
+            </button>
+          )}
+          <button type="button" onClick={() => { setMenuOpen(false); setModal("utilities"); }}>
+            <PhoneCall size={17}/>
+            <span>أرقام تهمك والطوارئ</span>
+          </button>
+          <button type="button" onClick={() => { setModal("contact"); setMenuOpen(false); }}>
+            <MessageCircle size={17}/>
+            <span>اتصل بنا</span>
+          </button>
+          <div className="header-menu-divider" role="separator"/>
+          <div className="header-menu-section-title">الأدوات والحساب</div>
+          {design.showHeaderBell && (
+            <button type="button" onClick={() => { setMenuOpen(false); openFeed(); }}>
+              <BellRing size={17}/>
+              <span>إشعارات الأعضاء والمهنيين</span>
+              {feedUnread > 0 && <span className="nav-count is-alert">{feedUnread > 99 ? "99+" : feedUnread}</span>}
+            </button>
+          )}
+          <button type="button" aria-pressed={bigText} onClick={() => { toggleBigText(); }}>
+            <ALargeSmall size={18}/>
+            <span>حجم الخط الكبير</span>
+            <span className={`nav-count ${bigText ? "is-on" : ""}`}>{bigText ? "مفعّل" : "عادي"}</span>
+          </button>
+          {viewer.role === "admin" ? (
+            <Link href="/admin" onClick={() => setMenuOpen(false)}>
+              <ShieldCheck size={17}/>
+              <span>لوحة التحكم الإدارية</span>
+            </Link>
+          ) : viewer.role === "moderator" ? (
+            <Link href="/admin" onClick={() => setMenuOpen(false)}>
+              <ShieldCheck size={17}/>
+              <span>لوحة المشرف</span>
+            </Link>
+          ) : viewer.role === "member" ? (
+            <Link href="/account" onClick={() => setMenuOpen(false)}>
+              <UserRound size={17}/>
+              <span>حسابي ({viewer.name?.split(" ")[0]})</span>
+            </Link>
+          ) : design.showHeaderLoginBtn ? (
+            <>
+              <Link href="/login" onClick={() => setMenuOpen(false)}>
+                <UserRound size={17}/>
+                <span>تسجيل الدخول</span>
+              </Link>
+              <Link href="/register" onClick={() => setMenuOpen(false)}>
+                <UserPlus size={17}/>
+                <span>إنشاء عضوية جديدة</span>
+              </Link>
+            </>
+          ) : null}
+          {viewer.role !== "guest" && (
+            <button type="button" className="menu-logout-item" onClick={() => { setMenuOpen(false); void logout(); }}>
+              <LogOut size={17}/>
+              <span>تسجيل الخروج</span>
+            </button>
+          )}
+        </nav>
       </div>
     </header>
     {data.previewMode && <div className="preview-mode-notice" role="status">وضع المعاينة: البيانات المعروضة توضيحية، ولن تُحفَظ الإضافات دون قاعدة بيانات.</div>}
@@ -451,7 +523,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         )}
       </div>
     )}
-    <form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>{(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><button type="button" className={`hero-open-now-btn ${availableOnly ? "is-active" : ""}`} aria-pressed={availableOnly} onClick={() => { const next = !availableOnly; setAvailableOnly(next); if (next) { setFeaturedOpen(true); scrollToProviders(); } }}><Lightbulb size={16}/><span>{availableOnly ? "معروض الفاتح/المتاح الآن" : "فاتح أو متاح الآن"}</span></button><button type="button" className={`hero-delivery-btn ${deliveryOnly ? "is-active" : ""}`} aria-pressed={deliveryOnly} onClick={() => { const next = !deliveryOnly; setDeliveryOnly(next); if (next) { setFeaturedOpen(true); scrollToProviders(); } }}><Truck size={16}/><span>{deliveryOnly ? "معروض توصيل المنازل" : "🛵 يوجد توصيل للمنازل"}</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}
+    <form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>{(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}
     {!scoped && design.showPrayerWeatherBar && (
       <div className="ganzour-prayer-card" role="region" aria-label="مواقيت الصلاة والطقس في جنزور">
         <div className="ganzour-prayer-card-head">
@@ -484,8 +556,109 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     )}
     </div></div></section>}
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => setModal("service")}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><Link href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></Link></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
-    <main className="directory-main directory-ordered-main">{!specialty && (scoped || design.showCategoriesSection) && <section id="categories" className="categories-section" style={!scoped ? { order: sectionOrderIndex("categories", 3) } : undefined}><div className="section-heading directory-section-heading"><div><h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2></div><span className="section-count">{displayedCategories.length} {root ? "تخصص" : "أقسام رئيسية"}</span></div><div className={`category-grid ${root ? "specialties-grid" : "main-category-grid"}`}>{displayedCategories.map((category) => <Link key={category.id} href={category.parentId ? `/categories/${category.parentId}/${category.id}` : `/categories/${category.id}`} aria-label={category.name} className="category-tile" style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}><span className="category-icon">{category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon}/>}</span><strong>{category.name}</strong><span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span></Link>)}</div>{!displayedCategories.length && <div className="empty-state"><h3>التخصصات قيد التجهيز</h3><p>الإدارة هتضيف تخصصات القسم قريبًا.</p></div>}</section>}
-      {(scoped || isFiltering || design.showFeaturedSection) && <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`} style={!scoped ? { order: sectionOrderIndex("featured", 2) } : undefined}>{isFeaturedCollapsible ? (
+    <main className="directory-main directory-ordered-main">
+      {isTeachersContext && (
+        <section id="teacher-stages" className="categories-section teacher-stages-section" style={scoped ? { order: 1 } : { order: sectionOrderIndex("categories", 3) - 1 }}>
+          <div className="section-heading directory-section-heading">
+            <div>
+              <h2><GraduationCap size={23}/> المراحل الدراسية للمدرسين</h2>
+            </div>
+            <span className="section-count">{TEACHER_STAGES.length} مراحل دراسية</span>
+          </div>
+          <div className="category-grid specialties-grid teacher-stages-grid" role="tablist" aria-label="المراحل الدراسية للمدرسين">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={teacherStage === "all"}
+              className={`category-tile teacher-stage-tile ${teacherStage === "all" ? "category-selected is-active" : ""}`}
+              style={{ "--category-color": "#9160df", "--category-light": "#9160df14" } as CSSProperties}
+              onClick={() => { setTeacherStage("all"); setFeaturedOpen(true); }}
+            >
+              <span className="category-icon"><GraduationCap size={32}/></span>
+              <strong>كل المراحل الدراسية</strong>
+              <span className="category-meta">{teacherStageCount("all")} مدرس<ChevronLeft size={12}/></span>
+            </button>
+            {TEACHER_STAGES.map((stage) => {
+              const active = teacherStage === stage.id;
+              return (
+                <button
+                  key={stage.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={`category-tile teacher-stage-tile ${active ? "category-selected is-active" : ""}`}
+                  style={{ "--category-color": "#9160df", "--category-light": "#9160df14" } as CSSProperties}
+                  onClick={() => { setTeacherStage(stage.id); setFeaturedOpen(true); }}
+                >
+                  <span className="category-icon"><GraduationCap size={32}/></span>
+                  <strong>{stage.label}</strong>
+                  <span className="category-meta">{teacherStageCount(stage.id)} مدرس<ChevronLeft size={12}/></span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      {isShopsContext && (
+        <div className="shops-delivery-filter-bar" role="region" aria-label="فلتر التوصيل للمنازل في قسم المحلات" style={scoped ? { order: 1 } : undefined}>
+          <div className="shops-delivery-filter-copy">
+            <span className="shops-delivery-icon"><Truck size={18}/></span>
+            <div>
+              <strong>خدمة التوصيل للمنازل (دليفري جنزور)</strong>
+              <span>اعرض فقط المحلات والصيدليات والمطاعم التي توفر توصيل للطلبات</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`button button-small shops-delivery-toggle-btn ${deliveryOnly ? "is-active" : ""}`}
+            aria-pressed={deliveryOnly}
+            onClick={() => {
+              const next = !deliveryOnly;
+              setDeliveryOnly(next);
+              if (next) setFeaturedOpen(true);
+            }}
+          >
+            <Truck size={16}/>
+            <span>{deliveryOnly ? "معروض محلات التوصيل فقط ✓" : "🛵 يوفر توصيل للمنزل"}</span>
+          </button>
+        </div>
+      )}
+      {(isTeachersContext || (!specialty && (scoped || design.showCategoriesSection))) && (
+        <section
+          id="categories"
+          className="categories-section"
+          style={scoped ? { order: 2 } : { order: sectionOrderIndex("categories", 3) }}
+        >
+          <div className="section-heading directory-section-heading">
+            <div>
+              <h2><Grid2X2 size={23}/>{isTeachersContext ? "تخصصات المدرسين (المواد الدراسية)" : root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2>
+            </div>
+            <span className="section-count">{displayedCategories.length} {root || isTeachersContext ? "تخصص" : "أقسام رئيسية"}</span>
+          </div>
+          <div className={`category-grid ${root || isTeachersContext ? "specialties-grid" : "main-category-grid"}`}>
+            {displayedCategories.map((category) => {
+              const stageQuery = isTeachersContext && teacherStage !== "all" ? `?stage=${teacherStage}` : "";
+              const href = category.parentId ? `/categories/${category.parentId}/${category.id}${stageQuery}` : `/categories/${category.id}`;
+              const isSelectedSpecialty = Boolean(specialtyId && specialtyId === category.id);
+              return (
+                <Link
+                  key={category.id}
+                  href={href}
+                  aria-label={category.name}
+                  className={`category-tile ${isSelectedSpecialty ? "category-selected is-active" : ""}`}
+                  style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}
+                >
+                  <span className="category-icon">{category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon}/>}</span>
+                  <strong>{category.name}</strong>
+                  <span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span>
+                </Link>
+              );
+            })}
+          </div>
+          {!displayedCategories.length && <div className="empty-state"><h3>التخصصات قيد التجهيز</h3><p>الإدارة هتضيف تخصصات القسم قريبًا.</p></div>}
+        </section>
+      )}
+      {(scoped || isFiltering || design.showFeaturedSection) && <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`} style={scoped ? { order: 3 } : { order: sectionOrderIndex("featured", 2) }}>{isFeaturedCollapsible ? (
         <div
           className={`category-tile featured-providers-banner-card ${featuredOpen ? "is-open" : ""}`}
           style={{ "--category-color": "#078cf0", "--category-light": "#078cf012" } as CSSProperties}
@@ -503,34 +676,23 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                 <ChevronDown size={16} className={featuredOpen ? "is-rotated" : ""}/>
               </span>
             </button>
-            <div className="featured-banner-actions">
-              <button
-                type="button"
-                className={`availability-toggle ${availableOnly ? "is-on" : ""}`}
-                aria-pressed={availableOnly}
-                onClick={() => {
-                  const next = !availableOnly;
-                  setAvailableOnly(next);
-                  if (next) setFeaturedOpen(true);
-                }}
-              >
-                <Lightbulb size={15} aria-hidden="true"/>
-                <span>متاح الآن</span>
-              </button>
-              <button
-                type="button"
-                className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`}
-                aria-pressed={deliveryOnly}
-                onClick={() => {
-                  const next = !deliveryOnly;
-                  setDeliveryOnly(next);
-                  if (next) setFeaturedOpen(true);
-                }}
-              >
-                <Truck size={15} aria-hidden="true"/>
-                <span>يوجد توصيل</span>
-              </button>
-            </div>
+            {isShopsContext && (
+              <div className="featured-banner-actions">
+                <button
+                  type="button"
+                  className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`}
+                  aria-pressed={deliveryOnly}
+                  onClick={() => {
+                    const next = !deliveryOnly;
+                    setDeliveryOnly(next);
+                    if (next) setFeaturedOpen(true);
+                  }}
+                >
+                  <Truck size={15} aria-hidden="true"/>
+                  <span>يوجد توصيل</span>
+                </button>
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -542,41 +704,10 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </button>
         </div>
       ) : (
-        <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : specialty ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || specialty) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}<button type="button" className={`availability-toggle ${availableOnly ? "is-on" : ""}`} aria-pressed={availableOnly} onClick={() => setAvailableOnly(!availableOnly)}><Lightbulb size={15} aria-hidden="true"/><span>متاح الآن</span></button><button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button></div></div>
+        <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : specialty ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || specialty) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
-      {isTeachersContext && (
-        <div className="teacher-stage-filter-bar" role="region" aria-label="فلتر المراحل الدراسية للمدرسين">
-          <div className="teacher-stage-filter-label">
-            <GraduationCap size={18}/>
-            <strong>تصفية المدرسين حسب المرحلة الدراسية:</strong>
-          </div>
-          <div className="teacher-stage-chips" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={teacherStage === "all"}
-              className={`teacher-stage-chip ${teacherStage === "all" ? "is-active" : ""}`}
-              onClick={() => { setTeacherStage("all"); setFeaturedOpen(true); }}
-            >
-              كل المراحل
-            </button>
-            {TEACHER_STAGES.map((stage) => (
-              <button
-                key={stage.id}
-                type="button"
-                role="tab"
-                aria-selected={teacherStage === stage.id}
-                className={`teacher-stage-chip ${teacherStage === stage.id ? "is-active" : ""}`}
-                onClick={() => { setTeacherStage(stage.id); setFeaturedOpen(true); }}
-              >
-                {stage.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{deliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
-      {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={!scoped ? { order: sectionOrderIndex("features", 1) } : undefined}>
+      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
+      {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
         <div className="category-grid main-category-grid feature-cards-grid">
           <button
             type="button"
