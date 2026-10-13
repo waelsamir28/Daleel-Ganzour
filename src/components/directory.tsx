@@ -12,7 +12,7 @@ import { ProviderCompletionModalForm } from "@/components/management-editor";
 import AdminBell from "@/components/admin-bell";
 import { withViewTransition } from "@/lib/motion";
 
-type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | null;
+type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | null;
 // Category colours reach the card icon through CSS custom properties.
 function categoryTheme(item: CategoryRecord) {
   return { "--cat": item.color, "--cat-light": item.light } as CSSProperties;
@@ -26,7 +26,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [area, setArea] = useState(""), [customAddress, setCustomAddress] = useState(""), [emergency, setEmergency] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false), [now, setNow] = useState(0);
   const [dutyFilter, setDutyFilter] = useState<DutyFilter>("all"), [copiedUtilityId, setCopiedUtilityId] = useState("");
-  const [quickServicesOpen, setQuickServicesOpen] = useState(false);
   const [completionService, setCompletionService] = useState<ServiceRecord | null>(null);
   const [editingUtility, setEditingUtility] = useState<Partial<PublicUtilityContact> | null>(null);
   const [utilityBusy, setUtilityBusy] = useState(false), [utilityMessage, setUtilityMessage] = useState("");
@@ -256,73 +255,51 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => setModal("service")}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><a href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></a></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
     <main className="directory-main">{!specialty && <section id="categories" className="categories-section"><div className="section-heading directory-section-heading"><div><h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2>{root && <p>اضغط على التخصص.. هتلاقي الأسماء والعناوين والأرقام</p>}</div><span className="section-count">{displayedCategories.length} {root ? "تخصص" : "أقسام رئيسية"}</span></div><div className={`category-grid ${root ? "specialties-grid" : "main-category-grid"}`}>{displayedCategories.map((category) => <Link key={category.id} href={category.parentId ? `/categories/${category.parentId}/${category.id}` : `/categories/${category.id}`} aria-label={category.name} className="category-tile" style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}><span className="category-icon">{category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon}/>}</span><strong>{category.name}</strong><span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span></Link>)}</div>{!displayedCategories.length && <div className="empty-state"><h3>التخصصات قيد التجهيز</h3><p>الإدارة هتضيف تخصصات القسم قريبًا.</p></div>}</section>}
       <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`}><div className="section-heading directory-section-heading"><div>{isFeaturedCollapsible ? <h2><button type="button" className={`featured-providers-btn ${featuredOpen ? "is-open" : ""}`} aria-expanded={featuredOpen} onClick={() => setFeaturedOpen((open) => !open)}><Crown size={23} className="crown-icon"/><span>{providerTitle}</span><ChevronDown size={17} className={featuredOpen ? "is-rotated" : ""}/></button></h2> : <h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : specialty ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>}{(isFiltering || specialty) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}<button type="button" className={`availability-toggle ${availableOnly ? "is-on" : ""}`} aria-pressed={availableOnly} onClick={() => setAvailableOnly(!availableOnly)}><Lightbulb size={15} aria-hidden="true"/><span>متاح الآن</span></button></div></div>{isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>
-      <div className="feature-rectangles-stack">
-        {/* المستطيل الأول: الاقتراح رقم ٢ — الصيدلية والعيادة المناوبة الآن */}
-        <section id="on-duty-section" className="feature-action-rect is-duty" aria-label="الصيدلية والعيادة المناوبة الآن">
-          <div className="feature-rect-row">
-            <button type="button" className="button button-primary feature-rect-btn" onClick={() => setModal("duty")}>
-              <Stethoscope size={20}/>
-              <span>الصيدلية والعيادة المناوبة الآن</span>
-              <ChevronLeft size={16}/>
-            </button>
-            <div className="feature-rect-explain">
-              <strong>{dutyShift.badge}</strong>
-              <p>اضغط لعرض الصيدليات والعيادات والمعامل وخدمات الطوارئ المناوبة الآن في جنزور خلال الليل ويوم الجمعة وعلى مدار اليوم.</p>
-            </div>
-          </div>
-        </section>
+      <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة">
+        <div className="category-grid main-category-grid feature-cards-grid">
+          <button
+            type="button"
+            id="on-duty-section"
+            className="category-tile feature-card-tile"
+            style={{ "--category-color": "#22b96d", "--category-light": "#22b96d12" } as CSSProperties}
+            onClick={() => setModal("duty")}
+          >
+            <span className="category-icon"><MainCategoryIcon icon="duty"/></span>
+            <strong className="feature-card-title">
+              <span>الصيدلية والعيادة</span>
+              <span>المناوبة الآن</span>
+            </strong>
+          </button>
 
-        {/* المستطيل الثاني: الاقتراح رقم ١٠ — أرقام تهمك في جنزور */}
-        <section id="public-utilities" className="feature-action-rect is-utilities" aria-label="أرقام تهمك في جنزور">
-          <div className="feature-rect-row">
-            <button type="button" className="button button-primary feature-rect-btn is-utilities-btn" onClick={() => { setUtilityMessage(""); setEditingUtility(null); setModal("utilities"); }}>
-              <PhoneCall size={20}/>
-              <span>أرقام تهمك في جنزور</span>
-              <ChevronLeft size={16}/>
-            </button>
-            <div className="feature-rect-explain">
-              <strong>دليل المرافق والطوارئ العامة ({utilityNumbers.length} رقم حيوي)</strong>
-              <p>أرقام الإسعاف والشرطة والمطافئ وطوارئ الكهرباء والمياه والغاز وشكاوى المرافق للاتصال الفوري أو النسخ بضغطة واحدة.</p>
-            </div>
-          </div>
-        </section>
+          <button
+            type="button"
+            id="public-utilities"
+            className="category-tile feature-card-tile"
+            style={{ "--category-color": "#078cf0", "--category-light": "#078cf012" } as CSSProperties}
+            onClick={() => { setUtilityMessage(""); setEditingUtility(null); setModal("utilities"); }}
+          >
+            <span className="category-icon"><MainCategoryIcon icon="utilities"/></span>
+            <strong className="feature-card-title">
+              <span>أرقام تهمك</span>
+              <span>في جنزور</span>
+            </strong>
+          </button>
 
-        {/* المستطيل الثالث: الخدمات السريعة */}
-        <section id="quick-services" className="feature-action-rect is-quick" aria-label="الخدمات السريعة">
-          <div className="feature-rect-row">
-            <button type="button" className="button button-primary feature-rect-btn is-quick-btn" aria-expanded={quickServicesOpen} onClick={() => setQuickServicesOpen((open) => !open)}>
-              <Sparkles size={20}/>
-              <span>الخدمات السريعة</span>
-              <ChevronDown size={16} className={quickServicesOpen ? "is-rotated" : ""}/>
-            </button>
-            <div className="feature-rect-explain">
-              <strong>وصول سريع لأدوات الدليل</strong>
-              <p>اضغط على الزر لإظهار خدمات الطوارئ، والبحث حسب عنوانك في جنزور، وقائمة خدماتك المفضلة أسفل الزر مباشرة.</p>
-            </div>
-          </div>
-          {quickServicesOpen && (
-            <div className="quick-links-card quick-services-grid feature-rect-expanded">
-              {settings.showEmergency && (
-                <button type="button" onClick={showEmergency}>
-                  <span className="quick-icon quick-red"><Siren size={25}/></span>
-                  خدمات الطوارئ
-                  <ChevronLeft size={15}/>
-                </button>
-              )}
-              <button type="button" onClick={() => setModal("location")}>
-                <span className="quick-icon quick-blue"><MapPinned size={24}/></span>
-                ابحث حسب العنوان
-                <ChevronLeft size={15}/>
-              </button>
-              <button type="button" onClick={showFavorites}>
-                <span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>
-                المفضلة
-                <ChevronLeft size={15}/>
-              </button>
-            </div>
-          )}
-        </section>
-      </div>
+          <button
+            type="button"
+            id="quick-services"
+            className="category-tile feature-card-tile"
+            style={{ "--category-color": "#ff941f", "--category-light": "#ff941f12" } as CSSProperties}
+            onClick={() => setModal("quick")}
+          >
+            <span className="category-icon"><MainCategoryIcon icon="quick"/></span>
+            <strong className="feature-card-title">
+              <span>الخدمات</span>
+              <span>السريعة</span>
+            </strong>
+          </button>
+        </div>
+      </section>
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title"><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
     </main></div>
     <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><Image src="/images/logo-daleel-transparent.png" alt="" width={64} height={64} sizes="64px"/><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>دليل المهن والخدمات.. من أهل القرية لأهلها</span></div></div></div><nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link><button onClick={showFavorites}><Heart size={15}/> المفضلة</button><button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button></nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p><a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a></div></footer>
@@ -440,9 +417,32 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </div>
       </Modal>
     )}
-    {modal === "emergency" && <Modal title="أرقام الطوارئ والمرافق في جنزور ومصر" subtitle="اتصل بالجهة المختصة مباشرة من هاتفك" onClose={closeModal}><div className="emergency-contact-list">{utilityNumbers.map((contact) => <a className="emergency-contact-link" key={contact.id} href={`tel:${contact.number}`}><span className="emergency-contact-icon"><PhoneCall size={20}/></span><span className="emergency-contact-copy"><strong>{contact.name}</strong><small>{contact.detail}</small></span><b dir="ltr">{contact.number}</b></a>)}<p className="emergency-contact-note">للحالات الطبية المهددة للحياة اتصل بالإسعاف على 123. أرقام الخدمات قد تختلف حسب المنطقة.</p></div></Modal>}
+    {modal === "quick" && (
+      <Modal floating title="الخدمات السريعة" subtitle="وصول سريع لخدمات الطوارئ، والبحث حسب عنوانك في جنزور، وقائمة خدماتك المفضلة" onClose={closeModal}>
+        <div className="quick-links-card quick-services-grid quick-modal-grid">
+          {settings.showEmergency && (
+            <button type="button" onClick={() => setModal("emergency")}>
+              <span className="quick-icon quick-red"><Siren size={25}/></span>
+              خدمات الطوارئ
+              <ChevronLeft size={15}/>
+            </button>
+          )}
+          <button type="button" onClick={() => setModal("location")}>
+            <span className="quick-icon quick-blue"><MapPinned size={24}/></span>
+            ابحث حسب العنوان
+            <ChevronLeft size={15}/>
+          </button>
+          <button type="button" onClick={() => { closeModal(); showFavorites(); }}>
+            <span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>
+            المفضلة
+            <ChevronLeft size={15}/>
+          </button>
+        </div>
+      </Modal>
+    )}
+    {modal === "emergency" && <Modal floating title="أرقام الطوارئ والمرافق في جنزور ومصر" subtitle="اتصل بالجهة المختصة مباشرة من هاتفك" onClose={closeModal}><div className="emergency-contact-list">{utilityNumbers.map((contact) => <a className="emergency-contact-link" key={contact.id} href={`tel:${contact.number}`}><span className="emergency-contact-icon"><PhoneCall size={20}/></span><span className="emergency-contact-copy"><strong>{contact.name}</strong><small>{contact.detail}</small></span><b dir="ltr">{contact.number}</b></a>)}<p className="emergency-contact-note">للحالات الطبية المهددة للحياة اتصل بالإسعاف على 123. أرقام الخدمات قد تختلف حسب المنطقة.</p></div></Modal>}
     {modal === "service" && <Modal title="أضف مهنتك لدليل جنزور" subtitle="طلب إضافة خدمة.. بعد مراجعة الإدارة" onClose={closeModal} wide><ServiceForm catalog={categories} areaOptions={data.areas} initialCategory={specialtyId || rootFilter} initialArea={area} onClose={closeModal}/></Modal>}
-    {modal === "location" && <Modal title="اختار عنوانك في جنزور" subtitle="الخدمة في ناحيتك.. في خطوات بسيطة" onClose={closeModal}><LocationPicker areaOptions={data.areas} selected={area} onSelect={selectLocation}/></Modal>}
+    {modal === "location" && <Modal floating title="اختار عنوانك في جنزور" subtitle="الخدمة في ناحيتك.. في خطوات بسيطة" onClose={closeModal}><LocationPicker areaOptions={data.areas} selected={area} onSelect={selectLocation}/></Modal>}
     {feedOpen && <Modal title="الجديد في تخصصاتك" subtitle="آخر المهنات المعتمدة في التخصصات اللي بتتابعها" onClose={() => setFeedOpen(false)}>{feedServices.length ? <div className="follow-feed">{feedServices.map(({ service, createdAt }) => <button type="button" key={service.id} onClick={() => { setFeedOpen(false); openDetail(service); }}><span className="provider-card-icon" aria-hidden="true"><CategoryIcon icon={getCategory(service.category, categories).icon} size={22}/></span><div className="follow-feed-copy"><strong>{service.name}</strong><span>{getCategory(service.category, categories).name}</span></div><small>{new Date(createdAt).toLocaleDateString("ar-EG")}<ChevronLeft size={14}/></small></button>)}</div> : <div className="empty-state"><h3>مفيش جديد لسه</h3><p>أول ما تُعتمد مهنة في التخصصات اللي بتتابعها هتظهر هنا.</p></div>}</Modal>}
     {modal === "contact" && <Modal title="خلّينا على تواصل" subtitle="مكتب الجمال للدعاية والإعلان" onClose={closeModal}><div className="contact-content"><span className="contact-illustration"><MessageCircle size={46}/></span><h3>إحنا هنا عشان نساعدك</h3><p>{settings.contactText}</p><a className="contact-number" href={`tel:${settings.phone}`} dir="ltr">{settings.phone}</a><a className="button button-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={20}/>تواصل على واتساب</a><a className="button button-soft" href={`tel:${settings.phone}`}><Phone size={18}/>اتصل بمكتب الجمال</a></div></Modal>}
     {completionService && (
@@ -496,7 +496,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         <button type="button" className="detail-share detail-icon-only" onClick={() => void shareService(detail)} aria-label={`مشاركة ${detail.name}`} title="مشاركة"><Share2 size={18}/></button>
         <button type="button" className={`detail-favorite detail-icon-only ${favorites.includes(detail.id) ? "is-favorite" : ""}`} onClick={() => toggleFavorite(detail.id)} aria-pressed={favorites.includes(detail.id)} aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`} title={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}><Heart size={18} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/></button>
       </div>
-      <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer"><MessageCircle size={19}/>واتساب</a><button type="button" className="button button-soft detail-close-button" onClick={closeDetail}><X size={18}/>إغلاق</button></div>
+      <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer"><MessageCircle size={19}/>واتساب</a></div>
     </div></Modal>}
     {detail && detailQr && <Modal floating title="رمز QR للخدمة" subtitle={detail.name} onClose={() => setDetailQr(false)}><div className="detail-qr"><Image src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`${window.location.origin}${window.location.pathname}?service=${detail.id}`)}`} alt="رمز QR للخدمة" width={160} height={160} unoptimized/><span><QrCode size={16}/>امسح الرمز لفتح كارت الخدمة مباشرة</span><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailQr(false)}><X size={17}/>إغلاق</button></div></Modal>}
     {detail && detailUpdate && isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && <Modal floating title="تحديث البيانات" subtitle={`تحديث بيانات ${detail.name} — ستراجعها الإدارة`} onClose={() => setDetailUpdate(false)}><div className="detail-update"><h4>هل هذه بياناتك؟</h4><p>حدّث رقم الهاتف أو أضف ملاحظة وسيراجعها فريق الإدارة.</p><input value={updatePhone} onChange={(event) => setUpdatePhone(event.target.value)} placeholder="رقم الهاتف الصحيح" inputMode="tel"/><input value={updateNote} onChange={(event) => setUpdateNote(event.target.value)} placeholder="ملاحظة أو رقم إضافي"/><div className="detail-update-actions"><button type="button" className="button button-primary" onClick={() => void requestServiceUpdate()}>حدّثها الآن</button><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailUpdate(false)}><X size={17}/>إغلاق</button></div>{updateMessage && <small role="status">{updateMessage}</small>}</div></Modal>}
