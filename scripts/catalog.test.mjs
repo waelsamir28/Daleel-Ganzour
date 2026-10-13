@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner } = catalog;
+const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -418,8 +418,42 @@ test("sanitizeDesignSettings validates all 8 design customizer groups and falls 
   assert.equal(custom.providerCardLayout, "compact");
   assert.equal(custom.sectionDividerStyle, "gradient");
   assert.equal(custom.cardHoverEffect, "glow");
-  assert.ok(Object.keys(designThemePresets).length >= 5);
+  assert.ok(Object.keys(designThemePresets).length >= 9);
+
+  const seasonal = sanitizeDesignSettings({
+    themePreset: "ramadan",
+    seasonalRibbon: "ramadan",
+    footerDescription: "دليل جنزور الشامل",
+    showFooterStats: false,
+    mobileBottomNavEnabled: false,
+    showPrayerWeatherBar: true,
+    showTransitGuide: true,
+  });
+  assert.equal(seasonal.themePreset, "ramadan");
+  assert.equal(seasonal.seasonalRibbon, "ramadan");
+  assert.equal(seasonal.footerDescription, "دليل جنزور الشامل");
+  assert.equal(seasonal.showFooterStats, false);
+  assert.equal(seasonal.mobileBottomNavEnabled, false);
 });
+
+test("community helpers compute prayer times, transit routes, and open-now status accurately", () => {
+  const pw = getGanzourPrayerAndWeather(Date.parse("2026-06-15T10:30:00Z"));
+  assert.equal(pw.prayers.length, 5);
+  assert.ok(pw.nextPrayer.name.length > 0);
+  assert.ok(pw.weather.tempC > 0);
+  assert.ok(ganzourTransitRoutes.length >= 4);
+
+  const sampleHours = Array.from({ length: 7 }, () => ({ closed: false, opens: "09:00", closes: "22:00" }));
+  const noonTime = new Date(2026, 5, 15, 13, 0, 0).getTime();
+  const lateNight = new Date(2026, 5, 15, 23, 30, 0).getTime();
+  assert.equal(isOpenByWorkingHours(sampleHours, noonTime), true);
+  assert.equal(isOpenByWorkingHours(sampleHours, lateNight), false);
+  assert.equal(
+    isServiceOpenOrAvailableNow({ availableNow: false, availableUntil: null, workingHours: sampleHours }, noonTime),
+    true,
+  );
+});
+
 
 
 

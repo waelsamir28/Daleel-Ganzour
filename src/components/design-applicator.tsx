@@ -52,6 +52,9 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-section-spacing", design.sectionSpacing);
   root.setAttribute("data-design-hover-effect", design.cardHoverEffect);
   root.setAttribute("data-design-section-divider", design.sectionDividerStyle);
+  root.setAttribute("data-design-seasonal-ribbon", design.seasonalRibbon);
+  root.setAttribute("data-design-mobile-nav", design.mobileBottomNavEnabled ? "true" : "false");
+  root.setAttribute("data-design-install-banner", design.showInstallAppBanner ? "true" : "false");
   root.setAttribute("data-design-splash-enabled", design.splashEnabled ? "true" : "false");
   root.setAttribute("data-design-splash-image", design.splashImageUrl || "/images/logo-daleel-transparent.png");
   root.setAttribute("data-design-splash-duration", design.splashDuration || "900");

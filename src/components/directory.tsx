@@ -3,14 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Check, CheckCircle2, ChevronDown, ChevronLeft, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Crown, Grid2X2, Heart, Lightbulb, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, UserPlus, UserRound, UsersRound, X } from "lucide-react";
-import { defaultDesignSettings, getCategory, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, publicUtilityNumbers, whatsappUrl, serviceWhatsappMessage, suggestSpecialties, type CategoryRecord, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer } from "@/lib/catalog";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Bus, Check, CheckCircle2, ChevronDown, ChevronLeft, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Home, Lightbulb, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Palette, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, Siren, Sparkles, Star, Stethoscope, Sun, Trash2, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { defaultDesignSettings, ganzourTransitRoutes, getCategory, getDutyShiftInfo, getGanzourPrayerAndWeather, getOnDutyServices, getServiceTrustBadges, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOpenOrAvailableNow, isServiceOwner, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, publicUtilityNumbers, whatsappUrl, serviceWhatsappMessage, suggestSpecialties, type CategoryRecord, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
+import BusinessCardModal from "@/components/business-card-modal";
 import SelectField from "@/components/select-field";
 import { LocationPicker, ServiceForm } from "@/components/request-forms";
 import { ProviderCompletionModalForm } from "@/components/management-editor";
 import AdminBell from "@/components/admin-bell";
+import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 
 type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | null;
@@ -63,6 +65,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     }, () => source?.style.removeProperty("view-transition-name"));
   }, [detail]);
   function openDetail(service: ServiceRecord) {
+    trackDirectoryEvent({ kind: "view", label: service.name, serviceId: service.id, categoryId: service.category });
     const source = Array.from(document.querySelectorAll<HTMLElement>(".provider-card")).find((card) => card.dataset.serviceId === service.id);
     source?.style.setProperty("view-transition-name", "provider-detail");
     withViewTransition(() => {
@@ -76,6 +79,17 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const root = rootId ? getCategory(rootId, categories) : null, specialty = specialtyId ? getCategory(specialtyId, categories) : null;
   const scoped = Boolean(rootId), isHome = !scoped;
   const whatsapp = whatsappUrl(settings.phone);
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const serviceParam = params.get("service");
+      if (serviceParam) {
+        const match = initialData.services.find((item) => item.id === serviceParam);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Open deep-linked service card from QR/shared link on mount.
+        if (match) setDetail(match);
+      }
+    } catch { /* Ignore URL parsing errors */ }
+  }, [initialData.services]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrate browser-only favorites and owned services after server rendering.
     try { const stored: unknown = JSON.parse(localStorage.getItem("elgamal-favorites") ?? "[]"); if (Array.isArray(stored)) setFavorites(stored.filter((id): id is string => typeof id === "string")); } catch { /* Use session-only favorites if storage is unavailable. */ }
@@ -125,7 +139,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     } catch { setFollowError("تعذر الاتصال. حاول مرة أخرى."); } finally { setFollowBusy(false); }
   }
   async function shareService(service: ServiceRecord) {
-    const url = window.location.origin + window.location.pathname;
+    trackDirectoryEvent({ kind: "share", label: service.name, serviceId: service.id, categoryId: service.category });
+    const url = `${window.location.origin}/?service=${encodeURIComponent(service.id)}`;
     const text = `${service.name} - ${getCategory(service.category, categories).name}${service.area ? ` - ${service.area}` : ""}\nالهاتف: ${service.phone}\nمن دليل جنزور: ${url}`;
     if (typeof navigator.share === "function") {
       try { await navigator.share({ title: service.name, text, url }); return; }
@@ -136,7 +151,14 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   function toggleFavorite(id: string) { setFavorites((current) => { const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id]; try { localStorage.setItem("elgamal-favorites", JSON.stringify(next)); } catch { /* Favorites still work during this visit. */ } return next; }); }
   function scrollToProviders() { setTimeout(() => document.getElementById("providers")?.scrollIntoView({ behavior: "smooth", block: "start" }), 30); }
   function showFavorites() { if (scoped) { window.location.assign("/?favorites=1"); return; } setView("favorites"); setRootFilter(""); setArea(""); setCustomAddress(""); setEmergency(false); setQuery(""); setQueryDraft(""); setMenuOpen(false); scrollToProviders(); }
-  function search(event: FormEvent) { event.preventDefault(); setQuery(queryDraft.trim()); setView("all"); scrollToProviders(); }
+  function search(event: FormEvent) {
+    event.preventDefault();
+    const trimmed = queryDraft.trim();
+    if (trimmed) trackDirectoryEvent({ kind: "search", label: trimmed });
+    setQuery(trimmed);
+    setView("all");
+    scrollToProviders();
+  }
   function selectLocation(value: string, custom = "") { setArea(value); setCustomAddress(custom); setView("all"); setModal(null); scrollToProviders(); }
   function showEmergency() { setModal("emergency"); setMenuOpen(false); }
   function clearFilters() { setRootFilter(rootId ?? ""); setArea(""); setCustomAddress(""); setQuery(""); setQueryDraft(""); setEmergency(false); setAvailableOnly(false); setView("all"); }
@@ -163,7 +185,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   async function requestServiceUpdate() { if (!detail) return; setUpdateMessage(""); const response = await fetch("/api/service-updates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ serviceId: detail.id, phone: updatePhone, note: updateNote }) }); const result = await response.json(); setUpdateMessage(result.message ?? "تعذر إرسال الطلب."); if (response.ok) { setUpdatePhone(""); setUpdateNote(""); } }
   const filteredServices = useMemo(() => services.filter((service) => {
     const item = getCategory(service.category, categories);
-    return (!availableOnly || (now > 0 && isAvailableNow(service, now))) && (!specialtyId || service.category === specialtyId) && (!rootFilter || item.parentId === rootFilter) && (!query || matchesServiceQuery(service, item.name, query)) && (!area || service.area === area) && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress))) && (!emergency || service.emergency) && (view !== "favorites" || favorites.includes(service.id));
+    return (!availableOnly || (now > 0 && isServiceOpenOrAvailableNow(service, now))) && (!specialtyId || service.category === specialtyId) && (!rootFilter || item.parentId === rootFilter) && (!query || matchesServiceQuery(service, item.name, query)) && (!area || service.area === area) && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress))) && (!emergency || service.emergency) && (view !== "favorites" || favorites.includes(service.id));
   }), [services, categories, specialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, availableOnly, now]);
   const isFiltering = Boolean(availableOnly || query || area || emergency || view === "favorites" || (!rootId && rootFilter));
   const isFeaturedCollapsible = !isFiltering && !specialty;
@@ -270,9 +292,24 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     const idx = sectionOrderList.indexOf(key);
     return idx >= 0 ? idx + 1 : fallback;
   };
+  const prayerWeather = useMemo(() => getGanzourPrayerAndWeather(now > 0 ? now : undefined), [now]);
+  const seasonalRibbonMessages: Record<Exclude<typeof design.seasonalRibbon, "none">, string> = {
+    ramadan: "🌙 رمضان كريم — كل عام وأهالي قرية جنزور بخير وصحة وسعادة",
+    eid: "🎉 عيدكم مبارك — أعاده الله على أهالي قرية جنزور بالخير واليمن والبركات",
+    schools: "🎒 عام دراسي موفق — تصفح قسم المدرسين والمكتبات في دليل جنزور",
+    winter: "🌧️ تنبيهات الطوارئ والشتاء — أرقام الطوارئ والصيدليات المناوبة متاحة على مدار الساعة",
+  };
 
   return <>
     <DesignApplicator design={design}/>
+    {design.seasonalRibbon !== "none" && (
+      <div className={`site-seasonal-ribbon is-${design.seasonalRibbon}`}>
+        <div className="container site-announcement-inner">
+          <Sparkles size={15}/>
+          <span>{seasonalRibbonMessages[design.seasonalRibbon]}</span>
+        </div>
+      </div>
+    )}
     {design.announcementEnabled && design.announcementText && (
       <div className={`site-announcement-bar is-${design.announcementStyle}`} style={{ backgroundColor: design.announcementBgColor }}>
         <div className="container site-announcement-inner">
@@ -289,9 +326,33 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </Link>
       )}
       <nav className={`main-nav ${menuOpen ? "nav-open" : ""}`} aria-label="القائمة الرئيسية"><Link href="/" className={isHome && !isFiltering ? "active" : ""} onClick={() => setMenuOpen(false)}>الرئيسية</Link><a href={isHome ? "#categories" : "/#categories"} className={scoped ? "active" : ""} onClick={() => setMenuOpen(false)}>التصنيفات</a>{design.showHeaderFavorites && <button className={view === "favorites" ? "active" : ""} onClick={showFavorites}>المفضلة <Heart size={15}/>{favorites.length > 0 && <span className="nav-count">{favorites.length}</span>}</button>}<button onClick={() => { setModal("contact"); setMenuOpen(false); }}>اتصل بنا</button>{viewer.role === "guest" && design.showHeaderLoginBtn && <Link className="mobile-register-link" href="/register">إنشاء عضوية</Link>}</nav><div className="header-actions">{design.showHeaderBell && <button type="button" className="icon-button feed-bell" aria-label="إشعارات الأعضاء والمهنيين" title="إشعارات الأعضاء والمهنيين" onClick={openFeed}><BellRing size={18}/>{feedUnread > 0 && <span className="feed-count">{feedUnread > 99 ? "99+" : feedUnread}</span>}</button>}<button type="button" className="icon-button font-toggle" aria-label="تكبير الخط" aria-pressed={bigText} title="الخط الكبير" onClick={toggleBigText}><ALargeSmall size={19}/></button>{design.showHeaderDarkToggle && <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي" title="الوضع الليلي" onClick={toggleTheme}><span className="theme-toggle-track"><Moon className="icon-moon" size={15}/><Sun className="icon-sun" size={15}/><span className="theme-toggle-thumb" aria-hidden="true"/></span></button>}{viewer.role === "admin" ? <><AdminBell/><Link href="/admin" className="admin-link"><ShieldCheck size={19}/><span>لوحة التحكم</span></Link></> : viewer.role === "moderator" ? <Link href="/admin" className="admin-link"><ShieldCheck size={19}/><span>لوحة المشرف</span></Link> : viewer.role === "member" ? <Link href="/account" className="member-account-link"><UserRound size={19}/><span>{viewer.name?.split(" ")[0]}</span></Link> : design.showHeaderLoginBtn ? <div className="auth-links"><Link href="/login"><UserRound size={18}/><span>تسجيل الدخول</span></Link><Link href="/register" className="register-link" aria-label="عضوية جديدة"><UserPlus size={18}/><span>عضوية جديدة</span></Link></div> : null}{viewer.role !== "guest" && <button className="icon-button logout-button" onClick={logout} aria-label="تسجيل الخروج"><LogOut size={17}/></button>}{scoped && <button className="button button-primary add-service-header" onClick={() => setModal("service")}><CirclePlus size={18}/><span>أضف مهنتك</span></button>}<button className="icon-button mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"} aria-expanded={menuOpen}>{menuOpen ? <X/> : <Menu/>}</button></div></div></header>
+    {!scoped && design.showPrayerWeatherBar && (
+      <section className="ganzour-prayer-weather-bar" aria-label="مواقيت الصلاة والطقس في جنزور">
+        <div className="container ganzour-prayer-weather-inner">
+          <div className="prayer-weather-badge is-next">
+            <Clock size={15}/>
+            <span>الصلاة القادمة: <strong>{prayerWeather.nextPrayer.name} ({prayerWeather.nextPrayer.time12})</strong></span>
+            <small>{prayerWeather.nextPrayer.remainingText}</small>
+          </div>
+          <div className="prayer-times-pills" aria-label="مواقيت الصلوات الخمس في جنزور">
+            {prayerWeather.prayers.map((item) => (
+              <span key={item.id} className={`prayer-pill ${prayerWeather.nextPrayer.id === item.id ? "is-upcoming" : ""}`}>
+                <b>{item.name}</b>
+                <small>{item.time12}</small>
+              </span>
+            ))}
+          </div>
+          <div className="prayer-weather-badge is-weather">
+            {prayerWeather.weather.period === "night" ? <Moon size={15}/> : <Sun size={15}/>}
+            <strong>{prayerWeather.weather.tempC}°C</strong>
+            <span>{prayerWeather.weather.label}</span>
+          </div>
+        </div>
+      </section>
+    )}
     {data.previewMode && <div className="preview-mode-notice" role="status">وضع المعاينة: البيانات المعروضة توضيحية، ولن تُحفَظ الإضافات دون قاعدة بيانات.</div>}
     {logoutError && <div role="alert" className="form-error container">{logoutError}</div>}
-    {(scoped || design.showHero) && <section className={`hero ${scoped ? "category-page-hero" : "hero-with-banner"}`} aria-labelledby="hero-title"><div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/><svg className="hero-skyline" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path d="M0 210V105h43V81h32v50h29V64h32V22h8V0h6v22h10v42h29v83h27v-39h24V77h22v31h20v102h31V97h33v28h17V65h50v145h42v-65h22v-20h29v20h28v65h33V79h26V36h8V15h5v21h9v43h31v131h32v-86h22V98h38v26h24v86h31V73h49v35h29v102h45V94h31V62h40v148h29v-62h50v62h50V99h34V80h21v19h32v111h41V64h29V26h9V5h5v21h12v38h30v146h42V91h47v119h31V70h26V40h23v30h22v140h37v-63h52v63h34v-98h26V79h31v33h20v98Z"/></svg>{!scoped && <div className="hero-banner-wrap"><Image src="/images/home-banner-sky.png" alt="دليل المهن والخدمات بقرية جنزور، كل أرقام المهنيين والخدمات والمشاريع في مكان واحد" width={2048} height={768} sizes="(max-width: 700px) 100vw, (max-width: 1378px) 90vw, 1240px" priority/></div>}<div className="container hero-inner"><div className="hero-visual"><span className="hero-floating-tag"><CheckCircle2 size={16}/> من أهل القرية.. لأهل القرية</span></div><div className="hero-copy">{scoped ? <nav className="hero-breadcrumb" aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><ChevronLeft size={13}/>{specialty ? <><Link href={`/categories/${rootId}`}>{root?.name}</Link><ChevronLeft size={13}/><span>{specialty.name}</span></> : <span>{root?.name}</span>}</nav> : <div className="hero-eyebrow"><Sparkles size={15}/>{settings.heroEyebrow}</div>}<h1 id="hero-title">{title}</h1>{!scoped && <><p className="hero-subtitle">{settings.heroSubtitle}</p><p className="hero-tagline">{settings.tagline}</p></>}<form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>{(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><MapPin size={19}/> خدمات في جنزور</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}</div></div></section>}
+    {(scoped || design.showHero) && <section className={`hero ${scoped ? "category-page-hero" : "hero-with-banner"}`} aria-labelledby="hero-title"><div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/><svg className="hero-skyline" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path d="M0 210V105h43V81h32v50h29V64h32V22h8V0h6v22h10v42h29v83h27v-39h24V77h22v31h20v102h31V97h33v28h17V65h50v145h42v-65h22v-20h29v20h28v65h33V79h26V36h8V15h5v21h9v43h31v131h32v-86h22V98h38v26h24v86h31V73h49v35h29v102h45V94h31V62h40v148h29v-62h50v62h50V99h34V80h21v19h32v111h41V64h29V26h9V5h5v21h12v38h30v146h42V91h47v119h31V70h26V40h23v30h22v140h37v-63h52v63h34v-98h26V79h31v33h20v98Z"/></svg>{!scoped && <div className="hero-banner-wrap"><Image src="/images/home-banner-sky.png" alt="دليل المهن والخدمات بقرية جنزور، كل أرقام المهنيين والخدمات والمشاريع في مكان واحد" width={2048} height={768} sizes="(max-width: 700px) 100vw, (max-width: 1378px) 90vw, 1240px" priority/></div>}<div className="container hero-inner"><div className="hero-visual"><span className="hero-floating-tag"><CheckCircle2 size={16}/> من أهل القرية.. لأهل القرية</span></div><div className="hero-copy">{scoped ? <nav className="hero-breadcrumb" aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><ChevronLeft size={13}/>{specialty ? <><Link href={`/categories/${rootId}`}>{root?.name}</Link><ChevronLeft size={13}/><span>{specialty.name}</span></> : <span>{root?.name}</span>}</nav> : <div className="hero-eyebrow"><Sparkles size={15}/>{settings.heroEyebrow}</div>}<h1 id="hero-title">{title}</h1>{!scoped && <><p className="hero-subtitle">{settings.heroSubtitle}</p><p className="hero-tagline">{settings.tagline}</p></>}<form className="hero-search" onSubmit={search} role="search"><div className="search-input-wrap"><Search size={22}/><input id="hero-search-input" type="search" role="combobox" aria-expanded={suggestOpen && searchSuggestions.length > 0} aria-controls="hero-search-suggestions" aria-autocomplete="list" aria-label="ابحث عن مهنة أو مقدم خدمة" value={queryDraft} onChange={(event) => { setQueryDraft(event.target.value); setSuggestOpen(true); setSuggestActive(-1); }} onFocus={() => setSuggestOpen(true)} onBlur={() => setTimeout(() => setSuggestOpen(false), 150)} onKeyDown={searchKeyDown} placeholder="ابحث عن مهنة، طبيب أو مقدم خدمة..."/>{suggestOpen && searchSuggestions.length > 0 && <ul id="hero-search-suggestions" className="search-suggestions" role="listbox">{searchSuggestions.map((item, index) => <li key={`${item.kind}-${item.id}`} role="option" aria-selected={suggestActive === index} className={suggestActive === index ? "is-active" : ""}>{item.kind === "specialty" ? <Link href={item.href} onMouseDown={(event) => event.preventDefault()} onClick={() => setSuggestOpen(false)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></Link> : <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => chooseSearchSuggestion(item)}><Search size={14}/><span>{item.label}</span><small>{item.hint}</small></button>}</li>)}</ul>}</div><SelectField aria-label="اختر التصنيف" value={rootFilter} onChange={(event) => setRootFilter(event.target.value)} disabled={scoped} icon={<Grid2X2 size={17}/>} options={[{ value: "", label: "كل التصنيفات" }, ...roots.map(({ id, name }) => ({ value: id, label: name }))]}/><SelectField className="area-select" aria-label="اختر العنوان" value={area} onChange={(event) => { setArea(event.target.value); setCustomAddress(""); }} icon={<MapPin size={18}/>} options={[{ value: "", label: "كل عناوين جنزور" }, ...data.areas.map(({ name }) => ({ value: name, label: name })), { value: OTHER_ADDRESS, label: OTHER_ADDRESS }]}/><button className="search-button" type="submit">ابحث الآن <Search size={17}/></button>{area === OTHER_ADDRESS && <label className="hero-custom-address">العنوان الآخر<input value={customAddress} onChange={(event) => setCustomAddress(event.target.value)} placeholder="اكتب الشارع أو العلامة المميزة" required minLength={3} maxLength={240}/></label>}</form>{(scoped || design.showAddProfessionBanner) && <div className="hero-trust"><button type="button" className="button button-success search-add-service" onClick={() => setModal("service")}><CirclePlus size={19}/><span>أضف مهنتك</span></button><button type="button" className={`hero-open-now-btn ${availableOnly ? "is-active" : ""}`} aria-pressed={availableOnly} onClick={() => { const next = !availableOnly; setAvailableOnly(next); if (next) { setFeaturedOpen(true); scrollToProviders(); } }}><Lightbulb size={16}/><span>{availableOnly ? "معروض الفاتح/المتاح الآن" : "فاتح أو متاح الآن"}</span></button><span><ShieldCheck size={19}/> مراجعة قبل النشر</span><span><PhoneCall size={18}/> تواصل مباشر</span><span><UsersRound size={19}/>{data.memberCount} عضو في الموقع</span></div>}</div></div></section>}
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => setModal("service")}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><Link href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></Link></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
     <main className="directory-main directory-ordered-main">{!specialty && (scoped || design.showCategoriesSection) && <section id="categories" className="categories-section" style={!scoped ? { order: sectionOrderIndex("categories", 3) } : undefined}><div className="section-heading directory-section-heading"><div><h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2></div><span className="section-count">{displayedCategories.length} {root ? "تخصص" : "أقسام رئيسية"}</span></div><div className={`category-grid ${root ? "specialties-grid" : "main-category-grid"}`}>{displayedCategories.map((category) => <Link key={category.id} href={category.parentId ? `/categories/${category.parentId}/${category.id}` : `/categories/${category.id}`} aria-label={category.name} className="category-tile" style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}><span className="category-icon">{category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon}/>}</span><strong>{category.name}</strong><span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span></Link>)}</div>{!displayedCategories.length && <div className="empty-state"><h3>التخصصات قيد التجهيز</h3><p>الإدارة هتضيف تخصصات القسم قريبًا.</p></div>}</section>}
       {(scoped || isFiltering || design.showFeaturedSection) && <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`} style={!scoped ? { order: sectionOrderIndex("featured", 2) } : undefined}>{isFeaturedCollapsible ? (
@@ -339,7 +400,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </div>
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : specialty ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || specialty) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}<button type="button" className={`availability-toggle ${availableOnly ? "is-on" : ""}`} aria-pressed={availableOnly} onClick={() => setAvailableOnly(!availableOnly)}><Lightbulb size={15} aria-hidden="true"/><span>متاح الآن</span></button></div></div>
-      )}{isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
+      )}{isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className="provider-grid">{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => setModal("service")}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}{showProvidersList && visibleServices.some((service) => service.demo) && <p className="demo-note"><span/> بعض البطاقات نماذج توضيحية، وليست بيانات مقدمي خدمة حقيقيين. المهن الجديدة تُنشر بعد الموافقة.</p>}</section>}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={!scoped ? { order: sectionOrderIndex("features", 1) } : undefined}>
         <div className="category-grid main-category-grid feature-cards-grid">
           <button
@@ -385,14 +446,99 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </button>
         </div>
       </section>}
+      {!scoped && design.showTransitGuide && (
+        <section id="transit-guide" className="transit-guide-section" aria-labelledby="transit-guide-title" style={{ order: sectionOrderIndex("transit", 4) }}>
+          <div className="section-heading directory-section-heading">
+            <div>
+              <h2 id="transit-guide-title"><Bus size={22}/> دليل مواصلات وخطوط سير جنزور</h2>
+              <p>مواقف وخطوط المواصلات اليومية من قرية جنزور وإليها مع وصول سريع لسائقي التوصيل</p>
+            </div>
+            <Link href="/categories/other-services/transport" className="button button-soft button-small">
+              <span>سائقو التوصيل بجنزور</span>
+              <ChevronLeft size={14}/>
+            </Link>
+          </div>
+          <div className="transit-routes-grid">
+            {ganzourTransitRoutes.map((route) => (
+              <article key={route.id} className={`transit-route-card is-${route.tone}`}>
+                <div className="transit-route-head">
+                  <span className="transit-route-icon"><Bus size={18}/></span>
+                  <div>
+                    <h3>{route.title}</h3>
+                    <span className="transit-route-badge">{route.vehicleType}</span>
+                  </div>
+                </div>
+                <p className="transit-route-notes">{route.notes}</p>
+                <div className="transit-route-meta">
+                  <span><MapPin size={13}/> <strong>الموقف:</strong> {route.station}</span>
+                  <span><Clock size={13}/> <strong>المواعيد:</strong> {route.schedule}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title" style={!scoped ? { order: sectionOrderIndex("professionBanner", 5) } : undefined}><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
     </main></div>
-    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>دليل المهن والخدمات.. من أهل القرية لأهلها</span></div></div></div><nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button></nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
+    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
     {design.floatingWhatsappEnabled && (
       <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="floating-quick-whatsapp" aria-label="تواصل سريع مع الإدارة عبر واتساب">
         <MessageCircle size={20}/>
         <span>واتساب الإدارة</span>
       </a>
+    )}
+    {isAdmin && design.showAdminQuickEdit && (
+      <aside className="admin-homepage-quickbar" aria-label="شريط التعديل السريع للأدمن">
+        <span><ShieldCheck size={15}/> وضع الأدمن</span>
+        <Link href="/admin?tab=design"><Palette size={14}/> تخصيص المظهر</Link>
+        <Link href="/admin?tab=analytics"><Sparkles size={14}/> الإحصائيات</Link>
+      </aside>
+    )}
+    {design.mobileBottomNavEnabled && (
+      <nav className="mobile-bottom-app-nav" aria-label="شريط التنقل السريع للموبايل">
+        <button
+          type="button"
+          className={isHome && !isFiltering && !modal ? "is-active" : ""}
+          onClick={() => {
+            clearFilters();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
+          <Home size={19}/>
+          <span>الرئيسية</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            const input = document.getElementById("hero-search-input");
+            if (input) {
+              input.scrollIntoView({ behavior: "smooth", block: "center" });
+              setTimeout(() => input.focus(), 200);
+            } else {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+        >
+          <Search size={19}/>
+          <span>البحث</span>
+        </button>
+        <button
+          type="button"
+          className={modal === "duty" ? "is-active" : ""}
+          onClick={() => setModal("duty")}
+        >
+          <Stethoscope size={19}/>
+          <span>المناوبات</span>
+        </button>
+        <button
+          type="button"
+          className={`is-add-btn ${modal === "service" ? "is-active" : ""}`}
+          onClick={() => setModal("service")}
+        >
+          <CirclePlus size={19}/>
+          <span>أضف مهنتك</span>
+        </button>
+      </nav>
     )}
     {suggestions.length > 0 && <section className="container search-assistance" aria-label="مساعدة البحث"><div className="specialty-suggestions"><h3>ملقيناش نتيجة مطابقة. جرّب التخصصات دي</h3><p>فتح التخصص يعرض كل خدماته بدون فلاتر البحث الحالية.</p>{suggestions.map((item) => <Link className="button button-soft" key={item.id} href={`/categories/${item.parentId}/${item.id}`}>{item.name}</Link>)}</div></section>}
     {modal === "duty" && (
@@ -648,16 +794,21 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <span>تم إرسال الاستكمال للمراجعة</span>
           </button>
         )}
-        <button type="button" className={detailQr ? "is-open" : ""} aria-expanded={detailQr} onClick={() => { setDetailQr(true); setDetailUpdate(false); }}><QrCode size={17}/>رمز QR</button>
+        <button type="button" className={detailQr ? "is-open" : ""} aria-expanded={detailQr} onClick={() => { setDetailQr(true); setDetailUpdate(false); }}><QrCode size={17}/>بطاقة عمل و QR</button>
+        {isAdmin && design.showAdminQuickEdit && (
+          <Link href={`/admin?tab=directory&editService=${encodeURIComponent(detail.id)}`} className="button button-soft button-small">
+            <Pencil size={15}/> تعديل كأدمن
+          </Link>
+        )}
         {isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && (
           <button type="button" className={detailUpdate ? "is-open" : ""} aria-expanded={detailUpdate} onClick={() => { setDetailUpdate(true); setDetailQr(false); setUpdateMessage(""); }}><Pencil size={17}/>تحديث البيانات</button>
         )}
         <button type="button" className="detail-share detail-icon-only" onClick={() => void shareService(detail)} aria-label={`مشاركة ${detail.name}`} title="مشاركة"><Share2 size={18}/></button>
         <button type="button" className={`detail-favorite detail-icon-only ${favorites.includes(detail.id) ? "is-favorite" : ""}`} onClick={() => toggleFavorite(detail.id)} aria-pressed={favorites.includes(detail.id)} aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`} title={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}><Heart size={18} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/></button>
       </div>
-      <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer"><MessageCircle size={19}/>واتساب</a></div>
+      <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer" onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><MessageCircle size={19}/>واتساب</a></div>
     </div></Modal>}
-    {detail && detailQr && <Modal floating title="رمز QR للخدمة" subtitle={detail.name} onClose={() => setDetailQr(false)}><div className="detail-qr"><Image src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`${window.location.origin}${window.location.pathname}?service=${detail.id}`)}`} alt="رمز QR للخدمة" width={160} height={160} unoptimized/><span><QrCode size={16}/>امسح الرمز لفتح كارت الخدمة مباشرة</span><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailQr(false)}><X size={17}/>إغلاق</button></div></Modal>}
+    {detail && detailQr && <BusinessCardModal service={liveDetail ?? detail} category={getCategory(detail.category, categories)} siteName={settings.siteName} now={now} onClose={() => setDetailQr(false)}/>}
     {detail && detailUpdate && isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && <Modal floating title="تحديث البيانات" subtitle={`تحديث بيانات ${detail.name} — ستراجعها الإدارة`} onClose={() => setDetailUpdate(false)}><div className="detail-update"><h4>هل هذه بياناتك؟</h4><p>حدّث رقم الهاتف أو أضف ملاحظة وسيراجعها فريق الإدارة.</p><input value={updatePhone} onChange={(event) => setUpdatePhone(event.target.value)} placeholder="رقم الهاتف الصحيح" inputMode="tel"/><input value={updateNote} onChange={(event) => setUpdateNote(event.target.value)} placeholder="ملاحظة أو رقم إضافي"/><div className="detail-update-actions"><button type="button" className="button button-primary" onClick={() => void requestServiceUpdate()}>حدّثها الآن</button><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailUpdate(false)}><X size={17}/>إغلاق</button></div>{updateMessage && <small role="status">{updateMessage}</small>}</div></Modal>}
     {!scoped && neededServices.length > 0 && <section className="container search-assistance most-needed"><h2>الأكثر احتياجًا</h2><p>خدمات تختارها وترتبها الإدارة لاحتياجات أهل القرية، وليست ترتيبًا حسب المشاهدات.</p>{neededServices.map((service) => <button className="button button-soft" key={service.id} onClick={() => openDetail(service)}>{service.name} — {getCategory(service.category, categories).name}</button>)}</section>}
   </>;
@@ -678,6 +829,7 @@ type ProviderCardProps = {
   category: CategoryRecord;
   favorite: boolean;
   now: number;
+  showAdminQuickEdit?: boolean;
   onOpen: (service: ServiceRecord) => void;
   onOpenCompletion: (service: ServiceRecord) => void;
   onShare: (service: ServiceRecord) => void;
@@ -686,7 +838,7 @@ type ProviderCardProps = {
 // Card layout: 54px category icon, red name, blue specialty, five gold stars, blue address,
 // favourite above share on the left, and a light-blue call strip with the number and an "اتصال" button.
 // Tapping anywhere on the card — including that button — opens the details overlay; calling happens there only.
-function ProviderCard({ service, category, favorite, now, onOpen, onOpenCompletion, onShare, onToggleFavorite }: ProviderCardProps) {
+function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, onOpen, onOpenCompletion, onShare, onToggleFavorite }: ProviderCardProps) {
   const [copied, setCopied] = useState(false);
   const trustBadges = getServiceTrustBadges(service, now);
   const completionStatus = service.completionStatus ?? "none";
@@ -704,6 +856,17 @@ function ProviderCard({ service, category, favorite, now, onOpen, onOpenCompleti
       <div className="provider-card-side">
         <button type="button" className={`favorite-button ${favorite ? "is-favorite" : ""}`} onClick={(event) => { event.stopPropagation(); onToggleFavorite(service.id); }} aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`} aria-pressed={favorite}><Heart size={16} fill={favorite ? "currentColor" : "none"}/></button>
         <button type="button" className="provider-share-button" onClick={(event) => { event.stopPropagation(); onShare(service); }} aria-label={`مشاركة ${service.name}`} title="مشاركة"><Share2 size={15}/></button>
+        {showAdminQuickEdit && (
+          <Link
+            href={`/admin?tab=directory&editService=${encodeURIComponent(service.id)}`}
+            className="provider-admin-edit-btn"
+            onClick={(event) => event.stopPropagation()}
+            aria-label={`تعديل سريع لـ ${service.name} كأدمن`}
+            title="تعديل سريع كأدمن"
+          >
+            <Pencil size={14}/>
+          </Link>
+        )}
       </div>
     </div>
     {(completionStatus === "requested" || completionStatus === "rejected" || completionStatus === "submitted") && (

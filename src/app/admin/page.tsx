@@ -7,9 +7,9 @@ import { getAdminDirectory } from "@/lib/directory";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "لوحة الإدارة | دليل جنزور", robots: { index: false, follow: false } };
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; editService?: string }> }) {
   const viewer = await getViewer();
   if (viewer.role !== "admin" && viewer.role !== "moderator") redirect(viewer.role === "member" ? "/account" : "/login");
   const [data, query] = await Promise.all([getAdminDirectory(viewer.role), searchParams]);
-  return <AdminPanel initialData={data} initialTab={query.tab} username={viewer.username} role={viewer.role}/>;
+  return <AdminPanel initialData={data} initialTab={query.tab} initialEditService={query.editService} username={viewer.username} role={viewer.role}/>;
 }

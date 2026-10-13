@@ -7,29 +7,32 @@ import {
   AlignRight,
   ArrowDown,
   ArrowUp,
+  BookmarkPlus,
   Check,
   ChevronDown,
+  Download,
   Eye,
   Grid2X2,
   LayoutTemplate,
   LoaderCircle,
   LockKeyhole,
-  Megaphone,
   MessageCircle,
   Monitor,
   Palette,
   PhoneCall,
   RotateCcw,
-  Search,
   Smartphone,
   Sparkles,
   Square,
+  Trash2,
   Type,
+  Upload,
   UsersRound,
 } from "lucide-react";
 import {
   defaultDesignSettings,
   designThemePresets,
+  sanitizeDesignSettings,
   type DesignSettings,
 } from "@/lib/catalog";
 import { applyDesignSettingsToDocument } from "@/components/design-applicator";
@@ -37,12 +40,15 @@ import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
 
 type SectionFilter = "all" | "colors" | "typography" | "cards" | "buttons" | "layout" | "providers" | "header" | "auth";
+type SavedCustomPreset = { id: string; name: string; settings: DesignSettings };
+const CUSTOM_PRESETS_KEY = "janzour-custom-design-presets";
 
 const homeSectionsMeta: Record<string, { label: string; toggleKey: keyof DesignSettings }> = {
   hero: { label: "البانر الترحيبي والبحث الرئيسي", toggleKey: "showHero" },
   features: { label: "الكروت الثلاثة (المناوبات + أرقام تهمك + الخدمات السريعة)", toggleKey: "showFeatureCards" },
   featured: { label: "قسم مقدمو الخدمات المميزين", toggleKey: "showFeaturedSection" },
   categories: { label: "أقسام القرية والتخصصات", toggleKey: "showCategoriesSection" },
+  transit: { label: "دليل مواصلات وخطوط سير جنزور", toggleKey: "showTransitGuide" },
   professionBanner: { label: "بانر «أضف مهنتك» والطوارئ", toggleKey: "showAddProfessionBanner" },
 };
 
@@ -145,6 +151,19 @@ export default function DesignCustomizer({
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
+  const [savedPresets, setSavedPresets] = useState<SavedCustomPreset[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(CUSTOM_PRESETS_KEY);
+      if (!raw) return [];
+      const parsed: unknown = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as SavedCustomPreset[]) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [customPresetName, setCustomPresetName] = useState("");
+  const [presetMessage, setPresetMessage] = useState("");
 
   useEffect(() => {
     applyDesignSettingsToDocument(draft);
@@ -160,7 +179,83 @@ export default function DesignCustomizer({
       ...current,
       themePreset: presetKey,
       ...preset.colors,
+      ...(presetKey === "ramadan"
+        ? { seasonalRibbon: "ramadan" as const }
+        : presetKey === "eid"
+          ? { seasonalRibbon: "eid" as const }
+          : presetKey === "schools"
+            ? { seasonalRibbon: "schools" as const }
+            : presetKey === "winter-emergency"
+              ? { seasonalRibbon: "winter" as const }
+              : {}),
     }));
+  }
+
+  function saveCurrentAsCustomPreset() {
+    const name = customPresetName.trim() || `تصميم مخصص (${savedPresets.length + 1})`;
+    const entry: SavedCustomPreset = {
+      id: `preset-${Date.now()}`,
+      name,
+      settings: { ...draft },
+    };
+    const next = [entry, ...savedPresets].slice(0, 12);
+    setSavedPresets(next);
+    setCustomPresetName("");
+    setPresetMessage(`تم حفظ القالب «${name}» في قوالبك الخاصة.`);
+    try {
+      localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  function applySavedCustomPreset(entry: SavedCustomPreset) {
+    const clean = sanitizeDesignSettings(entry.settings);
+    setDraft(clean);
+    setPresetMessage(`تم تطبيق القالب المحفوظ «${entry.name}».`);
+  }
+
+  function deleteSavedCustomPreset(id: string) {
+    const next = savedPresets.filter((item) => item.id !== id);
+    setSavedPresets(next);
+    try {
+      localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  function exportDesignJson() {
+    try {
+      const blob = new Blob([JSON.stringify(draft, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "daleel-ganzour-theme.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      setPresetMessage("تم تصدير ملف إعدادات المظهر بنجاح.");
+    } catch {
+      setPresetMessage("تعذر تصدير الملف.");
+    }
+  }
+
+  function importDesignJson(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result ?? "{}"));
+        const clean = sanitizeDesignSettings(parsed);
+        setDraft(clean);
+        setPresetMessage("تم استيراد وتطبيق ملف إعدادات المظهر بنجاح.");
+      } catch {
+        setPresetMessage("الملف غير صالح لاستيراد إعدادات المظهر.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
   }
 
   function resetAll() {
@@ -349,7 +444,7 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.colors && (
               <div className="design-group-content">
-                <InnerDivider title="قوالب الألوان الجاهزة بضغطة واحدة" subtitle="اختر قالباً ليتم ملء جميع الألوان المتناسقة تلقائياً" />
+                <InnerDivider title="قوالب الألوان والثيمات الموسمية الجاهزة بضغطة واحدة" subtitle="اختر ثيماً عاماً أو ثيماً موسمياً (رمضان / العيد / المدارس / الشتاء) ليتم تطبيق ألوانه فوراً" />
                 <div className="design-presets-grid">
                   {(Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>).map((key) => {
                     const preset = designThemePresets[key];
@@ -361,17 +456,75 @@ export default function DesignCustomizer({
                         className={`design-preset-card ${isSelected ? "is-selected" : ""}`}
                         onClick={() => applyPreset(key)}
                       >
-                        <div className="design-preset-swatches">
-                          <span style={{ background: preset.colors.primaryColor }}/>
-                          <span style={{ background: preset.colors.modalHeaderBg }}/>
-                          <span style={{ background: preset.colors.buttonColor }}/>
-                          <span style={{ background: preset.colors.footerBgColor }}/>
+                        <div className="design-preset-top-row">
+                          <div className="design-preset-swatches">
+                            <span style={{ background: preset.colors.primaryColor }}/>
+                            <span style={{ background: preset.colors.modalHeaderBg }}/>
+                            <span style={{ background: preset.colors.buttonColor }}/>
+                            <span style={{ background: preset.colors.footerBgColor }}/>
+                          </div>
+                          {preset.badge && <span className="design-preset-season-badge">{preset.badge}</span>}
                         </div>
                         <strong>{preset.label}</strong>
                         <small>{preset.description}</small>
                       </button>
                     );
                   })}
+                </div>
+
+                <label className="field">
+                  شريط التهنئة والمواسم الاحتفالي الجاهز أعلى الموقع
+                  <SelectField value={draft.seasonalRibbon} onChange={(e) => updateField("seasonalRibbon", e.target.value as DesignSettings["seasonalRibbon"])}>
+                    <option value="none">بدون شريط موسمي (الافتراضي)</option>
+                    <option value="ramadan">🌙 شريط شهر رمضان المبارك (رمضان كريم على أهالي جنزور)</option>
+                    <option value="eid">🎉 شريط تهنئة العيد السعيد (عيدكم مبارك يا أهل جنزور)</option>
+                    <option value="schools">🎒 شريط موسم العودة للمدارس والدروس</option>
+                    <option value="winter">🌧️ شريط موسم الشتاء وأرقام الطوارئ السريعة</option>
+                  </SelectField>
+                </label>
+
+                <InnerDivider title="حفظ قوالب مظهر خاصة بك وتصدير / استيراد الإعدادات" subtitle="احفظ تصميمك الحالي باسم مخصص للرجوع إليه في أي وقت أو صدّره كملف" />
+                <div className="design-custom-presets-box">
+                  <div className="design-custom-preset-save-row">
+                    <input
+                      type="text"
+                      value={customPresetName}
+                      onChange={(e) => setCustomPresetName(e.target.value)}
+                      placeholder="اسم القالب الخاص بك (مثال: تصميم رمضان ٢٠٢٧)"
+                      maxLength={60}
+                    />
+                    <button type="button" className="button button-primary button-small" onClick={saveCurrentAsCustomPreset}>
+                      <BookmarkPlus size={15}/> حفظ كقالب خاص
+                    </button>
+                    <button type="button" className="button button-soft button-small" onClick={exportDesignJson}>
+                      <Download size={15}/> تصدير JSON
+                    </button>
+                    <label className="button button-soft button-small design-import-label">
+                      <Upload size={15}/> استيراد JSON
+                      <input type="file" accept=".json,application/json" onChange={importDesignJson} hidden />
+                    </label>
+                  </div>
+                  {presetMessage && <small className="design-preset-msg" role="status">{presetMessage}</small>}
+                  {savedPresets.length > 0 && (
+                    <div className="design-saved-presets-list">
+                      {savedPresets.map((item) => (
+                        <div key={item.id} className="design-saved-preset-chip">
+                          <button type="button" className="design-saved-preset-apply" onClick={() => applySavedCustomPreset(item)}>
+                            <span className="design-saved-dot" style={{ background: item.settings.primaryColor }} />
+                            <strong>{item.name}</strong>
+                          </button>
+                          <button
+                            type="button"
+                            className="design-saved-preset-del"
+                            onClick={() => deleteSavedCustomPreset(item.id)}
+                            aria-label={`حذف القالب ${item.name}`}
+                          >
+                            <Trash2 size={13}/>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <InnerDivider title="تخصيص الألوان الأساسية والخلفية" subtitle="اضغط على أي دائرة ملونة للاختيار السريع من الموبايل" />
@@ -784,6 +937,15 @@ export default function DesignCustomizer({
                     })}
                   </div>
                 </div>
+
+                <InnerDivider title="ميزات الموبايل والمجتمع اليومية" subtitle="تحكم في شريط الصلاة والطقس، شريط التنقل السفلي، تثبيت التطبيق، والتعديل السريع" />
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showPrayerWeatherBar} onChange={(e) => updateField("showPrayerWeatherBar", e.target.checked)}/>إظهار شريط مواقيت الصلاة والطقس في جنزور</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showTransitGuide} onChange={(e) => updateField("showTransitGuide", e.target.checked)}/>إظهار قسم «دليل المواصلات وخطوط السير بجنزور»</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.mobileBottomNavEnabled} onChange={(e) => updateField("mobileBottomNavEnabled", e.target.checked)}/>تفعيل شريط التنقل السفلي السريع للموبايل (App Bar)</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showInstallAppBanner} onChange={(e) => updateField("showInstallAppBanner", e.target.checked)}/>إظهار زر وبطاقة «تثبيت تطبيق دليل جنزور» على الهاتف</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showAdminQuickEdit} onChange={(e) => updateField("showAdminQuickEdit", e.target.checked)}/>إظهار زر «تعديل سريع كأدمن» على كروت الصفحة الرئيسية</label>
+                </div>
               </div>
             )}
           </section>
@@ -937,6 +1099,42 @@ export default function DesignCustomizer({
                   />
                 </label>
 
+                <InnerDivider title="تخصيص الفوتر وروابط القرية وإحصائيات الزوار" subtitle="عدّل نص وصف الفوتر وأضف رابط صفحة فيسبوك أو جروب واتساب القرية" />
+                <label className="field">
+                  نص الوصف أسفل اسم الموقع في الفوتر
+                  <input
+                    type="text"
+                    value={draft.footerDescription}
+                    onChange={(e) => updateField("footerDescription", e.target.value)}
+                    placeholder="دليل المهن والخدمات.. من أهل القرية لأهلها"
+                    maxLength={240}
+                  />
+                </label>
+
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    رابط صفحة أو جروب فيسبوك الرسمي للدليل (اختياري)
+                    <input
+                      type="url"
+                      dir="ltr"
+                      value={draft.footerFacebookUrl}
+                      onChange={(e) => updateField("footerFacebookUrl", e.target.value)}
+                      placeholder="https://facebook.com/..."
+                    />
+                  </label>
+
+                  <label className="field">
+                    رابط جروب أو قناة واتساب أهل جنزور (اختياري)
+                    <input
+                      type="url"
+                      dir="ltr"
+                      value={draft.footerWhatsappGroupUrl}
+                      onChange={(e) => updateField("footerWhatsappGroupUrl", e.target.value)}
+                      placeholder="https://chat.whatsapp.com/..."
+                    />
+                  </label>
+                </div>
+
                 <InnerDivider title="إظهار وإخفاء عناصر الهيدر والفوتر" />
                 <div className="design-toggles-grid">
                   <label className="checkbox-field"><input type="checkbox" checked={draft.headerSticky} onChange={(e) => updateField("headerSticky", e.target.checked)}/>تثبيت الهيدر أعلى الشاشة عند التمرير</label>
@@ -945,6 +1143,7 @@ export default function DesignCustomizer({
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderDarkToggle} onChange={(e) => updateField("showHeaderDarkToggle", e.target.checked)}/>إظهار زر الوضع الليلي في الهيدر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderLoginBtn} onChange={(e) => updateField("showHeaderLoginBtn", e.target.checked)}/>إظهار زر دخول الأعضاء في الهيدر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterWhatsapp} onChange={(e) => updateField("showFooterWhatsapp", e.target.checked)}/>إظهار زر واتساب الإدارة في الفوتر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterStats} onChange={(e) => updateField("showFooterStats", e.target.checked)}/>إظهار عداد إحصائيات الدليل للزوار في الفوتر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.floatingWhatsappEnabled} onChange={(e) => updateField("floatingWhatsappEnabled", e.target.checked)}/>إظهار زر واتساب عائم سريع على الموبايل</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.splashEnabled} onChange={(e) => updateField("splashEnabled", e.target.checked)}/>تفعيل شاشة البداية الترحيبية عند أول فتح</label>
                 </div>

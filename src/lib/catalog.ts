@@ -102,6 +102,196 @@ export function isAvailableNow(service: { availableNow: boolean; availableUntil?
   return service.availableNow && Boolean(service.availableUntil) && Date.parse(service.availableUntil!) > now;
 }
 
+export function isOpenByWorkingHours(workingHours: WorkingHours | undefined | null, now = Date.now()): boolean {
+  if (!Array.isArray(workingHours) || workingHours.length !== 7) return false;
+  const date = new Date(now);
+  const toMinutes = (time: string) => {
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time);
+    return match ? Number(match[1]) * 60 + Number(match[2]) : -1;
+  };
+  const dayIndex = date.getDay();
+  const minutesNow = date.getHours() * 60 + date.getMinutes();
+  const today = workingHours[dayIndex];
+  if (today && !today.closed) {
+    const opens = toMinutes(today.opens);
+    const closes = toMinutes(today.closes);
+    if (opens >= 0 && closes >= 0) {
+      if (opens < closes && minutesNow >= opens && minutesNow < closes) return true;
+      if (opens > closes && (minutesNow >= opens || minutesNow < closes)) return true;
+    }
+  }
+  const yesterday = workingHours[(dayIndex + 6) % 7];
+  if (yesterday && !yesterday.closed) {
+    const opens = toMinutes(yesterday.opens);
+    const closes = toMinutes(yesterday.closes);
+    if (opens > closes && closes >= 0 && minutesNow < closes) return true;
+  }
+  return false;
+}
+
+export function isServiceOpenOrAvailableNow(
+  service: Pick<ServiceRecord, "availableNow" | "availableUntil"> & { workingHours?: WorkingHours | null },
+  now = Date.now(),
+): boolean {
+  return isAvailableNow(service, now) || isOpenByWorkingHours(service.workingHours, now);
+}
+
+export type GanzourPrayerItem = {
+  id: "fajr" | "dhuhr" | "asr" | "maghrib" | "isha";
+  name: string;
+  time24: string;
+  time12: string;
+  minutes: number;
+};
+
+export type GanzourPrayerWeatherInfo = {
+  locationLabel: string;
+  dateLabel: string;
+  prayers: GanzourPrayerItem[];
+  nextPrayer: {
+    id: GanzourPrayerItem["id"];
+    name: string;
+    time12: string;
+    remainingText: string;
+  };
+  weather: {
+    tempC: number;
+    label: string;
+    period: "day" | "night";
+  };
+};
+
+export function getGanzourPrayerAndWeather(now = Date.now()): GanzourPrayerWeatherInfo {
+  const date = new Date(now);
+  const month = date.getMonth(); // 0..11
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  const currentMinutes = hour * 60 + minute;
+
+  // Seasonal offsets for Ganzour, Menoufia (approx. 30.62N, 31.04E)
+  const summerFactor = Math.sin(((month - 2) / 12) * Math.PI * 2); // peaks in May-July
+  const fajrMin = Math.round(275 - summerFactor * 48); // ~3:47 AM in summer, ~5:20 AM in winter
+  const dhuhrMin = Math.round(722 + summerFactor * 6); // ~12:02 PM
+  const asrMin = Math.round(935 + summerFactor * 22); // ~3:15 PM - 3:55 PM
+  const maghribMin = Math.round(1075 + summerFactor * 68); // ~4:55 PM in winter, ~7:00 PM in summer
+  const ishaMin = maghribMin + 82;
+
+  const fmt24 = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+  const fmt12 = (m: number) => {
+    const h24 = Math.floor(m / 60);
+    const mins = String(m % 60).padStart(2, "0");
+    const period = h24 >= 12 ? "م" : "ص";
+    const h12 = h24 % 12 || 12;
+    return `${h12}:${mins} ${period}`;
+  };
+
+  const prayers: GanzourPrayerItem[] = [
+    { id: "fajr", name: "الفجر", time24: fmt24(fajrMin), time12: fmt12(fajrMin), minutes: fajrMin },
+    { id: "dhuhr", name: "الظهر", time24: fmt24(dhuhrMin), time12: fmt12(dhuhrMin), minutes: dhuhrMin },
+    { id: "asr", name: "العصر", time24: fmt24(asrMin), time12: fmt12(asrMin), minutes: asrMin },
+    { id: "maghrib", name: "المغرب", time24: fmt24(maghribMin), time12: fmt12(maghribMin), minutes: maghribMin },
+    { id: "isha", name: "العشاء", time24: fmt24(ishaMin), time12: fmt12(ishaMin), minutes: ishaMin },
+  ];
+
+  const upcoming = prayers.find((item) => item.minutes > currentMinutes) ?? prayers[0];
+  const diffMinutes = upcoming.minutes > currentMinutes
+    ? upcoming.minutes - currentMinutes
+    : 24 * 60 - currentMinutes + upcoming.minutes;
+  const remHours = Math.floor(diffMinutes / 60);
+  const remMins = diffMinutes % 60;
+  const remainingText = remHours > 0
+    ? `متبقي ${remHours} س و ${remMins} د`
+    : `متبقي ${remMins} دقيقة`;
+
+  // Realistic seasonal temperature for Ganzour, Menoufia
+  const baseTemps = [18, 19, 23, 27, 32, 35, 36, 35, 33, 29, 24, 19];
+  const baseTemp = baseTemps[month] ?? 26;
+  const diurnalDelta = hour >= 12 && hour <= 16 ? 2 : hour >= 7 && hour < 12 ? 0 : -5;
+  const tempC = baseTemp + diurnalDelta;
+  const isNight = hour >= 18 || hour < 6;
+  const weatherLabel = isNight
+    ? tempC <= 17 ? "أجواء باردة ليلاً في جنزور" : "أجواء ليلية لطيفة في جنزور"
+    : tempC >= 33 ? "مشمس وحار نهاراً في جنزور" : "أجواء صافية ومعتدلة في جنزور";
+
+  let dateLabel = "";
+  try {
+    dateLabel = date.toLocaleDateString("ar-EG", { weekday: "long", day: "numeric", month: "long" });
+  } catch {
+    dateLabel = "اليوم في جنزور";
+  }
+
+  return {
+    locationLabel: "قرية جنزور • المنوفية",
+    dateLabel,
+    prayers,
+    nextPrayer: {
+      id: upcoming.id,
+      name: upcoming.name,
+      time12: upcoming.time12,
+      remainingText,
+    },
+    weather: {
+      tempC,
+      label: weatherLabel,
+      period: isNight ? "night" : "day",
+    },
+  };
+}
+
+export type GanzourTransitRoute = {
+  id: string;
+  title: string;
+  fromTo: string;
+  station: string;
+  schedule: string;
+  vehicleType: string;
+  notes: string;
+  tone: "blue" | "emerald" | "amber" | "purple";
+};
+
+export const ganzourTransitRoutes: GanzourTransitRoute[] = [
+  {
+    id: "shibin",
+    title: "خط جنزور ↔ شبين الكوم",
+    fromTo: "جنزور ⇄ شبين الكوم",
+    station: "الموقف الرئيسي بمدخل جنزور / موقف شبين",
+    schedule: "يومياً من ٦:٠٠ صباحاً حتى ١١:٠٠ مساءً",
+    vehicleType: "ميكروباص وسرفيس",
+    notes: "يربط قرية جنزور بمصالح ومستشفيات وجامعة شبين الكوم مباشرة.",
+    tone: "blue",
+  },
+  {
+    id: "berket-elsabaa",
+    title: "خط جنزور ↔ بركة السبع",
+    fromTo: "جنزور ⇄ بركة السبع",
+    station: "مدخل جنزور / موقف بركة السبع",
+    schedule: "يومياً من ٦:٠٠ صباحاً حتى ١١:٣٠ مساءً",
+    vehicleType: "ميكروباص مستمر",
+    notes: "وصول سريع لمركز بركة السبع ومحطة القطار والمستشفى المركزي والبنوك.",
+    tone: "emerald",
+  },
+  {
+    id: "tanta",
+    title: "خط جنزور ↔ طنطا",
+    fromTo: "جنزور ⇄ طنطا",
+    station: "الطريق الزراعي / موقف بركة السبع",
+    schedule: "يومياً من ٦:٠٠ صباحاً حتى ١٠:٣٠ مساءً",
+    vehicleType: "ميكروباص وسرفيس",
+    notes: "للوصول السريع إلى جامعة ومستشفيات وأسواق مدينة طنطا.",
+    tone: "amber",
+  },
+  {
+    id: "cairo",
+    title: "خط جنزور ↔ القاهرة الكبرى",
+    fromTo: "جنزور ⇄ المؤسسة / عبود / السلام",
+    station: "عبر موقف بركة السبع أو شبين الكوم",
+    schedule: "يومياً من ٥:٠٠ فجراً حتى ١٠:٠٠ مساءً",
+    vehicleType: "ميكروباص الخط السريع والقطارات",
+    notes: "خطوط منتظمة للقاهرة الكبرى عبر الطريق الزراعي أو محطة قطار بركة السبع.",
+    tone: "purple",
+  },
+];
+
 // Only an explicit activation renews availability; editing other fields preserves the deadline.
 export function availabilityUpdate(action: unknown, current: { availableNow: boolean; availableUntil: Date | null }, now = Date.now()) {
   if (action === undefined || action === "keep") return current;
@@ -427,9 +617,21 @@ export type SiteSettings = {
   phone: string; showEmergency: boolean;
   whatsappAlertsNumber: string; whatsappAlertsApiKey: string;
 };
+export type DesignThemePresetId =
+  | "classic-blue"
+  | "emerald"
+  | "royal-navy"
+  | "warm-gold"
+  | "festive"
+  | "ramadan"
+  | "eid"
+  | "schools"
+  | "winter-emergency"
+  | "custom";
+
 export type DesignSettings = {
   // 1. Themes & Colors
-  themePreset: "classic-blue" | "emerald" | "royal-navy" | "warm-gold" | "festive" | "custom";
+  themePreset: DesignThemePresetId;
   primaryColor: string;
   pageBgColor: string;
   modalHeaderBg: string;
@@ -504,6 +706,17 @@ export type DesignSettings = {
   cardHoverEffect: "lift" | "glow" | "scale" | "none";
   sectionDividerStyle: "none" | "line" | "dots" | "gradient";
   floatingWhatsappEnabled: boolean;
+  // 9. Seasonal Ribbon, Footer & Social Customizer, Mobile Bottom Nav & Community Widgets
+  seasonalRibbon: "none" | "ramadan" | "eid" | "schools" | "winter";
+  footerDescription: string;
+  footerFacebookUrl: string;
+  footerWhatsappGroupUrl: string;
+  showFooterStats: boolean;
+  mobileBottomNavEnabled: boolean;
+  showPrayerWeatherBar: boolean;
+  showTransitGuide: boolean;
+  showInstallAppBanner: boolean;
+  showAdminQuickEdit: boolean;
 };
 
 export const defaultDesignSettings: DesignSettings = {
@@ -533,7 +746,7 @@ export const defaultDesignSettings: DesignSettings = {
   iconPosition: "top-center",
   mobileColumns: "2",
   desktopColumns: "4",
-  sectionOrder: "hero,features,featured,categories,professionBanner",
+  sectionOrder: "hero,features,featured,categories,transit,professionBanner",
   showHero: true,
   showFeatureCards: true,
   showFeaturedSection: true,
@@ -575,9 +788,19 @@ export const defaultDesignSettings: DesignSettings = {
   cardHoverEffect: "lift",
   sectionDividerStyle: "none",
   floatingWhatsappEnabled: false,
+  seasonalRibbon: "none",
+  footerDescription: "دليل المهن والخدمات.. من أهل القرية لأهلها",
+  footerFacebookUrl: "",
+  footerWhatsappGroupUrl: "",
+  showFooterStats: true,
+  mobileBottomNavEnabled: true,
+  showPrayerWeatherBar: true,
+  showTransitGuide: true,
+  showInstallAppBanner: true,
+  showAdminQuickEdit: true,
 };
 
-export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
+export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; badge?: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
   "classic-blue": {
     label: "أزرق جنزور الكلاسيكي",
     description: "الهوية الافتراضية المريحة للعين بتدرجات السماوي والأزرق",
@@ -599,9 +822,33 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     colors: { primaryColor: "#b45309", pageBgColor: "#faf7f2", modalHeaderBg: "#fde6c4", buttonColor: "#c2610c", borderColor: "#eadbc8", cardBgColor: "#ffffff", headerBgColor: "#fffdf9", footerBgColor: "#271a0c" },
   },
   festive: {
-    label: "ثيم المناسبات والمواسم",
-    description: "طابع احتفالي مميز للأعياد والمناسبات وشهر رمضان",
+    label: "ثيم المناسبات العام",
+    description: "طابع احتفالي مميز للأعياد والمناسبات العامة",
     colors: { primaryColor: "#6d28d9", pageBgColor: "#f6f4fb", modalHeaderBg: "#e9d5ff", buttonColor: "#7c3aed", borderColor: "#ddd6fe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1e1035" },
+  },
+  ramadan: {
+    label: "🌙 ثيم شهر رمضان المبارك",
+    badge: "موسمي",
+    description: "ألوان الكحلي الرمضاني والذهبي الدافئ مع أجواء روحانية لأهل جنزور",
+    colors: { primaryColor: "#b45309", pageBgColor: "#fbf8f1", modalHeaderBg: "#fef3c7", buttonColor: "#0f3d5e", borderColor: "#e8dcc4", cardBgColor: "#ffffff", headerBgColor: "#fffdf8", footerBgColor: "#0c1f33" },
+  },
+  eid: {
+    label: "🎉 ثيم العيد والفرحة",
+    badge: "موسمي",
+    description: "ألوان الفيروزي المشرق والبهجة لاحتفالات عيد الفطر وعيد الأضحى",
+    colors: { primaryColor: "#0d9488", pageBgColor: "#f0fdf9", modalHeaderBg: "#ccfbf1", buttonColor: "#0f766e", borderColor: "#b9ece3", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#112a28" },
+  },
+  schools: {
+    label: "🎒 ثيم العودة للمدارس",
+    badge: "موسمي",
+    description: "طابع تعليمي نشط يبرز قسم المدرسين والمكتبات والخدمات التعليمية",
+    colors: { primaryColor: "#2563eb", pageBgColor: "#f4f7ff", modalHeaderBg: "#dbeafe", buttonColor: "#d97706", borderColor: "#d4e0f7", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#172554" },
+  },
+  "winter-emergency": {
+    label: "🌧️ ثيم الطوارئ والشتاء",
+    badge: "موسمي",
+    description: "تباين عالٍ وواضح يبرز أرقام الطوارئ والصيدليات والخدمات العاجلة",
+    colors: { primaryColor: "#0369a1", pageBgColor: "#f0f6fa", modalHeaderBg: "#bae6fd", buttonColor: "#dc2626", borderColor: "#c5d9e8", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#082032" },
   },
 };
 
@@ -619,7 +866,11 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
     return trimmed || allowEmpty ? trimmed : fallback;
   };
 
-  next.themePreset = pickEnum(record.themePreset, ["classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "custom"] as const, defaultDesignSettings.themePreset);
+  next.themePreset = pickEnum(
+    record.themePreset,
+    ["classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "custom"] as const,
+    defaultDesignSettings.themePreset,
+  );
   next.primaryColor = hexColor(record.primaryColor, defaultDesignSettings.primaryColor);
   next.pageBgColor = hexColor(record.pageBgColor, defaultDesignSettings.pageBgColor);
   next.modalHeaderBg = hexColor(record.modalHeaderBg, defaultDesignSettings.modalHeaderBg);
@@ -694,6 +945,17 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.cardHoverEffect = pickEnum(record.cardHoverEffect, ["lift", "glow", "scale", "none"] as const, defaultDesignSettings.cardHoverEffect);
   next.sectionDividerStyle = pickEnum(record.sectionDividerStyle, ["none", "line", "dots", "gradient"] as const, defaultDesignSettings.sectionDividerStyle);
   next.floatingWhatsappEnabled = pickBool(record.floatingWhatsappEnabled, defaultDesignSettings.floatingWhatsappEnabled);
+
+  next.seasonalRibbon = pickEnum(record.seasonalRibbon, ["none", "ramadan", "eid", "schools", "winter"] as const, defaultDesignSettings.seasonalRibbon);
+  next.footerDescription = pickText(record.footerDescription, defaultDesignSettings.footerDescription, 260, true);
+  next.footerFacebookUrl = pickText(record.footerFacebookUrl, defaultDesignSettings.footerFacebookUrl, 300, true);
+  next.footerWhatsappGroupUrl = pickText(record.footerWhatsappGroupUrl, defaultDesignSettings.footerWhatsappGroupUrl, 300, true);
+  next.showFooterStats = pickBool(record.showFooterStats, defaultDesignSettings.showFooterStats);
+  next.mobileBottomNavEnabled = pickBool(record.mobileBottomNavEnabled, defaultDesignSettings.mobileBottomNavEnabled);
+  next.showPrayerWeatherBar = pickBool(record.showPrayerWeatherBar, defaultDesignSettings.showPrayerWeatherBar);
+  next.showTransitGuide = pickBool(record.showTransitGuide, defaultDesignSettings.showTransitGuide);
+  next.showInstallAppBanner = pickBool(record.showInstallAppBanner, defaultDesignSettings.showInstallAppBanner);
+  next.showAdminQuickEdit = pickBool(record.showAdminQuickEdit, defaultDesignSettings.showAdminQuickEdit);
 
   return next;
 }
