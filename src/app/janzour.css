@@ -9798,3 +9798,124 @@ html.dark .app-info-footer a { color: #9fd2ff; }
   .app-info-features { grid-template-columns: 1fr; }
   .app-info-actions { grid-template-columns: 1fr; }
 }
+
+/* =========================================================================
+   26. زر «عن التطبيق» العائم + توحيد حجم زرّي البحث وأضف مهنتك + توسيط عبارة الفوتر
+   ========================================================================= */
+.floating-about-fab {
+  position: fixed;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  inset-inline-end: 18px;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+}
+.floating-about-fab-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 46px;
+  padding: 10px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2f80ed 0%, #0b56c4 60%, #083a86 100%);
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(11, 86, 196, 0.38);
+  animation: aboutFabGlow 2.8s ease-in-out infinite;
+  transition: transform 0.18s ease;
+}
+.floating-about-fab-main:hover { transform: translateY(-2px); }
+.floating-about-fab-close {
+  position: absolute;
+  top: -7px;
+  inset-inline-start: -7px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #e11d48;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.floating-about-fab-close:hover { background: #be123c; }
+@keyframes aboutFabGlow { 0%, 100% { box-shadow: 0 10px 24px rgba(11, 86, 196, 0.38), 0 0 0 0 rgba(47, 128, 237, 0.45); } 50% { box-shadow: 0 10px 24px rgba(11, 86, 196, 0.38), 0 0 0 9px rgba(47, 128, 237, 0); } }
+@media (max-width: 480px) {
+  .floating-about-fab-main span { display: none; }
+  .floating-about-fab-main { width: 48px; height: 48px; padding: 0; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .floating-about-fab-main { animation: none; } }
+
+/* زرّا البحث وأضف مهنتك بنفس الحجم داخل الإطار */
+.categories-top-action-frame {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 520px;
+  padding: 12px 14px;
+}
+.categories-top-action-frame .search-icon-only-trigger-btn,
+.categories-top-action-frame .compact-add-service-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  padding: 0 14px !important;
+  border-radius: 16px !important;
+  font-size: 1.02rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.categories-top-action-frame .search-icon-only-trigger-btn {
+  border: 2px solid #0284c7;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+  box-shadow: 0 8px 18px rgba(2, 132, 199, 0.28);
+}
+.categories-top-action-frame .search-icon-only-trigger-btn svg,
+.categories-top-action-frame .compact-add-service-btn svg { flex: none; width: 22px; height: 22px; }
+.categories-top-action-frame .compact-add-service-btn {
+  border: 2px solid #0d9b5a !important;
+  background: linear-gradient(135deg, #22c55e 0%, #0b7a37 100%) !important;
+  box-shadow: 0 8px 18px rgba(16, 185, 129, 0.28) !important;
+}
+@media (max-width: 380px) {
+  .categories-top-action-frame { gap: 8px; padding: 10px; }
+  .categories-top-action-frame .search-icon-only-trigger-btn,
+  .categories-top-action-frame .compact-add-service-btn { height: 50px !important; min-height: 50px !important; font-size: 0.94rem !important; padding: 0 8px !important; }
+}
+
+/* توسيط عبارة «جنزور في مكان واحد» والسطر الذي تحتها في الفوتر */
+.site-footer .footer-main {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+.site-footer .footer-brand-group {
+  justify-self: center !important;
+  justify-content: center !important;
+  flex-direction: column;
+  width: 100%;
+  text-align: center;
+}
+.site-footer .footer-brand-lockup { justify-content: center; width: 100%; }
+.site-footer .footer-brand-copy { width: 100%; justify-items: center; text-align: center; }
+.site-footer .footer-brand-copy strong { font-size: 17px; }
+.site-footer .footer-brand-copy span { max-width: 560px; font-size: 12px; line-height: 1.8; }
+.site-footer .footer-main nav { justify-self: center !important; justify-content: center !important; width: 100%; }
+.site-footer .footer-stats-strip { justify-content: center; width: auto; margin-inline: auto; }
+.site-footer .footer-copyright { width: 100%; }
+.site-footer .footer-whatsapp { margin-inline: auto; }
