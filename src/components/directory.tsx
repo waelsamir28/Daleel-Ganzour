@@ -1121,47 +1121,48 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         />
       </Modal>
     )}
-    {detail && <Modal floating title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details">
-      <div className="detail-hero" style={categoryTheme(getCategory(detail.category, categories))}>
-        <ServiceArt category={detail.category} item={getCategory(detail.category, categories)}/>
-        <div className="detail-name-colored-box">
-          <div className="detail-name-box-top">
-            <div className="detail-name-box-copy">
-              <h3>{detail.name}</h3>
-              <span className="detail-hero-category"><CategoryIcon icon={getCategory(detail.category, categories).icon} size={14}/>{getCategory(detail.category, categories).name}</span>
-            </div>
-            <div className="detail-name-left-actions" role="group" aria-label="المشاركة والمفضلة">
-              <button
-                type="button"
-                className="detail-header-icon-btn is-share"
-                onClick={() => void shareService(detail)}
-                aria-label={`مشاركة ${detail.name}`}
-                title="مشاركة الصفحة"
-              >
-                <Share2 size={17}/>
-              </button>
-              <button
-                type="button"
-                className={`detail-header-icon-btn is-favorite ${favorites.includes(detail.id) ? "is-active" : ""}`}
-                onClick={() => toggleFavorite(detail.id)}
-                aria-pressed={favorites.includes(detail.id)}
-                aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`}
-                title={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-              >
-                <Heart size={17} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/>
-              </button>
+    {detail && <Modal floating title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details detail-v2">
+      <header className="detail-v2-hero" style={categoryTheme(getCategory(detail.category, categories))}>
+        <span className="detail-v2-hero-glow" aria-hidden="true"/>
+        <div className="detail-v2-hero-row">
+          <span className="detail-v2-avatar" aria-hidden="true">
+            <ServiceArt category={detail.category} item={getCategory(detail.category, categories)}/>
+          </span>
+          <div className="detail-v2-identity">
+            <h3>{detail.name}</h3>
+            <span className="detail-v2-specialty">
+              <CategoryIcon icon={getCategory(detail.category, categories).icon} size={13}/>
+              {getCategory(detail.category, categories).name}
+            </span>
+            <div className="detail-v2-stars">
+              <ProviderRating value={detail.rating} reviews={detail.reviews}/>
             </div>
           </div>
-          <div className="detail-name-box-rating">
-            <ProviderRating value={detail.rating} reviews={detail.reviews}/>
+          <div className="detail-v2-side-actions" role="group" aria-label="المشاركة والمفضلة">
+            <button
+              type="button"
+              className="detail-v2-icon-btn is-share"
+              onClick={() => void shareService(detail)}
+              aria-label={`مشاركة ${detail.name}`}
+              title="مشاركة الصفحة"
+            >
+              <Share2 size={17}/>
+            </button>
+            <button
+              type="button"
+              className={`detail-v2-icon-btn is-favorite ${favorites.includes(detail.id) ? "is-active" : ""}`}
+              onClick={() => toggleFavorite(detail.id)}
+              aria-pressed={favorites.includes(detail.id)}
+              aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`}
+              title={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+            >
+              <Heart size={17} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/>
+            </button>
           </div>
         </div>
-      </div>
-
-      <div className="detail-badges-fold-wrap">
         <button
           type="button"
-          className={`detail-badges-fold-btn ${detailBadgesOpen ? "is-open" : ""}`}
+          className={`detail-v2-badges-toggle ${detailBadgesOpen ? "is-open" : ""}`}
           aria-expanded={detailBadgesOpen}
           onClick={() => setDetailBadgesOpen((open) => !open)}
           title={detailBadgesOpen ? "طي الأوسمة والشارات" : "عرض الأوسمة والشارات"}
@@ -1170,31 +1171,45 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <span>{detailBadgesOpen ? "إخفاء الأوسمة" : "عرض الأوسمة والشارات"}</span>
           {detailBadgesOpen ? <ChevronUp size={15}/> : <ChevronDown size={15}/>}
         </button>
-        {detailBadgesOpen && (
-          <div className="details-badges">
-            {detail.verified && <span className="detail-verified"><ShieldCheck size={14}/>تم التحقق بالمعاينة</span>}
-            {liveDetail && now > 0 && isAvailableNow(liveDetail, now) && <span className="detail-open"><span/>متاح الآن</span>}
-            {supportsHomeDelivery(liveDetail ?? detail) && <span className="detail-delivery"><Truck size={14}/>🛵 يوجد توصيل للمنازل</span>}
-            {getCategory(detail.category, categories).parentId === "teachers" && getTeacherStagesForService(liveDetail ?? detail).map((stage) => <span key={stage.id} className="detail-stage-badge"><GraduationCap size={14}/>{stage.label}</span>)}
-            {detail.emergency && <span className="detail-emergency"><Siren size={14}/>متاح للطوارئ</span>}
-            {detail.featured && <span className="detail-featured"><Crown size={14}/>خدمة مميزة</span>}
-            {isTopRated(detail) && <span className="detail-toprated"><Medal size={14}/>الأعلى تقييمًا</span>}
-            {isNewService(detail) && <span className="detail-new"><Sparkles size={14}/>جديد</span>}
-            {getServiceTrustBadges(liveDetail ?? detail, now).map((badge) => <span key={badge.id} className={`detail-trust-badge is-${badge.tone}`}><Award size={14}/>{badge.label}</span>)}
+      </header>
+      {detailBadgesOpen && (
+        <div className="details-badges detail-v2-badges">
+          {detail.verified && <span className="detail-verified"><ShieldCheck size={14}/>تم التحقق بالمعاينة</span>}
+          {liveDetail && now > 0 && isAvailableNow(liveDetail, now) && <span className="detail-open"><span/>متاح الآن</span>}
+          {supportsHomeDelivery(liveDetail ?? detail) && <span className="detail-delivery"><Truck size={14}/>🛵 يوجد توصيل للمنازل</span>}
+          {getCategory(detail.category, categories).parentId === "teachers" && getTeacherStagesForService(liveDetail ?? detail).map((stage) => <span key={stage.id} className="detail-stage-badge"><GraduationCap size={14}/>{stage.label}</span>)}
+          {detail.emergency && <span className="detail-emergency"><Siren size={14}/>متاح للطوارئ</span>}
+          {detail.featured && <span className="detail-featured"><Crown size={14}/>خدمة مميزة</span>}
+          {isTopRated(detail) && <span className="detail-toprated"><Medal size={14}/>الأعلى تقييمًا</span>}
+          {isNewService(detail) && <span className="detail-new"><Sparkles size={14}/>جديد</span>}
+          {getServiceTrustBadges(liveDetail ?? detail, now).map((badge) => <span key={badge.id} className={`detail-trust-badge is-${badge.tone}`}><Award size={14}/>{badge.label}</span>)}
+        </div>
+      )}
+
+      {detail.demo && <div className="form-notice notice-amber"><span>هذه بطاقة تجريبية لتوضيح شكل الدليل، وليست بيانات مقدم خدمة حقيقي.</span></div>}
+      <div className="detail-v2-facts" role="list">
+        <div className="detail-v2-fact" role="listitem">
+          <span className="detail-v2-fact-icon is-spec"><CategoryIcon icon={getCategory(detail.category, categories).icon} size={17}/></span>
+          <div><small>التخصص</small><strong>{getCategory(detail.category, categories).name}</strong></div>
+        </div>
+        <div className="detail-v2-fact" role="listitem">
+          <span className="detail-v2-fact-icon is-place"><MapPin size={17}/></span>
+          <div><small>العنوان</small><strong>{detail.address || detail.area}</strong></div>
+        </div>
+        <div className="detail-v2-fact" role="listitem">
+          <span className="detail-v2-fact-icon is-phone"><Phone size={17}/></span>
+          <div><small>الهاتف</small><strong dir="ltr">{detail.phone}</strong></div>
+        </div>
+        {detail.phoneSecondary && (
+          <div className="detail-v2-fact" role="listitem">
+            <span className="detail-v2-fact-icon is-phone"><PhoneCall size={17}/></span>
+            <div><small>هاتف إضافي</small><strong dir="ltr">{detail.phoneSecondary}</strong></div>
           </div>
         )}
       </div>
-
-      {detail.demo && <div className="form-notice notice-amber"><span>هذه بطاقة تجريبية لتوضيح شكل الدليل، وليست بيانات مقدم خدمة حقيقي.</span></div>}
-      <dl className="detail-data">
-        <div><dt>التخصص</dt><dd>{getCategory(detail.category, categories).name}</dd></div>
-        <div><dt>العنوان</dt><dd><MapPin size={14}/>{detail.address || detail.area}</dd></div>
-        <div><dt>الهاتف</dt><dd dir="ltr">{detail.phone}</dd></div>
-        {detail.phoneSecondary && <div><dt>هاتف إضافي</dt><dd dir="ltr">{detail.phoneSecondary}</dd></div>}
-      </dl>
       {detail.menuUrl && <a className="button button-soft detail-menu-button" href={detail.menuUrl} target="_blank" rel="noopener noreferrer">عرض المنيو</a>}
 
-      <div className="detail-popup-icons-bar" role="group" aria-label="نوافذ التقييم ومواعيد العيادة">
+      <div className="detail-popup-icons-bar detail-v2-triggers" role="group" aria-label="نوافذ التقييم ومواعيد العيادة">
         {getCategory(detail.category, categories).parentId === "clinics" && (
           <button
             type="button"
@@ -1333,7 +1348,45 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <button type="button" className={detailUpdate ? "is-open" : ""} aria-expanded={detailUpdate} onClick={() => { setDetailUpdate(true); setDetailQr(false); setUpdateMessage(""); }}><Pencil size={17}/>تحديث البيانات</button>
         )}
       </div>
-      <div className="detail-actions"><a className="button button-primary" href={`tel:${detail.phone}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/>اتصل الآن</a>{detail.phoneSecondary && <a className="button button-soft" href={`tel:${detail.phoneSecondary}`} onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><Phone size={18}/><span dir="ltr">{detail.phoneSecondary}</span></a>}<a className="button button-whatsapp" href={whatsappUrl(detail.phone, design.whatsappDefaultGreeting || "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")} target="_blank" rel="noopener noreferrer" onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}><MessageCircle size={19}/>واتساب</a></div>
+      <div className="detail-actions detail-v2-actions">
+        <a
+          className="detail-v2-cta is-call"
+          href={`tel:${detail.phone}`}
+          onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+        >
+          <span className="detail-v2-cta-icon"><PhoneCall size={20}/></span>
+          <span className="detail-v2-cta-copy">
+            <strong>اتصل الآن</strong>
+            <small dir="ltr">{detail.phone}</small>
+          </span>
+        </a>
+        <a
+          className="detail-v2-cta is-whatsapp"
+          href={whatsappUrl(detail.phone, design.whatsappDefaultGreeting || "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+        >
+          <span className="detail-v2-cta-icon"><MessageCircle size={20}/></span>
+          <span className="detail-v2-cta-copy">
+            <strong>واتساب</strong>
+            <small>راسله مباشرة الآن</small>
+          </span>
+        </a>
+        {detail.phoneSecondary && (
+          <a
+            className="detail-v2-cta is-secondary"
+            href={`tel:${detail.phoneSecondary}`}
+            onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+          >
+            <span className="detail-v2-cta-icon"><Phone size={18}/></span>
+            <span className="detail-v2-cta-copy">
+              <strong>رقم إضافي</strong>
+              <small dir="ltr">{detail.phoneSecondary}</small>
+            </span>
+          </a>
+        )}
+      </div>
     </div></Modal>}
     {detail && detailClinicOpen && (() => {
       const currentDoc = liveDetail ?? detail;
@@ -1692,28 +1745,37 @@ function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, on
           )}
         </div>
       </div>
-      <div className="provider-call-strip provider-dual-actions-strip">
+      <div className="provider-action-dock" role="group" aria-label="طرق التواصل — تفتح صفحة مقدم الخدمة">
         <button
           type="button"
-          className="provider-call-button provider-open-detail-call"
+          className="provider-dock-btn provider-open-detail-call is-call"
           onClick={(event) => {
             event.stopPropagation();
             onOpen(service);
           }}
+          aria-label={`اتصال بـ ${service.name} — عرض صفحة مقدم الخدمة`}
         >
-          <PhoneCall size={15}/>
-          <span>اتصال</span>
+          <span className="provider-dock-icon"><PhoneCall size={16}/></span>
+          <span className="provider-dock-copy">
+            <strong>اتصال</strong>
+            <small>عرض الرقم والتفاصيل</small>
+          </span>
         </button>
+        <span className="provider-dock-divider" aria-hidden="true"/>
         <button
           type="button"
-          className="provider-whatsapp-button provider-open-detail-wa"
+          className="provider-dock-btn provider-open-detail-wa is-whatsapp"
           onClick={(event) => {
             event.stopPropagation();
             onOpen(service);
           }}
+          aria-label={`واتساب ${service.name} — عرض صفحة مقدم الخدمة`}
         >
-          <MessageCircle size={15}/>
-          <span>واتساب</span>
+          <span className="provider-dock-icon"><MessageCircle size={16}/></span>
+          <span className="provider-dock-copy">
+            <strong>واتساب</strong>
+            <small>راسله من صفحته</small>
+          </span>
         </button>
       </div>
     </article>
