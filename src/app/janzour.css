@@ -9919,3 +9919,103 @@ html.dark .app-info-footer a { color: #9fd2ff; }
 .site-footer .footer-stats-strip { justify-content: center; width: auto; margin-inline: auto; }
 .site-footer .footer-copyright { width: 100%; }
 .site-footer .footer-whatsapp { margin-inline: auto; }
+
+/* =========================================================================
+   27. برواز عناوين الأقسام الافتراضي الجديد «clean»: بطاقة بيضاء أنيقة متناسقة مع كروت التطبيق
+       + إزالة الخطوط الزرقاء الصغيرة الزائدة من كل براويز العناوين
+   ========================================================================= */
+.directory-section-heading::before,
+.directory-section-heading::after,
+.directory-section-heading h2::after,
+.directory-section-heading h2:after { display: none !important; content: none !important; }
+.directory-section-heading h2 { padding-bottom: 0 !important; }
+
+html[data-design-heading-style="clean"] .directory-section-heading,
+html:not([data-design-heading-style]) .directory-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  border: 1.5px solid #dbe7f3;
+  background: #ffffff;
+  box-shadow: 0 10px 26px -20px rgba(15, 48, 92, 0.45);
+  overflow: visible;
+}
+html[data-design-heading-style="clean"] .directory-section-heading h2,
+html:not([data-design-heading-style]) .directory-section-heading h2 {
+  width: auto !important;
+  max-width: 100%;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #0f2f55 !important;
+  font-size: 1.12rem;
+  font-weight: 900;
+  gap: 11px;
+}
+html[data-design-heading-style="clean"] .directory-section-heading h2 > svg,
+html:not([data-design-heading-style]) .directory-section-heading h2 > svg {
+  width: 42px !important;
+  height: 42px !important;
+  padding: 10px !important;
+  border: 0 !important;
+  border-radius: 13px !important;
+  background: linear-gradient(145deg, #2f80ed, #0b56c4) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 14px -8px rgba(11, 86, 196, 0.7);
+}
+html[data-design-heading-style="clean"] .directory-section-heading p,
+html:not([data-design-heading-style]) .directory-section-heading p {
+  margin-top: 3px !important;
+  color: #6b7f99 !important;
+  font-size: 0.78rem;
+}
+html[data-design-heading-style="clean"] .directory-section-heading .section-count,
+html:not([data-design-heading-style]) .directory-section-heading .section-count {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #c7ddf5 !important;
+  background: #eaf3ff !important;
+  color: #0f5bb5 !important;
+  font-size: 0.76rem;
+  font-weight: 900 !important;
+}
+html.dark[data-design-heading-style="clean"] .directory-section-heading,
+html.dark:not([data-design-heading-style]) .directory-section-heading {
+  background: var(--design-dark-card, #10233a);
+  border-color: rgba(148, 163, 184, 0.28);
+  box-shadow: none;
+}
+html.dark[data-design-heading-style="clean"] .directory-section-heading h2,
+html.dark:not([data-design-heading-style]) .directory-section-heading h2 { color: #f1f7ff !important; }
+html.dark[data-design-heading-style="clean"] .directory-section-heading p,
+html.dark:not([data-design-heading-style]) .directory-section-heading p { color: #a7bbd6 !important; }
+html.dark[data-design-heading-style="clean"] .directory-section-heading .section-count,
+html.dark:not([data-design-heading-style]) .directory-section-heading .section-count {
+  background: rgba(80, 180, 255, 0.14) !important;
+  border-color: rgba(80, 180, 255, 0.35) !important;
+  color: #bfe0ff !important;
+}
+@media (max-width: 520px) {
+  html[data-design-heading-style="clean"] .directory-section-heading,
+  html:not([data-design-heading-style]) .directory-section-heading { padding: 10px 12px; border-radius: 15px; }
+  html[data-design-heading-style="clean"] .directory-section-heading h2,
+  html:not([data-design-heading-style]) .directory-section-heading h2 { font-size: 0.98rem; gap: 8px; }
+  html[data-design-heading-style="clean"] .directory-section-heading h2 > svg,
+  html:not([data-design-heading-style]) .directory-section-heading h2 > svg { width: 36px !important; height: 36px !important; padding: 8px !important; }
+}
+/* في الوضع النهاري يستخدم برواز الجريديانت تدرجاً سماوياً مشرقاً بدل الكحلي الداكن ليتناسق مع كروت التطبيق */
+html:not(.dark)[data-design-heading-style="gradient-frame"] .directory-section-heading {
+  background: linear-gradient(135deg, #38bdf8 0%, #1079ff 55%, #0b56c4 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+html:not(.dark)[data-design-heading-style="gradient-frame"] .directory-section-heading h2 {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: none !important;
+}
