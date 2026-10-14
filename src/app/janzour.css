@@ -9342,3 +9342,241 @@ html.dark .detail-v2-triggers .detail-popup-trigger-btn.is-clinic { background: 
   from { opacity: 0; transform: translateY(-6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* =========================================================================
+   24. الشاشة العائمة لتثبيت التطبيق + باركود التطبيق (Install App Modal)
+   ========================================================================= */
+.install-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(5, 20, 45, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: installFade 0.25s ease;
+}
+.install-modal {
+  position: relative;
+  width: min(100%, 420px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: grid;
+  gap: 14px;
+  padding: 22px 18px 16px;
+  border-radius: 26px;
+  background: #ffffff;
+  color: #11304f;
+  border: 1.5px solid #dbe7f4;
+  box-shadow: 0 30px 70px -30px rgba(5, 20, 45, 0.8);
+  animation: installPop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  text-align: center;
+}
+html.dark .install-modal { background: var(--design-dark-card, #10233a); color: #eef5ff; border-color: rgba(148, 163, 184, 0.28); }
+.install-modal-close {
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 10px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid #dbe7f4;
+  background: #f5f9fe;
+  color: #3b5f85;
+  cursor: pointer;
+}
+html.dark .install-modal-close { background: rgba(255, 255, 255, 0.06); border-color: rgba(148, 163, 184, 0.3); color: #dbe9fb; }
+.install-modal-head { display: grid; gap: 7px; justify-items: center; }
+.install-modal-logo {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #f4f9ff, #e4efff);
+  border: 1px solid #d3e2f4;
+  box-shadow: 0 12px 22px -14px rgba(9, 93, 226, 0.6);
+}
+.install-modal-logo img { width: 62px; height: 62px; border-radius: 16px; object-fit: cover; }
+.install-modal-head h2 { margin: 0; font-size: 1.28rem; font-weight: 900; color: #0f2f55; }
+html.dark .install-modal-head h2 { color: #f1f7ff; }
+.install-modal-head p { margin: 0; font-size: 0.82rem; line-height: 1.8; color: #5a7290; }
+html.dark .install-modal-head p { color: #a7bbd6; }
+.install-modal-qr-wrap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f3f8ff, #eefbf5);
+  border: 1.5px dashed #b9d4f1;
+  text-align: right;
+}
+html.dark .install-modal-qr-wrap { background: rgba(255, 255, 255, 0.04); border-color: rgba(80, 180, 255, 0.35); }
+.install-modal-qr {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #dbe7f4;
+  box-shadow: 0 10px 20px -14px rgba(15, 48, 92, 0.5);
+}
+.install-modal-qr img { display: block; width: 136px; height: 136px; }
+.install-modal-qr-copy { display: grid; gap: 6px; min-width: 0; }
+.install-modal-qr-copy strong { display: inline-flex; align-items: center; gap: 5px; font-size: 0.86rem; font-weight: 900; color: #0f2f55; }
+html.dark .install-modal-qr-copy strong { color: #f1f7ff; }
+.install-modal-qr-copy > span { font-size: 0.74rem; font-weight: 700; color: #6b7f99; }
+html.dark .install-modal-qr-copy > span { color: #a7bbd6; }
+.install-modal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #c7ddf5;
+  background: #ffffff;
+  color: #0f5bb5;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.install-modal-link span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html.dark .install-modal-link { background: rgba(255, 255, 255, 0.06); border-color: rgba(80, 180, 255, 0.4); color: #9fd2ff; }
+.install-modal-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.install-modal-install {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 54px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2f80ed 0%, #0b56c4 55%, #083a86 100%);
+  color: #ffffff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 26px -12px rgba(11, 86, 196, 0.8), 0 3px 0 #06306f;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+.install-modal-install::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.25) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: installShine 2.8s ease infinite;
+  pointer-events: none;
+}
+.install-modal-install:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.install-modal-install:disabled { cursor: default; opacity: 0.85; }
+.install-modal-install.is-done { background: linear-gradient(135deg, #34d27a, #0b7a37); box-shadow: 0 3px 0 #075f2a; }
+.install-modal-install.is-done::after { display: none; }
+.install-modal-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 54px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1.5px solid #c7ddf5;
+  background: #f3f8ff;
+  color: #0f5bb5;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+html.dark .install-modal-share { background: rgba(80, 180, 255, 0.12); border-color: rgba(80, 180, 255, 0.4); color: #bfe0ff; }
+.install-modal-guide {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff8e6;
+  border: 1.5px solid #fcd34d;
+  color: #78350f;
+  text-align: right;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  animation: fadeSlideDown 0.2s ease;
+}
+html.dark .install-modal-guide { background: #3a2b07; border-color: #b4851a; color: #fde68a; }
+.install-modal-guide strong { font-weight: 900; }
+.install-modal-guide ol { margin: 0; padding-inline-start: 18px; display: grid; gap: 3px; }
+.install-modal-guide li svg { vertical-align: middle; margin-inline: 2px; }
+.install-modal-perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.install-modal-perks li {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f3f8ff;
+  border: 1px solid #dbe7f4;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #3b5f85;
+}
+html.dark .install-modal-perks li { background: rgba(255, 255, 255, 0.05); border-color: rgba(148, 163, 184, 0.25); color: #c9dbf0; }
+.install-modal-skip {
+  justify-self: center;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  color: #6b7f99;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+html.dark .install-modal-skip { color: #a7bbd6; }
+html[data-design-install-banner="false"] .install-modal-backdrop { display: none !important; }
+.menu-install-item .nav-count.is-on { background: #e0f2fe; color: #0369a1; }
+
+@keyframes installFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes installPop { from { opacity: 0; transform: translateY(18px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes installShine { 0% { transform: translateX(-130%); } 45% { transform: translateX(130%); } 100% { transform: translateX(130%); } }
+
+@media (max-width: 400px) {
+  .install-modal { padding: 18px 13px 14px; border-radius: 20px; gap: 11px; }
+  .install-modal-qr-wrap { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .install-modal-qr-copy { justify-items: center; }
+  .install-modal-link { justify-self: center; }
+  .install-modal-qr img { width: 150px; height: 150px; }
+  .install-modal-actions { grid-template-columns: 1fr; }
+  .install-modal-head h2 { font-size: 1.12rem; }
+}
+@media (max-height: 640px) {
+  .install-modal { gap: 9px; padding-top: 16px; }
+  .install-modal-logo { width: 56px; height: 56px; border-radius: 16px; }
+  .install-modal-logo img { width: 44px; height: 44px; }
+  .install-modal-qr img { width: 110px; height: 110px; }
+  .install-modal-perks { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .install-modal, .install-modal-backdrop, .install-modal-install::after { animation: none !important; }
+}
