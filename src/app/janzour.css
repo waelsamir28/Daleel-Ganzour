@@ -8403,6 +8403,113 @@ html.dark .detail-vip-offer-desc {
   color: #fde68a;
 }
 
+/* =========================================================================
+   17. محرك تدرجات الألوان (50–950 مثل Royal Blue) للوضعين النهاري والليلي + الأنيميشن
+   ========================================================================= */
+
+html[data-design-active="true"] body,
+html[data-design-active="true"] .category-tile,
+html[data-design-active="true"] .provider-card,
+html[data-design-active="true"] .categories-top-action-frame,
+html[data-design-active="true"] .site-header {
+  transition: background-color 0.28s ease, border-color 0.28s ease, color 0.22s ease, box-shadow 0.28s ease;
+}
+
+html.dark[data-design-active="true"],
+html.dark[data-design-active="true"] body {
+  background-color: var(--design-dark-bg, #112b5a) !important;
+  color: #edf7ff;
+}
+
+html.dark[data-design-active="true"] .category-tile,
+html.dark[data-design-active="true"] .provider-card:not(.is-vip-sponsor),
+html.dark[data-design-active="true"] .categories-top-action-frame,
+html.dark[data-design-active="true"] .transit-route-card,
+html.dark[data-design-active="true"] .modal-card {
+  background: var(--design-dark-card, #134595) !important;
+  border-color: var(--design-dark-border, #0f4ebe) !important;
+}
+
+html.dark[data-design-active="true"] .section-heading h2,
+html.dark[data-design-active="true"] .provider-name,
+html.dark[data-design-active="true"] .category-tile strong {
+  color: #edf7ff !important;
+}
+
+html.dark[data-design-active="true"] .provider-specialty,
+html.dark[data-design-active="true"] .category-meta {
+  color: var(--design-dark-primary, #50b4ff) !important;
+}
+
+/* أنيميشن اللمعة المتحركة (Shimmer) للأزرار الذهبية وبرواز الرعاة */
+@keyframes royalShimmerSweep {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+html[data-design-shimmer="true"] .hero-sponsor-packages-btn.is-ticker-width {
+  position: relative;
+  overflow: hidden;
+}
+html[data-design-shimmer="true"] .hero-sponsor-packages-btn.is-ticker-width::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  animation: royalShimmerSweep 4.5s infinite linear;
+  pointer-events: none;
+}
+
+/* صندوق لصق تدرج الألوان (50-950) أو JSON في استوديو المظهر */
+.design-scale-paste-box {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1.5px dashed #50b4ff;
+  background: #edf7ff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.design-scale-paste-box textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.84rem !important;
+  direction: ltr;
+  text-align: left !important;
+  background: #ffffff !important;
+  color: #112b5a !important;
+  border: 1.5px solid #88cfff !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+}
+.design-scale-paste-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+html.dark .design-scale-paste-box {
+  background: #112b5a;
+  border-color: #2794ff;
+}
+html.dark .design-scale-paste-box textarea {
+  background: #0b1c3d !important;
+  color: #edf7ff !important;
+  border-color: #0f4ebe !important;
+}
+
+
 
 
 

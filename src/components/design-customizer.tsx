@@ -33,6 +33,7 @@ import {
   defaultDesignSettings,
   designThemePresets,
   parseAnnouncementItems,
+  parseColorScaleOrThemeJson,
   sanitizeDesignSettings,
   type DesignSettings,
 } from "@/lib/catalog";
@@ -165,6 +166,7 @@ export default function DesignCustomizer({
   });
   const [customPresetName, setCustomPresetName] = useState("");
   const [presetMessage, setPresetMessage] = useState("");
+  const [paletteSnippet, setPaletteSnippet] = useState("");
 
   useEffect(() => {
     applyDesignSettingsToDocument(draft);
@@ -180,6 +182,17 @@ export default function DesignCustomizer({
       ...current,
       themePreset: presetKey,
       ...preset.colors,
+      ...(presetKey === "royal-blue"
+        ? {
+            darkPageBgColor: "#112b5a",
+            darkCardBgColor: "#134595",
+            darkBorderColor: "#0f4ebe",
+            darkPrimaryColor: "#50b4ff",
+            announcementBgColor: "#0f4ebe",
+            detailNameBoxColor: "#134595",
+            authInputBorderColor: "#b8e0ff",
+          }
+        : {}),
       ...(presetKey === "ramadan"
         ? { seasonalRibbon: "ramadan" as const, heroPattern: "islamic" as const }
         : presetKey === "eid"
@@ -247,16 +260,25 @@ export default function DesignCustomizer({
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const parsed = JSON.parse(String(reader.result ?? "{}"));
-        const clean = sanitizeDesignSettings(parsed);
-        setDraft(clean);
-        setPresetMessage("تم استيراد وتطبيق ملف إعدادات المظهر بنجاح.");
+        const result = parseColorScaleOrThemeJson(String(reader.result ?? ""), draft);
+        setDraft(result.settings);
+        setPresetMessage(`✅ تم استيراد وتطبيق «${result.label}» بنجاح للوضعين النهاري والليلي.`);
       } catch {
-        setPresetMessage("الملف غير صالح لاستيراد إعدادات المظهر.");
+        setPresetMessage("الملف غير صالح لاستيراد إعدادات المظهر أو درجات الألوان.");
       }
     };
     reader.readAsText(file);
     event.target.value = "";
+  }
+
+  function applyPastedScaleOrJson() {
+    try {
+      const result = parseColorScaleOrThemeJson(paletteSnippet, draft);
+      setDraft(result.settings);
+      setPresetMessage(`✅ تم تطبيق «${result.label}» بنجاح على الوضع النهاري والوضع الليلي! اضغط «حفظ وتطبيق المظهر» لاعتماده.`);
+    } catch (err) {
+      setPresetMessage(err instanceof Error ? err.message : "تعذر قراءة كود الألوان أو JSON.");
+    }
   }
 
   function resetAll() {
@@ -513,9 +535,37 @@ export default function DesignCustomizer({
                     </button>
                     <label className="button button-soft button-small design-import-label">
                       <Upload size={15}/> استيراد JSON
-                      <input type="file" accept=".json,application/json" onChange={importDesignJson} hidden />
+                      <input type="file" accept=".json,application/json,text/plain" onChange={importDesignJson} hidden />
                     </label>
                   </div>
+
+                  <div className="design-scale-paste-box">
+                    <label className="field">
+                      <span>لصق كود تدرج ألوان (50–950 مثل Royal Blue / UI Colors) أو كود JSON كامل:</span>
+                      <textarea
+                        rows={4}
+                        dir="ltr"
+                        value={paletteSnippet}
+                        onChange={(e) => setPaletteSnippet(e.target.value)}
+                        placeholder={`'royal-blue': {\n  '50': '#edf7ff', '100': '#d7edff', '200': '#b8e0ff',\n  '400': '#50b4ff', '600': '#1079ff', '700': '#095de2',\n  '800': '#0f4ebe', '900': '#134595', '950': '#112b5a'\n}`}
+                      />
+                    </label>
+                    <div className="design-scale-paste-actions">
+                      <button type="button" className="button button-primary button-small" onClick={applyPastedScaleOrJson}>
+                        <Sparkles size={15}/> تطبيق الكود على الوضع النهاري والليلي فوراً
+                      </button>
+                      <a href="/themes/royal-blue-theme.json" download className="button button-soft button-small">
+                        <Download size={14}/> تحميل ملف Royal Blue JSON
+                      </a>
+                      <a href="/themes/emerald-village-theme.json" download className="button button-soft button-small">
+                        <Download size={14}/> تحميل ملف الزمرد JSON
+                      </a>
+                      <a href="/themes/royal-gold-theme.json" download className="button button-soft button-small">
+                        <Download size={14}/> تحميل ملف الذهب الملكي JSON
+                      </a>
+                    </div>
+                  </div>
+
                   {presetMessage && <small className="design-preset-msg" role="status">{presetMessage}</small>}
                   {savedPresets.length > 0 && (
                     <div className="design-saved-presets-list">
@@ -539,35 +589,65 @@ export default function DesignCustomizer({
                   )}
                 </div>
 
-                <InnerDivider title="تخصيص الألوان الأساسية والخلفية" subtitle="اضغط على أي دائرة ملونة للاختيار السريع من الموبايل" />
+                <InnerDivider title="تخصيص الألوان الأساسية والخلفية (الوضع النهاري ☀️)" subtitle="اضغط على أي دائرة ملونة للاختيار السريع من الموبايل" />
                 <div className="form-row design-two-col">
                   <ColorPickerField
-                    label="اللون الأساسي والعناوين"
+                    label="اللون الأساسي والعناوين (درجة 700)"
                     value={draft.primaryColor}
-                    swatches={QUICK_SWATCHES.primary}
+                    swatches={["#095de2", ...QUICK_SWATCHES.primary]}
                     onChange={(hex) => { updateField("primaryColor", hex); updateField("themePreset", "custom"); }}
                   />
                   <ColorPickerField
-                    label="لون خلفية الصفحات العام"
+                    label="لون خلفية الصفحات العام (درجة 50)"
                     value={draft.pageBgColor}
-                    swatches={QUICK_SWATCHES.pageBg}
+                    swatches={["#edf7ff", ...QUICK_SWATCHES.pageBg]}
                     onChange={(hex) => { updateField("pageBgColor", hex); updateField("themePreset", "custom"); }}
                   />
                 </div>
 
-                <InnerDivider title="ألوان الشاشات العائمة والأزرار" />
+                <InnerDivider title="ألوان الشاشات العائمة والأزرار (الوضع النهاري ☀️)" />
                 <div className="form-row design-two-col">
                   <ColorPickerField
-                    label="لون هيدر الشاشات العائمة (اللبني)"
+                    label="لون هيدر الشاشات العائمة (درجة 100)"
                     value={draft.modalHeaderBg}
-                    swatches={QUICK_SWATCHES.modalHeader}
+                    swatches={["#d7edff", ...QUICK_SWATCHES.modalHeader]}
                     onChange={(hex) => { updateField("modalHeaderBg", hex); updateField("themePreset", "custom"); }}
                   />
                   <ColorPickerField
-                    label="لون أزرار الاتصال والأزرار الرئيسية"
+                    label="لون أزرار الاتصال والأزرار الرئيسية (درجة 600)"
                     value={draft.buttonColor}
-                    swatches={QUICK_SWATCHES.button}
+                    swatches={["#1079ff", ...QUICK_SWATCHES.button]}
                     onChange={(hex) => { updateField("buttonColor", hex); updateField("themePreset", "custom"); }}
+                  />
+                </div>
+
+                <InnerDivider title="تخصيص ألوان الوضع الليلي (Dark Mode 🌙) والأنيميشن اللامع" subtitle="تُضبط تلقائياً من درجات 400 و800 و900 و950 عند لصق تدرج ألوان" />
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون خلفية الوضع الليلي (درجة 950)"
+                    value={draft.darkPageBgColor}
+                    swatches={["#112b5a", "#0b192c", "#0f172a", "#071f18", "#1a1207", "#18181b"]}
+                    onChange={(hex) => updateField("darkPageBgColor", hex)}
+                  />
+                  <ColorPickerField
+                    label="لون الكروت في الوضع الليلي (درجة 900)"
+                    value={draft.darkCardBgColor}
+                    swatches={["#134595", "#112845", "#1e293b", "#0d2e24", "#271c09", "#27272a"]}
+                    onChange={(hex) => updateField("darkCardBgColor", hex)}
+                  />
+                </div>
+                <div className="form-row design-two-col">
+                  <ColorPickerField
+                    label="لون البراويز في الوضع الليلي (درجة 800)"
+                    value={draft.darkBorderColor}
+                    swatches={["#0f4ebe", "#1e4976", "#334155", "#115e59", "#b45309", "#3f3f46"]}
+                    onChange={(hex) => updateField("darkBorderColor", hex)}
+                  />
+                  <ColorPickerField
+                    label="لون التمييز والأيقونات ليلاً (درجة 400)"
+                    value={draft.darkPrimaryColor}
+                    swatches={["#50b4ff", "#38bdf8", "#34d399", "#fbbf24", "#a78bfa", "#fb7185"]}
+                    onChange={(hex) => updateField("darkPrimaryColor", hex)}
                   />
                 </div>
 
@@ -587,6 +667,15 @@ export default function DesignCustomizer({
                     </SelectField>
                   </label>
                 </div>
+
+                <label className="checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={draft.shimmerEffectEnabled !== false}
+                    onChange={(e) => updateField("shimmerEffectEnabled", e.target.checked)}
+                  />
+                  <span>✨ تفعيل أنيميشن اللمعة المتحركة (Shimmer Glow) على الأزرار الذهبية وبرواز الرعاة</span>
+                </label>
               </div>
             )}
           </section>

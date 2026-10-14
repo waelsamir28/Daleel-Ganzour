@@ -634,6 +634,35 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[0]), "clinics");
   assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[1]), "labs");
   assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[2]), "shops");
+
+  const royalBlueSnippet = `'royal-blue': {
+  '50': '#edf7ff',
+  '100': '#d7edff',
+  '200': '#b8e0ff',
+  '300': '#88cfff',
+  '400': '#50b4ff',
+  '500': '#2794ff',
+  '600': '#1079ff',
+  '700': '#095de2',
+  '800': '#0f4ebe',
+  '900': '#134595',
+  '950': '#112b5a',
+}`;
+  const parsedScale = catalog.parseColorScaleOrThemeJson(royalBlueSnippet);
+  assert.equal(parsedScale.detectedFormat, "scale-50-950");
+  assert.equal(parsedScale.settings.themePreset, "royal-blue");
+  assert.equal(parsedScale.settings.pageBgColor, "#edf7ff");
+  assert.equal(parsedScale.settings.modalHeaderBg, "#d7edff");
+  assert.equal(parsedScale.settings.borderColor, "#b8e0ff");
+  assert.equal(parsedScale.settings.buttonColor, "#1079ff");
+  assert.equal(parsedScale.settings.primaryColor, "#095de2");
+  assert.equal(parsedScale.settings.announcementBgColor, "#0f4ebe");
+  assert.equal(parsedScale.settings.detailNameBoxColor, "#134595");
+  assert.equal(parsedScale.settings.footerBgColor, "#112b5a");
+  assert.equal(parsedScale.settings.darkPageBgColor, "#112b5a");
+  assert.equal(parsedScale.settings.darkCardBgColor, "#134595");
+  assert.equal(parsedScale.settings.darkBorderColor, "#0f4ebe");
+  assert.equal(parsedScale.settings.darkPrimaryColor, "#50b4ff");
 });
 
 

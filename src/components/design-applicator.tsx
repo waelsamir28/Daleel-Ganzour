@@ -18,11 +18,16 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-auth-border", design.authInputBorderColor);
   root.style.setProperty("--design-announcement-bg", design.announcementBgColor);
   root.style.setProperty("--design-whatsapp-color", design.whatsappButtonColor);
-  root.style.setProperty("--design-detail-name-bg", design.detailNameBoxColor || "#0b4a82");
+  root.style.setProperty("--design-detail-name-bg", design.detailNameBoxColor || "#134595");
+  root.style.setProperty("--design-dark-bg", design.darkPageBgColor || "#112b5a");
+  root.style.setProperty("--design-dark-card", design.darkCardBgColor || "#134595");
+  root.style.setProperty("--design-dark-border", design.darkBorderColor || "#0f4ebe");
+  root.style.setProperty("--design-dark-primary", design.darkPrimaryColor || "#50b4ff");
   root.style.setProperty("--design-mobile-cols", design.mobileColumns);
   root.style.setProperty("--design-desktop-cols", design.desktopColumns);
 
   root.setAttribute("data-design-active", "true");
+  root.setAttribute("data-design-shimmer", design.shimmerEffectEnabled !== false ? "true" : "false");
   root.setAttribute("data-design-preset", design.themePreset);
   root.setAttribute("data-design-heading-align", design.headingAlign);
   root.setAttribute("data-design-card-align", design.cardTextAlign);

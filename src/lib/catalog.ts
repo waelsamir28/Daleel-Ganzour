@@ -914,6 +914,7 @@ export type SiteSettings = {
   whatsappAlertsNumber: string; whatsappAlertsApiKey: string;
 };
 export type DesignThemePresetId =
+  | "royal-blue"
   | "classic-blue"
   | "emerald"
   | "royal-navy"
@@ -1050,6 +1051,12 @@ export type DesignSettings = {
   showDailyOffersSection: boolean;
   showSponsorsRibbon: boolean;
   sponsoredProvidersJson: string;
+  // 13. Dark Mode Palette & Shimmer Animations
+  darkPageBgColor: string;
+  darkCardBgColor: string;
+  darkBorderColor: string;
+  darkPrimaryColor: string;
+  shimmerEffectEnabled: boolean;
 };
 
 export type SponsoredProviderConfig = {
@@ -1234,11 +1241,11 @@ export function parseSponsoredProviders(jsonText: string | undefined | null): Sp
 }
 
 export const defaultDesignSettings: DesignSettings = {
-  themePreset: "classic-blue",
-  primaryColor: "#0878c9",
-  pageBgColor: "#f3f7fa",
-  modalHeaderBg: "#dcecfb",
-  buttonColor: "#0c72c7",
+  themePreset: "royal-blue",
+  primaryColor: "#095de2",
+  pageBgColor: "#edf7ff",
+  modalHeaderBg: "#d7edff",
+  buttonColor: "#1079ff",
   themeMode: "auto",
   headingAlign: "right",
   cardTextAlign: "center",
@@ -1248,7 +1255,7 @@ export const defaultDesignSettings: DesignSettings = {
   fontFamily: "cairo",
   sectionHeadingStyle: "pill",
   borderWidth: "thin",
-  borderColor: "#dce6ef",
+  borderColor: "#b8e0ff",
   cardBgColor: "#ffffff",
   cardRadius: "rounded",
   cardShadow: "soft",
@@ -1274,7 +1281,7 @@ export const defaultDesignSettings: DesignSettings = {
   showHeaderFavorites: true,
   showHeaderDarkToggle: true,
   showHeaderLoginBtn: true,
-  footerBgColor: "#102437",
+  footerBgColor: "#112b5a",
   showFooterWhatsapp: true,
   splashEnabled: true,
   splashImageUrl: "/images/logo-daleel-transparent.png",
@@ -1286,10 +1293,10 @@ export const defaultDesignSettings: DesignSettings = {
   registerTitle: "أنشئ حساب عضو جديد",
   registerSubtitle: "عضوية مجانية وسريعة لأهالي قرية جنزور",
   authFieldsLayout: "two-col",
-  authInputBorderColor: "#c8ddf0",
+  authInputBorderColor: "#b8e0ff",
   announcementEnabled: true,
   announcementText: "أهلاً بكم في دليل جنزور — أضف مهنتك مجاناً وتواصل مع أهل القرية مباشرة",
-  announcementBgColor: "#0c72c7",
+  announcementBgColor: "#0f4ebe",
   announcementStyle: "badge",
   heroStyle: "sky-banner",
   searchBoxStyle: "rounded",
@@ -1329,7 +1336,7 @@ export const defaultDesignSettings: DesignSettings = {
   officeWorkingHours: "يومياً من ٩ صباحاً حتى ١١ مساءً",
   whatsappDefaultGreeting: "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.",
   allowPublicSubmissions: true,
-  detailNameBoxColor: "#0b4a82",
+  detailNameBoxColor: "#134595",
   outerCardStyle: "modern",
   searchTriggerStyle: "pill-gradient",
   badgesDefaultOpen: false,
@@ -1344,9 +1351,20 @@ export const defaultDesignSettings: DesignSettings = {
   showDailyOffersSection: true,
   showSponsorsRibbon: true,
   sponsoredProvidersJson: JSON.stringify(defaultSponsoredProviders),
+  darkPageBgColor: "#112b5a",
+  darkCardBgColor: "#134595",
+  darkBorderColor: "#0f4ebe",
+  darkPrimaryColor: "#50b4ff",
+  shimmerEffectEnabled: true,
 };
 
 export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; badge?: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
+  "royal-blue": {
+    label: "👑 الأزرق الملكي المتدرج (Royal Blue)",
+    badge: "مفعل",
+    description: "تدرج Royal Blue الاحترافي (50–950) للوضعين النهاري (#edf7ff / #095de2) والليلي (#112b5a / #50b4ff)",
+    colors: { primaryColor: "#095de2", pageBgColor: "#edf7ff", modalHeaderBg: "#d7edff", buttonColor: "#1079ff", borderColor: "#b8e0ff", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#112b5a" },
+  },
   "classic-blue": {
     label: "أزرق جنزور الكلاسيكي",
     description: "الهوية الافتراضية المريحة للعين بتدرجات السماوي والأزرق",
@@ -1444,7 +1462,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.themePreset = pickEnum(
     record.themePreset,
-    ["classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "custom"] as const,
+    ["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "custom"] as const,
     defaultDesignSettings.themePreset,
   );
   next.primaryColor = hexColor(record.primaryColor, defaultDesignSettings.primaryColor);
@@ -1576,7 +1594,95 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
     ? JSON.stringify(parseSponsoredProviders(record.sponsoredProvidersJson))
     : defaultDesignSettings.sponsoredProvidersJson;
 
+  next.darkPageBgColor = hexColor(record.darkPageBgColor, defaultDesignSettings.darkPageBgColor);
+  next.darkCardBgColor = hexColor(record.darkCardBgColor, defaultDesignSettings.darkCardBgColor);
+  next.darkBorderColor = hexColor(record.darkBorderColor, defaultDesignSettings.darkBorderColor);
+  next.darkPrimaryColor = hexColor(record.darkPrimaryColor, defaultDesignSettings.darkPrimaryColor);
+  next.shimmerEffectEnabled = pickBool(record.shimmerEffectEnabled, defaultDesignSettings.shimmerEffectEnabled);
+
   return next;
+}
+
+export function parseColorScaleOrThemeJson(
+  rawInput: string,
+  base: DesignSettings = defaultDesignSettings,
+): { settings: DesignSettings; detectedFormat: "scale-50-950" | "design-json"; label: string } {
+  const trimmed = (rawInput || "").trim();
+  if (!trimmed) {
+    throw new Error("النص أو الملف فارغ.");
+  }
+
+  // First try parsing as full DesignSettings JSON (or { settings: {...} })
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const obj = parsed as Record<string, unknown>;
+      if (typeof obj.primaryColor === "string" || typeof obj.pageBgColor === "string" || typeof obj.themePreset === "string") {
+        return {
+          settings: sanitizeDesignSettings({ ...base, ...obj }),
+          detectedFormat: "design-json",
+          label: "ملف إعدادات مظهر كامل (JSON)",
+        };
+      }
+      if (obj.settings && typeof obj.settings === "object") {
+        return {
+          settings: sanitizeDesignSettings({ ...base, ...(obj.settings as Record<string, unknown>) }),
+          detectedFormat: "design-json",
+          label: typeof obj.name === "string" ? obj.name : "ملف ثيم JSON",
+        };
+      }
+    }
+  } catch {
+    // Fall through to regex extraction for Tailwind/UI Colors JS/JSON snippets (e.g. 'royal-blue': { '50': '#edf7ff', ... })
+  }
+
+  // Extract shade pairs ('50': '#edf7ff' or "50": "#edf7ff" or 50: "#edf7ff")
+  const shadeRegex = /['"]?(50|100|200|300|400|500|600|700|800|900|950)['"]?\s*:\s*['"]?(#[0-9a-fA-F]{3,8})['"]?/g;
+  const shades: Record<string, string> = {};
+  let match: RegExpExecArray | null;
+  while ((match = shadeRegex.exec(trimmed)) !== null) {
+    shades[match[1]] = match[2];
+  }
+
+  if (Object.keys(shades).length >= 3) {
+    const nameMatch = /['"]?([a-zA-Z0-9_-]+)['"]?\s*:\s*\{/.exec(trimmed);
+    const scaleName = nameMatch?.[1] ?? "custom-scale";
+    const s50 = shades["50"] || base.pageBgColor;
+    const s100 = shades["100"] || s50;
+    const s200 = shades["200"] || s100;
+    const s400 = shades["400"] || shades["300"] || "#50b4ff";
+    const s600 = shades["600"] || shades["500"] || base.buttonColor;
+    const s700 = shades["700"] || s600;
+    const s800 = shades["800"] || s700;
+    const s900 = shades["900"] || s800;
+    const s950 = shades["950"] || s900;
+
+    const merged = sanitizeDesignSettings({
+      ...base,
+      themePreset: scaleName === "royal-blue" ? "royal-blue" : "custom",
+      pageBgColor: s50,
+      modalHeaderBg: s100,
+      borderColor: s200,
+      authInputBorderColor: s200,
+      buttonColor: s600,
+      primaryColor: s700,
+      announcementBgColor: s800,
+      detailNameBoxColor: s900,
+      footerBgColor: s950,
+      darkPageBgColor: s950,
+      darkCardBgColor: s900,
+      darkBorderColor: s800,
+      darkPrimaryColor: s400,
+    });
+
+    return {
+      settings: merged,
+      detectedFormat: "scale-50-950",
+      label: `تدرج ألوان (${scaleName}) للنهاري والليلي`,
+    };
+  }
+
+  throw new Error("لم يتم العثور على درجات ألوان صالحة (50–950) أو إعدادات JSON.");
 }
 
 export type PublicDirectory = {
