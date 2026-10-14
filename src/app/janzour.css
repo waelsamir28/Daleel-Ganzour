@@ -8654,7 +8654,7 @@ html.dark .provider-card .favorite-button.is-favorite {
    19. ١٢ شكلاً لبراويز العناوين الرئيسية متناغمة مع ثيمات الجريديانت والليل والنهار
    ========================================================================= */
 
-html[data-design-heading-style="gradient-frame"] .directory-section-heading {
+html[data-design-heading-style="sky-gradient"] .directory-section-heading {
   background: var(--design-heading-gradient, linear-gradient(135deg, #095de2 0%, #1079ff 50%, #38bdf8 100%));
   border: 1.5px solid rgba(255, 255, 255, 0.28);
   border-radius: 18px;
@@ -8662,12 +8662,12 @@ html[data-design-heading-style="gradient-frame"] .directory-section-heading {
   box-shadow: 0 12px 26px -10px rgba(9, 93, 226, 0.45);
   color: #ffffff !important;
 }
-html[data-design-heading-style="gradient-frame"] .directory-section-heading h2,
-html[data-design-heading-style="gradient-frame"] .directory-section-heading p,
-html[data-design-heading-style="gradient-frame"] .directory-section-heading svg {
+html[data-design-heading-style="sky-gradient"] .directory-section-heading h2,
+html[data-design-heading-style="sky-gradient"] .directory-section-heading p,
+html[data-design-heading-style="sky-gradient"] .directory-section-heading svg {
   color: #ffffff !important;
 }
-html[data-design-heading-style="gradient-frame"] .directory-section-heading .section-count {
+html[data-design-heading-style="sky-gradient"] .directory-section-heading .section-count {
   background: rgba(255, 255, 255, 0.2) !important;
   color: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -10010,12 +10010,107 @@ html.dark:not([data-design-heading-style]) .directory-section-heading .section-c
   html:not([data-design-heading-style]) .directory-section-heading h2 > svg { width: 36px !important; height: 36px !important; padding: 8px !important; }
 }
 /* في الوضع النهاري يستخدم برواز الجريديانت تدرجاً سماوياً مشرقاً بدل الكحلي الداكن ليتناسق مع كروت التطبيق */
-html:not(.dark)[data-design-heading-style="gradient-frame"] .directory-section-heading {
+html:not(.dark)[data-design-heading-style="sky-gradient"] .directory-section-heading {
   background: linear-gradient(135deg, #38bdf8 0%, #1079ff 55%, #0b56c4 100%);
   border-color: rgba(255, 255, 255, 0.5);
 }
-html:not(.dark)[data-design-heading-style="gradient-frame"] .directory-section-heading h2 {
+html:not(.dark)[data-design-heading-style="sky-gradient"] .directory-section-heading h2 {
   background: rgba(255, 255, 255, 0.16) !important;
   border-color: rgba(255, 255, 255, 0.45) !important;
   box-shadow: none !important;
+}
+
+/* =========================================================================
+   28. إصلاح شامل لصفحة «تخصيص المظهر» على الموبايل (لا تمدد أفقي، كل شيء عمود واحد بعرض الشاشة)
+   ========================================================================= */
+@media (max-width: 760px) {
+  .design-studio-form,
+  .design-customizer-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    gap: 12px;
+  }
+  .design-studio-form * { min-width: 0; box-sizing: border-box; }
+  .design-studio-form > *,
+  .design-group-card,
+  .design-group-content,
+  .design-live-preview-card,
+  .design-section-divider,
+  .design-studio-top { width: 100%; max-width: 100%; }
+
+  .design-studio-top { padding: 12px; border-radius: 14px; }
+  .design-studio-intro h3 { font-size: 14px; line-height: 1.6; }
+  .design-studio-intro p { font-size: 11px; }
+  .design-studio-top-actions { grid-template-columns: 1fr; }
+  .design-studio-top-actions > button { min-height: 44px; font-size: 13px; }
+
+  /* المعاينة الحية */
+  .design-live-preview-card { border-radius: 14px; overflow: hidden; }
+  .design-preview-toolbar { flex-wrap: wrap; gap: 8px; padding: 10px; }
+  .design-preview-device-toggle { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .design-preview-viewport,
+  .design-preview-viewport.is-mobile,
+  .design-preview-viewport.is-desktop { max-width: 100% !important; width: 100% !important; margin: 8px 0 !important; border-radius: 14px; }
+  .design-preview-body { padding: 10px; gap: 10px; }
+  .design-preview-grid { grid-template-columns: 1fr !important; gap: 8px; }
+  .design-preview-item-card { padding: 10px; }
+  .design-preview-buttons-box { flex-wrap: wrap; }
+  .design-preview-buttons-box > * { flex: 1 1 120px; }
+
+  /* أقسام الإعدادات */
+  .design-group-card { padding: 12px 10px; }
+  .design-group-head { gap: 8px; }
+  .design-group-icon { width: 36px; height: 36px; flex: none; }
+  .design-group-content { gap: 10px; }
+  .design-group-content .field { padding: 10px; border-radius: 12px; font-size: 12.5px; }
+  .form-row,
+  .form-row.design-two-col,
+  .design-toggles-grid,
+  .design-order-list { display: grid !important; grid-template-columns: 1fr !important; gap: 10px !important; }
+  .design-presets-grid { grid-template-columns: 1fr !important; gap: 8px; }
+  .design-preset-card { width: 100%; }
+  .design-preset-swatches { flex-wrap: wrap; }
+
+  /* الحقول والمدخلات */
+  .design-studio-form input:not([type="checkbox"]):not([type="radio"]),
+  .design-studio-form textarea,
+  .design-studio-form select,
+  .design-studio-form .ui-select,
+  .design-studio-form .ui-select-trigger { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
+  .design-studio-form textarea { min-height: 90px; }
+  .design-color-control { display: grid; gap: 8px; }
+  .design-color-field { display: grid !important; grid-template-columns: 56px minmax(0, 1fr) !important; gap: 8px; align-items: center; }
+  .design-color-field > input[type="color"] { width: 56px !important; height: 44px !important; padding: 2px !important; }
+  .design-color-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+  .design-choice-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .design-choice-pills > button { flex: 1 1 calc(50% - 6px); min-height: 40px; font-size: 12px; padding: 6px 8px; white-space: normal; }
+  .checkbox-field { align-items: flex-start; gap: 8px; font-size: 12.5px; line-height: 1.6; }
+  .design-scale-paste-box { padding: 10px; }
+  .design-scale-paste-box textarea { width: 100%; max-width: 100%; font-size: 11px; }
+  .design-scale-paste-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .design-scale-paste-actions > button { width: 100%; justify-content: center; }
+  .design-saved-presets-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .design-saved-preset-chip { max-width: 100%; }
+  .suggestion-chips-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .design-order-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .design-order-item .design-order-box { display: inline-flex; gap: 4px; }
+
+  /* شريط الحفظ الثابت أسفل الشاشة */
+  .design-mobile-sticky-bar {
+    position: sticky;
+    bottom: calc(6px + env(safe-area-inset-bottom));
+    z-index: 30;
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .design-sticky-save-btn { flex: 1; max-width: none; min-height: 46px; font-size: 13px; }
+}
+@media (max-width: 400px) {
+  .design-group-content .field { padding: 9px 8px; }
+  .design-choice-pills > button { flex: 1 1 100%; }
+  .design-section-tabs > button { padding: 6px 9px; font-size: 11px; }
 }

@@ -955,7 +955,7 @@ export type DesignSettings = {
     | "framed"
     | "boxed"
     | "right-bar"
-    | "gradient-frame"
+    | "sky-gradient"
     | "royal-ribbon"
     | "neon-border"
     | "double-frame"
@@ -1618,7 +1618,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
       "framed",
       "boxed",
       "right-bar",
-      "gradient-frame",
+      "sky-gradient",
       "royal-ribbon",
       "neon-border",
       "double-frame",
