@@ -24,8 +24,8 @@ type Confirmation = { id: string; kind: EntityKind; action: "delete"; label: str
 
 export default function AdminPanel({ initialData, initialTab, initialEditService, username = "admin", role = "admin" }: { initialData: AdminDirectory; initialTab?: string; initialEditService?: string; username?: string; role?: "admin" | "moderator" }) {
   const isModerator = role === "moderator";
-  // Community listings and completion requests are retired from navigation.
-  const activeTabs = tabs.filter((item) => item.id !== "community" && item.id !== "completion");
+  // Community listings, completion requests, and sponsorship packages are retired/hidden from navigation.
+  const activeTabs = tabs.filter((item) => item.id !== "community" && item.id !== "completion" && item.id !== "sponsors");
   const visibleTabs = isModerator ? activeTabs.filter((item) => ["requests", "directory", "categories", "ratings", "posts", "replies", "notifications"].includes(item.id)) : activeTabs;
   const starting = visibleTabs.some((tab) => tab.id === initialTab) ? initialTab as Tab : "requests";
   const [data, setData] = useState(initialData), [tab, setTab] = useState<Tab>(starting), [search, setSearch] = useState("");
