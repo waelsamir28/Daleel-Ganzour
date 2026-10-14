@@ -50,7 +50,6 @@ const homeSectionsMeta: Record<string, { label: string; toggleKey: keyof DesignS
   features: { label: "الكروت الثلاثة (المناوبات + أرقام تهمك + الخدمات السريعة)", toggleKey: "showFeatureCards" },
   featured: { label: "قسم مقدمو الخدمات المميزين", toggleKey: "showFeaturedSection" },
   categories: { label: "أقسام القرية والتخصصات", toggleKey: "showCategoriesSection" },
-  transit: { label: "دليل مواصلات وخطوط سير جنزور", toggleKey: "showTransitGuide" },
   professionBanner: { label: "بانر «أضف مهنتك» والطوارئ", toggleKey: "showAddProfessionBanner" },
 };
 
@@ -182,17 +181,7 @@ export default function DesignCustomizer({
       ...current,
       themePreset: presetKey,
       ...preset.colors,
-      ...(presetKey === "royal-blue"
-        ? {
-            darkPageBgColor: "#112b5a",
-            darkCardBgColor: "#134595",
-            darkBorderColor: "#0f4ebe",
-            darkPrimaryColor: "#50b4ff",
-            announcementBgColor: "#0f4ebe",
-            detailNameBoxColor: "#134595",
-            authInputBorderColor: "#b8e0ff",
-          }
-        : {}),
+      ...preset.darkColors,
       ...(presetKey === "ramadan"
         ? { seasonalRibbon: "ramadan" as const, heroPattern: "islamic" as const }
         : presetKey === "eid"
@@ -478,7 +467,7 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.colors && (
               <div className="design-group-content">
-                <InnerDivider title="قوالب الألوان والثيمات الموسمية الجاهزة بضغطة واحدة" subtitle="اختر ثيماً عاماً أو ثيماً موسمياً (رمضان / العيد / المدارس / الشتاء) ليتم تطبيق ألوانه فوراً" />
+                <InnerDivider title="ثيمات الجريديانت المتكاملة (تعمل في الليل والنهار وتناسب البراويز الرئيسية)" subtitle="اختر أي ثيم جريديانت ليضبط ألوان الوضع الليلي والنهاري وبراويز العناوين تلقائياً بضغطة واحدة" />
                 <div className="design-presets-grid">
                   {(Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>).map((key) => {
                     const preset = designThemePresets[key];
@@ -490,12 +479,13 @@ export default function DesignCustomizer({
                         className={`design-preset-card ${isSelected ? "is-selected" : ""}`}
                         onClick={() => applyPreset(key)}
                       >
+                        <div className="design-preset-gradient-bar" style={{ background: preset.gradientPreview }} aria-hidden="true"/>
                         <div className="design-preset-top-row">
                           <div className="design-preset-swatches">
-                            <span style={{ background: preset.colors.primaryColor }}/>
-                            <span style={{ background: preset.colors.modalHeaderBg }}/>
-                            <span style={{ background: preset.colors.buttonColor }}/>
-                            <span style={{ background: preset.colors.footerBgColor }}/>
+                            <span style={{ background: preset.colors.primaryColor }} title="اللون النهاري"/>
+                            <span style={{ background: preset.colors.buttonColor }} title="لون الأزرار"/>
+                            <span style={{ background: preset.darkColors.darkCardBgColor }} title="لون الكارت الليلي"/>
+                            <span style={{ background: preset.darkColors.darkPrimaryColor }} title="لون التمييز الليلي"/>
                           </div>
                           {preset.badge && <span className="design-preset-season-badge">{preset.badge}</span>}
                         </div>
@@ -730,12 +720,20 @@ export default function DesignCustomizer({
                   </div>
 
                   <label className="field">
-                    شكل عناوين الأقسام الرئيسية
+                    شكل برواز العناوين الرئيسية للأقسام (١٢ شكلاً متنوعاً)
                     <SelectField value={draft.sectionHeadingStyle} onChange={(e) => updateField("sectionHeadingStyle", e.target.value as DesignSettings["sectionHeadingStyle"])}>
-                      <option value="pill">داخل كبسولة أنيقة (الافتراضي)</option>
-                      <option value="plain">سادة بدون خلفية</option>
-                      <option value="underline">بخط سفلي ملون</option>
-                      <option value="framed">داخل برواز كامل</option>
+                      <option value="gradient-frame">✨ برواز جريديانت مضيء فخم (الافتراضي)</option>
+                      <option value="royal-ribbon">👑 برواز التاج الملكي المتدرج</option>
+                      <option value="neon-border">⚡ برواز نيون متوهج بالثيم</option>
+                      <option value="double-frame">🏛️ برواز مزدوج كلاسيكي راقٍ</option>
+                      <option value="glass-card">💎 برواز زجاجي عائم (Glassmorphism)</option>
+                      <option value="gold-crest">🌟 برواز ذهبي ملكي بحدود ذهبية</option>
+                      <option value="3d-banner">🧊 برواز بارز ثلاثي الأبعاد (3D Banner)</option>
+                      <option value="pill-badge">💊 برواز كبسولة جريديانت دائرية</option>
+                      <option value="boxed">📦 صندوق بإطار ملون واضح</option>
+                      <option value="underline">📏 خط سفلي متدرج تحت العنوان</option>
+                      <option value="right-bar">▐ شريط جانبي سميك على اليمين</option>
+                      <option value="clean">سادة بسيط وأنيق</option>
                     </SelectField>
                   </label>
                 </div>
@@ -843,11 +841,17 @@ export default function DesignCustomizer({
                   </label>
 
                   <label className="field">
-                    تأثير حركة الكارت عند اللمس أو التمرير
+                    تأثير أنيميشن وحركة الكارت عند اللمس (١٠ أشكال أنيميشن)
                     <SelectField value={draft.cardHoverEffect} onChange={(e) => updateField("cardHoverEffect", e.target.value as DesignSettings["cardHoverEffect"])}>
-                      <option value="lift">ارتفاع ناعم للأعلى (الافتراضي)</option>
-                      <option value="glow">توهج ملون حول البرواز</option>
-                      <option value="scale">تكبير خفيف وواضح</option>
+                      <option value="lift">ارتفاع ناعم للأعلى (Lift - الافتراضي)</option>
+                      <option value="glow">توهج مضيء حول البرواز (Glow)</option>
+                      <option value="scale">تكبير خفيف وواضح (Scale Zoom)</option>
+                      <option value="tilt">إمالة عصرية مع بروز للإطار (Tilt)</option>
+                      <option value="float-3d">طفو ثلاثي الأبعاد فاخر (Float 3D)</option>
+                      <option value="border-pulse">نبض متوهج للإطار (Border Pulse)</option>
+                      <option value="neon-sweep">مسحة نيون ضوئية (Neon Sweep)</option>
+                      <option value="spring-pop">قفزة مرنة حيوية (Spring Pop)</option>
+                      <option value="shine-glint">بريق زجاجي لامع (Shine Glint)</option>
                       <option value="none">ثابت بدون حركة</option>
                     </SelectField>
                   </label>
@@ -877,10 +881,13 @@ export default function DesignCustomizer({
 
                 <div className="form-row design-two-col">
                   <label className="field">
-                    سرعة ونعومة الحركات البصرية للكروت والنوافذ
+                    سرعة ونمط أنيميشن الكروت والنوافذ (٦ سرعات وأنماط)
                     <SelectField value={draft.cardAnimationSpeed} onChange={(e) => updateField("cardAnimationSpeed", e.target.value as DesignSettings["cardAnimationSpeed"])}>
-                      <option value="normal">متوازنة وسريعة (الافتراضي)</option>
-                      <option value="smooth">ناعمة وانسيابية هادئة</option>
+                      <option value="ultra-slow">هادئة جداً (٠.٥٥ ثانية)</option>
+                      <option value="slow">بطيئة وانسيابية (٠.٣٨ ثانية)</option>
+                      <option value="normal">متوازنة وسريعة (٠.٢٤ ثانية - الافتراضي)</option>
+                      <option value="fast">سريعة وخاطفة (٠.١٤ ثانية)</option>
+                      <option value="bouncy">مرنة ارتدادية حيوية (Spring Bounce)</option>
                       <option value="instant">فورية بدون حركات انتقالية</option>
                     </SelectField>
                   </label>
@@ -915,24 +922,32 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.buttons && (
               <div className="design-group-content">
-                <InnerDivider title="استدارة وتأثير الأزرار" />
+                <InnerDivider title="أشكال واستدارة وتأثيرات الأزرار المتنوعة" />
                 <div className="form-row design-two-col">
                   <label className="field">
-                    شكل حواف الأزرار
+                    شكل حواف وتصميم الأزرار (٧ أشكال)
                     <SelectField value={draft.buttonShape} onChange={(e) => updateField("buttonShape", e.target.value as DesignSettings["buttonShape"])}>
-                      <option value="rounded">مستطيل بحواف ناعمة (الافتراضي)</option>
-                      <option value="pill">كبسولة دائرية بالكامل (Pill)</option>
-                      <option value="square">مستطيل كلاسيكي بحواف حادة</option>
+                      <option value="rounded">مستطيل بحواف دائرية ناعمة (الافتراضي)</option>
+                      <option value="pill">كبسولة بيضاوية بالكامل (Pill)</option>
+                      <option value="soft-square">مربع ناعم متناسق (Soft Square)</option>
+                      <option value="cut-corner">حواف مشطوفة هندسية عصرية (Cut Corner)</option>
+                      <option value="leaf">ورقة شجر انسيابية (Leaf Shape)</option>
+                      <option value="capsule-3d">كبسولة مقعرة ثلاثية الأبعاد (Capsule 3D)</option>
+                      <option value="sharp">مستطيل كلاسيكي بحواف حادة</option>
                     </SelectField>
                   </label>
 
                   <label className="field">
-                    تأثير الأزرار
+                    تأثير وأنيميشن الأزرار (٨ تأثيرات)
                     <SelectField value={draft.buttonEffect} onChange={(e) => updateField("buttonEffect", e.target.value as DesignSettings["buttonEffect"])}>
-                      <option value="gradient">تدرج لوني لامع (Gradient - الافتراضي)</option>
-                      <option value="solid">لون سادة موحد (Solid)</option>
-                      <option value="3d">بارز ثلاثي الأبعاد بحافة سفلية (3D)</option>
-                      <option value="outline">إطار واضح وخلفية خفيفة</option>
+                      <option value="glow">توهج مضيء عند اللمس (Glow - الافتراضي)</option>
+                      <option value="gradient-flow">انسياب جريديانت متدرج فخم (Gradient Flow)</option>
+                      <option value="3d-press">بارز ثلاثي الأبعاد بحافة سفلية (3D Press)</option>
+                      <option value="neon-border">إطار نيون مضيء بالثيم (Neon Border)</option>
+                      <option value="ripple-shine">موجة لمعة ضوئية متحركة (Ripple Shine)</option>
+                      <option value="lift">ارتفاع ناعم للأعلى عند اللمس (Lift)</option>
+                      <option value="pulse">نبض حيوي ناعم (Pulse)</option>
+                      <option value="flat">مسطح بسيط وهادئ (Flat)</option>
                     </SelectField>
                   </label>
                 </div>
@@ -1058,31 +1073,7 @@ export default function DesignCustomizer({
                   </div>
                 </div>
 
-                <InnerDivider title="تخصيص مستطيل مواقيت الصلاة والميزات التفاعلية" subtitle="تحكم في لون وحالة مستطيل مواقيت الصلاة، دليل المواصلات، وتثبيت التطبيق" />
-                <div className="form-row design-two-col">
-                  <label className="field">
-                    لون وتصميم مستطيل مواقيت الصلاة
-                    <SelectField value={draft.prayerCardStyle} onChange={(e) => updateField("prayerCardStyle", e.target.value as DesignSettings["prayerCardStyle"])}>
-                      <option value="dark-sky">لبني غامق متدرج (الافتراضي)</option>
-                      <option value="royal-navy">كحلي ملكي داكن</option>
-                      <option value="emerald">أخضر زمردي هادئ</option>
-                    </SelectField>
-                  </label>
-
-                  <label className="field">
-                    حالة مستطيل مواقيت الصلاة عند فتح الصفحة
-                    <SelectField value={draft.prayerDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("prayerDefaultOpen", e.target.value === "open")}>
-                      <option value="closed">مطوي ويفتح عند الضغط (الافتراضي)</option>
-                      <option value="open">مفرود بالكامل عند فتح الموقع</option>
-                    </SelectField>
-                  </label>
-                </div>
-
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showPrayerWeatherBar} onChange={(e) => updateField("showPrayerWeatherBar", e.target.checked)}/>إظهار مستطيل مواقيت الصلاة في جنزور</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showTransitGuide} onChange={(e) => updateField("showTransitGuide", e.target.checked)}/>إظهار قسم «دليل المواصلات وخطوط السير بجنزور»</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.mobileBottomNavEnabled} onChange={(e) => updateField("mobileBottomNavEnabled", e.target.checked)}/>تفعيل شريط التنقل السفلي السريع للموبايل (App Bar)</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showInstallAppBanner} onChange={(e) => updateField("showInstallAppBanner", e.target.checked)}/>إظهار زر وبطاقة «تثبيت تطبيق دليل جنزور» على الهاتف</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showAdminQuickEdit} onChange={(e) => updateField("showAdminQuickEdit", e.target.checked)}/>إظهار زر «تعديل سريع كأدمن» على كروت الصفحة الرئيسية</label>
                 </div>
               </div>
@@ -1277,13 +1268,17 @@ export default function DesignCustomizer({
                       </label>
 
                       <label className="field">
-                        سرعة تبديل أو حركة الشريط الإخباري
+                        سرعة حركة أو تبديل الشريط المتحرك (٩ سرعات متدرجة)
                         <SelectField value={draft.announcementSpeed} onChange={(e) => updateField("announcementSpeed", e.target.value as DesignSettings["announcementSpeed"])}>
-                          <option value="very-slow">بطيئة جداً وهادئة (٤٥ ثانية)</option>
-                          <option value="slow">هادئة ومريحة للقراءة (٣٢ ثانية)</option>
-                          <option value="normal">متوسطة متوازنة (٢٢ ثانية - الافتراضي)</option>
+                          <option value="ultra-slow">هادئة جداً جداً (٥٨ ثانية)</option>
+                          <option value="very-slow">بطيئة جداً ومريحة (٤٥ ثانية)</option>
+                          <option value="slow">هادئة ومريحة للقراءة (٣٤ ثانية)</option>
+                          <option value="normal">متوسطة متوازنة (٢٤ ثانية - الافتراضي)</option>
+                          <option value="medium-fast">متوسطة نشطة (١٨ ثانية)</option>
                           <option value="fast">سريعة ونشطة (١٤ ثانية)</option>
-                          <option value="turbo">فائقة السرعة (٨ ثوانٍ)</option>
+                          <option value="very-fast">سريعة جداً (١٠ ثوانٍ)</option>
+                          <option value="turbo">تربو خاطفة (٧.٥ ثانية)</option>
+                          <option value="flash">فلاش فائقة السرعة (٥.٥ ثانية)</option>
                         </SelectField>
                       </label>
                     </div>

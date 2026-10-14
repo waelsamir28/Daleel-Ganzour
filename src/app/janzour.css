@@ -8509,6 +8509,403 @@ html.dark .design-scale-paste-box textarea {
   border-color: #0f4ebe !important;
 }
 
+/* =========================================================================
+   18. كروت مقدمي الخدمة المستعادة مع أيقونات الشير والمفضلة على الشمال
+       وزرّي «اتصال» و«واتساب» اللذين يفتحان صفحة مقدم الخدمة
+   ========================================================================= */
+
+.design-preset-gradient-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+
+.provider-card .provider-card-main {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+
+.provider-card .provider-card-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.provider-card .provider-address {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.provider-card .provider-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.14);
+  color: #059669;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+html.dark .provider-card .provider-verified {
+  background: rgba(16, 185, 129, 0.22);
+  color: #34d399;
+}
+
+.provider-card .provider-card-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.provider-card .favorite-button,
+.provider-card .provider-share-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--line, #cbd5e1);
+  background: rgba(255, 255, 255, 0.9);
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.provider-card .favorite-button:hover,
+.provider-card .provider-share-button:hover {
+  transform: scale(1.07);
+  border-color: var(--design-primary, #1079ff);
+  color: var(--design-primary, #1079ff);
+}
+
+.provider-card .favorite-button.is-favorite {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #e11d48;
+}
+
+html.dark .provider-card .favorite-button,
+html.dark .provider-card .provider-share-button {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #e2e8f0;
+}
+html.dark .provider-card .favorite-button.is-favorite {
+  background: rgba(225, 29, 72, 0.28);
+  border-color: #fb7185;
+  color: #fda4af;
+}
+
+.provider-dual-actions-strip {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.provider-dual-actions-strip .provider-open-detail-call,
+.provider-dual-actions-strip .provider-open-detail-wa {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: var(--design-btn-radius, 12px);
+  font-size: 0.86rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  border: none;
+  color: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.provider-dual-actions-strip .provider-open-detail-call {
+  background: linear-gradient(135deg, var(--design-button, #1079ff) 0%, var(--design-primary, #095de2) 100%);
+  box-shadow: 0 6px 14px -4px rgba(16, 121, 255, 0.45);
+}
+
+.provider-dual-actions-strip .provider-open-detail-wa {
+  background: linear-gradient(135deg, var(--design-whatsapp, #1fa855) 0%, #0d8a42 100%);
+  box-shadow: 0 6px 14px -4px rgba(31, 168, 85, 0.42);
+}
+
+.provider-dual-actions-strip .provider-open-detail-call:hover,
+.provider-dual-actions-strip .provider-open-detail-wa:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+/* =========================================================================
+   19. ١٢ شكلاً لبراويز العناوين الرئيسية متناغمة مع ثيمات الجريديانت والليل والنهار
+   ========================================================================= */
+
+html[data-design-heading-style="gradient-frame"] .directory-section-heading {
+  background: var(--design-heading-gradient, linear-gradient(135deg, #095de2 0%, #1079ff 50%, #38bdf8 100%));
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-shadow: 0 12px 26px -10px rgba(9, 93, 226, 0.45);
+  color: #ffffff !important;
+}
+html[data-design-heading-style="gradient-frame"] .directory-section-heading h2,
+html[data-design-heading-style="gradient-frame"] .directory-section-heading p,
+html[data-design-heading-style="gradient-frame"] .directory-section-heading svg {
+  color: #ffffff !important;
+}
+html[data-design-heading-style="gradient-frame"] .directory-section-heading .section-count {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+html[data-design-heading-style="royal-ribbon"] .directory-section-heading {
+  background: var(--design-heading-gradient, linear-gradient(135deg, #112b5a 0%, #095de2 60%, #fbbf24 100%));
+  border: 2px solid #fbbf24;
+  border-radius: 20px;
+  padding: 15px 20px;
+  box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  color: #ffffff !important;
+}
+html[data-design-heading-style="royal-ribbon"] .directory-section-heading h2,
+html[data-design-heading-style="royal-ribbon"] .directory-section-heading p {
+  color: #ffffff !important;
+}
+html[data-design-heading-style="royal-ribbon"] .directory-section-heading svg {
+  color: #fde68a !important;
+}
+
+html[data-design-heading-style="neon-border"] .directory-section-heading {
+  background: rgba(15, 23, 42, 0.88);
+  border: 2px solid var(--design-dark-primary, #50b4ff);
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-shadow: 0 0 18px rgba(80, 180, 255, 0.38), inset 0 0 14px rgba(80, 180, 255, 0.14);
+}
+html[data-design-heading-style="neon-border"] .directory-section-heading h2,
+html[data-design-heading-style="neon-border"] .directory-section-heading p {
+  color: #f8fafc !important;
+}
+
+html[data-design-heading-style="double-frame"] .directory-section-heading {
+  background: var(--design-card-bg, #ffffff);
+  border: 4px double var(--design-primary, #095de2);
+  border-radius: 18px;
+  padding: 14px 18px;
+}
+html.dark[data-design-heading-style="double-frame"] .directory-section-heading {
+  background: var(--design-dark-card, #134595);
+  border-color: var(--design-dark-primary, #50b4ff);
+}
+
+html[data-design-heading-style="glass-card"] .directory-section-heading {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-radius: 20px;
+  padding: 14px 18px;
+  box-shadow: 0 10px 26px -12px rgba(15, 23, 42, 0.2);
+}
+html.dark[data-design-heading-style="glass-card"] .directory-section-heading {
+  background: rgba(19, 69, 149, 0.55);
+  border-color: rgba(80, 180, 255, 0.45);
+}
+
+html[data-design-heading-style="gold-crest"] .directory-section-heading {
+  background: linear-gradient(135deg, #1f1406 0%, #78350f 55%, #b45309 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-shadow: 0 12px 24px -10px rgba(180, 83, 9, 0.5);
+}
+html[data-design-heading-style="gold-crest"] .directory-section-heading h2,
+html[data-design-heading-style="gold-crest"] .directory-section-heading p,
+html[data-design-heading-style="gold-crest"] .directory-section-heading svg {
+  color: #fef3c7 !important;
+}
+
+html[data-design-heading-style="3d-banner"] .directory-section-heading {
+  background: var(--design-heading-gradient, linear-gradient(135deg, #095de2 0%, #1079ff 100%));
+  border-radius: 16px;
+  padding: 14px 18px;
+  border-bottom: 5px solid rgba(0, 0, 0, 0.32);
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.35);
+}
+html[data-design-heading-style="3d-banner"] .directory-section-heading h2,
+html[data-design-heading-style="3d-banner"] .directory-section-heading p,
+html[data-design-heading-style="3d-banner"] .directory-section-heading svg {
+  color: #ffffff !important;
+}
+
+html[data-design-heading-style="pill-badge"] .directory-section-heading {
+  background: var(--design-heading-gradient, linear-gradient(135deg, #095de2 0%, #38bdf8 100%));
+  border-radius: 999px;
+  padding: 12px 24px;
+  border: 1.5px solid rgba(255, 255, 255, 0.32);
+}
+html[data-design-heading-style="pill-badge"] .directory-section-heading h2,
+html[data-design-heading-style="pill-badge"] .directory-section-heading p,
+html[data-design-heading-style="pill-badge"] .directory-section-heading svg {
+  color: #ffffff !important;
+}
+
+html[data-design-heading-style="boxed"] .directory-section-heading {
+  background: var(--design-card-bg, #ffffff);
+  border: 2px solid var(--design-primary, #095de2);
+  border-radius: 16px;
+  padding: 13px 16px;
+}
+html.dark[data-design-heading-style="boxed"] .directory-section-heading {
+  background: var(--design-dark-card, #134595);
+  border-color: var(--design-dark-primary, #50b4ff);
+}
+
+html[data-design-heading-style="underline"] .directory-section-heading {
+  padding-bottom: 12px;
+  border-bottom: 4px solid var(--design-primary, #095de2);
+}
+
+html[data-design-heading-style="right-bar"] .directory-section-heading {
+  padding-right: 16px;
+  border-right: 6px solid var(--design-primary, #095de2);
+  background: rgba(16, 121, 255, 0.08);
+  border-radius: 12px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 14px;
+}
+
+/* =========================================================================
+   20. أشكال وتأثيرات الأزرار المتعددة (٧ أشكال حواف + ٨ تأثيرات بصرية)
+   ========================================================================= */
+
+html[data-design-btn-shape="cut-corner"] .button,
+html[data-design-btn-shape="cut-corner"] .provider-open-detail-call,
+html[data-design-btn-shape="cut-corner"] .provider-open-detail-wa {
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  border-radius: 4px !important;
+}
+
+html[data-design-btn-shape="leaf"] .button,
+html[data-design-btn-shape="leaf"] .provider-open-detail-call,
+html[data-design-btn-shape="leaf"] .provider-open-detail-wa {
+  border-radius: 22px 6px 22px 6px !important;
+}
+
+html[data-design-btn-shape="capsule-3d"] .button,
+html[data-design-btn-shape="capsule-3d"] .provider-open-detail-call,
+html[data-design-btn-shape="capsule-3d"] .provider-open-detail-wa {
+  border-radius: 999px !important;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.35), 0 6px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-design-btn-effect="gradient-flow"] .button-primary,
+html[data-design-btn-effect="gradient-flow"] .provider-open-detail-call {
+  background: var(--design-heading-gradient, linear-gradient(135deg, #095de2 0%, #1079ff 50%, #38bdf8 100%)) !important;
+  background-size: 200% 200% !important;
+}
+
+html[data-design-btn-effect="3d-press"] .button,
+html[data-design-btn-effect="3d-press"] .provider-open-detail-call,
+html[data-design-btn-effect="3d-press"] .provider-open-detail-wa {
+  border-bottom: 4px solid rgba(0, 0, 0, 0.35) !important;
+}
+html[data-design-btn-effect="3d-press"] .button:active,
+html[data-design-btn-effect="3d-press"] .provider-open-detail-call:active,
+html[data-design-btn-effect="3d-press"] .provider-open-detail-wa:active {
+  transform: translateY(2px) !important;
+  border-bottom-width: 1px !important;
+}
+
+html[data-design-btn-effect="neon-border"] .button-primary,
+html[data-design-btn-effect="neon-border"] .provider-open-detail-call {
+  border: 1.5px solid #7cd0ff !important;
+  box-shadow: 0 0 14px rgba(80, 180, 255, 0.55) !important;
+}
+
+html[data-design-btn-effect="ripple-shine"] .button-primary,
+html[data-design-btn-effect="ripple-shine"] .provider-open-detail-call {
+  position: relative;
+  overflow: hidden;
+}
+
+/* =========================================================================
+   21. أشكال الأنيميشن للكروت (١٠ حركات) + ٩ سرعات للشريط المتحرك
+   ========================================================================= */
+
+html[data-design-hover="float-3d"] .category-tile:hover,
+html[data-design-hover="float-3d"] .provider-card:hover {
+  transform: translateY(-6px) scale(1.015) !important;
+  box-shadow: 0 20px 34px -14px rgba(9, 93, 226, 0.42) !important;
+}
+
+html[data-design-hover="border-pulse"] .category-tile:hover,
+html[data-design-hover="border-pulse"] .provider-card:hover {
+  border-color: var(--design-dark-primary, #50b4ff) !important;
+  box-shadow: 0 0 0 3px rgba(80, 180, 255, 0.32) !important;
+}
+
+html[data-design-hover="neon-sweep"] .category-tile:hover,
+html[data-design-hover="neon-sweep"] .provider-card:hover {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.45), inset 0 0 12px rgba(56, 189, 248, 0.15) !important;
+  transform: translateY(-3px) !important;
+}
+
+html[data-design-hover="spring-pop"] .category-tile:hover,
+html[data-design-hover="spring-pop"] .provider-card:hover {
+  transform: scale(1.035) translateY(-4px) !important;
+}
+
+html[data-design-hover="shine-glint"] .category-tile:hover,
+html[data-design-hover="shine-glint"] .provider-card:hover {
+  transform: translateY(-4px) !important;
+  filter: brightness(1.07);
+}
+
+.site-announcement-marquee.is-speed-ultra-slow .site-announcement-marquee-track {
+  animation-duration: 58s !important;
+}
+.site-announcement-marquee.is-speed-very-slow .site-announcement-marquee-track {
+  animation-duration: 45s !important;
+}
+.site-announcement-marquee.is-speed-slow .site-announcement-marquee-track {
+  animation-duration: 34s !important;
+}
+.site-announcement-marquee.is-speed-normal .site-announcement-marquee-track {
+  animation-duration: 24s !important;
+}
+.site-announcement-marquee.is-speed-medium-fast .site-announcement-marquee-track {
+  animation-duration: 18s !important;
+}
+.site-announcement-marquee.is-speed-fast .site-announcement-marquee-track {
+  animation-duration: 14s !important;
+}
+.site-announcement-marquee.is-speed-very-fast .site-announcement-marquee-track {
+  animation-duration: 10s !important;
+}
+.site-announcement-marquee.is-speed-turbo .site-announcement-marquee-track {
+  animation-duration: 7.5s !important;
+}
+.site-announcement-marquee.is-speed-flash .site-announcement-marquee-track {
+  animation-duration: 5.5s !important;
+}
+
+
 
 
 

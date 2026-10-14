@@ -1,13 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
-import { defaultDesignSettings, type DesignSettings } from "@/lib/catalog";
+import { defaultDesignSettings, designThemePresets, type DesignSettings } from "@/lib/catalog";
 
 export function applyDesignSettingsToDocument(design: DesignSettings = defaultDesignSettings) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
 
+  const presetEntry = design.themePreset !== "custom" ? designThemePresets[design.themePreset] : undefined;
+  const headingGradient =
+    presetEntry?.gradientPreview ??
+    `linear-gradient(135deg, ${design.darkPageBgColor || "#112b5a"} 0%, ${design.primaryColor || "#095de2"} 52%, ${design.darkPrimaryColor || "#50b4ff"} 100%)`;
+
   root.style.setProperty("--design-primary", design.primaryColor);
+  root.style.setProperty("--design-heading-gradient", headingGradient);
   root.style.setProperty("--design-page-bg", design.pageBgColor);
   root.style.setProperty("--design-modal-header-bg", design.modalHeaderBg);
   root.style.setProperty("--design-button-color", design.buttonColor);
@@ -79,12 +85,16 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
 
   try {
     const userPref = localStorage.getItem("janzour-theme");
-    if (!userPref) {
-      if (design.themeMode === "dark") root.classList.add("dark");
-      else if (design.themeMode === "light") root.classList.remove("dark");
+    if (userPref === "light") {
+      root.classList.remove("dark");
+    } else if (userPref === "dark") {
+      root.classList.add("dark");
+    } else {
+      if (design.themeMode === "light") root.classList.remove("dark");
+      else root.classList.add("dark");
     }
   } catch {
-    // Ignore storage access errors
+    root.classList.add("dark");
   }
 }
 

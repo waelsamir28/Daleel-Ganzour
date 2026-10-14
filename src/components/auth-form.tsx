@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { Logo } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
-import { defaultDesignSettings, type DesignSettings, type SiteSettings } from "@/lib/catalog";
+import { defaultDesignSettings, parseAnnouncementItems, type DesignSettings, type SiteSettings } from "@/lib/catalog";
 
 export function LogoutButton({ className = "button button-soft" }: { className?: string }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
@@ -15,6 +15,7 @@ export function LogoutButton({ className = "button button-soft" }: { className?:
 export default function AuthForm({ mode, settings, designSettings }: { mode: "login" | "register"; settings: SiteSettings; designSettings?: DesignSettings }) {
   const registering = mode === "register";
   const design = { ...defaultDesignSettings, ...(designSettings ?? {}) };
+  const announcementList = parseAnnouncementItems(design);
   const rowLayoutClass = design.authFieldsLayout === "one-col" ? "form-row" : "form-row compact-two-col";
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [showPassword, setShowPassword] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -29,6 +30,26 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
   return <div className="admin-login-page">
     <DesignApplicator design={design}/>
     <header className="admin-public-header container"><Logo name={settings.siteName} logoUrl={design.headerLogoUrl}/><Link href="/">العودة للدليل <ArrowLeft size={17}/></Link></header>
+    {design.announcementEnabled && announcementList.length > 0 && (
+      <div className="container" style={{ marginTop: "0.75rem" }}>
+        <div
+          className={`site-announcement-ticker-card is-${design.announcementStyle} is-mode-marquee`}
+          style={{ "--ticker-bg": design.announcementBgColor } as CSSProperties}
+        >
+          <span className="ticker-badge-icon"><Sparkles size={15}/></span>
+          <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"}`} aria-label="شريط الأخبار والتنبيهات">
+            <div className="site-announcement-marquee-track">
+              {[...announcementList, ...announcementList].map((item, idx) => (
+                <span key={`${idx}-${item}`} className="site-announcement-marquee-item">
+                  {item}
+                  <i aria-hidden="true">•</i>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     <main className={`login-layout ${registering ? "registration-layout" : ""} ${!design.authShowBanner ? "no-auth-banner" : ""}`}>
       {design.authShowBanner && (
         <div className="login-art">

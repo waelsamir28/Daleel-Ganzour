@@ -946,7 +946,28 @@ export type DesignSettings = {
   fontScale: "small" | "normal" | "large" | "xlarge";
   fontWeight: "normal" | "bold" | "extrabold";
   fontFamily: "cairo" | "tajawal" | "almarai" | "readex";
-  sectionHeadingStyle: "plain" | "pill" | "underline" | "framed";
+  sectionHeadingStyle:
+    | "plain"
+    | "clean"
+    | "pill"
+    | "pill-badge"
+    | "underline"
+    | "framed"
+    | "boxed"
+    | "right-bar"
+    | "gradient-frame"
+    | "royal-ribbon"
+    | "neon-border"
+    | "double-frame"
+    | "glass-card"
+    | "3d-banner"
+    | "neon-glow"
+    | "glass-3d"
+    | "gold-crest"
+    | "ribbon-banner"
+    | "side-blade"
+    | "floating-capsule"
+    | "double-royal";
   // 3. Cards, Frames & Borders
   borderWidth: "none" | "thin" | "medium" | "double";
   borderColor: string;
@@ -954,8 +975,36 @@ export type DesignSettings = {
   cardRadius: "sharp" | "medium" | "rounded" | "pill";
   cardShadow: "none" | "soft" | "elevated-3d";
   // 4. Buttons Style
-  buttonShape: "pill" | "rounded" | "square";
-  buttonEffect: "gradient" | "solid" | "outline" | "3d";
+  buttonShape:
+    | "pill"
+    | "rounded"
+    | "square"
+    | "sharp"
+    | "soft-square"
+    | "soft-arch"
+    | "cut-corner"
+    | "leaf"
+    | "capsule-3d"
+    | "capsule-wide"
+    | "bevel";
+  buttonEffect:
+    | "gradient"
+    | "gradient-flow"
+    | "glow"
+    | "solid"
+    | "flat"
+    | "outline"
+    | "3d"
+    | "3d-press"
+    | "lift"
+    | "pulse"
+    | "ripple-shine"
+    | "glass-glow"
+    | "neon-border"
+    | "metallic-shine"
+    | "double-ring"
+    | "soft-pulse"
+    | "cyber-gradient";
   buttonAlign: "center" | "right" | "full";
   // 5. Icons & Layout Structure
   iconStyle: "3d" | "flat" | "glow";
@@ -1005,7 +1054,22 @@ export type DesignSettings = {
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
   sectionSpacing: "compact" | "normal" | "relaxed";
-  cardHoverEffect: "lift" | "glow" | "scale" | "none";
+  cardHoverEffect:
+    | "lift"
+    | "glow"
+    | "scale"
+    | "tilt"
+    | "tilt-3d"
+    | "float-3d"
+    | "border-pulse"
+    | "neon-sweep"
+    | "spring-pop"
+    | "shine-glint"
+    | "shimmer-sweep"
+    | "float-bounce"
+    | "neon-aura"
+    | "slide-up-glow"
+    | "none";
   sectionDividerStyle: "none" | "line" | "dots" | "gradient";
   floatingWhatsappEnabled: boolean;
   // 9. Seasonal Ribbon, Footer & Social Customizer, Mobile Bottom Nav & Community Widgets
@@ -1022,7 +1086,16 @@ export type DesignSettings = {
   // 10. Multi-Item News Ticker & Subtle Background Patterns
   announcementItems: string;
   announcementTickerMode: "single" | "rotate" | "marquee" | "marquee-reverse" | "vertical-slide" | "pulse-glow" | "bounce";
-  announcementSpeed: "very-slow" | "slow" | "normal" | "fast" | "turbo";
+  announcementSpeed:
+    | "ultra-slow"
+    | "very-slow"
+    | "slow"
+    | "normal"
+    | "medium-fast"
+    | "fast"
+    | "very-fast"
+    | "turbo"
+    | "flash";
   headerPattern: "none" | "dots" | "grid" | "islamic" | "waves";
   heroPattern: "none" | "dots" | "grid" | "islamic" | "waves" | "stars";
   patternOpacity: "subtle" | "medium" | "clear";
@@ -1032,7 +1105,7 @@ export type DesignSettings = {
   categorySearchDefaultOpen: boolean;
   showCategoryCounts: boolean;
   providerCallStripStyle: "sky" | "emerald" | "solid-blue";
-  cardAnimationSpeed: "normal" | "smooth" | "instant";
+  cardAnimationSpeed: "ultra-slow" | "slow" | "instant" | "fast" | "normal" | "smooth" | "cinematic" | "spring" | "bouncy";
   officeAddress: string;
   officeWorkingHours: string;
   whatsappDefaultGreeting: string;
@@ -1246,14 +1319,14 @@ export const defaultDesignSettings: DesignSettings = {
   pageBgColor: "#edf7ff",
   modalHeaderBg: "#d7edff",
   buttonColor: "#1079ff",
-  themeMode: "auto",
+  themeMode: "dark",
   headingAlign: "right",
   cardTextAlign: "center",
   noticeAlign: "center",
   fontScale: "normal",
   fontWeight: "bold",
   fontFamily: "cairo",
-  sectionHeadingStyle: "pill",
+  sectionHeadingStyle: "gradient-frame",
   borderWidth: "thin",
   borderColor: "#b8e0ff",
   cardBgColor: "#ffffff",
@@ -1315,8 +1388,8 @@ export const defaultDesignSettings: DesignSettings = {
   footerWhatsappGroupUrl: "",
   showFooterStats: true,
   mobileBottomNavEnabled: false,
-  showPrayerWeatherBar: true,
-  showTransitGuide: true,
+  showPrayerWeatherBar: false,
+  showTransitGuide: false,
   showInstallAppBanner: true,
   showAdminQuickEdit: false,
   announcementItems:
@@ -1340,7 +1413,7 @@ export const defaultDesignSettings: DesignSettings = {
   outerCardStyle: "modern",
   searchTriggerStyle: "pill-gradient",
   badgesDefaultOpen: false,
-  sponsorModalEnabled: true,
+  sponsorModalEnabled: false,
   sponsorModalDelaySeconds: 10,
   sponsorModalTitle: "باقات الرعاية والتميز للعيادات والمعامل والمحلات التجارية",
   sponsorModalSubtitle:
@@ -1348,8 +1421,8 @@ export const defaultDesignSettings: DesignSettings = {
   sponsorModalOfferBanner:
     "🎁 عرض خاص لفترة محدودة: تجربة مجانية كاملة لمدة ١٠ أيام للعيادات والمعامل والمحلات التجارية بقرية جنزور — فعّل باقتك الآن وجرّب كل المميزات الذهبية بنفسك أولاً مجاناً وبدون أي التزام!",
   sponsorModalPhone: OFFICE_PHONE,
-  showDailyOffersSection: true,
-  showSponsorsRibbon: true,
+  showDailyOffersSection: false,
+  showSponsorsRibbon: false,
   sponsoredProvidersJson: JSON.stringify(defaultSponsoredProviders),
   darkPageBgColor: "#112b5a",
   darkCardBgColor: "#134595",
@@ -1358,91 +1431,148 @@ export const defaultDesignSettings: DesignSettings = {
   shimmerEffectEnabled: true,
 };
 
-export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, { label: string; description: string; badge?: string; colors: Pick<DesignSettings, "primaryColor" | "pageBgColor" | "modalHeaderBg" | "buttonColor" | "borderColor" | "cardBgColor" | "headerBgColor" | "footerBgColor"> }> = {
+export type GradientThemePresetEntry = {
+  label: string;
+  description: string;
+  badge?: string;
+  gradientPreview: string;
+  colors: Pick<
+    DesignSettings,
+    | "primaryColor"
+    | "pageBgColor"
+    | "modalHeaderBg"
+    | "buttonColor"
+    | "borderColor"
+    | "cardBgColor"
+    | "headerBgColor"
+    | "footerBgColor"
+  >;
+  darkColors: Pick<
+    DesignSettings,
+    "darkPageBgColor" | "darkCardBgColor" | "darkBorderColor" | "darkPrimaryColor" | "announcementBgColor" | "detailNameBoxColor"
+  >;
+};
+
+export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, GradientThemePresetEntry> = {
   "royal-blue": {
-    label: "👑 الأزرق الملكي المتدرج (Royal Blue)",
-    badge: "مفعل",
-    description: "تدرج Royal Blue الاحترافي (50–950) للوضعين النهاري (#edf7ff / #095de2) والليلي (#112b5a / #50b4ff)",
+    label: "🌌 جريديانت الأزرق الملكي والنيون الليلي",
+    badge: "الافتراضي",
+    description: "تدرج Royal Blue الفاخر (50–950) المتناغم مع براويز العناوين الرئيسية في الليل والنهار",
+    gradientPreview: "linear-gradient(135deg, #112b5a 0%, #095de2 52%, #50b4ff 100%)",
     colors: { primaryColor: "#095de2", pageBgColor: "#edf7ff", modalHeaderBg: "#d7edff", buttonColor: "#1079ff", borderColor: "#b8e0ff", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#112b5a" },
+    darkColors: { darkPageBgColor: "#112b5a", darkCardBgColor: "#134595", darkBorderColor: "#0f4ebe", darkPrimaryColor: "#50b4ff", announcementBgColor: "#0f4ebe", detailNameBoxColor: "#134595" },
   },
   "classic-blue": {
-    label: "أزرق جنزور الكلاسيكي",
-    description: "الهوية الافتراضية المريحة للعين بتدرجات السماوي والأزرق",
-    colors: { primaryColor: "#0878c9", pageBgColor: "#f3f7fa", modalHeaderBg: "#dcecfb", buttonColor: "#0c72c7", borderColor: "#dce6ef", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#102437" },
+    label: "💎 جريديانت السافير والسماوي المضيء",
+    badge: "جريديانت",
+    description: "تدرج السافير الأزرق مع إطارات عناوين مضيئة وتباين ليلي ونهاري مريح للعين",
+    gradientPreview: "linear-gradient(135deg, #08203e 0%, #0878c9 55%, #38bdf8 100%)",
+    colors: { primaryColor: "#0878c9", pageBgColor: "#f0f8ff", modalHeaderBg: "#dcecfb", buttonColor: "#0284c7", borderColor: "#bae6fd", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#08203e" },
+    darkColors: { darkPageBgColor: "#081b33", darkCardBgColor: "#0f2d52", darkBorderColor: "#0284c7", darkPrimaryColor: "#38bdf8", announcementBgColor: "#0369a1", detailNameBoxColor: "#0f2d52" },
   },
   emerald: {
-    label: "أخضر زمردي طبيعي",
-    description: "ثيم هادئ بألوان الطبيعة والزمرد مع خلفية ناعمة",
-    colors: { primaryColor: "#0d8a5f", pageBgColor: "#f2f8f5", modalHeaderBg: "#d6f2e6", buttonColor: "#0f8c62", borderColor: "#cfe6dc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#0d2920" },
+    label: "❇️ جريديانت الشفق الزمردي والتركواز",
+    badge: "جريديانت",
+    description: "تدرج الزمرد الملكي والتركواز المشرق لبراويز العناوين والكروت الليلية والنهارية",
+    gradientPreview: "linear-gradient(135deg, #022c22 0%, #059669 55%, #34d399 100%)",
+    colors: { primaryColor: "#047857", pageBgColor: "#ecfdf5", modalHeaderBg: "#d1fae5", buttonColor: "#059669", borderColor: "#a7f3d0", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#022c22" },
+    darkColors: { darkPageBgColor: "#041f18", darkCardBgColor: "#06372a", darkBorderColor: "#059669", darkPrimaryColor: "#34d399", announcementBgColor: "#065f46", detailNameBoxColor: "#064e3b" },
   },
   "royal-navy": {
-    label: "كحلي ملكي فاخر",
-    description: "تصميم رسمي أنيق بدرجات الكحلي الملكي والأزرق العميق",
-    colors: { primaryColor: "#1d4ed8", pageBgColor: "#f1f5f9", modalHeaderBg: "#dbeafe", buttonColor: "#1e40af", borderColor: "#cbd5e1", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#0f172a" },
+    label: "⚡ جريديانت الكوبالت والأزرق الكهربائي",
+    badge: "جريديانت",
+    description: "تدرج الكحلي الإمبراطوري والأزرق الكهربائي لبراويز عناوين فخمة وعصرية",
+    gradientPreview: "linear-gradient(135deg, #090d16 0%, #1d4ed8 52%, #60a5fa 100%)",
+    colors: { primaryColor: "#1d4ed8", pageBgColor: "#eff6ff", modalHeaderBg: "#dbeafe", buttonColor: "#2563eb", borderColor: "#bfdbfe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#0f172a" },
+    darkColors: { darkPageBgColor: "#091124", darkCardBgColor: "#132347", darkBorderColor: "#2563eb", darkPrimaryColor: "#60a5fa", announcementBgColor: "#1e40af", detailNameBoxColor: "#172554" },
   },
   "warm-gold": {
-    label: "ذهبي دافئ وتراثي",
-    description: "ألوان دافئة تجمع بين الكهرمان الذهبي والكحلي",
-    colors: { primaryColor: "#b45309", pageBgColor: "#faf7f2", modalHeaderBg: "#fde6c4", buttonColor: "#c2610c", borderColor: "#eadbc8", cardBgColor: "#ffffff", headerBgColor: "#fffdf9", footerBgColor: "#271a0c" },
+    label: "👑 جريديانت الذهب الإمبراطوري والكحلي",
+    badge: "جريديانت",
+    description: "تدرج الكهرمان الذهبي مع الكحلي الليلي الفاخر لبراويز العناوين والأزرار",
+    gradientPreview: "linear-gradient(135deg, #271505 0%, #b45309 52%, #fbbf24 100%)",
+    colors: { primaryColor: "#b45309", pageBgColor: "#fffbeb", modalHeaderBg: "#fef3c7", buttonColor: "#d97706", borderColor: "#fde68a", cardBgColor: "#ffffff", headerBgColor: "#fffdf9", footerBgColor: "#271505" },
+    darkColors: { darkPageBgColor: "#181006", darkCardBgColor: "#2b1c0b", darkBorderColor: "#d97706", darkPrimaryColor: "#fbbf24", announcementBgColor: "#92400e", detailNameBoxColor: "#451a03" },
   },
   festive: {
-    label: "ثيم المناسبات العام",
-    description: "طابع احتفالي مميز للأعياد والمناسبات العامة",
-    colors: { primaryColor: "#6d28d9", pageBgColor: "#f6f4fb", modalHeaderBg: "#e9d5ff", buttonColor: "#7c3aed", borderColor: "#ddd6fe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1e1035" },
+    label: "🔮 جريديانت البنفسجي الكوني والأرجواني",
+    badge: "جريديانت",
+    description: "تدرج الأميثيست البنفسجي والنيون الأرجواني المتناغم مع الوضع الليلي والنهاري",
+    gradientPreview: "linear-gradient(135deg, #170a2e 0%, #6d28d9 52%, #c084fc 100%)",
+    colors: { primaryColor: "#6d28d9", pageBgColor: "#f5f3ff", modalHeaderBg: "#ede9fe", buttonColor: "#7c3aed", borderColor: "#ddd6fe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#170a2e" },
+    darkColors: { darkPageBgColor: "#120924", darkCardBgColor: "#241346", darkBorderColor: "#7c3aed", darkPrimaryColor: "#c084fc", announcementBgColor: "#5b21b6", detailNameBoxColor: "#2e1065" },
   },
   ramadan: {
-    label: "🌙 ثيم شهر رمضان المبارك",
-    badge: "موسمي",
-    description: "ألوان الكحلي الرمضاني والذهبي الدافئ مع أجواء روحانية لأهل جنزور",
+    label: "🌙 جريديانت الهلال الذهبي والياقوت الليلي",
+    badge: "جريديانت",
+    description: "تدرج الكحلي الليلي مع الذهب المضيء لبراويز عناوين دافئة وفخمة",
+    gradientPreview: "linear-gradient(135deg, #0b192c 0%, #0f3d5e 50%, #f59e0b 100%)",
     colors: { primaryColor: "#b45309", pageBgColor: "#fbf8f1", modalHeaderBg: "#fef3c7", buttonColor: "#0f3d5e", borderColor: "#e8dcc4", cardBgColor: "#ffffff", headerBgColor: "#fffdf8", footerBgColor: "#0c1f33" },
+    darkColors: { darkPageBgColor: "#0b192c", darkCardBgColor: "#152c4a", darkBorderColor: "#d97706", darkPrimaryColor: "#fbbf24", announcementBgColor: "#0f3d5e", detailNameBoxColor: "#152c4a" },
   },
   eid: {
-    label: "🎉 ثيم العيد والفرحة",
-    badge: "موسمي",
-    description: "ألوان الفيروزي المشرق والبهجة لاحتفالات عيد الفطر وعيد الأضحى",
-    colors: { primaryColor: "#0d9488", pageBgColor: "#f0fdf9", modalHeaderBg: "#ccfbf1", buttonColor: "#0f766e", borderColor: "#b9ece3", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#112a28" },
+    label: "🌊 جريديانت المحيط الفيروزي واللؤلؤ",
+    badge: "جريديانت",
+    description: "تدرج الفيروزي المشرق والأكوا المضيء في الوضع الليلي والنهاري",
+    gradientPreview: "linear-gradient(135deg, #062826 0%, #0d9488 52%, #2dd4bf 100%)",
+    colors: { primaryColor: "#0d9488", pageBgColor: "#f0fdfa", modalHeaderBg: "#ccfbf1", buttonColor: "#0f766e", borderColor: "#99f6e4", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#062826" },
+    darkColors: { darkPageBgColor: "#05201f", darkCardBgColor: "#0b3936", darkBorderColor: "#0d9488", darkPrimaryColor: "#2dd4bf", announcementBgColor: "#115e59", detailNameBoxColor: "#134e4a" },
   },
   schools: {
-    label: "🎒 ثيم العودة للمدارس",
-    badge: "موسمي",
-    description: "طابع تعليمي نشط يبرز قسم المدرسين والمكتبات والخدمات التعليمية",
-    colors: { primaryColor: "#2563eb", pageBgColor: "#f4f7ff", modalHeaderBg: "#dbeafe", buttonColor: "#d97706", borderColor: "#d4e0f7", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#172554" },
+    label: "✨ جريديانت النيلي والذهبي المتألق",
+    badge: "جريديانت",
+    description: "تدرج مزدوج بين الأزرق النيلي والكهرمان الذهبي لبراويز عناوين بارزة",
+    gradientPreview: "linear-gradient(135deg, #172554 0%, #2563eb 55%, #f59e0b 100%)",
+    colors: { primaryColor: "#2563eb", pageBgColor: "#f4f7ff", modalHeaderBg: "#dbeafe", buttonColor: "#d97706", borderColor: "#bfdbfe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#172554" },
+    darkColors: { darkPageBgColor: "#0c1636", darkCardBgColor: "#172554", darkBorderColor: "#3b82f6", darkPrimaryColor: "#fbbf24", announcementBgColor: "#1e3a8a", detailNameBoxColor: "#1e3a8a" },
   },
   "winter-emergency": {
-    label: "🌧️ ثيم الطوارئ والشتاء",
-    badge: "موسمي",
-    description: "تباين عالٍ وواضح يبرز أرقام الطوارئ والصيدليات والخدمات العاجلة",
-    colors: { primaryColor: "#0369a1", pageBgColor: "#f0f6fa", modalHeaderBg: "#bae6fd", buttonColor: "#dc2626", borderColor: "#c5d9e8", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#082032" },
+    label: "❄️ جريديانت الجليد القطبي والياقوت",
+    badge: "جريديانت",
+    description: "تدرج الأزرق الجليدي العميق مع السماوي القطبي عالي الوضوح",
+    gradientPreview: "linear-gradient(135deg, #082032 0%, #0369a1 52%, #38bdf8 100%)",
+    colors: { primaryColor: "#0369a1", pageBgColor: "#f0f9ff", modalHeaderBg: "#bae6fd", buttonColor: "#0284c7", borderColor: "#7dd3fc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#082032" },
+    darkColors: { darkPageBgColor: "#071929", darkCardBgColor: "#0c2d48", darkBorderColor: "#0284c7", darkPrimaryColor: "#38bdf8", announcementBgColor: "#075985", detailNameBoxColor: "#0c4a6e" },
   },
   "sunset-coral": {
-    label: "🌅 غروب مرجاني دافئ",
-    badge: "جديد",
-    description: "تدرجات المرجاني الدافئ والبرتقالي الهادئ لمظهر عصري مفعم بالحيوية",
-    colors: { primaryColor: "#e11d48", pageBgColor: "#fff5f5", modalHeaderBg: "#ffe4e6", buttonColor: "#be123c", borderColor: "#fecdd3", cardBgColor: "#ffffff", headerBgColor: "#fffafa", footerBgColor: "#310b19" },
+    label: "🔥 جريديانت الياقوت الأحمر والغروب المرجاني",
+    badge: "جريديانت",
+    description: "تدرج الياقوت القرمزي والمرجاني المضيء لبراويز عناوين نابضة بالحياة",
+    gradientPreview: "linear-gradient(135deg, #310b19 0%, #e11d48 55%, #fb7185 100%)",
+    colors: { primaryColor: "#e11d48", pageBgColor: "#fff1f2", modalHeaderBg: "#ffe4e6", buttonColor: "#be123c", borderColor: "#fecdd3", cardBgColor: "#ffffff", headerBgColor: "#fffafa", footerBgColor: "#310b19" },
+    darkColors: { darkPageBgColor: "#1f0812", darkCardBgColor: "#3b0d21", darkBorderColor: "#e11d48", darkPrimaryColor: "#fb7185", announcementBgColor: "#9f1239", detailNameBoxColor: "#4c0519" },
   },
   "turquoise-nile": {
-    label: "🌊 فيروزي النيل المشرق",
-    badge: "جديد",
-    description: "درجات الفيروزي والسماوي النيلي الصافي المريح للعين على الهاتف والكمبيوتر",
-    colors: { primaryColor: "#0284c7", pageBgColor: "#f0fdfa", modalHeaderBg: "#ccfbf1", buttonColor: "#0891b2", borderColor: "#a5f3fc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#083344" },
+    label: "🌊 جريديانت سيان النيل والأزرق الفيروزي",
+    badge: "جريديانت",
+    description: "تدرج السيان المضيء والأزرق النيلي لبراويز العناوين والكروت في الليل والنهار",
+    gradientPreview: "linear-gradient(135deg, #083344 0%, #0891b2 52%, #22d3ee 100%)",
+    colors: { primaryColor: "#0284c7", pageBgColor: "#ecfeff", modalHeaderBg: "#cffafe", buttonColor: "#0891b2", borderColor: "#a5f3fc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#083344" },
+    darkColors: { darkPageBgColor: "#06212d", darkCardBgColor: "#0b394c", darkBorderColor: "#0891b2", darkPrimaryColor: "#22d3ee", announcementBgColor: "#155e75", detailNameBoxColor: "#164e63" },
   },
   "lavender-soft": {
-    label: "💜 لافندر عصري هادئ",
-    badge: "جديد",
-    description: "ألوان البنفسجي اللافندر الراقي مع خلفية ناعمة وتباين مريح للقراءة",
-    colors: { primaryColor: "#7c3aed", pageBgColor: "#f8f7ff", modalHeaderBg: "#ede9fe", buttonColor: "#6d28d9", borderColor: "#ddd6fe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1e1b4b" },
+    label: "🌌 جريديانت السديم البنفسجي والإنديجو",
+    badge: "جريديانت",
+    description: "تدرج الإنديجو واللافندر المضيء المتناغم مع الوضع الليلي والنهاري",
+    gradientPreview: "linear-gradient(135deg, #1e1b4b 0%, #6366f1 52%, #a5b4fc 100%)",
+    colors: { primaryColor: "#4f46e5", pageBgColor: "#eef2ff", modalHeaderBg: "#e0e7ff", buttonColor: "#6366f1", borderColor: "#c7d2fe", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1e1b4b" },
+    darkColors: { darkPageBgColor: "#11102e", darkCardBgColor: "#1e1b4b", darkBorderColor: "#6366f1", darkPrimaryColor: "#a5b4fc", announcementBgColor: "#3730a3", detailNameBoxColor: "#312e81" },
   },
   "graphite-modern": {
-    label: "🖤 جرافيت عصري أنيق",
-    badge: "جديد",
-    description: "تصميم احترافي بدرجات الرمادي الجرافيت والأزرق الفولاذي",
-    colors: { primaryColor: "#334155", pageBgColor: "#f8fafc", modalHeaderBg: "#e2e8f0", buttonColor: "#0f172a", borderColor: "#cbd5e1", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#090d16" },
+    label: "🛡️ جريديانت التيتانيوم والفولاذ الأزرق",
+    badge: "جريديانت",
+    description: "تدرج الفولاذ الكحلي والتيتانيوم العصري لبراويز عناوين فائقة الأناقة",
+    gradientPreview: "linear-gradient(135deg, #090d16 0%, #334155 52%, #94a3b8 100%)",
+    colors: { primaryColor: "#334155", pageBgColor: "#f8fafc", modalHeaderBg: "#e2e8f0", buttonColor: "#1e293b", borderColor: "#cbd5e1", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#090d16" },
+    darkColors: { darkPageBgColor: "#090d16", darkCardBgColor: "#1e293b", darkBorderColor: "#475569", darkPrimaryColor: "#93c5fd", announcementBgColor: "#1e293b", detailNameBoxColor: "#0f172a" },
   },
   "olive-country": {
-    label: "🌿 أخضر ريفي أصيل",
-    badge: "جديد",
-    description: "مستوحى من خضرة ريف المنوفية وقرية جنزور بدرجات الزيتوني والأخضر الدافئ",
-    colors: { primaryColor: "#3f6212", pageBgColor: "#f7fee7", modalHeaderBg: "#ecfccb", buttonColor: "#4d7c0f", borderColor: "#d9f99d", cardBgColor: "#ffffff", headerBgColor: "#fefffa", footerBgColor: "#1a2e05" },
+    label: "🌿 جريديانت اليشم الأخضر والذهب الريفي",
+    badge: "جريديانت",
+    description: "تدرج اليشم الأخضر والذهبي الهادئ المتناسق مع الليل والنهار",
+    gradientPreview: "linear-gradient(135deg, #142604 0%, #3f6212 52%, #a3e635 100%)",
+    colors: { primaryColor: "#3f6212", pageBgColor: "#f7fee7", modalHeaderBg: "#ecfccb", buttonColor: "#4d7c0f", borderColor: "#d9f99d", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1a2e05" },
+    darkColors: { darkPageBgColor: "#111f04", darkCardBgColor: "#1e3508", darkBorderColor: "#4d7c0f", darkPrimaryColor: "#a3e635", announcementBgColor: "#365314", detailNameBoxColor: "#1a2e05" },
   },
 };
 
@@ -1477,7 +1607,33 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.fontScale = pickEnum(record.fontScale, ["small", "normal", "large", "xlarge"] as const, defaultDesignSettings.fontScale);
   next.fontWeight = pickEnum(record.fontWeight, ["normal", "bold", "extrabold"] as const, defaultDesignSettings.fontWeight);
   next.fontFamily = pickEnum(record.fontFamily, ["cairo", "tajawal", "almarai", "readex"] as const, defaultDesignSettings.fontFamily);
-  next.sectionHeadingStyle = pickEnum(record.sectionHeadingStyle, ["plain", "pill", "underline", "framed"] as const, defaultDesignSettings.sectionHeadingStyle);
+  next.sectionHeadingStyle = pickEnum(
+    record.sectionHeadingStyle,
+    [
+      "plain",
+      "clean",
+      "pill",
+      "pill-badge",
+      "underline",
+      "framed",
+      "boxed",
+      "right-bar",
+      "gradient-frame",
+      "royal-ribbon",
+      "neon-border",
+      "double-frame",
+      "glass-card",
+      "3d-banner",
+      "neon-glow",
+      "glass-3d",
+      "gold-crest",
+      "ribbon-banner",
+      "side-blade",
+      "floating-capsule",
+      "double-royal",
+    ] as const,
+    defaultDesignSettings.sectionHeadingStyle,
+  );
 
   next.borderWidth = pickEnum(record.borderWidth, ["none", "thin", "medium", "double"] as const, defaultDesignSettings.borderWidth);
   next.borderColor = hexColor(record.borderColor, defaultDesignSettings.borderColor);
@@ -1485,8 +1641,34 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.cardRadius = pickEnum(record.cardRadius, ["sharp", "medium", "rounded", "pill"] as const, defaultDesignSettings.cardRadius);
   next.cardShadow = pickEnum(record.cardShadow, ["none", "soft", "elevated-3d"] as const, defaultDesignSettings.cardShadow);
 
-  next.buttonShape = pickEnum(record.buttonShape, ["pill", "rounded", "square"] as const, defaultDesignSettings.buttonShape);
-  next.buttonEffect = pickEnum(record.buttonEffect, ["gradient", "solid", "outline", "3d"] as const, defaultDesignSettings.buttonEffect);
+  next.buttonShape = pickEnum(
+    record.buttonShape,
+    ["pill", "rounded", "square", "sharp", "soft-square", "soft-arch", "cut-corner", "leaf", "capsule-3d", "capsule-wide", "bevel"] as const,
+    defaultDesignSettings.buttonShape,
+  );
+  next.buttonEffect = pickEnum(
+    record.buttonEffect,
+    [
+      "gradient",
+      "gradient-flow",
+      "glow",
+      "solid",
+      "flat",
+      "outline",
+      "3d",
+      "3d-press",
+      "lift",
+      "pulse",
+      "ripple-shine",
+      "glass-glow",
+      "neon-border",
+      "metallic-shine",
+      "double-ring",
+      "soft-pulse",
+      "cyber-gradient",
+    ] as const,
+    defaultDesignSettings.buttonEffect,
+  );
   next.buttonAlign = pickEnum(record.buttonAlign, ["center", "right", "full"] as const, defaultDesignSettings.buttonAlign);
 
   next.iconStyle = pickEnum(record.iconStyle, ["3d", "flat", "glow"] as const, defaultDesignSettings.iconStyle);
@@ -1536,7 +1718,27 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.showProviderWhatsappBtn = pickBool(record.showProviderWhatsappBtn, defaultDesignSettings.showProviderWhatsappBtn);
   next.whatsappButtonColor = hexColor(record.whatsappButtonColor, defaultDesignSettings.whatsappButtonColor);
   next.sectionSpacing = pickEnum(record.sectionSpacing, ["compact", "normal", "relaxed"] as const, defaultDesignSettings.sectionSpacing);
-  next.cardHoverEffect = pickEnum(record.cardHoverEffect, ["lift", "glow", "scale", "none"] as const, defaultDesignSettings.cardHoverEffect);
+  next.cardHoverEffect = pickEnum(
+    record.cardHoverEffect,
+    [
+      "lift",
+      "glow",
+      "scale",
+      "tilt",
+      "tilt-3d",
+      "float-3d",
+      "border-pulse",
+      "neon-sweep",
+      "spring-pop",
+      "shine-glint",
+      "shimmer-sweep",
+      "float-bounce",
+      "neon-aura",
+      "slide-up-glow",
+      "none",
+    ] as const,
+    defaultDesignSettings.cardHoverEffect,
+  );
   next.sectionDividerStyle = pickEnum(record.sectionDividerStyle, ["none", "line", "dots", "gradient"] as const, defaultDesignSettings.sectionDividerStyle);
   next.floatingWhatsappEnabled = pickBool(record.floatingWhatsappEnabled, defaultDesignSettings.floatingWhatsappEnabled);
 
@@ -1559,7 +1761,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   );
   next.announcementSpeed = pickEnum(
     record.announcementSpeed,
-    ["very-slow", "slow", "normal", "fast", "turbo"] as const,
+    ["ultra-slow", "very-slow", "slow", "normal", "medium-fast", "fast", "very-fast", "turbo", "flash"] as const,
     defaultDesignSettings.announcementSpeed,
   );
   next.headerPattern = pickEnum(record.headerPattern, ["none", "dots", "grid", "islamic", "waves"] as const, defaultDesignSettings.headerPattern);
@@ -1571,7 +1773,11 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.categorySearchDefaultOpen = pickBool(record.categorySearchDefaultOpen, defaultDesignSettings.categorySearchDefaultOpen);
   next.showCategoryCounts = pickBool(record.showCategoryCounts, defaultDesignSettings.showCategoryCounts);
   next.providerCallStripStyle = pickEnum(record.providerCallStripStyle, ["sky", "emerald", "solid-blue"] as const, defaultDesignSettings.providerCallStripStyle);
-  next.cardAnimationSpeed = pickEnum(record.cardAnimationSpeed, ["normal", "smooth", "instant"] as const, defaultDesignSettings.cardAnimationSpeed);
+  next.cardAnimationSpeed = pickEnum(
+    record.cardAnimationSpeed,
+    ["ultra-slow", "slow", "instant", "fast", "normal", "smooth", "cinematic", "spring", "bouncy"] as const,
+    defaultDesignSettings.cardAnimationSpeed,
+  );
   next.officeAddress = pickText(record.officeAddress, defaultDesignSettings.officeAddress, 240);
   next.officeWorkingHours = pickText(record.officeWorkingHours, defaultDesignSettings.officeWorkingHours, 160);
   next.whatsappDefaultGreeting = pickText(record.whatsappDefaultGreeting, defaultDesignSettings.whatsappDefaultGreeting, 240);

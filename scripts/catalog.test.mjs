@@ -606,10 +606,27 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.outerCardStyle, "bordered");
   assert.equal(custom.searchTriggerStyle, "gold-accent");
   assert.equal(custom.badgesDefaultOpen, true);
-  assert.equal(custom.sponsorModalEnabled, true);
+  assert.equal(custom.sponsorModalEnabled, false);
   assert.equal(custom.sponsorModalDelaySeconds, 10);
-  assert.equal(custom.showDailyOffersSection, true);
-  assert.equal(custom.showSponsorsRibbon, true);
+  assert.equal(custom.showDailyOffersSection, false);
+  assert.equal(custom.showSponsorsRibbon, false);
+  assert.equal(defaultDesignSettings.themeMode, "dark");
+  assert.equal(defaultDesignSettings.sectionHeadingStyle, "gradient-frame");
+
+  const extendedVisuals = sanitizeDesignSettings({
+    sectionHeadingStyle: "royal-ribbon",
+    buttonShape: "cut-corner",
+    buttonEffect: "gradient-flow",
+    cardHoverEffect: "float-3d",
+    cardAnimationSpeed: "bouncy",
+    announcementSpeed: "flash",
+  });
+  assert.equal(extendedVisuals.sectionHeadingStyle, "royal-ribbon");
+  assert.equal(extendedVisuals.buttonShape, "cut-corner");
+  assert.equal(extendedVisuals.buttonEffect, "gradient-flow");
+  assert.equal(extendedVisuals.cardHoverEffect, "float-3d");
+  assert.equal(extendedVisuals.cardAnimationSpeed, "bouncy");
+  assert.equal(extendedVisuals.announcementSpeed, "flash");
 
   const parsedSponsors = catalog.parseSponsoredProviders(custom.sponsoredProvidersJson);
   assert.ok(parsedSponsors.length >= 3);
