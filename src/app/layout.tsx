@@ -6,7 +6,7 @@ import "@fontsource/cairo/600.css";
 import "@fontsource/cairo/700.css";
 import "@fontsource/cairo/800.css";
 import "@fontsource/cairo/900.css";
-import PwaInstall from "@/components/pwa-install";
+import InstallAppModal from "@/components/install-app-modal";
 import RouteTransition from "@/components/route-transition";
 import SplashScreen from "@/components/splash-screen";
 import "./globals.css";
@@ -30,10 +30,11 @@ export const viewport: Viewport = {
   themeColor: "#0877e6",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   // The blocking script applies Dark Mode by default before first paint (unless the user explicitly chose "light"),
   // and hides the splash screen on any inner page or after the initial start screen has already been shown.
-  return <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: `(function(){try{var stored=localStorage.getItem("janzour-theme");if(stored==="light"){document.documentElement.classList.remove("dark");}else{document.documentElement.classList.add("dark");}if(localStorage.getItem("janzour-bigtext")==="1")document.documentElement.classList.add("big-text");if(window.location.pathname!=="/"||sessionStorage.getItem("janzour-splash-shown")==="1"){document.documentElement.classList.add("skip-splash");}else{sessionStorage.setItem("janzour-splash-shown","1");}}catch(e){document.documentElement.classList.add("dark");}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><PwaInstall /></body></html>;
+  return <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: `(function(){window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__janzourInstallPrompt=e;});try{var stored=localStorage.getItem("janzour-theme");if(stored==="light"){document.documentElement.classList.remove("dark");}else{document.documentElement.classList.add("dark");}if(localStorage.getItem("janzour-bigtext")==="1")document.documentElement.classList.add("big-text");if(window.location.pathname!=="/"||sessionStorage.getItem("janzour-splash-shown")==="1"){document.documentElement.classList.add("skip-splash");}else{sessionStorage.setItem("janzour-splash-shown","1");}}catch(e){document.documentElement.classList.add("dark");}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><InstallAppModal /></body></html>;
 }
