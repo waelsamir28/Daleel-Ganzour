@@ -1326,7 +1326,7 @@ export const defaultDesignSettings: DesignSettings = {
   fontScale: "normal",
   fontWeight: "bold",
   fontFamily: "cairo",
-  sectionHeadingStyle: "gradient-frame",
+  sectionHeadingStyle: "clean",
   borderWidth: "thin",
   borderColor: "#b8e0ff",
   cardBgColor: "#ffffff",

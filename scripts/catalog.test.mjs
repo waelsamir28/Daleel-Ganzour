@@ -611,7 +611,7 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.showDailyOffersSection, false);
   assert.equal(custom.showSponsorsRibbon, false);
   assert.equal(defaultDesignSettings.themeMode, "dark");
-  assert.equal(defaultDesignSettings.sectionHeadingStyle, "gradient-frame");
+  assert.equal(defaultDesignSettings.sectionHeadingStyle, "clean");
 
   const extendedVisuals = sanitizeDesignSettings({
     sectionHeadingStyle: "royal-ribbon",

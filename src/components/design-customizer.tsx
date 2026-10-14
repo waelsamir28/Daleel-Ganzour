@@ -722,7 +722,8 @@ export default function DesignCustomizer({
                   <label className="field">
                     شكل برواز العناوين الرئيسية للأقسام (١٢ شكلاً متنوعاً)
                     <SelectField value={draft.sectionHeadingStyle} onChange={(e) => updateField("sectionHeadingStyle", e.target.value as DesignSettings["sectionHeadingStyle"])}>
-                      <option value="gradient-frame">✨ برواز جريديانت مضيء فخم (الافتراضي)</option>
+                      <option value="clean">🤍 بطاقة بيضاء أنيقة متناسقة مع التطبيق (الافتراضي)</option>
+                      <option value="gradient-frame">✨ برواز جريديانت مضيء فخم</option>
                       <option value="royal-ribbon">👑 برواز التاج الملكي المتدرج</option>
                       <option value="neon-border">⚡ برواز نيون متوهج بالثيم</option>
                       <option value="double-frame">🏛️ برواز مزدوج كلاسيكي راقٍ</option>
@@ -733,7 +734,6 @@ export default function DesignCustomizer({
                       <option value="boxed">📦 صندوق بإطار ملون واضح</option>
                       <option value="underline">📏 خط سفلي متدرج تحت العنوان</option>
                       <option value="right-bar">▐ شريط جانبي سميك على اليمين</option>
-                      <option value="clean">سادة بسيط وأنيق</option>
                     </SelectField>
                   </label>
                 </div>
