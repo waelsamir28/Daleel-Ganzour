@@ -445,7 +445,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <div className="header-auth-buttons-group">
               <Link href="/login" className="header-auth-btn is-login">
                 <UserRound size={15}/>
-                <span>تسجيل الدخول</span>
+                <span>تسجيل</span>
               </Link>
               <Link href="/register" className="header-auth-btn is-register">
                 <UserPlus size={15}/>
