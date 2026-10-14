@@ -8920,3 +8920,409 @@ html[data-design-hover="shine-glint"] .provider-card:hover {
 
 
 
+
+/* =========================================================================
+   22. شريط التواصل الجديد أسفل كارت مقدم الخدمة (اتصال + واتساب يفتحان صفحة المهني)
+   ========================================================================= */
+.provider-card .provider-action-dock {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: 0;
+  margin-top: auto;
+  padding: 5px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(9, 93, 226, 0.07), rgba(31, 168, 85, 0.07));
+  border: 1px solid rgba(100, 140, 190, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+html.dark .provider-card .provider-action-dock {
+  background: linear-gradient(135deg, rgba(80, 180, 255, 0.1), rgba(52, 211, 153, 0.1));
+  border-color: rgba(148, 163, 184, 0.22);
+  box-shadow: none;
+}
+.provider-card .provider-dock-divider {
+  width: 1px;
+  margin: 6px 4px;
+  background: linear-gradient(180deg, transparent, rgba(100, 140, 190, 0.4), transparent);
+}
+.provider-card .provider-dock-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #0f2a4a;
+  text-align: right;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}
+html.dark .provider-card .provider-dock-btn { color: #e8f1ff; }
+.provider-card .provider-dock-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: #ffffff;
+  box-shadow: 0 6px 12px -5px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.18s ease;
+}
+.provider-card .provider-dock-btn.is-call .provider-dock-icon {
+  background: linear-gradient(145deg, #2f80ed 0%, #0b56c4 60%, #083a86 100%);
+}
+.provider-card .provider-dock-btn.is-whatsapp .provider-dock-icon {
+  background: linear-gradient(145deg, #34d27a 0%, #16a34a 60%, #0b7a37 100%);
+}
+.provider-card .provider-dock-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.35;
+}
+.provider-card .provider-dock-copy strong {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: inherit;
+}
+.provider-card .provider-dock-copy small {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #6b7f99;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.dark .provider-card .provider-dock-copy small { color: #a7bbd6; }
+.provider-card .provider-dock-btn:hover,
+.provider-card .provider-dock-btn:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+}
+.provider-card .provider-dock-btn.is-call:hover,
+.provider-card .provider-dock-btn.is-call:focus-visible {
+  background: linear-gradient(135deg, rgba(47, 128, 237, 0.16), rgba(47, 128, 237, 0.06));
+  box-shadow: 0 0 0 1.5px rgba(47, 128, 237, 0.35);
+}
+.provider-card .provider-dock-btn.is-whatsapp:hover,
+.provider-card .provider-dock-btn.is-whatsapp:focus-visible {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.16), rgba(22, 163, 74, 0.06));
+  box-shadow: 0 0 0 1.5px rgba(22, 163, 74, 0.35);
+}
+.provider-card .provider-dock-btn:hover .provider-dock-icon { transform: scale(1.08) rotate(-6deg); }
+.provider-card .provider-dock-btn:active { transform: translateY(1px); }
+@media (max-width: 420px) {
+  .provider-card .provider-dock-btn { gap: 7px; padding: 5px 7px; min-height: 44px; }
+  .provider-card .provider-dock-icon { width: 32px; height: 32px; border-radius: 9px; }
+  .provider-card .provider-dock-copy small { display: none; }
+}
+
+/* =========================================================================
+   23. صفحة مقدم الخدمة — التصميم الجديد (detail-v2)
+   ========================================================================= */
+.modal-body .service-details.detail-v2 { gap: 12px; }
+
+.detail-v2-hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 0;
+  padding: 16px 16px 0;
+  border-radius: 22px;
+  background: var(--design-heading-gradient, linear-gradient(135deg, #112b5a 0%, #095de2 55%, #50b4ff 100%));
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 16px 34px -16px rgba(9, 93, 226, 0.55);
+}
+.detail-v2-hero-glow {
+  position: absolute;
+  inset: auto -40px -70px auto;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 68%);
+  pointer-events: none;
+}
+.detail-v2-hero-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.detail-v2-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 84px;
+  height: 84px;
+  padding: 6px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #ffffff, #eef5ff);
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+.detail-v2-avatar .service-art { width: 100%; height: 100%; margin: 0; }
+.detail-v2-identity {
+  display: grid;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+  justify-items: start;
+}
+.modal-body .service-details.detail-v2 .detail-v2-identity h3 {
+  margin: 0;
+  color: #ffffff !important;
+  font-size: 1.28rem;
+  font-weight: 900;
+  line-height: 1.4;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+.detail-v2-specialty {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  backdrop-filter: blur(6px);
+}
+.detail-v2-stars .provider-rating { margin: 0 !important; }
+.detail-v2-stars .provider-rating,
+.detail-v2-stars .provider-rating * { color: #fde68a !important; }
+.detail-v2-side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+  margin-inline-start: auto;
+}
+.detail-v2-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+.detail-v2-icon-btn:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.28); border-color: #ffffff; }
+.detail-v2-icon-btn.is-favorite.is-active { background: #fff1f2; border-color: #fecdd3; color: #e11d48; }
+.detail-v2-badges-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  justify-self: center;
+  margin-top: 12px;
+  padding: 6px 16px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f3f7a;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+.detail-v2-badges-toggle:hover, .detail-v2-badges-toggle.is-open { background: #ffffff; }
+.modal-body .detail-v2-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin: -4px 0 0;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1.5px dashed rgba(9, 93, 226, 0.3);
+  background: rgba(9, 93, 226, 0.05);
+  animation: fadeSlideDown 0.2s ease;
+}
+html.dark .modal-body .detail-v2-badges { border-color: rgba(80, 180, 255, 0.35); background: rgba(80, 180, 255, 0.08); }
+
+/* بطاقات البيانات الأساسية */
+.detail-v2-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+.detail-v2-fact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px 12px;
+  border-radius: 15px;
+  border: 1px solid var(--line, #dbe7f3);
+  background: var(--surface-2, #f7fbff);
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.detail-v2-fact:hover { transform: translateY(-2px); border-color: rgba(9, 93, 226, 0.35); box-shadow: 0 10px 20px -14px rgba(9, 93, 226, 0.5); }
+.detail-v2-fact-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: #ffffff;
+  box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.35);
+}
+.detail-v2-fact-icon.is-spec { background: linear-gradient(145deg, #6366f1, #4338ca); }
+.detail-v2-fact-icon.is-place { background: linear-gradient(145deg, #f59e0b, #d97706); }
+.detail-v2-fact-icon.is-phone { background: linear-gradient(145deg, #0ea5e9, #0369a1); }
+.detail-v2-fact > div { display: grid; gap: 1px; min-width: 0; }
+.detail-v2-fact small { color: var(--muted, #7a8ea5); font-size: 0.68rem; font-weight: 800; }
+.detail-v2-fact strong {
+  color: var(--text, #15304f);
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+html.dark .detail-v2-fact { background: rgba(255, 255, 255, 0.04); border-color: rgba(148, 163, 184, 0.22); }
+html.dark .detail-v2-fact strong { color: #eef5ff; }
+html.dark .detail-v2-fact small { color: #a7bbd6; }
+
+/* أزرار النوافذ العائمة (التقييم / نظام الكشف) */
+.detail-v2-triggers { display: grid; grid-template-columns: 1fr; gap: 9px; margin: 0 !important; }
+.detail-v2-triggers .detail-popup-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 13px;
+  border-radius: 16px;
+  border: 1.5px solid transparent;
+  text-align: right;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.detail-v2-triggers .detail-popup-trigger-btn.is-rating {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%);
+  border-color: #fcd34d;
+  color: #78350f;
+}
+.detail-v2-triggers .detail-popup-trigger-btn.is-clinic {
+  background: linear-gradient(135deg, #eef7ff 0%, #dcefff 100%);
+  border-color: #7dd3fc;
+  color: #0c4a6e;
+}
+html.dark .detail-v2-triggers .detail-popup-trigger-btn.is-rating { background: linear-gradient(135deg, #3a2b07, #4a3608); border-color: #b4851a; color: #fde68a; }
+html.dark .detail-v2-triggers .detail-popup-trigger-btn.is-clinic { background: linear-gradient(135deg, #0b2a44, #0c3558); border-color: #2f7fb8; color: #cbe8ff; }
+.detail-v2-triggers .detail-popup-trigger-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 22px -14px rgba(0, 0, 0, 0.45); }
+.detail-v2-triggers .detail-popup-trigger-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  color: #ffffff;
+  box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.4);
+}
+.detail-v2-triggers .is-rating .detail-popup-trigger-icon { background: linear-gradient(145deg, #fbbf24, #d97706); }
+.detail-v2-triggers .is-clinic .detail-popup-trigger-icon { background: linear-gradient(145deg, #38bdf8, #0369a1); }
+.detail-v2-triggers .detail-popup-trigger-copy { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.detail-v2-triggers .detail-popup-trigger-copy strong { font-size: 0.92rem; font-weight: 900; color: inherit; }
+.detail-v2-triggers .detail-popup-trigger-copy small { font-size: 0.7rem; font-weight: 700; opacity: 0.8; }
+.detail-v2-triggers .detail-popup-trigger-btn > svg:last-child { flex: none; opacity: 0.7; }
+
+/* شريط الاتصال السفلي الجديد */
+.modal-body .detail-actions.detail-v2-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.modal-body .detail-v2-actions .detail-v2-cta.is-secondary { grid-column: 1 / -1; }
+.detail-v2-cta {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 7px 10px;
+  border-radius: 18px;
+  color: #ffffff !important;
+  text-decoration: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.detail-v2-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+  transform: translateX(-130%);
+  transition: transform 0.55s ease;
+  pointer-events: none;
+}
+.detail-v2-cta:hover::after { transform: translateX(130%); }
+.detail-v2-cta.is-call {
+  background: linear-gradient(135deg, #2f80ed 0%, #0b56c4 55%, #083a86 100%);
+  box-shadow: 0 12px 24px -12px rgba(11, 86, 196, 0.75), 0 3px 0 #06306f;
+}
+.detail-v2-cta.is-whatsapp {
+  background: linear-gradient(135deg, #34d27a 0%, #16a34a 55%, #0b7a37 100%);
+  box-shadow: 0 12px 24px -12px rgba(22, 163, 74, 0.75), 0 3px 0 #075f2a;
+}
+.detail-v2-cta.is-secondary {
+  min-height: 46px;
+  background: linear-gradient(135deg, #475569, #1e293b);
+  box-shadow: 0 10px 20px -12px rgba(30, 41, 59, 0.7), 0 3px 0 #0f172a;
+}
+.detail-v2-cta:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.detail-v2-cta:active { transform: translateY(1px); box-shadow: none; }
+.detail-v2-cta-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.detail-v2-cta-copy { display: grid; gap: 0; min-width: 0; line-height: 1.35; text-align: right; }
+.detail-v2-cta-copy strong { font-size: 0.95rem; font-weight: 900; }
+.detail-v2-cta-copy small { font-size: 0.72rem; font-weight: 700; opacity: 0.9; font-variant-numeric: tabular-nums; letter-spacing: 0.3px; }
+.modal-body .detail-actions.detail-v2-actions .detail-v2-cta { flex: initial; }
+
+@media (max-width: 600px) {
+  .detail-v2-hero { padding: 13px 12px 0; border-radius: 18px; }
+  .detail-v2-avatar { width: 66px; height: 66px; border-radius: 17px; }
+  .modal-body .service-details.detail-v2 .detail-v2-identity h3 { font-size: 1.08rem; }
+  .detail-v2-side-actions { flex-direction: column; gap: 6px; }
+  .detail-v2-icon-btn { width: 36px; height: 36px; border-radius: 11px; }
+  .detail-v2-facts { grid-template-columns: 1fr; }
+  .detail-v2-cta { min-height: 52px; gap: 8px; padding: 6px 8px; border-radius: 15px; }
+  .detail-v2-cta-icon { width: 36px; height: 36px; }
+  .detail-v2-cta-copy strong { font-size: 0.86rem; }
+  .detail-v2-cta-copy small { font-size: 0.66rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail-v2-cta::after { display: none; }
+  .detail-v2-cta, .detail-v2-fact, .detail-v2-icon-btn, .provider-card .provider-dock-btn, .provider-card .provider-dock-icon { transition: none !important; transform: none !important; }
+}
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

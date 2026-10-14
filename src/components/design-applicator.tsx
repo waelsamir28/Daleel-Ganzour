@@ -63,6 +63,11 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-provider-whatsapp", design.showProviderWhatsappBtn ? "true" : "false");
   root.setAttribute("data-design-section-spacing", design.sectionSpacing);
   root.setAttribute("data-design-hover-effect", design.cardHoverEffect);
+  // Aliases used by the extended visual rules (heading frames / button shapes & effects / card hover animations).
+  root.setAttribute("data-design-heading-style", design.sectionHeadingStyle);
+  root.setAttribute("data-design-btn-shape", design.buttonShape);
+  root.setAttribute("data-design-btn-effect", design.buttonEffect);
+  root.setAttribute("data-design-hover", design.cardHoverEffect);
   root.setAttribute("data-design-section-divider", design.sectionDividerStyle);
   root.setAttribute("data-design-seasonal-ribbon", design.seasonalRibbon);
   root.setAttribute("data-design-mobile-nav", design.mobileBottomNavEnabled ? "true" : "false");
