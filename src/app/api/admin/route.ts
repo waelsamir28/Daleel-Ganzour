@@ -231,6 +231,14 @@ export async function DELETE(request: Request) {
     const { type, action } = body;
     const bulkNotificationAction = type === "notification" && (action === "delete-all" || action === "delete-selected");
     if (role === "moderator" && type !== "category" && !bulkNotificationAction) denyModerator();
+    if (type === "service" && action === "purge-all") {
+      if (role !== "admin") denyModerator();
+      if (body.confirm !== "تفريغ") throw new InputError("اكتب كلمة «تفريغ» لتأكيد مسح جدول المهنيين.");
+      const [{ total }] = await db.select({ total: count() }).from(services);
+      await db.delete(services);
+      await db.delete(notifications).where(inArray(notifications.type, ["service", "rating"]));
+      return Response.json({ ok: true, removed: total, ...(await getAdminDirectory(role)) });
+    }
     if (bulkNotificationAction) {
       if (action === "delete-all") {
         if (role === "moderator") await db.delete(notifications).where(inArray(notifications.type, ["service", "community"]));
