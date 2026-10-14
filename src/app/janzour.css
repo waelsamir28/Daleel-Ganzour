@@ -10310,3 +10310,11 @@ html.dark .featured-strip.is-open .featured-strip-hint { color: #8cc3ff; }
 .directory-main .providers-section:has(.featured-strip) { margin-top: 18px; padding-top: 0; border-top: 0; }
 .directory-main .providers-section:has(.featured-strip)::before,
 .directory-main .providers-section:has(.featured-strip)::after { display: none; content: none; }
+
+/* حقل تأكيد تفريغ جدول المهنيين في لوحة التحكم */
+.purge-confirm-field { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 320px; margin: 4px auto 10px; text-align: center; font-size: 0.86rem; color: #5a6f8c; }
+.purge-confirm-field strong { color: #c0392b; }
+.purge-confirm-field input { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid #e5b4ae; background: #fff7f6; color: #7a1f16; font-weight: 800; text-align: center; font-size: 1rem; }
+.purge-confirm-field input:focus { outline: none; border-color: #e0574a; box-shadow: 0 0 0 3px rgba(224, 87, 74, 0.18); }
+html.dark .purge-confirm-field { color: #b9c8dc; }
+html.dark .purge-confirm-field input { background: rgba(224, 87, 74, 0.08); border-color: rgba(224, 87, 74, 0.45); color: #ffd4cf; }

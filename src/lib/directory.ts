@@ -61,18 +61,23 @@ export async function ensureSeed() {
           await tx.update(directorySettings).set({ value: JSON.stringify({ ...stored, contactText: defaultSettings.contactText }) }).where(eq(directorySettings.key, "site_config"));
         } catch { /* An unparsable row already falls back to the defaults. */ }
       }
+      // The owner asked for an empty professionals table: a one-time purge removes every stored
+      // provider (demo samples and legacy rows alike) together with their notifications. New
+      // providers are added normally from the app afterwards; the marker keeps this from re-running.
+      const purge = await tx.insert(directorySettings).values({ key: "services_purged_v1", value: new Date().toISOString() }).onConflictDoNothing().returning();
+      if (purge.length) {
+        await tx.delete(services);
+        await tx.delete(notifications).where(inArray(notifications.type, ["service", "rating"]));
+        await tx.insert(directorySettings).values({ key: "sample_data_v1", value: "disabled" }).onConflictDoNothing();
+      }
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoUpdate({ target: directoryCategories.id, set: { name: sql`excluded.name`, parentId: sql`excluded.parent_id`, description: sql`excluded.description`, color: sql`excluded.color`, icon: sql`excluded.icon`, sortOrder: sql`excluded.sort_order`, active: sql`excluded.active` } });
       if (!marker.length) return;
       await tx.insert(directoryAreas).values(areas.map((name, sortOrder) => ({ name, sortOrder }))).onConflictDoNothing();
       await tx.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(defaultSettings) }).onConflictDoNothing();
-      const [legacy] = await tx.select().from(directorySettings).where(eq(directorySettings.key, "sample_data_v1"));
-      if (!legacy) {
-        await tx.insert(services).values(sampleServices.map((service) => ({ ...service, status: "approved", verified: true, demo: true }))).onConflictDoNothing();
-        await tx.insert(directorySettings).values({ key: "sample_data_v1", value: "initialized" }).onConflictDoNothing();
-      } else {
-        for (const sample of sampleServices) await tx.update(services).set({ area: sample.area, address: sample.address, category: sample.category, demo: true }).where(eq(services.id, sample.id));
-      }
+      // Demo sample providers are no longer seeded: the directory starts empty and fills up only
+      // with real submissions approved from the admin panel.
+      await tx.insert(directorySettings).values({ key: "sample_data_v1", value: "disabled" }).onConflictDoNothing();
       await tx.update(services).set({ category: "family" }).where(eq(services.category, "doctors"));
       await tx.update(services).set({ category: "law" }).where(eq(services.category, "lawyers"));
     }).catch((error) => { seedPromise = undefined; throw error; });
