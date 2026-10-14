@@ -10114,3 +10114,199 @@ html:not(.dark)[data-design-heading-style="sky-gradient"] .directory-section-hea
   .design-choice-pills > button { flex: 1 1 100%; }
   .design-section-tabs > button { padding: 6px 9px; font-size: 11px; }
 }
+
+/* =========================================================================
+   29. شريط «مقدمو الخدمات المميزين» الجديد: بطاقة بيضاء هادئة بنفس روح براويز الأقسام
+       + زر سهم دائري يفتح/يغلق قائمة المميزين
+   ========================================================================= */
+.featured-strip {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #dbe7f3;
+  background: #ffffff;
+  box-shadow: 0 12px 28px -22px rgba(15, 48, 92, 0.5);
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+.featured-strip.is-open {
+  border-color: #b9d4f3;
+  box-shadow: 0 16px 34px -22px rgba(11, 86, 196, 0.45);
+}
+.featured-strip-main {
+  flex: 1 1 320px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+}
+.featured-strip-main:focus-visible {
+  outline: 2px solid #2f80ed;
+  outline-offset: 4px;
+  border-radius: 14px;
+}
+.featured-strip-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #2f80ed, #0b56c4);
+  color: #ffffff;
+  box-shadow: 0 10px 18px -10px rgba(11, 86, 196, 0.75);
+  transition: transform .3s ease;
+}
+.featured-strip-main:hover .featured-strip-icon { transform: translateY(-2px) scale(1.03); }
+.featured-strip-text {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.featured-strip-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.featured-strip-title {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #0f2f55 !important;
+  font-size: 1.12rem;
+  font-weight: 900;
+  line-height: 1.3;
+}
+.featured-strip-title::before,
+.featured-strip-title::after { display: none !important; content: none !important; }
+.featured-strip-count {
+  flex: none;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid #c7ddf5;
+  background: #eaf3ff;
+  color: #0f5bb5;
+  font-size: 0.74rem;
+  font-weight: 900;
+  line-height: 1.4;
+}
+.featured-strip-subtitle {
+  color: #6b7f99;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.featured-strip-arrow {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #c7ddf5;
+  background: #f3f8ff;
+  color: #0f5bb5;
+  transition: background .25s ease, color .25s ease, transform .3s ease, box-shadow .25s ease;
+}
+.featured-strip-arrow svg { transition: transform .3s ease; }
+.featured-strip-main:hover .featured-strip-arrow {
+  background: #e4efff;
+  box-shadow: 0 8px 16px -10px rgba(11, 86, 196, 0.6);
+}
+.featured-strip.is-open .featured-strip-arrow {
+  background: linear-gradient(145deg, #2f80ed, #0b56c4);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 10px 18px -10px rgba(11, 86, 196, 0.8);
+}
+.featured-strip.is-open .featured-strip-arrow svg { transform: rotate(180deg); }
+.featured-strip:not(.is-open) .featured-strip-arrow svg { animation: featuredArrowNudge 2.2s ease-in-out infinite; }
+@keyframes featuredArrowNudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+.featured-strip-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.featured-strip-hint {
+  flex: 1 0 100%;
+  margin: -2px 0 0;
+  padding-inline-start: 65px;
+  color: #93a7c2;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.featured-strip.is-open .featured-strip-hint { color: #4f8ad6; }
+
+/* الظهور السلس لقائمة المميزين */
+.provider-grid.featured-strip-panel {
+  animation: featuredPanelIn .35s ease both;
+}
+@keyframes featuredPanelIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* الوضع الليلي */
+html.dark .featured-strip {
+  background: var(--design-dark-card, #10233a);
+  border-color: rgba(148, 163, 184, 0.28);
+  box-shadow: none;
+}
+html.dark .featured-strip.is-open { border-color: rgba(80, 180, 255, 0.45); }
+html.dark .featured-strip-title { color: #f1f7ff !important; }
+html.dark .featured-strip-subtitle { color: #a7bbd6; }
+html.dark .featured-strip-count {
+  background: rgba(80, 180, 255, 0.14);
+  border-color: rgba(80, 180, 255, 0.35);
+  color: #bfe0ff;
+}
+html.dark .featured-strip-arrow {
+  background: rgba(80, 180, 255, 0.12);
+  border-color: rgba(80, 180, 255, 0.35);
+  color: #bfe0ff;
+}
+html.dark .featured-strip-hint { color: #7f95b3; }
+html.dark .featured-strip.is-open .featured-strip-hint { color: #8cc3ff; }
+
+/* الموبايل */
+@media (max-width: 600px) {
+  .featured-strip { padding: 9px 10px; border-radius: 16px; gap: 8px 10px; }
+  .featured-strip-main { gap: 10px; }
+  .featured-strip-icon { width: 42px; height: 42px; border-radius: 12px; }
+  .featured-strip-icon svg { width: 19px; height: 19px; }
+  .featured-strip-title { font-size: 0.98rem; }
+  .featured-strip-subtitle { font-size: 0.72rem; }
+  .featured-strip-count { padding: 3px 9px; font-size: 0.68rem; }
+  .featured-strip-arrow { width: 40px; height: 40px; }
+  .featured-strip-actions { flex: 1 0 100%; justify-content: flex-start; padding-inline-start: 52px; }
+  .featured-strip-hint { padding-inline-start: 52px; font-size: 0.66rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .featured-strip:not(.is-open) .featured-strip-arrow svg { animation: none; }
+  .provider-grid.featured-strip-panel { animation: none; }
+}
+/* إلغاء الخط الفاصل والنقطة فوق قسم المميزين حتى يبدو الشريط كبطاقة طبيعية ضمن التطبيق */
+.directory-main .providers-section:has(.featured-strip) { margin-top: 18px; padding-top: 0; border-top: 0; }
+.directory-main .providers-section:has(.featured-strip)::before,
+.directory-main .providers-section:has(.featured-strip)::after { display: none; content: none; }
