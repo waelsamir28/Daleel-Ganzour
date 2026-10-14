@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Award, BellRing, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
 import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import { openInstallAppModal } from "@/components/install-app-modal";
+import AppInfoModal from "@/components/app-info-modal";
 import DesignApplicator from "@/components/design-applicator";
 import BusinessCardModal from "@/components/business-card-modal";
 import SelectField from "@/components/select-field";
@@ -15,7 +16,8 @@ import { ProviderCompletionModalForm } from "@/components/management-editor";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 
-type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | null;
+const ADD_PROFESSION_INVITE = "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية";
+type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | "about" | null;
 // Category colours reach the card icon through CSS custom properties.
 function categoryTheme(item: CategoryRecord) {
   return { "--cat": item.color, "--cat-light": item.light } as CSSProperties;
@@ -45,6 +47,16 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     const timer = window.setInterval(tick, 1000);
     window.addEventListener("focus", tick);
     return () => { clearTimeout(initial); clearInterval(timer); window.removeEventListener("focus", tick); };
+  }, []);
+  useEffect(() => {
+    if (window.location.hash === "#add-service") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Deep link from the announcement ticker on auth pages.
+      setModal("service");
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    } else if (window.location.hash === "#about-app") {
+      setModal("about");
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
   }, []);
   const liveDetail = detail ? data.services.find((service) => service.id === detail.id) ?? detail : null;
   const design = useMemo(() => ({ ...defaultDesignSettings, ...(data.designSettings ?? {}) }), [data.designSettings]);
@@ -366,7 +378,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     const idx = sectionOrderList.indexOf(key);
     return idx >= 0 ? idx + 1 : fallback;
   };
-  const announcementList = useMemo(() => parseAnnouncementItems(design), [design]);
+  const announcementList = useMemo(() => {
+    const items = parseAnnouncementItems(design);
+    const hasInvite = items.some((item) => item.includes("مهنتك") || item.includes("نشاطك"));
+    return hasInvite ? items : [...items, ADD_PROFESSION_INVITE];
+  }, [design]);
   const isRotatingTickerMode =
     design.announcementTickerMode === "rotate" ||
     design.announcementTickerMode === "vertical-slide" ||
@@ -436,6 +452,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               </Link>
             </div>
           ) : null}
+          <button type="button" className="header-info-btn" aria-label="عن التطبيق وطريقة الاستخدام" title="شرح التطبيق" onClick={() => { setMenuOpen(false); setModal("about"); }}>
+            <Info size={18}/>
+          </button>
           {design.showHeaderDarkToggle && (
             <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي والنهاري" title="وضع الليل والنهار" onClick={toggleTheme}>
               <span className="theme-toggle-track">
@@ -502,6 +521,10 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <ALargeSmall size={18}/>
             <span>حجم الخط الكبير</span>
             <span className={`nav-count ${bigText ? "is-on" : ""}`}>{bigText ? "مفعّل" : "عادي"}</span>
+          </button>
+          <button type="button" onClick={() => { setMenuOpen(false); setModal("about"); }}>
+            <Info size={17}/>
+            <span>عن التطبيق وطريقة الاستخدام</span>
           </button>
           <button type="button" className="menu-install-item" onClick={() => { setMenuOpen(false); openInstallAppModal(); }}>
             <Smartphone size={17}/>
@@ -570,6 +593,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         ) : (
           <span className="announcement-single-text">{design.announcementText || announcementList[0]}</span>
         )}
+        <button type="button" className="ticker-add-cta" onClick={() => setModal("service")}>
+          <CirclePlus size={14}/><span>أضف مهنتك</span>
+        </button>
       </div>
     )}
     </div></div></section>}
@@ -1115,6 +1141,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         )}
       </Modal>
     )}
+    {modal === "about" && <AppInfoModal siteName={settings.siteName} logoUrl={design.headerLogoUrl} memberCount={data.memberCount} onClose={closeModal} onAddService={() => setModal("service")}/>}
     {modal === "contact" && <Modal floating title="خلّينا على تواصل" subtitle="مكتب الجمال للدعاية والإعلان" onClose={closeModal}><div className="contact-content"><span className="contact-illustration"><MessageCircle size={46}/></span><h3>إحنا هنا عشان نساعدك</h3><p>{settings.contactText}</p><a className="contact-number" href={`tel:${settings.phone}`} dir="ltr">{settings.phone}</a><a className="button button-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={20}/>تواصل على واتساب</a><a className="button button-soft" href={`tel:${settings.phone}`}><Phone size={18}/>اتصل بمكتب الجمال</a></div></Modal>}
     {completionService && (
       <Modal floating wide title="استكمال بيانات المهنة" subtitle={`${completionService.name} — ${getCategory(completionService.category, categories).name}`} onClose={() => setCompletionService(null)}>
