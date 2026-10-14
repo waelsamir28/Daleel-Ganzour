@@ -49,9 +49,12 @@ export default function InstallAppModal() {
 
   // التقاط حدث التثبيت (يُلتقط مبكراً في layout ويُخزَّن على window) + تسجيل الـ Service Worker.
   useEffect(() => {
-    setPlatform(detectPlatform());
-    setInstalled(isStandalone());
-    if (window.__janzourInstallPrompt) setPrompt(window.__janzourInstallPrompt);
+    // Defer the initial environment snapshot to the next frame so it does not set state synchronously inside the effect.
+    const bootstrap = window.requestAnimationFrame(() => {
+      setPlatform(detectPlatform());
+      setInstalled(isStandalone());
+      if (window.__janzourInstallPrompt) setPrompt(window.__janzourInstallPrompt);
+    });
 
     const onBeforeInstall = (event: Event) => {
       event.preventDefault();
@@ -90,6 +93,7 @@ export default function InstallAppModal() {
       window.removeEventListener("beforeinstallprompt", onBeforeInstall);
       window.removeEventListener("appinstalled", onInstalled);
       window.removeEventListener("janzour:open-install-modal", onOpenRequest);
+      window.cancelAnimationFrame(bootstrap);
       if (timer) window.clearTimeout(timer);
     };
   }, []);

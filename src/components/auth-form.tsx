@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CirclePlus, Eye, EyeOff, Info, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { Logo } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import { defaultDesignSettings, parseAnnouncementItems, type DesignSettings, type SiteSettings } from "@/lib/catalog";
@@ -15,8 +15,12 @@ export function LogoutButton({ className = "button button-soft" }: { className?:
 export default function AuthForm({ mode, settings, designSettings }: { mode: "login" | "register"; settings: SiteSettings; designSettings?: DesignSettings }) {
   const registering = mode === "register";
   const design = { ...defaultDesignSettings, ...(designSettings ?? {}) };
-  const announcementList = parseAnnouncementItems(design);
-  const rowLayoutClass = design.authFieldsLayout === "one-col" ? "form-row" : "form-row compact-two-col";
+  const parsedAnnouncements = parseAnnouncementItems(design);
+  const announcementList = parsedAnnouncements.some((item) => item.includes("مهنتك") || item.includes("نشاطك"))
+    ? parsedAnnouncements
+    : [...parsedAnnouncements, "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية"];
+  // Registration fields are always stacked vertically (one field per row) for a clean, mobile-friendly form.
+  const rowLayoutClass = "form-row form-row-stacked";
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [showPassword, setShowPassword] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
@@ -29,7 +33,7 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
   }
   return <div className="admin-login-page">
     <DesignApplicator design={design}/>
-    <header className="admin-public-header container"><Logo name={settings.siteName} logoUrl={design.headerLogoUrl}/><Link href="/">العودة للدليل <ArrowLeft size={17}/></Link></header>
+    <header className="admin-public-header container"><Logo name={settings.siteName} logoUrl={design.headerLogoUrl}/><div className="auth-header-links"><Link href="/#about-app" className="header-info-btn" aria-label="عن التطبيق" title="شرح التطبيق"><Info size={18}/></Link><Link href="/">العودة للدليل <ArrowLeft size={17}/></Link></div></header>
     {design.announcementEnabled && announcementList.length > 0 && (
       <div className="container" style={{ marginTop: "0.75rem" }}>
         <div
@@ -47,6 +51,7 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
               ))}
             </div>
           </div>
+          <Link href="/#add-service" className="ticker-add-cta"><CirclePlus size={14}/><span>أضف مهنتك</span></Link>
         </div>
       </div>
     )}
@@ -71,6 +76,7 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
           {registering && (
             <>
               <div className="form-notice"><ShieldCheck size={19}/><span>بيانات عضويتك لا تُضاف للمهنيين ولا تظهر في دليل الخدمات.</span></div>
+              <div className="auth-section-label"><span>١</span>بياناتك الشخصية</div>
               <div className={rowLayoutClass}>
                 <label className="field">الاسم بالكامل
                   <div className="login-input"><UserRound size={17}/><input name="name" autoComplete="name" placeholder="مثال: وائل سمير" required minLength={3} maxLength={120}/></div>
@@ -81,6 +87,7 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
               </div>
             </>
           )}
+          {registering && <div className="auth-section-label"><span>٢</span>بيانات الدخول</div>}
           <label className="field">اسم المستخدم (عربي أو إنجليزي)
             <div className="login-input"><UserRound size={17}/><input name="username" autoComplete="username" placeholder={registering ? "مثال: أحمد محمد" : "اسم المستخدم"} required minLength={registering ? 2 : 1} maxLength={40}/></div>
             {registering && <small className="input-help">اكتب اسمك بالعربي أو الإنجليزي عادي بدون شرطات أو نقاط أو أرقام إجبارية.</small>}
