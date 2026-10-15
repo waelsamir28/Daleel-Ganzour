@@ -158,9 +158,9 @@ async function getCatalog() {
   const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal] = await Promise.all([
     db.select().from(directoryCategories).orderBy(asc(directoryCategories.sortOrder), asc(directoryCategories.name)),
     db.select().from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
-    getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: count() }).from(members),
+    getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: sql<number>`count(*)::int` }).from(members),
   ]);
-  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: memberTotal[0]?.total ?? 0 };
+  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0) };
 }
 export async function getPublicDirectory(): Promise<PublicDirectory> {
   if (!databaseConfigured) return getPreviewDirectory();
