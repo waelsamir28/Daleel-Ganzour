@@ -219,6 +219,7 @@ async function parseWorkbook(file: File, categories: CategoryRecord[], areas: Ar
           color: requestedRoot.color,
           light: `${requestedRoot.color}12`,
           icon: requestedRoot.icon,
+          art: "",
           sortOrder: categories.filter((item) => item.parentId === requestedRoot.id).length,
           active: true,
         };

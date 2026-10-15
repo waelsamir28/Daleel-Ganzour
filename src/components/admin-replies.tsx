@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { BellRing, Check, Copy, LoaderCircle, Megaphone, MessageCircle, MessageSquareQuote, RotateCcw, Search, Share2, Sparkles, UserCheck } from "lucide-react";
-import { getCategory, supportsHomeDelivery, whatsappUrl, type AdminDirectory, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
+import { getCategory, isPharmacyCategory, supportsHomeDelivery, whatsappUrl, type AdminDirectory, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
 
@@ -117,7 +117,7 @@ export default function AdminReplies({
     }
 
     if (postKind === "emergency") {
-      const emergencyList = approved.filter((service) => service.emergency || service.category === "pharmacies");
+      const emergencyList = approved.filter((service) => service.emergency || isPharmacyCategory(service.category, categories));
       const sample = emergencyList.slice(0, 14);
       const lines = sample.map((item, idx) => {
         const spec = getCategory(item.category, categories).name;

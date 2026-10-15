@@ -41,6 +41,7 @@ export const directoryCategories = pgTable("directory_categories", {
   description: text("description").notNull().default(""),
   color: varchar("color", { length: 7 }).notNull().default("#0876e1"),
   icon: varchar("icon", { length: 40 }).notNull().default("Wrench"),
+  art: varchar("art", { length: 40 }).notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
 });
