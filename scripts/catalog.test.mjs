@@ -74,8 +74,13 @@ test("availability lasts four hours, expires at the boundary, and only renews ex
   assert.equal(isAvailableNow(record, active.availableUntil.getTime()), false);
   assert.equal(isAvailableNow({ availableNow: true, availableUntil: null }, now), false);
   assert.equal(isAvailableNow({ availableNow: true, availableUntil: "invalid" }, now), false);
-  assert.equal(availabilityUpdate("keep", active, now + 1000), active);
-  assert.equal(availabilityUpdate(undefined, active), active);
+  assert.deepEqual(availabilityUpdate("keep", active, now + 1000), active);
+  assert.deepEqual(availabilityUpdate(undefined, active), active);
+  // Regression: "keep" must return ONLY the availability columns. The admin edit route spreads this
+  // result over the edited values, so leaking the full row would silently revert every admin edit.
+  const fullRow = { ...active, id: "x", name: "old name", phone: "0100", address: "old address" };
+  assert.deepEqual(availabilityUpdate("keep", fullRow), { availableNow: active.availableNow, availableUntil: active.availableUntil });
+  assert.deepEqual({ name: "new", ...availabilityUpdate("keep", fullRow) }.name, "new");
   assert.deepEqual(availabilityUpdate("stop", active), { availableNow: false, availableUntil: null });
   assert.throws(() => availabilityUpdate("invalid", active));
 });

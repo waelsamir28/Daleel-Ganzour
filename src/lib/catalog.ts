@@ -313,7 +313,9 @@ export const ganzourTransitRoutes: GanzourTransitRoute[] = [
 
 // Only an explicit activation renews availability; editing other fields preserves the deadline.
 export function availabilityUpdate(action: unknown, current: { availableNow: boolean; availableUntil: Date | null }, now = Date.now()) {
-  if (action === undefined || action === "keep") return current;
+  // Return only the availability columns: callers spread this into update payloads, so
+  // handing back the full `current` row would silently overwrite every other edited field.
+  if (action === undefined || action === "keep") return { availableNow: current.availableNow, availableUntil: current.availableUntil };
   if (action === "stop") return { availableNow: false, availableUntil: null };
   if (action === "activate") return { availableNow: true, availableUntil: new Date(now + AVAILABILITY_HOURS * 60 * 60 * 1000) };
   throw new Error("اختار إجراء إتاحة صحيح.");
