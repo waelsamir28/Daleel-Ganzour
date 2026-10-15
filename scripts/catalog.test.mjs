@@ -187,8 +187,17 @@ test("resolves categories and falls back safely for unknown ids", () => {
 });
 
 test("keeps sections, specialties and icons coherent", () => {
-  assert.equal(categories.length, 7, "the published roots are the seven village sections");
-  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "shops", "teachers", "charities", "other-services"]);
+  assert.equal(categories.length, 11, "the published roots are the eleven village sections");
+  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "shops", "teachers", "charities", "printing", "events", "transport", "cleaning", "other-services"]);
+  // Every root section renders its own dimensional (3D) artwork instead of the generic fallback.
+  const svg = readFileSync(new URL("../public/images/category-3d.svg", import.meta.url), "utf8");
+  const uiSource = readFileSync(new URL("../src/components/ui.tsx", import.meta.url), "utf8");
+  const dimensional = /const dimensionalCategoryIcons: Record<string, string> = \{ ([^}]+) \};/.exec(uiSource)[1];
+  for (const root of categories) {
+    const symbol = new RegExp(`${root.icon}: "([a-z]+)"`).exec(dimensional);
+    assert.ok(symbol, `${root.id} root icon ${root.icon} maps to a 3D symbol`);
+    assert.ok(svg.includes(`<symbol id="${symbol[1]}"`), `${root.id} has a 3D symbol #${symbol[1]} in category-3d.svg`);
+  }
   const ids = initialCategories.map(({ id }) => id);
   assert.equal(new Set(ids).size, ids.length, "category ids are unique");
   assert.ok(initialCategories.length > categories.length, "every root carries specialties");
