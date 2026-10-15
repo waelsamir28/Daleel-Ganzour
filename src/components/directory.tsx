@@ -62,6 +62,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const liveDetail = detail ? data.services.find((service) => service.id === detail.id) ?? detail : null;
   const design = useMemo(() => ({ ...defaultDesignSettings, ...(data.designSettings ?? {}) }), [data.designSettings]);
   const [view, setView] = useState<"all" | "favorites">(initialFavorites ? "favorites" : "all");
+  const [appShareState, setAppShareState] = useState<"idle" | "shared" | "copied">("idle");
+  useEffect(() => { if (appShareState === "idle") return; const timer = setTimeout(() => setAppShareState("idle"), 2600); return () => clearTimeout(timer); }, [appShareState]);
   const [featuredOpen, setFeaturedOpen] = useState(() => Boolean(initialData.designSettings?.featuredDefaultOpen));
   const [ownedServiceIds, setOwnedServiceIds] = useState<string[]>([]);
   const [logoutError, setLogoutError] = useState("");
@@ -178,6 +180,16 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       setFollowError("");
       if (result.following) openFeed();
     } catch { setFollowError("تعذر الاتصال. حاول مرة أخرى."); } finally { setFollowBusy(false); }
+  }
+  async function shareApp() {
+    const url = `${window.location.origin}/`;
+    const text = `📱 دليل المهن والخدمات بقرية جنزور\nكل الحرفيين والعيادات والمحلات والخدمات في مكان واحد.. ابحث واتصل بضغطة واحدة 👇\n${url}`;
+    if (typeof navigator.share === "function") {
+      try { await navigator.share({ title: "دليل جنزور", text, url }); setAppShareState("shared"); return; }
+      catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(text); setAppShareState("copied"); }
+    catch { window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer"); }
   }
   async function shareService(service: ServiceRecord) {
     trackDirectoryEvent({ kind: "share", label: service.name, serviceId: service.id, categoryId: service.category });
@@ -1052,7 +1064,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       </Modal>
     )}
     {modal === "quick" && (
-      <Modal floating title="الخدمات السريعة" subtitle="وصول سريع لخدمات الطوارئ، والبحث حسب عنوانك في جنزور، وقائمة خدماتك المفضلة" onClose={closeModal}>
+      <Modal floating title="الخدمات السريعة" subtitle="وصول سريع لخدمات الطوارئ، والبحث حسب عنوانك في جنزور، وقائمة خدماتك المفضلة، ومشاركة التطبيق" onClose={() => { setAppShareState("idle"); closeModal(); }}>
         <div className="quick-links-card quick-services-grid quick-modal-grid">
           {settings.showEmergency && (
             <button type="button" onClick={() => setModal("emergency")}>
@@ -1069,6 +1081,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <button type="button" onClick={() => { closeModal(); showFavorites(); }}>
             <span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>
             المفضلة
+            <ChevronLeft size={15}/>
+          </button>
+          <button type="button" className="share-app-quick-link" onClick={() => void shareApp()}>
+            <span className="quick-icon quick-green"><Share2 size={24}/></span>
+            {appShareState === "copied" ? "تم نسخ رابط التطبيق ✓" : appShareState === "shared" ? "شكرًا لمشاركتك ✓" : "شارك التطبيق مع أهل جنزور"}
             <ChevronLeft size={15}/>
           </button>
         </div>
