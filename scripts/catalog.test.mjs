@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, getClinicBookingMode, getClinicBookingLabel, getClinicScheduleSummary, matchesClinicFilter, parseShopItemString, getShopCatalogItems, buildShopWhatsappOrderMessage } = catalog;
+const { categoryArt, categoryArtOptions, isPharmacyCategory, NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, getClinicBookingMode, getClinicBookingLabel, getClinicScheduleSummary, matchesClinicFilter, parseShopItemString, getShopCatalogItems, buildShopWhatsappOrderMessage } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -187,17 +187,21 @@ test("resolves categories and falls back safely for unknown ids", () => {
 });
 
 test("keeps sections, specialties and icons coherent", () => {
-  assert.equal(categories.length, 12, "the published roots are the twelve village sections");
-  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "shops", "teachers", "charities", "printing", "events", "transport", "cleaning", "law", "other-services"]);
-  // Every root section renders its own dimensional (3D) artwork instead of the generic fallback.
+  assert.equal(categories.length, 13, "the published roots are the thirteen village sections");
+  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "pharmacies", "shops", "teachers", "charities", "printing", "events", "transport", "cleaning", "law", "other-services"], "roots in display order");
+  // Every root section renders its own dimensional (3D) artwork instead of the generic fallback,
+  // and every selectable artwork option exists in the sprite.
   const svg = readFileSync(new URL("../public/images/category-3d.svg", import.meta.url), "utf8");
-  const uiSource = readFileSync(new URL("../src/components/ui.tsx", import.meta.url), "utf8");
-  const dimensional = /const dimensionalCategoryIcons: Record<string, string> = \{ ([^}]+) \};/.exec(uiSource)[1];
+  for (const option of categoryArtOptions) assert.ok(svg.includes(`<symbol id="${option.id}"`), `art option ${option.id} exists in category-3d.svg`);
   for (const root of categories) {
-    const symbol = new RegExp(`${root.icon}: "([a-z]+)"`).exec(dimensional);
-    assert.ok(symbol, `${root.id} root icon ${root.icon} maps to a 3D symbol`);
-    assert.ok(svg.includes(`<symbol id="${symbol[1]}"`), `${root.id} has a 3D symbol #${symbol[1]} in category-3d.svg`);
+    if (root.id !== "other-services") assert.notEqual(categoryArt(root), "other", `${root.id} has dedicated 3D artwork`);
   }
+  assert.equal(categoryArt({ icon: "Grid2X2", art: "" }), "other");
+  assert.equal(categoryArt({ icon: "Wrench", art: "money" }), "money", "a stored art choice wins over the icon default");
+  assert.equal(categoryArt({ icon: "Wrench", art: "nope" }), "crafts", "an unknown art falls back to the icon default");
+  assert.equal(isPharmacyCategory("pharmacies"), true);
+  assert.equal(isPharmacyCategory("community-pharmacies"), true);
+  assert.equal(isPharmacyCategory("groceries"), false);
   const ids = initialCategories.map(({ id }) => id);
   assert.equal(new Set(ids).size, ids.length, "category ids are unique");
   assert.ok(initialCategories.length > categories.length, "every root carries specialties");
@@ -272,12 +276,12 @@ test("colloquial Egyptian synonym dictionary matches everyday queries and specia
   assert.equal(matchesServiceQuery(plumber, "السباكة", "ماتور مياه"), true);
   assert.equal(matchesServiceQuery(plumber, "السباكة", "ثلاجة"), false);
 
-  const mockProviders = [{ category: "dentistry" }, { category: "pharmacies" }, { category: "plumbing" }];
+  const mockProviders = [{ category: "dentistry" }, { category: "community-pharmacies" }, { category: "plumbing" }];
   const toothSuggestions = suggestSpecialties("وجع ضرس", initialCategories, mockProviders);
   assert.ok(toothSuggestions[0]?.id === "dentistry", "colloquial dental query suggests dentistry");
 
   const rxSuggestions = suggestSpecialties("روشته دواء", initialCategories, mockProviders);
-  assert.ok(rxSuggestions[0]?.id === "pharmacies", "colloquial rx query suggests pharmacies");
+  assert.ok(rxSuggestions[0]?.id === "community-pharmacies", "colloquial rx query suggests pharmacies");
 });
 
 test("automatic trust badges reward complete profiles, community ratings, and active availability (#9)", () => {

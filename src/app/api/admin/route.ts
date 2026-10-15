@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
-import { and, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
-import { ensureSeed, getAdminDirectory } from "@/lib/directory";
+import { ensureSeed, getAdminDirectory, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 import { availabilityUpdate, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
@@ -53,8 +53,12 @@ export async function POST(request: Request) {
       await categoryParent(category.parentId);
       const id = cleanText(values.slug, 60).toLowerCase() || `category-${randomBytes(5).toString("hex")}`;
       if (!/^[a-z][a-z0-9-]{1,59}$/.test(id)) throw new InputError("رابط التصنيف يكون حروفًا إنجليزية وأرقامًا وشرطات، بدون مسافات.");
-      const inserted = await db.insert(directoryCategories).values({ ...category, id }).onConflictDoNothing().returning();
+      const siblings = await db.select({ total: count() }).from(directoryCategories).where(category.parentId ? eq(directoryCategories.parentId, category.parentId) : isNull(directoryCategories.parentId));
+      // A new category without an explicit order lands at the end of its siblings instead of jumping to the top.
+      const inserted = await db.insert(directoryCategories).values({ ...category, id, sortOrder: category.sortOrder || siblings[0].total }).onConflictDoNothing().returning();
       if (!inserted.length) throw new InputError("رابط التصنيف مستخدم بالفعل.", 409);
+      const removed = await readDeletedCategoryIds();
+      if (removed.delete(id)) await writeDeletedCategoryIds(removed);
     } else if (body.type === "area") {
       const name = cleanText(values.name, 80);
       if (name.length < 3 || name === "عنوان آخر") throw new InputError("أدخل عنوانًا صحيحًا. اختيار عنوان آخر موجود تلقائيًا.");
@@ -88,6 +92,20 @@ export async function PATCH(request: Request) {
       if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), inArray(notifications.type, ["service", "community"])) : eq(notifications.read, false));
       else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), inArray(notifications.type, ["service", "community"])) : eq(notifications.id, uuid(body.id)));
       else throw new InputError("إجراء غير صحيح.");
+    } else if (type === "category" && action === "move") {
+      const id = cleanText(body.id, 60), direction = body.direction === "up" ? -1 : body.direction === "down" ? 1 : 0;
+      if (!direction) throw new InputError("اتجاه الترتيب غير صحيح.");
+      const [current] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, id));
+      if (!current) throw new InputError("التصنيف غير موجود.", 404);
+      const siblings = await db.select().from(directoryCategories).where(current.parentId ? eq(directoryCategories.parentId, current.parentId) : isNull(directoryCategories.parentId)).orderBy(asc(directoryCategories.sortOrder), asc(directoryCategories.name));
+      const index = siblings.findIndex((item) => item.id === id), target = index + direction;
+      if (index < 0 || target < 0 || target >= siblings.length) throw new InputError(direction < 0 ? "التصنيف في أول الترتيب بالفعل." : "التصنيف في آخر الترتيب بالفعل.");
+      const reordered = [...siblings];
+      [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+      // Siblings are renumbered sequentially so ties (several rows sharing one sortOrder) cannot undo the move.
+      await db.transaction(async (tx) => {
+        for (const [position, item] of reordered.entries()) if (item.sortOrder !== position) await tx.update(directoryCategories).set({ sortOrder: position }).where(eq(directoryCategories.id, item.id));
+      });
     } else if (type === "category") {
       const id = cleanText(body.id, 60), values = categoryInput(objectInput(body.values));
       const [existing] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, id));
@@ -255,6 +273,10 @@ export async function DELETE(request: Request) {
       const attached = await db.select({ total: count() }).from(services).where(eq(services.category, id));
       if (children[0].total || attached[0].total) throw new InputError("التصنيف مرتبط بتخصصات أو مهن. انقلها أو احذفها أولًا، أو أخفِ التصنيف بدل الحذف.", 409);
       await db.delete(directoryCategories).where(eq(directoryCategories.id, id));
+      // Remember the deletion so the built-in seed never re-creates this category on the next start.
+      const removed = await readDeletedCategoryIds();
+      removed.add(id);
+      await writeDeletedCategoryIds(removed);
     } else if (type === "area") {
       const id = uuid(body.id), [area] = await db.select().from(directoryAreas).where(eq(directoryAreas.id, id));
       if (!area) throw new InputError("العنوان غير موجود.", 404);

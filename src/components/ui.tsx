@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { Activity, Anvil, Armchair, Baby, Bone, BookOpen, BrickWall, Calculator, Cctv, Cog, Droplets, Ellipsis, Eye, FlaskConical, Globe, GraduationCap, Grid2X2, Hammer, HandHeart, Heart, HeartPulse, Languages, Paintbrush, PanelsTopLeft, Pill, Scale, Shirt, ShoppingBasket, Smartphone, Smile, Snowflake, Sparkles, Stethoscope, Store, Sun, Truck, Tv, UsersRound, Utensils, Wrench, X, Zap, Printer, Megaphone, Palette, Camera, Disc3, Scissors, WandSparkles, PartyPopper, Sofa, PackageOpen, Car, SprayCan, WashingMachine, Gavel, ScrollText, type LucideIcon } from "lucide-react";
-import { defaultSettings, getCategory, type CategoryRecord } from "@/lib/catalog";
+import { categoryArt, categoryArtOptions, defaultSettings, getCategory, type CategoryRecord } from "@/lib/catalog";
 
 // Exactly the icons the catalogue offers (see iconNames), so no unreachable component is bundled.
 const categoryIcons: Record<string, LucideIcon> = { Wrench, Stethoscope, Store, GraduationCap, HandHeart, Grid2X2, Hammer, Droplets, Zap, Anvil, Paintbrush, BrickWall, PanelsTopLeft, Snowflake, Cog, Armchair, Baby, Smile, HeartPulse, Bone, Sparkles, Eye, Activity, ShoppingBasket, Pill, Shirt, BookOpen, Tv, Utensils, Smartphone, Languages, Calculator, FlaskConical, Globe, Heart, UsersRound, Scale, Truck, Cctv, Sun, Ellipsis, Printer, Megaphone, Palette, Camera, Disc3, Scissors, WandSparkles, PartyPopper, Sofa, PackageOpen, Car, SprayCan, WashingMachine, Gavel, ScrollText };
@@ -11,9 +11,10 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
-const dimensionalCategoryIcons: Record<string, string> = { Wrench: "crafts", Stethoscope: "clinics", FlaskConical: "labs", Store: "shops", GraduationCap: "teachers", HandHeart: "charities", Grid2X2: "other", Printer: "printing", PartyPopper: "events", Truck: "transport", SprayCan: "cleaning", Scale: "law", duty: "duty", utilities: "utilities", quick: "quick", featured: "featured" };
-export function MainCategoryIcon({ icon, size }: { icon: string; size?: number }) {
-  return <svg className="main-category-art" viewBox="0 0 128 128" style={size ? { width: size, height: size } : undefined} aria-hidden="true"><use href={`/images/category-3d.svg#${dimensionalCategoryIcons[icon] ?? "other"}`}/></svg>;
+export function MainCategoryIcon({ icon, art = "", size }: { icon: string; art?: string; size?: number }) {
+  // Feature tiles (duty/utilities/quick/featured) pass their symbol id directly through `icon`.
+  const symbol = categoryArtOptions.some((option) => option.id === icon) && !art ? icon : categoryArt({ icon, art });
+  return <svg className="main-category-art" viewBox="0 0 128 128" style={size ? { width: size, height: size } : undefined} aria-hidden="true"><use href={`/images/category-3d.svg#${symbol}`}/></svg>;
 }
 export function Logo({ compact = false, footer = false, name = defaultSettings.siteName, logoUrl = "" }: { compact?: boolean; footer?: boolean; name?: string; description?: string; logoUrl?: string }) {
   const shortTitle = name.includes("جنزور") ? "دليل قرية جنزور" : name;

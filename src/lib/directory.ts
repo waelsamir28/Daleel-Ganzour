@@ -5,6 +5,21 @@ import { communityListings, directoryAreas, directoryCategories, directorySettin
 import { areas, defaultDesignSettings, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
+export const DELETED_CATEGORIES_KEY = "deleted_categories";
+type Queryable = Pick<typeof db, "select" | "insert">;
+/** Ids of built-in categories the admin removed on purpose; the seed must not resurrect them. */
+export async function readDeletedCategoryIds(client: Queryable = db): Promise<Set<string>> {
+  const [row] = await client.select().from(directorySettings).where(eq(directorySettings.key, DELETED_CATEGORIES_KEY));
+  if (!row) return new Set();
+  try {
+    const parsed = JSON.parse(row.value) as unknown;
+    return new Set(Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : []);
+  } catch { return new Set(); }
+}
+export async function writeDeletedCategoryIds(ids: Set<string>) {
+  const value = JSON.stringify([...ids]);
+  await db.insert(directorySettings).values({ key: DELETED_CATEGORIES_KEY, value }).onConflictDoUpdate({ target: directorySettings.key, set: { value } });
+}
 function getPreviewDirectory(): PublicDirectory {
   return {
     services: sampleServices.map((service) => ({ ...service, phoneSecondary: "", status: "approved", verified: true, availableNow: false, availableUntil: null, workingHours: [], serviceItems: [], subSpecialties: [], neededRank: 0, hours: "8 صباحًا - 10 مساءً", menuUrl: "", menuWhatsapp: "", demo: true, createdAt: "2026-01-01T00:00:00.000Z", completionStatus: "none", completionNote: "", completionDraft: null })),
@@ -48,6 +63,7 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_push_subscriptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), endpoint text NOT NULL UNIQUE, subscription text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
+      await tx.execute(sql`ALTER TABLE directory_categories ADD COLUMN IF NOT EXISTS art varchar(40) NOT NULL DEFAULT ''`);
       // Advertising was removed from the product: clean the legacy tables and their notifications
       // so existing databases are tidied up as soon as this release is deployed.
       await tx.execute(sql`DROP TABLE IF EXISTS directory_advertisement_events`);
@@ -85,7 +101,19 @@ export async function ensureSeed() {
         }
       }
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
-      await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoUpdate({ target: directoryCategories.id, set: { name: sql`excluded.name`, parentId: sql`excluded.parent_id`, description: sql`excluded.description`, color: sql`excluded.color`, icon: sql`excluded.icon`, sortOrder: sql`excluded.sort_order`, active: sql`excluded.active` } });
+      // Catalogue sync policy: the built-in sections are pushed into the database in full exactly once
+      // (so the latest code layout — new sections, promoted roots — lands everywhere), and from then on
+      // the admin panel owns the table: names, parents, icons, order and visibility edited there are
+      // never overwritten, and sections the admin deleted are remembered so they do not come back.
+      const sync = await tx.insert(directorySettings).values({ key: "catalog_sync_v3", value: new Date().toISOString() }).onConflictDoNothing().returning();
+      const seedRows = initialCategories.map(({ light: _light, ...category }) => category);
+      if (sync.length) {
+        await tx.insert(directoryCategories).values(seedRows).onConflictDoUpdate({ target: directoryCategories.id, set: { name: sql`excluded.name`, parentId: sql`excluded.parent_id`, description: sql`excluded.description`, color: sql`excluded.color`, icon: sql`excluded.icon`, art: sql`excluded.art`, sortOrder: sql`excluded.sort_order`, active: sql`excluded.active` } });
+      } else {
+        const removed = await readDeletedCategoryIds(tx);
+        const fresh = seedRows.filter((row) => !removed.has(row.id) && !(row.parentId && removed.has(row.parentId)));
+        if (fresh.length) await tx.insert(directoryCategories).values(fresh).onConflictDoNothing();
+      }
       if (!marker.length) return;
       await tx.insert(directoryAreas).values(areas.map((name, sortOrder) => ({ name, sortOrder }))).onConflictDoNothing();
       await tx.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(defaultSettings) }).onConflictDoNothing();

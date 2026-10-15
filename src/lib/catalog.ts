@@ -51,6 +51,9 @@ export const specialtySynonyms: Record<string, string[]> = {
   science: ["علوم", "كيمياء", "فيزياء", "احياء", "ساينس", "مدرس علوم"],
   "social-studies": ["دراسات", "تاريخ", "جغرافيا", "فلسفه", "علم نفس", "مدرس دراسات"],
   law: ["محامي", "قضيه", "عقد", "شهر عقاري", "استشاره قانونيه", "ميراث", "احوال شخصيه"],
+  "community-pharmacies": ["صيدليه", "صيدليات", "دواء", "روشته", "علاج", "قياس ضغط", "قياس سكر", "حقنه"],
+  "night-pharmacies": ["صيدليه 24 ساعه", "صيدليه مناوبه", "صيدليه ليلي", "طوارئ دواء", "صيدليه بالليل"],
+  "medical-supplies": ["مستلزمات طبيه", "اجهزه طبيه", "جهاز ضغط", "جهاز سكر", "كرسي متحرك", "اكسجين", "مشايه"],
   lawyers: ["محامي", "محاميه", "قضيه", "محكمه", "نيابه", "جنايات", "احوال شخصيه", "ميراث", "طلاق", "نفقه"],
   "legal-consulting": ["استشاره قانونيه", "استشارات", "مستشار قانوني", "حقوق", "نزاع", "شكوى"],
   contracts: ["عقد", "عقود", "شهر عقاري", "توثيق", "توكيل", "تسجيل ملكيه", "عقد ايجار", "عقد بيع"],
@@ -319,7 +322,45 @@ export function availabilityUpdate(action: unknown, current: { availableNow: boo
 export type CategoryRecord = {
   id: string; name: string; parentId: string | null; description: string;
   color: string; light: string; icon: string; sortOrder: number; active: boolean;
+  /** Dimensional (3D) artwork symbol for root sections; empty means "derive from the icon". */
+  art: string;
 };
+/** The 3D symbols available in /images/category-3d.svg that a root section can display. */
+export const categoryArtOptions: Array<{ id: string; label: string }> = [
+  { id: "crafts", label: "مفتاح وشاكوش (حرفيين)" },
+  { id: "clinics", label: "سماعة طبيب (عيادات)" },
+  { id: "labs", label: "دورق معمل (معامل)" },
+  { id: "pharmacy", label: "صيدلية وكبسولة (صيدليات)" },
+  { id: "shops", label: "واجهة محل (محلات)" },
+  { id: "food", label: "طبق وأدوات مائدة (مطاعم)" },
+  { id: "teachers", label: "كتب وقبعة تخرج (مدرسين)" },
+  { id: "charities", label: "قلب بين يدين (جمعيات)" },
+  { id: "printing", label: "طابعة (طباعة ودعاية)" },
+  { id: "events", label: "بالونات واحتفال (أفراح)" },
+  { id: "transport", label: "سيارة نقل (نقل وتوصيل)" },
+  { id: "cleaning", label: "بخاخ وجردل (نظافة)" },
+  { id: "law", label: "ميزان العدالة (محاماة)" },
+  { id: "tech", label: "لابتوب وموبايل (تقنية)" },
+  { id: "home", label: "منزل (عقارات وسكن)" },
+  { id: "beauty", label: "مرآة ومقص (تجميل)" },
+  { id: "agriculture", label: "نبتة وأرض (زراعة)" },
+  { id: "money", label: "عملات ونقود (مالية)" },
+  { id: "duty", label: "صليب طبي (مناوبة)" },
+  { id: "utilities", label: "هاتف طوارئ (أرقام مهمة)" },
+  { id: "quick", label: "برق (خدمات سريعة)" },
+  { id: "featured", label: "تاج (مميز)" },
+  { id: "other", label: "صندوق أدوات (خدمات أخرى)" },
+];
+const iconArtDefaults: Record<string, string> = { Wrench: "crafts", Stethoscope: "clinics", FlaskConical: "labs", Pill: "pharmacy", Store: "shops", Utensils: "food", GraduationCap: "teachers", HandHeart: "charities", Grid2X2: "other", Printer: "printing", PartyPopper: "events", Truck: "transport", SprayCan: "cleaning", Scale: "law", Smartphone: "tech", Scissors: "beauty" };
+/** Resolves the 3D symbol id a section renders: the stored choice first, then the icon's default. */
+export function categoryArt(category: Pick<CategoryRecord, "icon" | "art">): string {
+  if (category.art && categoryArtOptions.some((option) => option.id === category.art)) return category.art;
+  return iconArtDefaults[category.icon] ?? "other";
+}
+export function isPharmacyCategory(categoryId: string, catalog: CategoryRecord[] = initialCategories): boolean {
+  if (categoryId === "pharmacies") return true;
+  return catalog.find((category) => category.id === categoryId)?.parentId === "pharmacies";
+}
 export type AreaRecord = { id: string; name: string; sortOrder: number };
 export type CompletionStatus = "none" | "requested" | "submitted" | "rejected";
 export type ServiceCompletionDraft = {
@@ -419,7 +460,7 @@ export function getOnDutyServices(
   return services
     .filter((service) => {
       const category = getCategory(service.category, catalog);
-      const isPharmacy = service.category === "pharmacies";
+      const isPharmacy = isPharmacyCategory(service.category, catalog);
       const isClinicOrLab = category.parentId === "clinics" || category.parentId === "labs";
       const isEmergencyOrAvailable = Boolean(service.emergency) || (now > 0 && isAvailableNow(service, now));
       if (filter === "pharmacies") return isPharmacy;
@@ -823,7 +864,7 @@ export function getCompletionFieldSuggestions(
 
   const names = category.parentId === "clinics"
     ? [`عيادة د. ${baseName} (${specName})`, `مركز د. ${baseName} التخصصي`, `د. ${baseName} — أخصائي ${specName}`]
-    : category.id === "pharmacies"
+    : category.id === "pharmacies" || category.parentId === "pharmacies"
       ? [`صيدلية د. ${baseName}`, `صيدلية ${baseName} — خدمة التوصيل بجنزور`]
       : category.parentId === "labs"
         ? [`معمل ${baseName} للتحاليل الطبية`, `معمل د. ${baseName} بجنزور`]
@@ -845,7 +886,7 @@ export function getCompletionFieldSuggestions(
   const descriptions = [
     `نقدم خدمات ${specName} لأهالي قرية جنزور والمناطق المجاورة بدقة عالية ومواعيد منضبطة وأسعار مناسبة للجميع.`,
     `خبرة متميزة في كافة أعمال وخدمات ${specName} مع سرعة الاستجابة والتواصل المباشر عبر الهاتف أو واتساب.`,
-    category.parentId === "clinics" || category.parentId === "labs" || category.id === "pharmacies"
+    category.parentId === "clinics" || category.parentId === "labs" || category.id === "pharmacies" || category.parentId === "pharmacies"
       ? `رعاية طبية متكاملة في ${specName} بأحدث الأجهزة، مع إمكانية الحجز والاستفسار المسبق ومتابعة الحالات الطارئة بجنزور.`
       : `تنفيذ وصيانة جميع أعمال ${specName} بأفضل الخامات، مع المعاينة والمتابعة لخدمة أهالي قرية جنزور.`,
   ];
@@ -1957,6 +1998,7 @@ const sectionDescriptions: Record<string, string> = {
   events: "كل ما يحتاجه فرحك أو مناسبتك في مكان واحد: مصورين، دي جي، كوافير، ميكب أرتست، وتجهيز القاعات والأفراح. تواصل مباشرة مع مقدمي الخدمة لمعرفة التفاصيل والمواعيد والأسعار.",
   transport: "دليل لخدمات النقل والتوصيل داخل قرية جنزور وخارجها: نقل العفش بسيارات مجهزة، نقل البضائع، والمشاوير الخاصة. تواصل مع السائق أو مقدم الخدمة للاتفاق على الوجهة والموعد والتكلفة.",
   cleaning: "دليل لمقدمي خدمات النظافة والعناية بالمنازل في جنزور، من تنظيف الشقق قبل السكن أو بعد التشطيب إلى غسيل السجاد والمفروشات. تواصل للاستفسار عن نوع الخدمة والمواعيد والتكلفة.",
+  pharmacies: "دليل لصيدليات قرية جنزور، من الصيدليات العامة وصيدليات الـ٢٤ ساعة إلى محلات المستلزمات والأجهزة الطبية، مع إمكانية الاستفسار عن توافر الأدوية وخدمة التوصيل للمنازل.",
   law: "دليل للمحامين ومكاتب الاستشارات القانونية داخل قرية جنزور، من القضايا والمرافعات إلى الاستشارات وصياغة العقود وإجراءات الشهر العقاري. تواصل مباشرة للاستفسار عن طبيعة القضية وأتعاب الخدمة.",
   "other-services": "يضم مجموعة من الخدمات المهنية والمتخصصة التي يحتاج إليها أهالي جنزور ولا تندرج تحت الأقسام الرئيسية الأخرى. يساعدك على الوصول إلى مقدمي الخدمات المختلفة والتواصل معهم لمعرفة التفاصيل وطرق الاستفادة منها.",
 };
@@ -2000,6 +2042,9 @@ const specialtyDescriptions: Record<string, string> = {
   transport: "دليل لمقدمي خدمات النقل والمواصلات داخل قرية جنزور والمناطق المحيطة بها، لتسهيل الوصول إلى وسائل التنقل المتاحة. يمكنك التواصل للاستفسار عن الوجهات وخطوط السير والمواعيد والتكلفة حسب الخدمة.",
   cameras: "خدمات تركيب وتجهيز وصيانة أنظمة كاميرات المراقبة وملحقاتها، بما يتناسب مع احتياجات المنازل والمحلات والمنشآت. يمكنك التواصل للاستفسار عن أنواع الأنظمة المتاحة وطرق التركيب والصيانة التي يقدمها الفني.",
   solar: "خدمات مرتبطة بتجهيز وتركيب وصيانة أنظمة الطاقة الشمسية ومكوناتها للاستفادة من الطاقة المتجددة. يتيح الدليل الوصول إلى المتخصصين والاستفسار عن الأنظمة المناسبة والقدرات المتاحة وتفاصيل التنفيذ.",
+  "community-pharmacies": "صيدليات عامة تصرف الأدوية والروشتات وتوفر مستحضرات العناية، مع قياس الضغط والسكر وخدمة التوصيل للمنازل عند توافرها. تواصل للاستفسار عن توافر الدواء.",
+  "night-pharmacies": "صيدليات تعمل على مدار ٢٤ ساعة أو بنظام المناوبة الليلية لتوفير الأدوية والطوارئ في أي وقت. تواصل للتأكد من مواعيد العمل والتوافر.",
+  "medical-supplies": "محلات المستلزمات والأجهزة الطبية: أجهزة الضغط والسكر، الكراسي المتحركة، المشايات، الأكسجين، والمستلزمات التمريضية. تواصل للاستفسار عن التوافر والأسعار.",
   lawyers: "المحاماة والقضايا بمختلف أنواعها: مدني وجنائي وأحوال شخصية ومواريث وعمالي، مع المتابعة أمام المحاكم والنيابات. تواصل لعرض تفاصيل القضية ومعرفة الأتعاب.",
   "legal-consulting": "الاستشارات القانونية للأفراد والشركات في المعاملات والعقود والنزاعات، وتوضيح الإجراءات والحقوق قبل اتخاذ أي خطوة. تواصل لحجز استشارة.",
   contracts: "صياغة ومراجعة العقود وإجراءات الشهر العقاري والتوثيق وتسجيل الملكيات والتوكيلات. تواصل لمعرفة المستندات المطلوبة والتكلفة.",
@@ -2024,6 +2069,7 @@ const roots: Array<[string, string, string, string, string]> = [
   ["crafts", "الحرفيين", "#ff941f", "Wrench", "أهل الصنعة والخبرة في القرية"],
   ["clinics", "العيادات", "#22b96d", "Stethoscope", "اختار التخصص الطبي المناسب"],
   ["labs", "المعامل", "#0eb0b1", "FlaskConical", "معامل التحاليل والخدمات الطبية"],
+  ["pharmacies", "الصيدليات", "#15a37f", "Pill", "صيدليات جنزور والمستلزمات الطبية"],
   ["shops", "المحلات", "#078cf0", "Store", "كل اللي تحتاجه من محلات جنزور"],
   ["teachers", "المدرسين", "#9160df", "GraduationCap", "مدرسين لكل المواد والمراحل"],
   ["charities", "جمعيات خيرية", "#ef5d82", "HandHeart", "إيد في إيد.. لخدمة أهل القرية"],
@@ -2038,7 +2084,8 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   crafts: [["carpentry", "النجارة", "Hammer"], ["plumbing", "السباكة", "Droplets"], ["electricity", "الكهرباء", "Zap"], ["metalwork", "الحدادة", "Anvil"], ["painting", "النقاشة والدهانات", "Paintbrush"], ["masonry", "البناء والمحارة", "BrickWall"], ["tiles", "السيراميك والبلاط", "PanelsTopLeft"], ["aluminum", "الألوميتال", "PanelsTopLeft"], ["glass", "الزجاج والمرايا", "PanelsTopLeft"], ["ac", "التكييف والتبريد", "Snowflake"], ["mechanics", "ميكانيكا السيارات", "Cog"], ["upholstery", "التنجيد", "Armchair"]],
   clinics: [["family", "طب الأسرة والباطنة", "Stethoscope"], ["pediatrics", "الأطفال", "Baby"], ["dentistry", "الأسنان", "Smile"], ["gynecology", "النساء والتوليد", "HeartPulse"], ["orthopedics", "العظام", "Bone"], ["dermatology", "الجلدية", "Sparkles"], ["ophthalmology", "العيون", "Eye"], ["ent", "الأنف والأذن والحنجرة", "Stethoscope"], ["physiotherapy", "العلاج الطبيعي", "Activity"]],
   labs: [["medical-labs", "معامل التحاليل", "FlaskConical"]],
-  shops: [["groceries", "البقالة والسوبر ماركت", "ShoppingBasket"], ["pharmacies", "الصيدليات", "Pill"], ["clothing", "الملابس", "Shirt"], ["stationery", "المكتبات والأدوات المدرسية", "BookOpen"], ["appliances", "الأجهزة الكهربائية", "Tv"], ["food", "المطاعم والمأكولات", "Utensils"], ["mobile-shops", "الموبايلات والكمبيوتر", "Smartphone"]],
+  pharmacies: [["community-pharmacies", "صيدليات عامة", "Pill"], ["night-pharmacies", "صيدليات ٢٤ ساعة", "HeartPulse"], ["medical-supplies", "مستلزمات طبية وأجهزة", "Activity"]],
+  shops: [["groceries", "البقالة والسوبر ماركت", "ShoppingBasket"], ["clothing", "الملابس", "Shirt"], ["stationery", "المكتبات والأدوات المدرسية", "BookOpen"], ["appliances", "الأجهزة الكهربائية", "Tv"], ["food", "المطاعم والمأكولات", "Utensils"], ["mobile-shops", "الموبايلات والكمبيوتر", "Smartphone"]],
   teachers: [["arabic", "اللغة العربية", "BookOpen"], ["english", "اللغة الإنجليزية", "Languages"], ["math", "الرياضيات", "Calculator"], ["science", "العلوم والكيمياء والفيزياء", "FlaskConical"], ["social-studies", "الدراسات والتاريخ والجغرافيا", "Globe"]],
   charities: [["charitable-associations", "الجمعيات الأهلية", "HandHeart"], ["orphan-care", "رعاية الأيتام", "Heart"], ["community-support", "التكافل والمساعدات", "UsersRound"]],
   printing: [["print-shops", "الطباعة وتصوير المستندات", "Printer"], ["advertising", "الدعاية والإعلان واللافتات", "Megaphone"], ["graphic-design", "التصميم الجرافيكي", "Palette"]],
@@ -2108,13 +2155,13 @@ export const iconArabicLabels: Record<string, string> = {
   ScrollText: "وثيقة ملفوفة (عقود وشهر عقاري)",
 };
 export const initialCategories: CategoryRecord[] = roots.flatMap(([id, name, color, icon, description], sortOrder) => [
-  { id, name, color, light: `${color}12`, icon, description: sectionDescriptions[id] ?? description, sortOrder, parentId: null, active: true },
-  ...specialties[id].map(([childId, childName, childIcon], order) => ({ id: childId, name: childName, color, light: `${color}12`, icon: childIcon, description: `${specialtyDescriptions[childId] ?? `مقدمو خدمات ${childName} بقرية جنزور`} المجال: ${childName}.`, sortOrder: order, parentId: id, active: true })),
+  { id, name, color, light: `${color}12`, icon, art: iconArtDefaults[icon] ?? "other", description: sectionDescriptions[id] ?? description, sortOrder, parentId: null, active: true },
+  ...specialties[id].map(([childId, childName, childIcon], order) => ({ id: childId, name: childName, color, light: `${color}12`, icon: childIcon, art: "", description: `${specialtyDescriptions[childId] ?? `مقدمو خدمات ${childName} بقرية جنزور`} المجال: ${childName}.`, sortOrder: order, parentId: id, active: true })),
 ]);
 export const categories = initialCategories.filter((category) => !category.parentId);
 
 export function getCategory(id: string, catalog: CategoryRecord[] = initialCategories): CategoryRecord {
-  return catalog.find((category) => category.id === id) ?? { id, name: "خدمة", color: "#0876e1", light: "#edf6ff", icon: "Wrench", parentId: null, sortOrder: 0, active: true, description: "" };
+  return catalog.find((category) => category.id === id) ?? { id, name: "خدمة", color: "#0876e1", light: "#edf6ff", icon: "Wrench", art: "", parentId: null, sortOrder: 0, active: true, description: "" };
 }
 export function normalizeSearch(value: string) {
   return value.toLowerCase().normalize("NFKC").replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه");

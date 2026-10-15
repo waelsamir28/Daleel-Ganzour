@@ -2,7 +2,7 @@ import "server-only";
 import { databaseConfigured, db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { defaultSettings, iconNames, OTHER_ADDRESS, parseWorkingHours, parseServiceItems, type SiteSettings } from "@/lib/catalog";
+import { categoryArtOptions, defaultSettings, iconNames, OTHER_ADDRESS, parseWorkingHours, parseServiceItems, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
 
@@ -43,9 +43,10 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);
   const parentId = cleanText(body.parentId, 60) || null;
-  const color = cleanText(body.color, 7), icon = cleanText(body.icon, 40);
+  const color = cleanText(body.color, 7), icon = cleanText(body.icon, 40), art = cleanText(body.art, 40);
   if (name.length < 2 || !/^#[0-9a-f]{6}$/i.test(color) || !iconNames.includes(icon)) throw new InputError("أدخل اسمًا صحيحًا، واختار لونًا وأيقونة من القائمة.");
-  return { name, description, parentId, color, icon, sortOrder: integerInput(body.sortOrder ?? 0, 0, 1000, "الترتيب"), active: body.active !== false };
+  if (art && !categoryArtOptions.some((option) => option.id === art)) throw new InputError("اختار أيقونة مجسمة من القائمة.");
+  return { name, description, parentId, color, icon, art: parentId ? "" : art, sortOrder: integerInput(body.sortOrder ?? 0, 0, 1000, "الترتيب"), active: body.active !== false };
 }
 export function settingsInput(body: Record<string, unknown>): SiteSettings {
   const next = { ...defaultSettings };
