@@ -10345,3 +10345,8 @@ html.dark .art-picker-option.is-selected { background: rgba(16, 121, 255, .16); 
   .art-picker-option .main-category-art { width: 40px; height: 40px; }
   .category-order-arrows .icon-button { width: 30px; height: 30px; }
 }
+
+/* زر مشاركة التطبيق داخل نافذة الخدمات السريعة */
+.quick-modal-grid .share-app-quick-link { border-color: #bfe6cf; background: linear-gradient(135deg, #f1fbf5, #ffffff); }
+.quick-modal-grid .share-app-quick-link:hover { border-color: #19945f; }
+html.dark .quick-modal-grid .share-app-quick-link { background: rgba(25, 148, 95, 0.1); border-color: rgba(25, 148, 95, 0.4); }
