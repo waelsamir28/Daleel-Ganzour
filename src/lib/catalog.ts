@@ -51,6 +51,9 @@ export const specialtySynonyms: Record<string, string[]> = {
   science: ["علوم", "كيمياء", "فيزياء", "احياء", "ساينس", "مدرس علوم"],
   "social-studies": ["دراسات", "تاريخ", "جغرافيا", "فلسفه", "علم نفس", "مدرس دراسات"],
   law: ["محامي", "قضيه", "عقد", "شهر عقاري", "استشاره قانونيه", "ميراث", "احوال شخصيه"],
+  lawyers: ["محامي", "محاميه", "قضيه", "محكمه", "نيابه", "جنايات", "احوال شخصيه", "ميراث", "طلاق", "نفقه"],
+  "legal-consulting": ["استشاره قانونيه", "استشارات", "مستشار قانوني", "حقوق", "نزاع", "شكوى"],
+  contracts: ["عقد", "عقود", "شهر عقاري", "توثيق", "توكيل", "تسجيل ملكيه", "عقد ايجار", "عقد بيع"],
   transport: ["مواصلات", "عربيه", "ميكروباص", "توكتوك", "نقل عفش", "توصيل", "مشوار", "سوزوكي", "ربع نقل"],
   cameras: ["كاميرات مراقبه", "انتركوم", "انذار", "شبكات", "راوتر", "واي فاي", "دش", "رسيفر"],
   solar: ["طاقه شمسيه", "الواح شمسيه", "انفرتر", "بطاريات طاقه"],
@@ -1954,6 +1957,7 @@ const sectionDescriptions: Record<string, string> = {
   events: "كل ما يحتاجه فرحك أو مناسبتك في مكان واحد: مصورين، دي جي، كوافير، ميكب أرتست، وتجهيز القاعات والأفراح. تواصل مباشرة مع مقدمي الخدمة لمعرفة التفاصيل والمواعيد والأسعار.",
   transport: "دليل لخدمات النقل والتوصيل داخل قرية جنزور وخارجها: نقل العفش بسيارات مجهزة، نقل البضائع، والمشاوير الخاصة. تواصل مع السائق أو مقدم الخدمة للاتفاق على الوجهة والموعد والتكلفة.",
   cleaning: "دليل لمقدمي خدمات النظافة والعناية بالمنازل في جنزور، من تنظيف الشقق قبل السكن أو بعد التشطيب إلى غسيل السجاد والمفروشات. تواصل للاستفسار عن نوع الخدمة والمواعيد والتكلفة.",
+  law: "دليل للمحامين ومكاتب الاستشارات القانونية داخل قرية جنزور، من القضايا والمرافعات إلى الاستشارات وصياغة العقود وإجراءات الشهر العقاري. تواصل مباشرة للاستفسار عن طبيعة القضية وأتعاب الخدمة.",
   "other-services": "يضم مجموعة من الخدمات المهنية والمتخصصة التي يحتاج إليها أهالي جنزور ولا تندرج تحت الأقسام الرئيسية الأخرى. يساعدك على الوصول إلى مقدمي الخدمات المختلفة والتواصل معهم لمعرفة التفاصيل وطرق الاستفادة منها.",
 };
 
@@ -1996,6 +2000,9 @@ const specialtyDescriptions: Record<string, string> = {
   transport: "دليل لمقدمي خدمات النقل والمواصلات داخل قرية جنزور والمناطق المحيطة بها، لتسهيل الوصول إلى وسائل التنقل المتاحة. يمكنك التواصل للاستفسار عن الوجهات وخطوط السير والمواعيد والتكلفة حسب الخدمة.",
   cameras: "خدمات تركيب وتجهيز وصيانة أنظمة كاميرات المراقبة وملحقاتها، بما يتناسب مع احتياجات المنازل والمحلات والمنشآت. يمكنك التواصل للاستفسار عن أنواع الأنظمة المتاحة وطرق التركيب والصيانة التي يقدمها الفني.",
   solar: "خدمات مرتبطة بتجهيز وتركيب وصيانة أنظمة الطاقة الشمسية ومكوناتها للاستفادة من الطاقة المتجددة. يتيح الدليل الوصول إلى المتخصصين والاستفسار عن الأنظمة المناسبة والقدرات المتاحة وتفاصيل التنفيذ.",
+  lawyers: "المحاماة والقضايا بمختلف أنواعها: مدني وجنائي وأحوال شخصية ومواريث وعمالي، مع المتابعة أمام المحاكم والنيابات. تواصل لعرض تفاصيل القضية ومعرفة الأتعاب.",
+  "legal-consulting": "الاستشارات القانونية للأفراد والشركات في المعاملات والعقود والنزاعات، وتوضيح الإجراءات والحقوق قبل اتخاذ أي خطوة. تواصل لحجز استشارة.",
+  contracts: "صياغة ومراجعة العقود وإجراءات الشهر العقاري والتوثيق وتسجيل الملكيات والتوكيلات. تواصل لمعرفة المستندات المطلوبة والتكلفة.",
   "print-shops": "طباعة المستندات وتصويرها، الكروت الشخصية، الفواتير والدفاتر، والمطبوعات الورقية بمختلف الأحجام. تواصل لمعرفة الأسعار ومدة التنفيذ.",
   advertising: "تصميم وتنفيذ اللافتات واليفط والبنرات وواجهات المحلات، وحملات الدعاية والإعلان المطبوعة والرقمية. تواصل لمعرفة الخامات والمقاسات والأسعار.",
   "graphic-design": "تصميم الشعارات والهويات البصرية والمنشورات ومواد السوشيال ميديا والإعلانات المطبوعة. تواصل لعرض نماذج الأعمال والاتفاق على التفاصيل.",
@@ -2024,6 +2031,7 @@ const roots: Array<[string, string, string, string, string]> = [
   ["events", "الأفراح والمناسبات", "#ff5a36", "PartyPopper", "كل ما تحتاجه لفرحك ومناسباتك"],
   ["transport", "النقل والتوصيل", "#f2a900", "Truck", "نقل عفش وبضائع ومشاوير"],
   ["cleaning", "النظافة والخدمات المنزلية", "#19b4d8", "SprayCan", "تنظيف الشقق وغسيل السجاد"],
+  ["law", "المحاماة والاستشارات", "#8a6a2f", "Scale", "محامون واستشارات قانونية"],
   ["other-services", "خدمات أخرى", "#0eb0b1", "Grid2X2", "خدمات متنوعة لأهل جنزور"],
 ];
 const specialties: Record<string, Array<[string, string, string]>> = {
@@ -2037,9 +2045,10 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   events: [["photography", "التصوير", "Camera"], ["dj", "الدي جي", "Disc3"], ["hairdressers", "الكوافير", "Scissors"], ["makeup", "الميكب", "WandSparkles"], ["wedding-planning", "تجهيز الأفراح", "PartyPopper"]],
   transport: [["moving", "نقل العفش", "Sofa"], ["freight", "نقل البضائع", "PackageOpen"], ["rides", "المشاوير", "Car"]],
   cleaning: [["apartment-cleaning", "تنظيف الشقق", "SprayCan"], ["carpet-cleaning", "غسيل السجاد", "WashingMachine"]],
-  "other-services": [["law", "المحاماة والاستشارات", "Scale"], ["cameras", "كاميرات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["other", "خدمات متنوعة", "Ellipsis"]],
+  law: [["lawyers", "المحاماة والقضايا", "Gavel"], ["legal-consulting", "الاستشارات القانونية", "Scale"], ["contracts", "العقود والشهر العقاري", "ScrollText"]],
+  "other-services": [["cameras", "كاميرات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["other", "خدمات متنوعة", "Ellipsis"]],
 };
-export const iconNames = ["Wrench", "Stethoscope", "Store", "GraduationCap", "HandHeart", "Grid2X2", "Hammer", "Droplets", "Zap", "Anvil", "Paintbrush", "BrickWall", "PanelsTopLeft", "Snowflake", "Cog", "Armchair", "Baby", "Smile", "HeartPulse", "Bone", "Sparkles", "Eye", "Activity", "ShoppingBasket", "Pill", "Shirt", "BookOpen", "Tv", "Utensils", "Smartphone", "Languages", "Calculator", "FlaskConical", "Globe", "Heart", "UsersRound", "Scale", "Truck", "Cctv", "Sun", "Ellipsis", "Printer", "Megaphone", "Palette", "Camera", "Disc3", "Scissors", "WandSparkles", "PartyPopper", "Sofa", "PackageOpen", "Car", "SprayCan", "WashingMachine"];
+export const iconNames = ["Wrench", "Stethoscope", "Store", "GraduationCap", "HandHeart", "Grid2X2", "Hammer", "Droplets", "Zap", "Anvil", "Paintbrush", "BrickWall", "PanelsTopLeft", "Snowflake", "Cog", "Armchair", "Baby", "Smile", "HeartPulse", "Bone", "Sparkles", "Eye", "Activity", "ShoppingBasket", "Pill", "Shirt", "BookOpen", "Tv", "Utensils", "Smartphone", "Languages", "Calculator", "FlaskConical", "Globe", "Heart", "UsersRound", "Scale", "Truck", "Cctv", "Sun", "Ellipsis", "Printer", "Megaphone", "Palette", "Camera", "Disc3", "Scissors", "WandSparkles", "PartyPopper", "Sofa", "PackageOpen", "Car", "SprayCan", "WashingMachine", "Gavel", "ScrollText"];
 export const iconArabicLabels: Record<string, string> = {
   Wrench: "مفتاح عدة (حرفيين وصيانة)",
   Stethoscope: "سماعة طبيب (عيادات)",
@@ -2095,6 +2104,8 @@ export const iconArabicLabels: Record<string, string> = {
   Car: "سيارة (مشاوير)",
   SprayCan: "بخاخ تنظيف (نظافة)",
   WashingMachine: "غسالة (غسيل سجاد)",
+  Gavel: "مطرقة قاضٍ (محاماة وقضايا)",
+  ScrollText: "وثيقة ملفوفة (عقود وشهر عقاري)",
 };
 export const initialCategories: CategoryRecord[] = roots.flatMap(([id, name, color, icon, description], sortOrder) => [
   { id, name, color, light: `${color}12`, icon, description: sectionDescriptions[id] ?? description, sortOrder, parentId: null, active: true },
@@ -2128,5 +2139,5 @@ export const sampleServices = [
   { id: "00000000-0000-4000-8000-000000000005", name: "محمد حسن للسباكة", category: "plumbing", area: areas[2], address: areas[2], phone: "01022334455", description: "تأسيس وصيانة السباكة وإصلاح تسرب المياه وتركيب الأدوات الصحية.", rating: "4.6", reviews: 42, emergency: true, featured: false },
   { id: "00000000-0000-4000-8000-000000000006", name: "أحمد للنجارة والديكور", category: "carpentry", area: areas[5], address: areas[5], phone: "01033445566", description: "تفصيل الأثاث والمطابخ والديكور الخشبي وصيانة وتجديد الأثاث.", rating: "4.8", reviews: 35, emergency: false, featured: false },
   { id: "00000000-0000-4000-8000-000000000007", name: "د. سارة أحمد", category: "family", area: areas[6], address: areas[6], phone: "01066778899", description: "عيادة طب الأسرة والباطنة، متابعة وفحوصات دورية. يرجى الاتصال لحجز موعد.", rating: "4.9", reviews: 61, emergency: false, featured: false },
-  { id: "00000000-0000-4000-8000-000000000008", name: "مكتب العدالة للمحاماة", category: "law", area: areas[0], address: areas[0], phone: "01077889900", description: "استشارات قانونية وصياغة العقود وخدمات تأسيس الشركات.", rating: "4.7", reviews: 24, emergency: false, featured: false },
+  { id: "00000000-0000-4000-8000-000000000008", name: "مكتب العدالة للمحاماة", category: "lawyers", area: areas[0], address: areas[0], phone: "01077889900", description: "استشارات قانونية وصياغة العقود وخدمات تأسيس الشركات.", rating: "4.7", reviews: 24, emergency: false, featured: false },
 ];

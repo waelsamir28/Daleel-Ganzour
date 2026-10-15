@@ -187,8 +187,8 @@ test("resolves categories and falls back safely for unknown ids", () => {
 });
 
 test("keeps sections, specialties and icons coherent", () => {
-  assert.equal(categories.length, 11, "the published roots are the eleven village sections");
-  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "shops", "teachers", "charities", "printing", "events", "transport", "cleaning", "other-services"]);
+  assert.equal(categories.length, 12, "the published roots are the twelve village sections");
+  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "shops", "teachers", "charities", "printing", "events", "transport", "cleaning", "law", "other-services"]);
   // Every root section renders its own dimensional (3D) artwork instead of the generic fallback.
   const svg = readFileSync(new URL("../public/images/category-3d.svg", import.meta.url), "utf8");
   const uiSource = readFileSync(new URL("../src/components/ui.tsx", import.meta.url), "utf8");

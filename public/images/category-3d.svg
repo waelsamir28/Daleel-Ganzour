@@ -147,4 +147,17 @@
       <path d="m100 20 3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#fff8d2" stroke="#ffb938" stroke-width="1.5"/>
     </g>
   </symbol>
+  <symbol id="law" viewBox="0 0 128 128">
+    <ellipse cx="64" cy="111" rx="40" ry="7" fill="#c8d5e3" opacity=".45"/>
+    <g filter="url(#shadow)">
+      <path d="M40 106h48" stroke="#a65510" stroke-width="3" stroke-linecap="round"/><path d="M44 102h40l4 6H40z" fill="url(#gold)" stroke="#a65510" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M60 36h8v66h-8z" fill="url(#gold)" stroke="#a65510" stroke-width="2"/><path d="M62 40v58" stroke="#fff3c4" stroke-width="2" opacity=".8"/>
+      <path d="M22 38h84" stroke="#a65510" stroke-width="7" stroke-linecap="round"/><path d="M24 38h80" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="64" cy="30" r="9" fill="url(#gold)" stroke="#a65510" stroke-width="2"/><circle cx="61" cy="27" r="3" fill="#fff8d2" opacity=".9"/>
+      <path d="M30 40v30M30 40 16 70m14-30 14 30" stroke="#607894" stroke-width="2"/><path d="M14 70h32a16 9 0 0 1-32 0z" fill="url(#steel)" stroke="#607894" stroke-width="2"/>
+      <path d="M98 40v30M98 40 84 70m14-30 14 30" stroke="#607894" stroke-width="2"/><path d="M82 70h32a16 9 0 0 1-32 0z" fill="url(#steel)" stroke="#607894" stroke-width="2"/>
+      <path d="M18 72h10M86 72h10" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+      <circle cx="30" cy="40" r="3" fill="#07548c"/><circle cx="98" cy="40" r="3" fill="#07548c"/>
+    </g>
+  </symbol>
 </svg>

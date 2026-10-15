@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, avg, count, desc, eq, inArray, ne, notInArray, sql } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, inArray, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
 import { areas, defaultDesignSettings, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
@@ -70,6 +70,20 @@ export async function ensureSeed() {
         await tx.delete(notifications).where(inArray(notifications.type, ["service", "rating"]));
         await tx.insert(directorySettings).values({ key: "sample_data_v1", value: "disabled" }).onConflictDoNothing();
       }
+      // «المحاماة والاستشارات» moves out of خدمات أخرى into its own section. The legacy specialty row
+      // and any hand-made law categories (which the admin could not delete) are removed once, together
+      // with their children, before the fresh section and its specialties are seeded below.
+      const lawReset = await tx.insert(directorySettings).values({ key: "law_section_v1", value: new Date().toISOString() }).onConflictDoNothing().returning();
+      if (lawReset.length) {
+        const legacy = await tx.select({ id: directoryCategories.id }).from(directoryCategories).where(or(eq(directoryCategories.id, "law"), like(directoryCategories.name, "%محاما%")));
+        const legacyIds = legacy.map((row) => row.id);
+        if (legacyIds.length) {
+          const children = await tx.select({ id: directoryCategories.id }).from(directoryCategories).where(inArray(directoryCategories.parentId, legacyIds));
+          const doomed = [...new Set([...legacyIds, ...children.map((row) => row.id)])];
+          await tx.update(services).set({ category: "lawyers" }).where(inArray(services.category, doomed));
+          await tx.delete(directoryCategories).where(inArray(directoryCategories.id, doomed));
+        }
+      }
       const marker = await tx.insert(directorySettings).values({ key: "janzour_v2", value: "initialized" }).onConflictDoNothing().returning();
       await tx.insert(directoryCategories).values(initialCategories.map(({ light: _light, ...category }) => category)).onConflictDoUpdate({ target: directoryCategories.id, set: { name: sql`excluded.name`, parentId: sql`excluded.parent_id`, description: sql`excluded.description`, color: sql`excluded.color`, icon: sql`excluded.icon`, sortOrder: sql`excluded.sort_order`, active: sql`excluded.active` } });
       if (!marker.length) return;
@@ -79,7 +93,7 @@ export async function ensureSeed() {
       // with real submissions approved from the admin panel.
       await tx.insert(directorySettings).values({ key: "sample_data_v1", value: "disabled" }).onConflictDoNothing();
       await tx.update(services).set({ category: "family" }).where(eq(services.category, "doctors"));
-      await tx.update(services).set({ category: "law" }).where(eq(services.category, "lawyers"));
+      await tx.update(services).set({ category: "lawyers" }).where(eq(services.category, "law"));
     }).catch((error) => { seedPromise = undefined; throw error; });
   }
   await seedPromise;
