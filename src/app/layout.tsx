@@ -14,7 +14,24 @@ import "./janzour.css";
 import "./availability.css";
 import "./theme.css";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app";
+const SITE_TITLE = "دليل المهن والخدمات بقرية جنزور";
+const SITE_DESCRIPTION = "دليل الحرفيين والعيادات والصيدليات والمحلات والمدرسين والجمعيات الخيرية وكل خدمات قرية جنزور في مكان واحد. ابحث واتصل بضغطة واحدة.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "ar_EG",
+    url: "/",
+    siteName: "دليل جنزور",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/images/og-cover.png", width: 1200, height: 630, alt: SITE_TITLE }],
+  },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION, images: ["/images/og-cover.png"] },
+  keywords: ["جنزور", "دليل جنزور", "حرفيين جنزور", "عيادات جنزور", "صيدليات جنزور", "محلات جنزور", "مدرسين جنزور", "المنوفية", "شبين الكوم"],
   title: "دليل المهن والخدمات بقرية جنزور",
   description: "دليل الحرفيين والعيادات والمحلات والمدرسين والجمعيات الخيرية والخدمات بقرية جنزور، بإدارة مكتب الجمال للدعاية والإعلان. واتساب 01222355769.",
   applicationName: "دليل المهن والخدمات بقرية جنزور",

@@ -5,9 +5,11 @@ import { getPublicDirectory } from "@/lib/directory";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ category: string; specialty: string }> }) {
-  const { specialty } = await params, data = await getPublicDirectory();
-  const item = data.categories.find((category) => category.id === specialty);
-  return { title: `${item?.name ?? "الخدمات"} | ${data.settings.siteName}` };
+  const { category, specialty } = await params, data = await getPublicDirectory();
+  const item = data.categories.find((entry) => entry.id === specialty);
+  const title = `${item?.name ?? "الخدمات"} | ${data.settings.siteName}`;
+  const description = item?.description || `مقدمو خدمات ${item?.name ?? ""} في قرية جنزور: الأرقام والعناوين والتواصل المباشر.`;
+  return { title, description, alternates: { canonical: `/categories/${category}/${specialty}` }, openGraph: { title, description, url: `/categories/${category}/${specialty}` }, twitter: { title, description } };
 }
 export default async function SpecialtyPage({ params }: { params: Promise<{ category: string; specialty: string }> }) {
   const [data, viewer, { category, specialty }] = await Promise.all([getPublicDirectory(), getViewer(), params]);
