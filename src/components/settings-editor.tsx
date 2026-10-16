@@ -411,6 +411,13 @@ export default function SettingsEditor({
                 checked: designValues.showAdminQuickEdit,
                 onToggle: (next: boolean) => updateDesign("showAdminQuickEdit", next),
               },
+              {
+                id: "membershipRequired",
+                title: "٩. التصفح للأعضاء فقط (تسجيل إجباري)",
+                hint: "أي زائر غير مسجل يتحول تلقائيًا لشاشة إنشاء العضوية قبل تصفح الدليل",
+                checked: designValues.membershipRequired,
+                onToggle: (next: boolean) => updateDesign("membershipRequired", next),
+              },
             ] as const
           ).map((item) => (
             <div key={item.id} className="settings-item-box">

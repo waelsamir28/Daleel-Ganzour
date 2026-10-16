@@ -12,8 +12,9 @@ export function LogoutButton({ className = "button button-soft" }: { className?:
   async function logout() { setBusy(true); setError(""); try { const response = await fetch("/api/auth", { method: "DELETE" }); if (!response.ok) throw new Error(); window.location.assign("/"); } catch { setBusy(false); setError("تعذر الخروج، حاول مرة أخرى."); } }
   return <div><button className={className} onClick={logout} disabled={busy}>{busy ? <LoaderCircle className="spin" size={17}/> : <LogOut size={17}/>}تسجيل الخروج</button>{error && <p className="form-error" role="alert">{error}</p>}</div>;
 }
-export default function AuthForm({ mode, settings, designSettings }: { mode: "login" | "register"; settings: SiteSettings; designSettings?: DesignSettings }) {
+export default function AuthForm({ mode, settings, designSettings, next = "/", membersOnly = false }: { mode: "login" | "register"; settings: SiteSettings; designSettings?: DesignSettings; next?: string; membersOnly?: boolean }) {
   const registering = mode === "register";
+  const switchHref = `${registering ? "/login" : "/register"}?next=${encodeURIComponent(next)}`;
   const design = { ...defaultDesignSettings, ...(designSettings ?? {}) };
   const parsedAnnouncements = parseAnnouncementItems(design);
   const announcementList = parsedAnnouncements.some((item) => item.includes("مهنتك") || item.includes("نشاطك"))
@@ -28,7 +29,9 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
     try {
       const response = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(form), action: mode }) });
       const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "تعذر تنفيذ الطلب.");
-      window.location.assign(result.role === "admin" || result.role === "moderator" ? "/admin" : "/account");
+      // Members go back to the page they were trying to open (the hash survives redirects, e.g. /#add-service).
+      const destination = result.role === "admin" || result.role === "moderator" ? "/admin" : `${next}${next.includes("#") ? "" : window.location.hash}`;
+      window.location.assign(destination);
     } catch (err) { setBusy(false); setError(err instanceof Error ? err.message : "تعذر الاتصال. حاول مرة أخرى."); }
   }
   return <div className="admin-login-page">
@@ -51,7 +54,7 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
               ))}
             </div>
           </div>
-          <Link href="/#add-service" className="ticker-add-cta"><CirclePlus size={14}/><span>أضف مهنتك</span></Link>
+          <Link href={registering ? "#membership-form" : "/register?next=%2F%23add-service"} className="ticker-add-cta"><CirclePlus size={14}/><span>أضف مهنتك</span></Link>
         </div>
       </div>
     )}
@@ -72,7 +75,13 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
           <h1>{registering ? design.registerTitle : design.loginTitle}</h1>
           <p>{registering ? design.registerSubtitle : design.loginSubtitle}</p>
         </div>
-        <form className="request-form compact-auth-form" onSubmit={submit}>
+        <form id="membership-form" className="request-form compact-auth-form" onSubmit={submit}>
+          {membersOnly && (
+            <div className="form-notice members-only-notice" role="status">
+              <LockKeyhole size={19}/>
+              <span><strong>تصفح الدليل للأعضاء فقط.</strong> {registering ? "أنشئ عضويتك المجانية في ثوانٍ وبعدها تقدر تتصفح كل الأقسام وتضيف مهنتك." : "سجّل دخولك للمتابعة، أو أنشئ عضوية مجانية جديدة."}</span>
+            </div>
+          )}
           {registering && (
             <>
               <div className="form-notice"><ShieldCheck size={19}/><span>بيانات عضويتك لا تُضاف للمهنيين ولا تظهر في دليل الخدمات.</span></div>
@@ -107,7 +116,7 @@ export default function AuthForm({ mode, settings, designSettings }: { mode: "lo
             <button className="button button-primary form-submit" type="submit" disabled={busy}>{busy ? <LoaderCircle size={18} className="spin"/> : <ArrowLeft size={18}/>} {busy ? "جاري تنفيذ الطلب..." : registering ? "إنشاء العضوية" : "تسجيل الدخول"}</button>
           </div>
         </form>
-        <p className="auth-switch">{registering ? "عندك حساب بالفعل؟" : "لسه مش عضو؟"} <Link href={registering ? "/login" : "/register"}>{registering ? "تسجيل الدخول" : "أنشئ عضويتك"}</Link></p>
+        <p className="auth-switch">{registering ? "عندك حساب بالفعل؟" : "لسه مش عضو؟"} <Link href={switchHref}>{registering ? "تسجيل الدخول" : "أنشئ عضويتك"}</Link></p>
         <div className="login-security"><ShieldCheck size={16}/><span>كلمة مرورك مشفّرة، وبيانات العضوية لا تظهر للزوار. لوحة التحكم متاحة فقط للحساب الإداري.</span></div>
       </div>
     </main>

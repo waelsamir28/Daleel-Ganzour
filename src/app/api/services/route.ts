@@ -2,8 +2,8 @@ import { db } from "@/db";
 import { notifications, services, submissionTracking } from "@/db/schema";
 import { createHash, randomBytes } from "node:crypto";
 import { getPublicDirectory } from "@/lib/directory";
-import { sameOrigin } from "@/lib/auth";
-import { apiError, objectInput, serviceInput } from "@/lib/inputs";
+import { getViewer, sameOrigin } from "@/lib/auth";
+import { apiError, InputError, objectInput, serviceInput } from "@/lib/inputs";
 import { rateLimit } from "@/lib/validation";
 import { sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
@@ -16,6 +16,8 @@ export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
   if (rateLimit(request, "service", 10)) return Response.json({ error: "طلبات كثيرة. يرجى المحاولة بعد ١٥ دقيقة." }, { status: 429 });
   try {
+    const viewer = await getViewer();
+    if (viewer.role === "guest") throw new InputError("سجّل عضويتك أولًا لتتمكن من إضافة مهنتك.", 401);
     const body = objectInput(await request.json());
     const values = await serviceInput(body);
     const token = randomBytes(32).toString("hex");

@@ -10448,3 +10448,14 @@ html.dark .admin-alerts-badge { border-color: #10233a; }
   .admin-alerts-panel { width: calc(100vw - 24px); max-height: 62vh; }
 }
 @media (prefers-reduced-motion: reduce) { .admin-alerts-fab.is-pulsing .admin-alerts-fab-main, .admin-alerts-fab.is-pulsing .admin-alerts-fab-main::after { animation: none; } }
+
+/* 32. Members-only gate notice on the login / registration screens */
+.form-notice.members-only-notice {
+  background: linear-gradient(135deg, rgba(9, 93, 226, 0.14), rgba(16, 121, 255, 0.06));
+  border: 1px solid rgba(9, 93, 226, 0.35);
+  color: var(--text, #0f2a5a);
+  font-weight: 700;
+}
+.form-notice.members-only-notice svg { color: #095de2; flex-shrink: 0; }
+.form-notice.members-only-notice strong { display: block; margin-bottom: 0.15rem; font-size: 1.02em; }
+html.dark .form-notice.members-only-notice { color: #e8f2ff; border-color: rgba(80, 180, 255, 0.45); }
