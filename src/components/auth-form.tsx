@@ -79,7 +79,7 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
           {membersOnly && (
             <div className="form-notice members-only-notice" role="status">
               <LockKeyhole size={19}/>
-              <span><strong>تصفح الدليل للأعضاء فقط.</strong> {registering ? "أنشئ عضويتك المجانية في ثوانٍ وبعدها تقدر تتصفح كل الأقسام وتضيف مهنتك." : "سجّل دخولك للمتابعة، أو أنشئ عضوية مجانية جديدة."}</span>
+              <span><strong>أرقام المهنيين وبيانات الأقسام للأعضاء فقط.</strong> {registering ? "أنشئ عضويتك المجانية في ثوانٍ وبعدها تظهر لك كل الأقسام وأرقام التواصل وتقدر تضيف مهنتك." : "سجّل دخولك للمتابعة، أو أنشئ عضوية مجانية جديدة."}</span>
             </div>
           )}
           {registering && (

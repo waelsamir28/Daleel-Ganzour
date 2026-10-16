@@ -10459,3 +10459,34 @@ html.dark .admin-alerts-badge { border-color: #10233a; }
 .form-notice.members-only-notice svg { color: #095de2; flex-shrink: 0; }
 .form-notice.members-only-notice strong { display: block; margin-bottom: 0.15rem; font-size: 1.02em; }
 html.dark .form-notice.members-only-notice { color: #e8f2ff; border-color: rgba(80, 180, 255, 0.45); }
+
+/* 33. Guest gate: visitors browse, members see section data and contact numbers */
+.guest-gate-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.7rem;
+  margin: 1rem auto 1.5rem; padding: 1.6rem 1.25rem; max-width: 560px; width: 100%;
+  background: var(--card-bg, #fff); border: 1px solid var(--border-color, #b8e0ff); border-radius: 22px;
+  box-shadow: 0 12px 34px rgba(9, 93, 226, 0.12);
+}
+.guest-gate-icon {
+  display: grid; place-items: center; width: 66px; height: 66px; border-radius: 50%;
+  background: linear-gradient(135deg, #095de2, #1079ff); color: #fff; box-shadow: 0 10px 24px rgba(9, 93, 226, 0.35);
+}
+.guest-gate-card h2 { margin: 0; font-size: 1.35rem; font-weight: 800; }
+.guest-gate-card p { margin: 0; line-height: 1.8; color: var(--muted, #4a5d7a); font-weight: 600; }
+.guest-gate-card small { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted, #4a5d7a); font-size: 0.8rem; }
+.guest-gate-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; width: 100%; margin-top: 0.3rem; }
+.guest-gate-actions .button { min-width: 150px; justify-content: center; gap: 0.4rem; }
+.detail-locked-contact {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.55rem;
+  margin-top: 1rem; padding: 1.2rem 1rem; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(9, 93, 226, 0.12), rgba(16, 121, 255, 0.05)); border: 1px dashed rgba(9, 93, 226, 0.45);
+}
+.detail-locked-contact strong { font-size: 1.08rem; }
+.detail-locked-contact p { margin: 0; font-size: 0.92rem; line-height: 1.75; color: var(--muted, #4a5d7a); font-weight: 600; }
+.detail-locked-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #095de2; color: #fff; }
+.detail-locked-value { display: inline-flex; align-items: center; gap: 0.3rem; color: #095de2; }
+html.dark .guest-gate-card { background: var(--card-bg, #134595); border-color: rgba(80, 180, 255, 0.35); }
+html.dark .guest-gate-card p, html.dark .guest-gate-card small, html.dark .detail-locked-contact p { color: #cfe3ff; }
+html.dark .detail-locked-contact { border-color: rgba(80, 180, 255, 0.5); }
+html.dark .detail-locked-value { color: #8cc8ff; }
+@media (max-width: 520px) { .guest-gate-actions .button { flex: 1 1 100%; } }

@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import type { DesignSettings, Viewer } from "@/lib/catalog";
+import type { DesignSettings, PublicDirectory, ServiceRecord, Viewer } from "@/lib/catalog";
 
 /** Only same-site paths are accepted as a post-login destination (prevents open redirects). */
 export function safeNextPath(value: unknown, fallback = "/") {
@@ -13,6 +12,9 @@ export function safeNextPath(value: unknown, fallback = "/") {
 export function registerUrl(next: string) {
   return `/register?next=${encodeURIComponent(safeNextPath(next))}`;
 }
+export function loginUrl(next: string) {
+  return `/login?next=${encodeURIComponent(safeNextPath(next))}`;
+}
 
 /** Where a visitor lands after signing in or registering. */
 export function postAuthDestination(role: Viewer["role"], next?: unknown) {
@@ -21,11 +23,21 @@ export function postAuthDestination(role: Viewer["role"], next?: unknown) {
 }
 
 /**
- * Directory pages are members-only while `membershipRequired` is on: guests are redirected to the
- * registration screen and brought back to the page they wanted once they have an account.
+ * Visitors without an account may browse, but while `membershipRequired` is on they cannot see
+ * provider contact numbers or open section pages until they register.
  */
-export function enforceMembership(viewer: Viewer, design: Pick<DesignSettings, "membershipRequired"> | undefined, currentPath: string) {
-  if (viewer.role !== "guest") return;
-  if (design && design.membershipRequired === false) return;
-  redirect(registerUrl(currentPath));
+export function guestLocked(viewer: Pick<Viewer, "role">, design: Pick<DesignSettings, "membershipRequired"> | undefined) {
+  if (viewer.role !== "guest") return false;
+  return !design || design.membershipRequired !== false;
+}
+
+/** Strip every contact number before the data reaches a guest's browser (cards, detail page and the polling API). */
+export function maskServiceForGuest<T extends Pick<ServiceRecord, "phone" | "phoneSecondary" | "menuWhatsapp">>(service: T): T {
+  return { ...service, phone: "", phoneSecondary: "", menuWhatsapp: "" };
+}
+export function maskDirectoryForGuest<T extends Pick<PublicDirectory, "services">>(data: T): T {
+  return { ...data, services: data.services.map(maskServiceForGuest) };
+}
+export function directoryForViewer<T extends Pick<PublicDirectory, "services" | "designSettings">>(data: T, viewer: Pick<Viewer, "role">): T {
+  return guestLocked(viewer, data.designSettings) ? maskDirectoryForGuest(data) : data;
 }

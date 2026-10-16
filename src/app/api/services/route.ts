@@ -6,10 +6,14 @@ import { getViewer, sameOrigin } from "@/lib/auth";
 import { apiError, InputError, objectInput, serviceInput } from "@/lib/inputs";
 import { rateLimit } from "@/lib/validation";
 import { sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
+import { directoryForViewer } from "@/lib/membership-gate";
 
 export const dynamic = "force-dynamic";
 export async function GET() {
-  try { return Response.json(await getPublicDirectory()); }
+  try {
+    const [data, viewer] = await Promise.all([getPublicDirectory(), getViewer()]);
+    return Response.json(directoryForViewer(data, viewer));
+  }
   catch (error) { return apiError(error); }
 }
 export async function POST(request: Request) {
