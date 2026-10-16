@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UsersRound, X } from "lucide-react";
+import { ALargeSmall, ArrowLeft, Award, BellRing, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
 import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import { openInstallAppModal } from "@/components/install-app-modal";
@@ -24,7 +24,7 @@ function categoryTheme(item: CategoryRecord) {
   return { "--cat": item.color, "--cat-light": item.light } as CSSProperties;
 }
 
-export default function Directory({ initialData, viewer, rootId, specialtyId, initialFavorites = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; initialFavorites?: boolean }) {
+export default function Directory({ initialData, viewer, rootId, specialtyId, initialFavorites = false, guestLocked = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; initialFavorites?: boolean; guestLocked?: boolean }) {
   const [data, setData] = useState(initialData), [modal, setModal] = useState<ModalName>(null), [detail, setDetail] = useState<ServiceRecord | null>(null);
   const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
@@ -90,6 +90,10 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     if (isGuest) { window.location.assign("/register?next=%2F%23add-service"); return; }
     setModal("service");
   }, [isGuest]);
+  /** Guests may browse, but contact numbers and section pages stay locked until they register. */
+  const contactLocked = isGuest && guestLocked;
+  const authNext = rootId ? `/categories/${rootId}${specialtyId ? `/${specialtyId}` : ""}` : "/";
+  const registerHref = `/register?next=${encodeURIComponent(authNext)}`, loginHref = `/login?next=${encodeURIComponent(authNext)}`;
   const closeDetail = useCallback(() => {
     if (!detail) return;
     const source = Array.from(document.querySelectorAll<HTMLElement>(".provider-card")).find((card) => card.dataset.serviceId === detail.id);
@@ -202,7 +206,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   async function shareService(service: ServiceRecord) {
     trackDirectoryEvent({ kind: "share", label: service.name, serviceId: service.id, categoryId: service.category });
     const url = `${window.location.origin}/?service=${encodeURIComponent(service.id)}`;
-    const text = `${service.name} - ${getCategory(service.category, categories).name}${service.area ? ` - ${service.area}` : ""}\nالهاتف: ${service.phone}\nمن دليل جنزور: ${url}`;
+    const text = `${service.name} - ${getCategory(service.category, categories).name}${service.area ? ` - ${service.area}` : ""}${service.phone ? `\nالهاتف: ${service.phone}` : ""}\nمن دليل جنزور: ${url}`;
     if (typeof navigator.share === "function") {
       try { await navigator.share({ title: service.name, text, url }); return; }
       catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
@@ -619,6 +623,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     </div></div></section>}
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => openAddService()}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><Link href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></Link></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
     <main className="directory-main directory-ordered-main">
+      {contactLocked && scoped ? (
+        <GuestGateCard sectionName={specialty?.name ?? (rootId ? getCategory(rootId, categories).name : "")} registerHref={registerHref} loginHref={loginHref}/>
+      ) : (<>
       {isTeachersContext && (
         <section id="teacher-stages" className="categories-section teacher-stages-section" style={scoped ? { order: 1 } : { order: sectionOrderIndex("categories", 3) - 1 }}>
           <div className="section-heading directory-section-heading">
@@ -938,6 +945,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </div>
       </section>}
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title" style={!scoped ? { order: sectionOrderIndex("professionBanner", 5) } : undefined}><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
+      </>)}
     </main></div>
     <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
     {isAdmin && !modal && !detail && <AdminAlertsFab/>}
@@ -987,8 +995,10 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                       <span className={`duty-status-pill ${liveNow ? "is-live" : "is-emergency"}`}>{liveNow ? "متاح الآن" : service.emergency ? "طوارئ" : "مناوبة"}</span>
                     </div>
                     <div className="duty-card-actions" onClick={(event) => event.stopPropagation()}>
+                      {contactLocked ? <Link href={registerHref} className="button button-primary button-small"><LockKeyhole size={14}/>سجّل لعرض الرقم</Link> : <>
                       <a href={`tel:${service.phone}`} className="button button-primary button-small"><PhoneCall size={14}/><span dir="ltr">{service.phone}</span></a>
                       <a href={whatsappUrl(service.phone, serviceWhatsappMessage(service, cat.name))} target="_blank" rel="noopener noreferrer" className="button button-whatsapp button-small"><MessageCircle size={14}/>واتساب</a>
+                      </>}
                     </div>
                   </article>
                 );
@@ -1262,9 +1272,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         </div>
         <div className="detail-v2-fact" role="listitem">
           <span className="detail-v2-fact-icon is-phone"><Phone size={17}/></span>
-          <div><small>الهاتف</small><strong dir="ltr">{detail.phone}</strong></div>
+          <div><small>الهاتف</small>{contactLocked ? <strong className="detail-locked-value"><LockKeyhole size={13}/> للأعضاء فقط</strong> : <strong dir="ltr">{detail.phone}</strong>}</div>
         </div>
-        {detail.phoneSecondary && (
+        {!contactLocked && detail.phoneSecondary && (
           <div className="detail-v2-fact" role="listitem">
             <span className="detail-v2-fact-icon is-phone"><PhoneCall size={17}/></span>
             <div><small>هاتف إضافي</small><strong dir="ltr">{detail.phoneSecondary}</strong></div>
@@ -1273,7 +1283,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       </div>
       {detail.menuUrl && <a className="button button-soft detail-menu-button" href={detail.menuUrl} target="_blank" rel="noopener noreferrer">عرض المنيو</a>}
 
-      <div className="detail-popup-icons-bar detail-v2-triggers" role="group" aria-label="نوافذ التقييم ومواعيد العيادة">
+      {!contactLocked && <div className="detail-popup-icons-bar detail-v2-triggers" role="group" aria-label="نوافذ التقييم ومواعيد العيادة">
         {getCategory(detail.category, categories).parentId === "clinics" && (
           <button
             type="button"
@@ -1303,9 +1313,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </div>
           <ChevronLeft size={16}/>
         </button>
-      </div>
+      </div>}
 
-      {getCategory(detail.category, categories).parentId === "shops" && (() => {
+      {!contactLocked && getCategory(detail.category, categories).parentId === "shops" && (() => {
         const currentShop = liveDetail ?? detail;
         const catalogItems = getShopCatalogItems(currentShop);
         const shopHasDelivery = supportsHomeDelivery(currentShop);
@@ -1401,7 +1411,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       <div className="detail-about"><h4>نبذة عن الخدمة</h4><p>{detail.description}</p></div>
       {liveDetail?.subSpecialties?.length ? <section className="detail-subspec"><h4>التخصصات الفرعية</h4><ul>{liveDetail.subSpecialties.map((item) => <li key={item}>{item}</li>)}</ul></section> : null}
       {liveDetail?.serviceItems?.length && getCategory(detail.category, categories).parentId !== "shops" ? <section className="detail-service-items"><h4>الخدمات التفصيلية</h4><ul>{liveDetail.serviceItems.map((item) => <li key={item}>{item} <a href={whatsappUrl(detail.phone, serviceWhatsappMessage(detail, getCategory(detail.category, categories).name, contactArea, item))} target="_blank" rel="noopener noreferrer">اسأل على واتساب</a></li>)}</ul></section> : null}
-      <div className="detail-tools">
+      {!contactLocked && <div className="detail-tools">
         <button type="button" className={detailQr ? "is-open" : ""} aria-expanded={detailQr} onClick={() => { setDetailQr(true); setDetailUpdate(false); }}><QrCode size={17}/>بطاقة عمل و QR</button>
         {isAdmin && design.showAdminQuickEdit && (
           <Link href={`/admin?tab=directory&editService=${encodeURIComponent(detail.id)}`} className="button button-soft button-small">
@@ -1411,7 +1421,18 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         {isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && (
           <button type="button" className={detailUpdate ? "is-open" : ""} aria-expanded={detailUpdate} onClick={() => { setDetailUpdate(true); setDetailQr(false); setUpdateMessage(""); }}><Pencil size={17}/>تحديث البيانات</button>
         )}
-      </div>
+      </div>}
+      {contactLocked ? (
+        <div className="detail-locked-contact" role="region" aria-label="أرقام التواصل للأعضاء فقط">
+          <span className="detail-locked-icon"><LockKeyhole size={22}/></span>
+          <strong>أرقام التواصل للأعضاء فقط</strong>
+          <p>أنت غير مسجل في التطبيق. سجّل دخولك أو أنشئ عضوية مجانية في ثوانٍ لتظهر لك أرقام الاتصال والواتساب الخاصة بـ {detail.name}.</p>
+          <div className="guest-gate-actions">
+            <Link href={loginHref} className="button button-soft"><LogIn size={16}/> تسجيل الدخول</Link>
+            <Link href={registerHref} className="button button-primary"><UserRoundPlus size={16}/> إنشاء عضوية</Link>
+          </div>
+        </div>
+      ) : (
       <div className="detail-actions detail-v2-actions">
         <a
           className="detail-v2-cta is-call"
@@ -1451,6 +1472,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </a>
         )}
       </div>
+      )}
     </div></Modal>}
     {detail && detailClinicOpen && (() => {
       const currentDoc = liveDetail ?? detail;
@@ -1843,5 +1865,20 @@ function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, on
         </button>
       </div>
     </article>
+  );
+}
+
+function GuestGateCard({ sectionName, registerHref, loginHref }: { sectionName: string; registerHref: string; loginHref: string }) {
+  return (
+    <section className="guest-gate-card" role="region" aria-labelledby="guest-gate-title" style={{ order: 0 }}>
+      <span className="guest-gate-icon"><LockKeyhole size={30}/></span>
+      <h2 id="guest-gate-title">أنت غير مسجل في التطبيق</h2>
+      <p>لازم تسجّل عشان تظهرلك بيانات {sectionName ? `قسم «${sectionName}»` : "هذا القسم"} وأرقام التواصل مع المهنيين. العضوية مجانية وتاخد ثوانٍ.</p>
+      <div className="guest-gate-actions">
+        <Link href={loginHref} className="button button-soft"><LogIn size={17}/> تسجيل الدخول</Link>
+        <Link href={registerHref} className="button button-primary"><UserRoundPlus size={17}/> إنشاء عضوية</Link>
+      </div>
+      <small><ShieldCheck size={14}/> بيانات عضويتك لا تظهر للزوار ولا تُضاف لدليل المهنيين.</small>
+    </section>
   );
 }

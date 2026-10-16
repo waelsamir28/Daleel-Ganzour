@@ -413,8 +413,8 @@ export default function SettingsEditor({
               },
               {
                 id: "membershipRequired",
-                title: "٩. التصفح للأعضاء فقط (تسجيل إجباري)",
-                hint: "أي زائر غير مسجل يتحول تلقائيًا لشاشة إنشاء العضوية قبل تصفح الدليل",
+                title: "٩. بيانات المهنيين للأعضاء فقط",
+                hint: "الزائر يتصفح فقط: أرقام المهنيين وصفحات الأقسام تظهر بعد تسجيل الدخول أو إنشاء عضوية",
                 checked: designValues.membershipRequired,
                 onToggle: (next: boolean) => updateDesign("membershipRequired", next),
               },

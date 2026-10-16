@@ -708,3 +708,23 @@ test("extended design & site studio settings sanitize cleanly", () => {
 
 
 
+
+test("guest gate: visitors browse without contact numbers; members and the admin toggle unlock them", async () => {
+  const gateSource = readFileSync(new URL("../src/lib/membership-gate.ts", import.meta.url), "utf8");
+  const gate = await import(`data:text/javascript;base64,${Buffer.from(ts.transpileModule(gateSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText).toString("base64")}`);
+  const design = { ...defaultDesignSettings };
+  assert.equal(design.membershipRequired, true);
+  assert.equal(gate.guestLocked({ role: "guest" }, design), true);
+  assert.equal(gate.guestLocked({ role: "member" }, design), false);
+  assert.equal(gate.guestLocked({ role: "guest" }, { ...design, membershipRequired: false }), false);
+  const data = { designSettings: design, services: [{ id: "a", name: "x", phone: "01000000000", phoneSecondary: "01100000000", menuWhatsapp: "01200000000", area: "جنزور" }] };
+  const masked = gate.directoryForViewer(data, { role: "guest" });
+  assert.deepEqual(masked.services[0], { ...data.services[0], phone: "", phoneSecondary: "", menuWhatsapp: "" });
+  assert.equal(data.services[0].phone, "01000000000", "source data must stay untouched");
+  assert.equal(gate.directoryForViewer(data, { role: "member" }).services[0].phone, "01000000000");
+  assert.equal(gate.safeNextPath("https://evil.com"), "/");
+  assert.equal(gate.safeNextPath("//evil.com"), "/");
+  assert.equal(gate.safeNextPath("/categories/clinics"), "/categories/clinics");
+  assert.equal(gate.postAuthDestination("admin", "/categories/clinics"), "/admin");
+  assert.equal(gate.postAuthDestination("member", "/categories/clinics"), "/categories/clinics");
+});
