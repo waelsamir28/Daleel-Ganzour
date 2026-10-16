@@ -1142,6 +1142,8 @@ export type DesignSettings = {
   showTransitGuide: boolean;
   showInstallAppBanner: boolean;
   showAdminQuickEdit: boolean;
+  /** Members-only browsing: guests are sent to the registration page before they can open the directory. */
+  membershipRequired: boolean;
   // 10. Multi-Item News Ticker & Subtle Background Patterns
   announcementItems: string;
   announcementTickerMode: "single" | "rotate" | "marquee" | "marquee-reverse" | "vertical-slide" | "pulse-glow" | "bounce";
@@ -1451,6 +1453,7 @@ export const defaultDesignSettings: DesignSettings = {
   showTransitGuide: false,
   showInstallAppBanner: true,
   showAdminQuickEdit: false,
+  membershipRequired: true,
   announcementItems:
     "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية\nأهلاً بكم في دليل جنزور — كل خدمات القرية في مكان واحد\nصاحب مهنة؟ اضغط «أضف مهنتك» وهتظهر لكل أهل جنزور بعد مراجعة الإدارة\nالصيدليات والعيادات المناوبة وأرقام الطوارئ متاحة على مدار الساعة",
   announcementTickerMode: "marquee",
@@ -1811,6 +1814,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.showTransitGuide = pickBool(record.showTransitGuide, defaultDesignSettings.showTransitGuide);
   next.showInstallAppBanner = pickBool(record.showInstallAppBanner, defaultDesignSettings.showInstallAppBanner);
   next.showAdminQuickEdit = pickBool(record.showAdminQuickEdit, defaultDesignSettings.showAdminQuickEdit);
+  next.membershipRequired = pickBool(record.membershipRequired, defaultDesignSettings.membershipRequired);
 
   next.announcementItems = pickText(record.announcementItems, defaultDesignSettings.announcementItems, 1200, true);
   next.announcementTickerMode = pickEnum(
