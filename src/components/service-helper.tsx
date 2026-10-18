@@ -2,8 +2,9 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { Building2, Car, ChevronLeft, GraduationCap, HeartPulse, Home, Pill, Search, Smartphone, Sparkles, Wrench, X, Zap, type LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { Modal } from "@/components/ui";
-import { getSpecialtyKeywords, matchesServiceQuery, normalizeSearch, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
+import { getSpecialtyKeywords, matchesServiceIntentQuery, normalizeSearch, suggestServiceIntentCategories, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 
 type ServiceIssue = { label: string; categoryIds: string[]; keywords?: string[]; icon?: LucideIcon };
 type ServiceGroup = { id: string; label: string; icon: LucideIcon; issues: ServiceIssue[] };
@@ -51,6 +52,7 @@ export default function ServiceHelper({ categories, services, onOpenService }: {
   const [groupId, setGroupId] = useState("");
   const [issue, setIssue] = useState<ServiceIssue | null>(null);
   const group = SERVICE_GROUPS.find((item) => item.id === groupId);
+  const intentCategories = useMemo(() => suggestServiceIntentCategories(query, categories), [categories, query]);
 
   const results = useMemo(() => {
     const activeCategories = categories.filter((item) => item.active && item.parentId && services.some((service) => service.category === item.id));
@@ -58,7 +60,7 @@ export default function ServiceHelper({ categories, services, onOpenService }: {
     if (normalizedQuery.length > 1) {
       return services.filter((service) => {
         const category = categories.find((item) => item.id === service.category);
-        return matchesServiceQuery(service, category?.name ?? "", query);
+        return matchesServiceIntentQuery(service, category?.name ?? "", query);
       }).slice(0, 8);
     }
 
@@ -79,6 +81,7 @@ export default function ServiceHelper({ categories, services, onOpenService }: {
     }
     return services.filter((service) => matchedIds.has(service.category)).slice(0, 8);
   }, [categories, group, issue, query, services]);
+  const hasQueryIntent = intentCategories.length > 0 || results.length > 0;
 
   function clearSelection() {
     setQuery("");
@@ -108,11 +111,11 @@ export default function ServiceHelper({ categories, services, onOpenService }: {
       <div className="service-helper-entry-icon"><Sparkles size={24}/></div>
       <div className="service-helper-entry-copy">
         <h2 id="service-helper-title">محتاج خدمة ومش عارف التخصص؟</h2>
-        <p>اكتب اللي محتاجه أو اختار خدمة شائعة، والنتائج هتظهر فورًا.</p>
+        <p>اكتب وصفك، والنتائج هتظهر لما تظهر كلمة دالّة زي «حنفية» أو «دعاية».</p>
       </div>
       <button type="button" className="service-helper-start" onClick={() => { clearSelection(); setOpen(true); }}><span>ابحث عن خدمة</span><Search size={17}/></button>
     </section>
-    {open && <Modal title="محتاج خدمة؟" subtitle="اكتب احتياجك أو اختار خدمة شائعة — من غير تسجيل" onClose={close} wide>
+    {open && <Modal title="محتاج خدمة؟" subtitle="اكتب جملة كاملة أو كلمة دالّة — من غير تسجيل" onClose={close} wide>
       <div className="service-helper-wizard">
         <form className="service-helper-search" role="search" onSubmit={handleSearch}>
           <Search size={19}/>
@@ -140,13 +143,23 @@ export default function ServiceHelper({ categories, services, onOpenService }: {
         </div>}
         {group?.id === "other" && !query.trim() && <div className="service-helper-other-hint"><p>اكتب اسم الخدمة في مربع البحث، أو تصفح الخدمات المتاحة في الدليل.</p><button type="button" onClick={() => setGroupId("")}>رجوع للخدمات الشائعة</button></div>}
         {(query.trim() || group || issue) && <>
-          <div className="service-helper-results-heading"><strong>{query.trim().length > 1 ? `نتائج البحث عن «${query.trim()}»` : issue ? `نتائج «${issue.label}»` : `مقدمو الخدمة في ${group?.label ?? "هذا التخصص"}`}</strong><div className="service-helper-result-meta"><span>{results.length} نتيجة</span>{!query.trim() && (group || issue) && <button type="button" onClick={clearSelection} aria-label="مسح الاختيار">تغيير الاختيار</button>}</div></div>
+          <div className="service-helper-results-heading"><strong>{query.trim() ? `نتائج البحث عن «${query.trim()}»` : issue ? `نتائج «${issue.label}»` : `مقدمو الخدمة في ${group?.label ?? "هذا التخصص"}`}</strong><div className="service-helper-result-meta"><span>{results.length} نتيجة</span>{!query.trim() && (group || issue) && <button type="button" onClick={clearSelection} aria-label="مسح الاختيار">تغيير الاختيار</button>}</div></div>
+          {query.trim() && intentCategories.length > 0 && <section className="service-helper-matched-categories" aria-label="التصنيفات المرتبطة بالبحث">
+            <div className="service-helper-section-label">التصنيفات المرتبطة بكلامك</div>
+            <div className="service-helper-matched-category-list">{intentCategories.map((category) => {
+              const count = services.filter((service) => service.category === category.id).length;
+              const href = category.parentId ? `/categories/${category.parentId}/${category.id}` : `/categories/${category.id}`;
+              return <Link className="service-helper-matched-category" href={href} key={category.id}>
+                <span><strong>{category.name}</strong><small>{count ? `${count} مقدم خدمة` : "استعرض التخصص"}</small></span><ChevronLeft size={17}/>
+              </Link>;
+            })}</div>
+          </section>}
           {results.length ? <div className="service-helper-results">{results.map((service) => {
             const category = categories.find((item) => item.id === service.category);
             return <article className="service-helper-result" key={service.id}><div className="service-helper-result-copy"><strong>{service.name}</strong><span>{category?.name ?? "مقدم خدمة"}{service.area ? ` • ${service.area}` : ""}</span></div><button type="button" onClick={() => { setOpen(false); onOpenService(service); }}>عرض التفاصيل<ChevronLeft size={15}/></button></article>;
-          })}</div> : <div className="service-helper-no-results"><span><Search size={22}/></span><strong>{query.trim().length === 1 ? "اكتب حرفًا آخر للبحث" : "لا توجد نتائج مطابقة الآن"}</strong><p>{query.trim().length === 1 ? "اكتب كلمتين أو أكثر، وستظهر النتائج أثناء الكتابة." : "جرّب كلمة مختلفة أو اختر تخصصًا قريبًا من القائمة."}</p><button type="button" className="button button-soft" onClick={clearSelection}>مسح الاختيار<X size={15}/></button></div>}
+          })}</div> : query.trim() && intentCategories.length > 0 ? <div className="service-helper-no-results"><span><Search size={22}/></span><strong>ظهر التخصص المناسب، لكن لا يوجد مقدم خدمة مسجّل فيه بعد.</strong><p>افتح التصنيف أعلاه لمتابعة تفاصيله.</p></div> : <div className="service-helper-no-results"><span><Search size={22}/></span><strong>{query.trim() && !hasQueryIntent ? "اكتب كلمة دالّة على الخدمة" : "لا توجد نتائج مطابقة الآن"}</strong><p>{query.trim() && !hasQueryIntent ? "الكلمات العامة وحدها لا تعرض تخصصات. جرّب: حنفية، دعاية، كروت." : "جرّب كلمة مختلفة أو اختر تخصصًا قريبًا من القائمة."}</p><button type="button" className="button button-soft" onClick={clearSelection}>مسح الاختيار<X size={15}/></button></div>}
         </>}
-        {!query.trim() && !group && !issue && <p className="service-helper-instant-note">اكتب حرفين أو أكثر لتظهر النتائج أثناء الكتابة. لا تحتاج إلى تسجيل الدخول.</p>}
+        {!query.trim() && !group && !issue && <p className="service-helper-instant-note">اكتب وصفًا؛ تظهر النتائج عند ظهور كلمة دالّة مثل «حنفية» أو «دعاية».</p>}
         <div className="service-helper-footer"><span>النتائج من بيانات دليل جنزور المنشورة</span><button type="button" onClick={close} aria-label="إغلاق المساعد"><X size={16}/> إغلاق</button></div>
       </div>
     </Modal>}

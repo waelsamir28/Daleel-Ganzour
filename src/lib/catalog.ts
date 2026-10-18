@@ -16,7 +16,7 @@ export function serviceWhatsappMessage(service: { name: string }, specialty: str
 }
 
 export const specialtySynonyms: Record<string, string[]> = {
-  plumbing: ["موتور مياه", "ماتور مياه", "حنفيه", "مواسير", "صرف", "تسريب", "سخان", "فلتر", "بلاعه", "خلاط مياه", "قاعده حمام", "حوض", "سباك"],
+  plumbing: ["موتور مياه", "ماتور مياه", "حنفيه", "مواسير", "صرف", "تسريب", "تسرب", "سخان", "فلتر", "بلاعه", "خلاط مياه", "قاعده حمام", "حوض", "سباك", "بتنقط", "تنقط", "تنقيط", "بتسرب", "ميه"],
   electricity: ["قفله", "فيشه", "لمبه", "عداد", "كابل", "لوحه", "شورت", "مفتاح كهرباء", "اناره", "نجفه", "سلك", "كهربائي"],
   carpentry: ["باب خشب", "شباك خشب", "غرفه نوم", "مطبخ خشب", "مفصله", "كالون", "سرير", "دولاب", "نيش", "نجار", "عفش"],
   metalwork: ["بوابه حديد", "تنده", "كريتال", "لحام", "شباك حديد", "سور حديد", "حداد", "فرم"],
@@ -61,7 +61,7 @@ export const specialtySynonyms: Record<string, string[]> = {
   cameras: ["كاميرات مراقبه", "انتركوم", "انذار", "شبكات", "راوتر", "واي فاي", "دش", "رسيفر"],
   solar: ["طاقه شمسيه", "الواح شمسيه", "انفرتر", "بطاريات طاقه"],
   cleaning: ["نظافه", "غسيل سجاد", "تنظيف منازل", "مكافحه حشرات", "رش حشرات"],
-  "print-shops": ["مطبعه", "طباعه", "تصوير مستندات", "كروت شخصيه", "فواتير", "دفاتر", "مطبوعات"],
+  "print-shops": ["مطبعه", "طباعه", "تصوير مستندات", "كروت", "كارت", "كروت شخصيه", "فواتير", "دفاتر", "مطبوعات"],
   advertising: ["دعايه", "اعلان", "يفط", "لافتات", "بنر", "واجهات محلات", "فلكس", "كلادينج"],
   "graphic-design": ["تصميم", "جرافيك", "لوجو", "شعار", "سوشيال ميديا", "فوتوشوب"],
   photography: ["مصور", "تصوير افراح", "فوتوسيشن", "فيديو", "مونتاج", "كاميرا"],
@@ -87,6 +87,41 @@ export function matchesServiceQuery(service: Pick<ServiceRecord, "name" | "descr
   if (haystack.includes(normalizedQuery)) return true;
   const words = normalizedQuery.split(/\s+/).filter((word) => word.length > 1);
   return words.length > 1 && words.every((word) => haystack.includes(word));
+}
+
+const serviceIntentStopWords = new Set("عايز عايزه عايزين عاوز عاوزه عاوزين محتاج محتاجه محتاجين اريد ابغي نفسي اعمل اعمللي ممكن ياريت لو سمحت من فضلك عندي عندنا عنده عندها معايا عند لمحل للمحل بالمحل محل المحل في فيا فى من الى الي على علي ليا له لها هو هي انا انت احنا احنا ده دي دا ديه كده كدا كتير كثير جدا شويه شوية قوي او او و ولا عشان علشان بس خدمة خدمات حاجه حاجة شيء مياه ميه ماء الميه الميه كتيراً".split(/\s+/));
+const serviceIntentPrefixes = ["وال", "فال", "بال", "كال", "ولل", "لل", "ال"];
+
+export function extractServiceIntentTokens(query: string): string[] {
+  return [...new Set(normalizeSearch(query).split(/[^\p{L}\p{N}]+/u).map((rawToken) => {
+    let token = rawToken;
+    for (const prefix of serviceIntentPrefixes) {
+      if (token.startsWith(prefix) && token.length - prefix.length >= 2) {
+        token = token.slice(prefix.length);
+        break;
+      }
+    }
+    return token;
+  }).filter((token) => token.length > 1 && !serviceIntentStopWords.has(token)))];
+}
+
+export function matchesServiceIntentQuery(service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties" | "category" | "address" | "phone" | "phoneSecondary">, categoryName: string, query: string): boolean {
+  const queryTokens = extractServiceIntentTokens(query);
+  if (!queryTokens.length) return false;
+  const searchableText = [service.name, service.description, categoryName, ...(service.serviceItems ?? []), ...(service.subSpecialties ?? []), ...(specialtySynonyms[service.category] ?? [])].join(" ");
+  const searchableTokens = new Set(extractServiceIntentTokens(searchableText));
+  return queryTokens.some((token) => searchableTokens.has(token));
+}
+
+export function suggestServiceIntentCategories(query: string, catalog: CategoryRecord[]): CategoryRecord[] {
+  const queryTokens = extractServiceIntentTokens(query);
+  if (!queryTokens.length) return [];
+  return catalog.filter((category) => {
+    if (!category.active || !category.parentId) return false;
+    const categoryText = [category.name, category.description, ...(specialtySynonyms[category.id] ?? [])].join(" ");
+    const categoryTokens = new Set(extractServiceIntentTokens(categoryText));
+    return queryTokens.some((token) => categoryTokens.has(token));
+  }).sort((a, b) => a.sortOrder - b.sortOrder).slice(0, 6);
 }
 
 export function suggestSpecialties(query: string, catalog: CategoryRecord[], providers: { category: string }[], rootId?: string) {

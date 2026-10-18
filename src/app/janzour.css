@@ -10612,3 +10612,20 @@ html.dark .service-helper-other-hint{border-color:#36566e;background:#112d45}
 .service-helper-result-meta button{padding:3px 0;border:0;background:transparent;color:#0878c4;font-size:10px;font-weight:800}
 html.dark .service-helper-result-meta button{color:#8fd2ff}
 @media(max-width:420px){.service-helper-results-heading{align-items:flex-start}.service-helper-result-meta{flex-wrap:wrap;justify-content:flex-end}}
+
+.service-helper-matched-categories{display:grid;gap:7px;padding:10px;border:1px solid #d8eaf6;border-radius:14px;background:#f7fbfe}
+.service-helper-matched-category-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.service-helper-matched-category{display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0;min-height:48px;padding:8px 11px;border:1px solid #dceaf3;border-radius:11px;background:#fff;color:#21445e;text-decoration:none;transition:border-color .16s,background .16s,transform .16s}
+.service-helper-matched-category:hover{transform:translateY(-1px);border-color:#91c8eb;background:#f1f9ff}
+.service-helper-matched-category>span{display:grid;min-width:0;gap:2px}
+.service-helper-matched-category strong{overflow:hidden;font-size:11px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
+.service-helper-matched-category small{color:#71899b;font-size:9px;font-weight:700}
+.service-helper-matched-category>svg{flex:none;color:#1481bd}
+.service-helper-matched-category:focus-visible{outline:3px solid #74c7ff;outline-offset:2px}
+html.dark .service-helper-matched-categories{border-color:#2b4c65;background:#112d45}
+html.dark .service-helper-matched-category{border-color:#34536b;background:#14334d;color:#e4f3fd}
+html.dark .service-helper-matched-category:hover{border-color:#4584a7;background:#193c59}
+html.dark .service-helper-matched-category small{color:#a5bfd0}
+html.dark .service-helper-matched-category>svg{color:#8bd2ff}
+@media(max-width:520px){.service-helper-matched-category-list{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.service-helper-matched-category{transition:none}.service-helper-matched-category:hover{transform:none}}
