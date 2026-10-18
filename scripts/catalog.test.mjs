@@ -306,6 +306,7 @@ test("service intent search extracts meaningful Egyptian Arabic terms from full 
   assert.equal(catalog.matchesServiceIntentQuery(printing, "الطباعة وتصوير المستندات", "كروت لمحل"), true);
   const adCategories = catalog.suggestServiceIntentCategories("عايز اعمل دعاية لمحل", initialCategories);
   assert.ok(adCategories.some((category) => category.id === "advertising"), "a full shop-promotion sentence suggests advertising");
+  assert.ok(catalog.suggestServiceIntentCategories("كروت لمحل", initialCategories).some((category) => category.id === "advertising"), "business cards can suggest shop promotion too");
   assert.equal(catalog.suggestServiceIntentCategories("عايز اعمل", initialCategories).length, 0, "generic filler does not reveal unrelated categories");
   assert.ok(catalog.suggestServiceIntentCategories("الحنفية عندى بتنقط مية كتير", initialCategories).some((category) => category.id === "plumbing"));
   assert.ok(catalog.suggestServiceIntentCategories("كروت لمحل", initialCategories).some((category) => category.id === "print-shops"));
