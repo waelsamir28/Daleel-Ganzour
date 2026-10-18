@@ -14,6 +14,7 @@ import BusinessCardModal from "@/components/business-card-modal";
 import SelectField from "@/components/select-field";
 import { LocationPicker, ServiceForm } from "@/components/request-forms";
 import { ProviderCompletionModalForm } from "@/components/management-editor";
+import ServiceHelper from "@/components/service-helper";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 
@@ -623,6 +624,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     </div></div></section>}
     <div className="container directory-layout"><aside className="directory-sidebar" aria-label="الخدمات السريعة" hidden><div className="quick-links-card"><h2>الخدمات السريعة <Sparkles size={17}/></h2>{settings.showEmergency && <button onClick={showEmergency}><span className="quick-icon quick-red"><Siren size={25}/></span>خدمات الطوارئ<ChevronLeft size={15}/></button>}<button onClick={() => setModal("location")}><span className="quick-icon quick-blue"><MapPinned size={24}/></span>ابحث حسب العنوان<ChevronLeft size={15}/></button><button className="add-service-quick-link" onClick={() => openAddService()}><span className="quick-icon quick-green"><CirclePlus size={25}/></span>أضف مهنتك مجانًا<ChevronLeft size={15}/></button><button onClick={showFavorites}><span className="quick-icon quick-pink"><Heart size={25} fill="currentColor"/></span>المفضلة<ChevronLeft size={15}/></button></div><div className="community-card"><span><UsersRound size={28}/></span><strong>{data.memberCount}</strong><h2>عضو في مجتمع جنزور</h2><p>العضوية غير إضافة المهنة.. انضم وخليك واحد من أهل الدليل.</p><Link href={viewer.role === "guest" ? "/register" : viewer.role === "admin" ? "/admin?tab=members" : viewer.role === "moderator" ? "/admin" : "/account"} className="button button-soft">{viewer.role === "guest" ? "انضم للموقع" : viewer.role === "admin" ? "إدارة الأعضاء" : viewer.role === "moderator" ? "لوحة المشرف" : "حساب عضويتك"}<ArrowLeft size={15}/></Link></div><div className="verified-card"><ShieldCheck size={47}/><div><strong>النشر بعد المراجعة</strong><span><CheckCircle2 size={14}/> الإدارة بتراجع كل طلب</span></div></div></aside>
     <main className="directory-main directory-ordered-main">
+      {isHome && <ServiceHelper categories={categories} services={services} onOpenService={openDetail}/>}
       {contactLocked && scoped ? (
         <GuestGateCard sectionName={specialty?.name ?? (rootId ? getCategory(rootId, categories).name : "")} registerHref={registerHref} loginHref={loginHref}/>
       ) : (<>
