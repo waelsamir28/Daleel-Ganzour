@@ -392,7 +392,7 @@ export default function DesignCustomizer({
                 borderColor: draft.borderColor,
               }}
             >
-              <span>عنوان قسم تجريبي (معاينة المحاذاة والشكل)</span>
+              <span>معاينة شكل عنوان القسم</span>
             </div>
 
             <div className="design-preview-grid">

@@ -1,12 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
+import { adBanners, communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { availabilityUpdate, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, parseAdImageDataUrl, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -19,6 +19,32 @@ const statusInput = (value: unknown) => {
   return value;
 };
 function uuid(value: unknown) { if (!validId(value)) throw new InputError("معرّف غير صحيح."); return value; }
+
+/** Shared validation for ad banner create/edit payloads (image handled separately). */
+async function adInput(values: Record<string, unknown>) {
+  const title = cleanText(values.title, 120), caption = cleanText(values.caption, 240), whatsapp = cleanPhone(values.whatsapp ?? "");
+  if (title.length < 2) throw new InputError("اكتب عنوان الإعلان (اسم المعلن).");
+  if (whatsapp && !validPhone(whatsapp)) throw new InputError("رقم واتساب المعلن غير صحيح.");
+  const serviceId = typeof values.serviceId === "string" && values.serviceId ? uuid(values.serviceId) : null;
+  if (serviceId) {
+    const [linked] = await db.select({ id: services.id }).from(services).where(eq(services.id, serviceId)).limit(1);
+    if (!linked) throw new InputError("المهني المرتبط بالإعلان غير موجود.");
+  }
+  const parseDate = (value: unknown, label: string) => {
+    if (value === undefined || value === null || value === "") return null;
+    const date = new Date(typeof value === "string" || typeof value === "number" ? value : NaN);
+    if (Number.isNaN(date.getTime())) throw new InputError(`${label} غير صحيح.`);
+    return date;
+  };
+  const startsAt = parseDate(values.startsAt, "تاريخ البداية"), endsAt = parseDate(values.endsAt, "تاريخ النهاية");
+  if (startsAt && endsAt && endsAt <= startsAt) throw new InputError("تاريخ النهاية يجب أن يكون بعد تاريخ البداية.");
+  return { title, caption, whatsapp, serviceId, startsAt, endsAt, active: values.active !== false, durationSeconds: integerInput(values.durationSeconds ?? 6, AD_MIN_SECONDS, AD_MAX_SECONDS, "مدة عرض الإعلان بالثواني") };
+}
+function adImageInput(value: unknown) {
+  try { return parseAdImageDataUrl(value); }
+  catch (error) { throw new InputError(error instanceof Error ? error.message : "صورة الإعلان غير صحيحة."); }
+}
+
 async function guard(request?: Request): Promise<"admin" | "moderator"> {
   if (request && !sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
   const viewer = await getViewer();
@@ -64,6 +90,11 @@ export async function POST(request: Request) {
       if (name.length < 3 || name === "عنوان آخر") throw new InputError("أدخل عنوانًا صحيحًا. اختيار عنوان آخر موجود تلقائيًا.");
       const inserted = await db.insert(directoryAreas).values({ name, sortOrder: integerInput(values.sortOrder ?? 0, 0, 1000, "الترتيب") }).onConflictDoNothing().returning();
       if (!inserted.length) throw new InputError("العنوان موجود بالفعل.", 409);
+    } else if (body.type === "ad") {
+      const [{ total }] = await db.select({ total: count() }).from(adBanners);
+      if (total >= AD_MAX_COUNT) throw new InputError(`الحد الأقصى ${AD_MAX_COUNT} إعلانات. احذف إعلانًا قديمًا أولًا.`);
+      const fields = await adInput(values), image = adImageInput(values.image);
+      await db.insert(adBanners).values({ ...fields, imageMime: image.mime, imageData: image.base64, imageVersion: 1, sortOrder: total });
     } else if (body.type === "service") {
       const basics = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
       await db.insert(services).values({ ...basics, ...availabilityInput(values.availabilityAction), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false });
@@ -92,6 +123,26 @@ export async function PATCH(request: Request) {
       if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), inArray(notifications.type, ["service", "community"])) : eq(notifications.read, false));
       else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), inArray(notifications.type, ["service", "community"])) : eq(notifications.id, uuid(body.id)));
       else throw new InputError("إجراء غير صحيح.");
+    } else if (type === "ad") {
+      const id = uuid(body.id);
+      const [existing] = await db.select().from(adBanners).where(eq(adBanners.id, id));
+      if (!existing) throw new InputError("الإعلان غير موجود.", 404);
+      if (action === "move") {
+        const direction = body.direction === "up" ? -1 : body.direction === "down" ? 1 : 0;
+        if (!direction) throw new InputError("اتجاه الترتيب غير صحيح.");
+        const rows = await db.select({ id: adBanners.id, sortOrder: adBanners.sortOrder }).from(adBanners).orderBy(asc(adBanners.sortOrder), asc(adBanners.createdAt));
+        const index = rows.findIndex((row) => row.id === id), target = index + direction;
+        if (index < 0 || target < 0 || target >= rows.length) throw new InputError(direction < 0 ? "الإعلان في أول الترتيب بالفعل." : "الإعلان في آخر الترتيب بالفعل.");
+        const reordered = [...rows];
+        [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+        await db.transaction(async (tx) => { for (const [position, row] of reordered.entries()) await tx.update(adBanners).set({ sortOrder: position }).where(eq(adBanners.id, row.id)); });
+      } else if (action === "toggle") {
+        await db.update(adBanners).set({ active: !existing.active }).where(eq(adBanners.id, id));
+      } else {
+        const values = objectInput(body.values), fields = await adInput(values);
+        const image = values.image ? adImageInput(values.image) : null;
+        await db.update(adBanners).set({ ...fields, ...(image ? { imageMime: image.mime, imageData: image.base64, imageVersion: existing.imageVersion + 1 } : {}) }).where(eq(adBanners.id, id));
+      }
     } else if (type === "category" && action === "move") {
       const id = cleanText(body.id, 60), direction = body.direction === "up" ? -1 : body.direction === "down" ? 1 : 0;
       if (!direction) throw new InputError("اتجاه الترتيب غير صحيح.");
@@ -290,6 +341,7 @@ export async function DELETE(request: Request) {
       else if (type === "member") await db.delete(members).where(eq(members.id, id));
       else if (type === "notification") await db.delete(notifications).where(eq(notifications.id, id));
       else if (type === "rating") await db.delete(serviceRatings).where(eq(serviceRatings.id, id));
+      else if (type === "ad") await db.delete(adBanners).where(eq(adBanners.id, id));
       else throw new InputError("نوع الحذف غير صحيح.");
       if (["service", "community", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
     }

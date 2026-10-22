@@ -269,8 +269,9 @@ test("serves settings without any advertising field", () => {
   assert.equal(sanitizeSettings({ showEmergency: "yes" }).showEmergency, true);
   assert.equal(sanitizeSettings({ copyright: "© 2026 جميع الحقوق محفوظة — دليل جنزور" }).copyright, "جميع الحقوق محفوظة — دليل جنزور");
   assert.deepEqual(sanitizeSettings({}), defaultSettings);
-  // The catalogue module itself exposes no advertising API any more.
-  assert.deepEqual(Object.keys(catalog).filter((name) => /advert|campaign|placement|marquee|^ad[A-Z]|Ad[A-Z]|adPrice|adDays/.test(name)), []);
+  // The legacy paid-advertising API stays gone; the only ad-related exports are the admin-managed banner helpers.
+  const bannerApi = ["AD_IMAGE_MAX_BYTES", "AD_IMAGE_MIMES", "AD_MIN_SECONDS", "AD_MAX_SECONDS", "AD_MAX_COUNT", "isAdLive", "adImageUrl", "parseAdImageDataUrl"];
+  assert.deepEqual(Object.keys(catalog).filter((name) => /advert|campaign|placement|marquee|^ad[A-Z]|Ad[A-Z]|adPrice|adDays/.test(name) && !bannerApi.includes(name)), []);
 });
 
 test("colloquial Egyptian synonym dictionary matches everyday queries and specialty suggestions (#6)", () => {
@@ -727,4 +728,25 @@ test("guest gate: visitors browse without contact numbers; members and the admin
   assert.equal(gate.safeNextPath("/categories/clinics"), "/categories/clinics");
   assert.equal(gate.postAuthDestination("admin", "/categories/clinics"), "/admin");
   assert.equal(gate.postAuthDestination("member", "/categories/clinics"), "/categories/clinics");
+});
+
+test("ad banners: live filter, image URL versioning and data-URL parsing limits", () => {
+  const { isAdLive, adImageUrl, parseAdImageDataUrl, AD_IMAGE_MAX_BYTES } = catalog;
+  const base = { id: "a1", title: "x", caption: "", serviceId: null, whatsapp: "", active: true, startsAt: null, endsAt: null, sortOrder: 0, durationSeconds: 6, imageMime: "image/gif", hasImage: true, imageVersion: 3, createdAt: "2026-01-01T00:00:00.000Z" };
+  const now = new Date("2026-10-23T12:00:00Z");
+  assert.equal(isAdLive(base, now), true);
+  assert.equal(isAdLive({ ...base, active: false }, now), false);
+  assert.equal(isAdLive({ ...base, hasImage: false }, now), false);
+  assert.equal(isAdLive({ ...base, startsAt: "2026-11-01T00:00:00.000Z" }, now), false, "not started yet");
+  assert.equal(isAdLive({ ...base, endsAt: "2026-10-01T00:00:00.000Z" }, now), false, "already ended");
+  assert.equal(isAdLive({ ...base, startsAt: "2026-10-01T00:00:00.000Z", endsAt: "2026-12-01T00:00:00.000Z" }, now), true);
+  assert.equal(adImageUrl(base), "/api/ad-banner/a1?v=3");
+  const payload = `GIF89a${"x".repeat(200)}`;
+  const gif = parseAdImageDataUrl(`data:image/gif;base64,${Buffer.from(payload).toString("base64")}`);
+  assert.equal(gif.mime, "image/gif");
+  assert.equal(Buffer.from(gif.base64, "base64").toString(), payload);
+  assert.throws(() => parseAdImageDataUrl(`data:image/gif;base64,${Buffer.from("GIF89a").toString("base64")}`), /فارغ|تالف/);
+  assert.throws(() => parseAdImageDataUrl("data:text/html;base64,PGI+"), /GIF|PNG|صورة/);
+  assert.throws(() => parseAdImageDataUrl("not a data url"), Error);
+  assert.throws(() => parseAdImageDataUrl(`data:image/png;base64,${"A".repeat(Math.ceil((AD_IMAGE_MAX_BYTES + 1024) * 4 / 3))}`), /ميجا|حجم/);
 });
