@@ -292,60 +292,6 @@ export function getGanzourPrayerAndWeather(now = Date.now()): GanzourPrayerWeath
   };
 }
 
-export type GanzourTransitRoute = {
-  id: string;
-  title: string;
-  fromTo: string;
-  station: string;
-  schedule: string;
-  vehicleType: string;
-  notes: string;
-  tone: "blue" | "emerald" | "amber" | "purple";
-};
-
-export const ganzourTransitRoutes: GanzourTransitRoute[] = [
-  {
-    id: "shibin",
-    title: "خط جنزور ↔ شبين الكوم",
-    fromTo: "جنزور ⇄ شبين الكوم",
-    station: "الموقف الرئيسي بمدخل جنزور / موقف شبين",
-    schedule: "يومياً من ٦:٠٠ صباحاً حتى ١١:٠٠ مساءً",
-    vehicleType: "ميكروباص وسرفيس",
-    notes: "يربط قرية جنزور بمصالح ومستشفيات وجامعة شبين الكوم مباشرة.",
-    tone: "blue",
-  },
-  {
-    id: "berket-elsabaa",
-    title: "خط جنزور ↔ بركة السبع",
-    fromTo: "جنزور ⇄ بركة السبع",
-    station: "مدخل جنزور / موقف بركة السبع",
-    schedule: "يومياً من ٦:٠٠ صباحاً حتى ١١:٣٠ مساءً",
-    vehicleType: "ميكروباص مستمر",
-    notes: "وصول سريع لمركز بركة السبع ومحطة القطار والمستشفى المركزي والبنوك.",
-    tone: "emerald",
-  },
-  {
-    id: "tanta",
-    title: "خط جنزور ↔ طنطا",
-    fromTo: "جنزور ⇄ طنطا",
-    station: "الطريق الزراعي / موقف بركة السبع",
-    schedule: "يومياً من ٦:٠٠ صباحاً حتى ١٠:٣٠ مساءً",
-    vehicleType: "ميكروباص وسرفيس",
-    notes: "للوصول السريع إلى جامعة ومستشفيات وأسواق مدينة طنطا.",
-    tone: "amber",
-  },
-  {
-    id: "cairo",
-    title: "خط جنزور ↔ القاهرة الكبرى",
-    fromTo: "جنزور ⇄ المؤسسة / عبود / السلام",
-    station: "عبر موقف بركة السبع أو شبين الكوم",
-    schedule: "يومياً من ٥:٠٠ فجراً حتى ١٠:٠٠ مساءً",
-    vehicleType: "ميكروباص الخط السريع والقطارات",
-    notes: "خطوط منتظمة للقاهرة الكبرى عبر الطريق الزراعي أو محطة قطار بركة السبع.",
-    tone: "purple",
-  },
-];
-
 // Only an explicit activation renews availability; editing other fields preserves the deadline.
 export function availabilityUpdate(action: unknown, current: { availableNow: boolean; availableUntil: Date | null }, now = Date.now()) {
   // Return only the availability columns: callers spread this into update payloads, so
@@ -2182,7 +2128,7 @@ export type RatingRecord = { id: string; serviceId: string; serviceName: string;
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };
 export type FollowFeedItem = { id: string; createdAt: string };
 export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
-export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; questions: QuestionRecord[]; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
+export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",
@@ -2588,28 +2534,3 @@ export function liveTickerItems(greetings: ActiveGreeting[] | undefined, events:
   return lines;
 }
 
-/* ------------------------------------------------------------------ */
-/* «اسأل جنزور» — questions answered by nominating directory providers  */
-/* ------------------------------------------------------------------ */
-export type AnswerRecord = { id: string; questionId: string; memberId: string | null; memberName: string; serviceId: string | null; text: string; createdAt: string; mine?: boolean };
-export type QuestionRecord = { id: string; memberId: string | null; memberName: string; text: string; category: string; status: string; bestAnswerId: string | null; createdAt: string; answers: AnswerRecord[]; mine?: boolean };
-export const QUESTION_MIN = 10, QUESTION_MAX = 400, ANSWER_MAX = 300;
-export type NominationGroup = { serviceId: string | null; answers: AnswerRecord[]; count: number; names: string[]; isBest: boolean };
-/** Groups answers so a provider nominated by several members shows once with «رشّحه ٣ أعضاء». Text-only answers stay individual. */
-export function groupNominations(question: Pick<QuestionRecord, "answers" | "bestAnswerId">): NominationGroup[] {
-  const groups = new Map<string, NominationGroup>();
-  for (const answer of question.answers) {
-    const key = answer.serviceId ?? `text-${answer.id}`;
-    const group = groups.get(key) ?? { serviceId: answer.serviceId, answers: [], count: 0, names: [], isBest: false };
-    group.answers.push(answer); group.count += 1;
-    if (!group.names.includes(answer.memberName)) group.names.push(answer.memberName);
-    if (answer.id === question.bestAnswerId) group.isBest = true;
-    groups.set(key, group);
-  }
-  return [...groups.values()].sort((a, b) => Number(b.isBest) - Number(a.isBest) || b.count - a.count || a.answers[0].createdAt.localeCompare(b.answers[0].createdAt));
-}
-export function relativeTimeAr(iso: string, now = new Date()) {
-  const diff = Math.max(0, now.getTime() - new Date(iso).getTime()), minutes = Math.floor(diff / 60_000), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24);
-  if (minutes < 1) return "الآن"; if (minutes < 60) return `منذ ${minutes} دقيقة`; if (hours < 24) return `منذ ${hours} ساعة`; if (days < 30) return `منذ ${days} يوم`;
-  return new Date(iso).toLocaleDateString("ar-EG", { day: "numeric", month: "long", timeZone: CAIRO_TZ });
-}
