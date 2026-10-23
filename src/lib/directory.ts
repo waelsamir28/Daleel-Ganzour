@@ -1,8 +1,8 @@
 import "server-only";
 import { and, asc, avg, count, desc, eq, inArray, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
-import { adBanners, adRequests, communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { areas, defaultAdPricing, defaultDesignSettings, isAdLive, sanitizeAdPricing, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { adBanners, adRequests, answers, communityListings, questions, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
+import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type QuestionRecord, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 export const DELETED_CATEGORIES_KEY = "deleted_categories";
@@ -70,6 +70,11 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS motion varchar(20) NOT NULL DEFAULT 'kenburns'`);
       await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS accent_color varchar(9) NOT NULL DEFAULT ''`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_ad_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name varchar(80) NOT NULL, business varchar(120) NOT NULL DEFAULT '', phone varchar(16) NOT NULL, tier_label varchar(60) NOT NULL DEFAULT '', kind varchar(20) NOT NULL DEFAULT 'template', template varchar(40) NOT NULL DEFAULT '', notes varchar(400) NOT NULL DEFAULT '', status varchar(12) NOT NULL DEFAULT 'new', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_events (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title varchar(160) NOT NULL, kind varchar(20) NOT NULL DEFAULT 'other', starts_at timestamptz NOT NULL, ends_at timestamptz, location varchar(160) NOT NULL DEFAULT '', description text NOT NULL DEFAULT '', pinned boolean NOT NULL DEFAULT false, created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_events_starts_idx ON directory_events (starts_at)`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_questions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), member_id uuid REFERENCES directory_members(id) ON DELETE SET NULL, member_name varchar(120) NOT NULL, text varchar(400) NOT NULL, category varchar(60) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'open', best_answer_id uuid, created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_answers (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), question_id uuid NOT NULL REFERENCES directory_questions(id) ON DELETE CASCADE, member_id uuid REFERENCES directory_members(id) ON DELETE SET NULL, member_name varchar(120) NOT NULL, service_id uuid REFERENCES directory_services(id) ON DELETE SET NULL, text varchar(300) NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_answers_question_idx ON directory_answers (question_id)`);
       await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
       await tx.execute(sql`ALTER TABLE directory_categories ADD COLUMN IF NOT EXISTS art varchar(40) NOT NULL DEFAULT ''`);
       // Advertising was removed from the product: clean the legacy tables and their notifications
@@ -155,6 +160,34 @@ export async function getAdPricing(): Promise<AdPricing> {
   if (!row) return defaultAdPricing;
   try { return sanitizeAdPricing(JSON.parse(row.value)); } catch { return defaultAdPricing; }
 }
+export async function getGreetingSettings(): Promise<GreetingSettings> {
+  if (!databaseConfigured) return defaultGreetingSettings;
+  await ensureSeed();
+  const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "greetings"));
+  if (!row) return defaultGreetingSettings;
+  try { return sanitizeGreetingSettings(JSON.parse(row.value)); } catch { return defaultGreetingSettings; }
+}
+export function serializeEvent(row: typeof villageEvents.$inferSelect): VillageEventRecord {
+  return { ...row, startsAt: row.startsAt.toISOString(), endsAt: row.endsAt?.toISOString() ?? null, createdAt: row.createdAt.toISOString() };
+}
+/** Upcoming events plus the last 30 days of past ones (the public page shows both; the ticker only uses upcoming). */
+export async function listEvents(): Promise<VillageEventRecord[]> {
+  const since = new Date(Date.now() - 30 * 86_400_000);
+  const rows = await db.select().from(villageEvents).where(sql`coalesce(${villageEvents.endsAt}, ${villageEvents.startsAt} + interval '3 hours') >= ${since}`).orderBy(asc(villageEvents.startsAt)).limit(120);
+  return rows.map(serializeEvent);
+}
+/** Questions with their answers, newest first; `viewerId` marks the viewer's own items so the UI can offer owner actions. */
+export async function listQuestions(viewerId?: string, limit = 60): Promise<QuestionRecord[]> {
+  if (!databaseConfigured) return [];
+  await ensureSeed();
+  const questionRows = await db.select().from(questions).orderBy(desc(questions.createdAt)).limit(limit);
+  if (!questionRows.length) return [];
+  const answerRows = await db.select().from(answers).where(inArray(answers.questionId, questionRows.map((row) => row.id))).orderBy(asc(answers.createdAt));
+  return questionRows.map((row) => ({
+    ...row, createdAt: row.createdAt.toISOString(), mine: Boolean(viewerId && row.memberId === viewerId),
+    answers: answerRows.filter((answer) => answer.questionId === row.id).map((answer) => ({ ...answer, createdAt: answer.createdAt.toISOString(), mine: Boolean(viewerId && answer.memberId === viewerId) })),
+  }));
+}
 export async function getDesignSettings(): Promise<DesignSettings> {
   if (!databaseConfigured) return defaultDesignSettings;
   await ensureSeed();
@@ -179,12 +212,12 @@ export async function listAds(): Promise<AdBannerRecord[]> {
 }
 async function getCatalog() {
   await ensureSeed();
-  const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal, ads, adPricing] = await Promise.all([
+  const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal, ads, adPricing, events, greetingSettings] = await Promise.all([
     db.select().from(directoryCategories).orderBy(asc(directoryCategories.sortOrder), asc(directoryCategories.name)),
     db.select().from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
-    getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: sql<number>`count(*)::int` }).from(members), listAds(), getAdPricing(),
+    getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: sql<number>`count(*)::int` }).from(members), listAds(), getAdPricing(), listEvents(), getGreetingSettings(),
   ]);
-  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads, adPricing };
+  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads, adPricing, events, greetings: activeGreetings(greetingSettings), greetingSettings };
 }
 export async function getPublicDirectory(): Promise<PublicDirectory> {
   if (!databaseConfigured) return getPreviewDirectory();
@@ -217,20 +250,22 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     if (comments?.length) record.comments = comments;
     return record;
   });
-  return { ...catalog, ads: catalog.ads.filter((ad) => isAdLive(ad)), categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
+  const { greetingSettings: _adminOnlyGreetings, ...publicCatalog } = catalog;
+  return { ...publicCatalog, ads: catalog.ads.filter((ad) => isAdLive(ad)), categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();
   const reviewNotificationTypes = ["service", "rating"];
   const excludedAdminNotificationTypes = ["community", "provider"];
-  const [providers, communityRows, memberRows, notificationRows, unreadTotal, adRequestRows] = await Promise.all([
+  const [providers, communityRows, memberRows, notificationRows, unreadTotal, adRequestRows, questionRows] = await Promise.all([
     db.select().from(services).orderBy(desc(services.createdAt)),
     Promise.resolve([] as (typeof communityListings.$inferSelect)[]),
     role === "admin" ? db.select({ id: members.id, name: members.name, username: members.username, phone: members.phone, role: members.role, active: members.active, createdAt: members.createdAt }).from(members).orderBy(desc(members.createdAt)) : Promise.resolve([]),
     role === "admin" ? db.select().from(notifications).where(notInArray(notifications.type, excludedAdminNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200) : db.select().from(notifications).where(inArray(notifications.type, reviewNotificationTypes)).orderBy(desc(notifications.createdAt)).limit(200),
     role === "admin" ? db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), notInArray(notifications.type, excludedAdminNotificationTypes))) : db.select({ total: count() }).from(notifications).where(and(eq(notifications.read, false), inArray(notifications.type, reviewNotificationTypes))),
     role === "admin" ? db.select().from(adRequests).orderBy(desc(adRequests.createdAt)).limit(100) : Promise.resolve([] as (typeof adRequests.$inferSelect)[]),
+    role === "admin" ? listQuestions(undefined, 200) : Promise.resolve([] as QuestionRecord[]),
   ]);
   const ratingRows = await db.select({ id: serviceRatings.id, serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, status: serviceRatings.status, createdAt: serviceRatings.createdAt, memberName: members.name, serviceName: services.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).innerJoin(services, eq(serviceRatings.serviceId, services.id)).orderBy(desc(serviceRatings.createdAt)).limit(200);
-  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0, adRequests: adRequestRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })) };
+  return { ...catalog, memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0, adRequests: adRequestRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), questions: questionRows };
 }

@@ -10,6 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "daily", priority: 1 },
     { url: `${SITE_URL}/register`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
     { url: `${SITE_URL}/advertise`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/ask`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
+    { url: `${SITE_URL}/events`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
   ];
   try {
     const { categories } = await getPublicDirectory();

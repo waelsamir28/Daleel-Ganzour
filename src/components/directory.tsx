@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Megaphone, CalendarCheck, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
-import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
+import { ALargeSmall, ArrowLeft, Award, BellRing, Megaphone, CalendarCheck, CalendarDays, CircleHelp, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
+import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import { openInstallAppModal } from "@/components/install-app-modal";
 import AppInfoModal from "@/components/app-info-modal";
@@ -39,6 +39,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [shopOrderNote, setShopOrderNote] = useState("");
   const [shopOrderDelivery, setShopOrderDelivery] = useState(true);
   const [tickerIndex, setTickerIndex] = useState(0);
+  const [tickerNow] = useState(() => Date.now());
   const [aboutFabHidden, setAboutFabHidden] = useState(false);
   const [dutyFilter, setDutyFilter] = useState<DutyFilter>("all"), [copiedUtilityId, setCopiedUtilityId] = useState("");
   const [completionService, setCompletionService] = useState<ServiceRecord | null>(null);
@@ -408,8 +409,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const announcementList = useMemo(() => {
     const items = parseAnnouncementItems(design);
     const hasInvite = items.some((item) => item.includes("مهنتك") || item.includes("نشاطك"));
-    return hasInvite ? items : [...items, ADD_PROFESSION_INVITE];
-  }, [design]);
+    // Seasonal greetings + the nearest village event lead the ticker (computed server-side so SSR and hydration agree).
+    const live = liveTickerItems(data.greetings, data.events, new Date(tickerNow));
+    return [...live, ...(hasInvite ? items : [...items, ADD_PROFESSION_INVITE])];
+  }, [design, data.greetings, data.events, tickerNow]);
+  const seasonBadge = data.greetings?.[0] ?? null;
   const isRotatingTickerMode =
     design.announcementTickerMode === "rotate" ||
     design.announcementTickerMode === "vertical-slide" ||
@@ -451,6 +455,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <span>المهن والخدمات</span>
           </div>
         </Link>
+        {seasonBadge && <span className="season-badge" title={seasonBadge.message} aria-label={seasonBadge.name}><i aria-hidden="true">{seasonBadge.icon}</i><span>{seasonBadge.name}</span></span>}
         <div className="header-actions">
           {viewer.role === "admin" ? (
             <Link href="/admin" className="header-auth-btn is-admin">
@@ -532,6 +537,15 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <MessageCircle size={17}/>
             <span>اتصل بنا</span>
           </button>
+          <Link href="/ask" onClick={() => setMenuOpen(false)}>
+            <CircleHelp size={17}/>
+            <span>اسأل جنزور</span>
+          </Link>
+          <Link href="/events" onClick={() => setMenuOpen(false)}>
+            <CalendarDays size={17}/>
+            <span>مناسبات القرية</span>
+            {(data.events ?? []).some((event) => eventPhase(event, new Date(tickerNow)) === "today") && <span className="nav-count is-alert">اليوم</span>}
+          </Link>
           <Link href="/advertise" onClick={() => setMenuOpen(false)}>
             <Megaphone size={17}/>
             <span>أعلن معنا</span>
@@ -957,7 +971,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title" style={!scoped ? { order: sectionOrderIndex("professionBanner", 5) } : undefined}><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
       </>)}
     </main></div>
-    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
+    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/ask"><CircleHelp size={15}/> اسأل جنزور</Link><Link href="/events"><CalendarDays size={15}/> مناسبات القرية</Link><Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
     {isAdmin && !modal && !detail && <AdminAlertsFab/>}
     {!aboutFabHidden && !modal && !detail && (
       <div className="floating-about-fab" role="group" aria-label="عن التطبيق">

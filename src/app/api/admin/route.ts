@@ -1,12 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { adBanners, adRequests, communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
+import { adBanners, adRequests, answers, communityListings, questions, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isHexColor, parseAdImageDataUrl, sanitizeAdPricing, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isHexColor, parseAdImageDataUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -45,6 +45,17 @@ async function adInput(values: Record<string, unknown>) {
   const transition = isAdTransition(values.transition) ? values.transition : "random", motion = isAdMotion(values.motion) ? values.motion : "kenburns";
   const accentColor = isHexColor(values.accentColor) ? values.accentColor.toLowerCase() : "";
   return { title, caption, whatsapp, serviceId, startsAt, endsAt, template, transition, motion, accentColor, active: values.active !== false, durationSeconds: integerInput(values.durationSeconds ?? 6, AD_MIN_SECONDS, AD_MAX_SECONDS, "مدة عرض الإعلان بالثواني") };
+}
+/** Validates a village event from the admin form (dates arrive as local ISO strings from <input type="datetime-local">). */
+function eventInput(values: Record<string, unknown>) {
+  const title = cleanText(values.title, 160), location = cleanText(values.location, 160), description = cleanText(values.description, 1200);
+  if (title.length < 3) throw new InputError("اكتب عنوان المناسبة.");
+  const kind = isEventKind(values.kind) ? values.kind : "other";
+  const startsAt = typeof values.startsAt === "string" ? new Date(values.startsAt) : null;
+  if (!startsAt || Number.isNaN(startsAt.getTime())) throw new InputError("اختر تاريخ ووقت المناسبة.");
+  const endsAt = typeof values.endsAt === "string" && values.endsAt ? new Date(values.endsAt) : null;
+  if (endsAt && (Number.isNaN(endsAt.getTime()) || endsAt.getTime() < startsAt.getTime())) throw new InputError("وقت النهاية لازم يكون بعد البداية.");
+  return { title, kind, startsAt, endsAt, location, description, pinned: values.pinned === true };
 }
 function adImageInput(value: unknown) {
   try { return parseAdImageDataUrl(value); }
@@ -101,6 +112,8 @@ export async function POST(request: Request) {
       if (total >= AD_MAX_COUNT) throw new InputError(`الحد الأقصى ${AD_MAX_COUNT} إعلانات. احذف إعلانًا قديمًا أولًا.`);
       const fields = await adInput(values), image = values.image || !fields.template ? adImageInput(values.image) : null;
       await db.insert(adBanners).values({ ...fields, imageMime: image?.mime ?? "", imageData: image?.base64 ?? "", imageVersion: 1, sortOrder: total });
+    } else if (body.type === "event") {
+      await db.insert(villageEvents).values(eventInput(values));
     } else if (body.type === "service") {
       const basics = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
       await db.insert(services).values({ ...basics, ...availabilityInput(values.availabilityAction), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false });
@@ -125,6 +138,17 @@ export async function PATCH(request: Request) {
     } else if (type === "ad-pricing") {
       const pricing = sanitizeAdPricing(body.values);
       await db.insert(directorySettings).values({ key: "ad_pricing", value: JSON.stringify(pricing) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(pricing) } });
+    } else if (type === "greetings") {
+      const greetings = sanitizeGreetingSettings(body.values);
+      await db.insert(directorySettings).values({ key: "greetings", value: JSON.stringify(greetings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(greetings) } });
+    } else if (type === "event") {
+      const id = uuid(body.id);
+      if (action === "pin") await db.update(villageEvents).set({ pinned: body.pinned === true }).where(eq(villageEvents.id, id));
+      else await db.update(villageEvents).set(eventInput(objectInput(body.values))).where(eq(villageEvents.id, id));
+    } else if (type === "question") {
+      const id = uuid(body.id);
+      if (action === "close" || action === "reopen") await db.update(questions).set({ status: action === "close" ? "closed" : "open" }).where(eq(questions.id, id));
+      else throw new InputError("إجراء غير معروف.");
     } else if (type === "utility-numbers") {
       const utilityNumbers = sanitizeUtilityNumbers(body.utilityNumbers);
       await db.insert(directorySettings).values({ key: "utility_numbers", value: JSON.stringify(utilityNumbers) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(utilityNumbers) } });
@@ -360,6 +384,13 @@ export async function DELETE(request: Request) {
       else if (type === "rating") await db.delete(serviceRatings).where(eq(serviceRatings.id, id));
       else if (type === "ad") await db.delete(adBanners).where(eq(adBanners.id, id));
       else if (type === "ad-request") { await db.delete(adRequests).where(eq(adRequests.id, id)); await db.delete(notifications).where(and(eq(notifications.type, "ad-request"), eq(notifications.entityId, id))); }
+      else if (type === "event") await db.delete(villageEvents).where(eq(villageEvents.id, id));
+      else if (type === "question") {
+        const answerIds = (await db.select({ id: answers.id }).from(answers).where(eq(answers.questionId, id))).map((row) => row.id);
+        await db.delete(questions).where(eq(questions.id, id));
+        await db.delete(notifications).where(and(inArray(notifications.type, ["question", "report"]), inArray(notifications.entityId, [id, ...answerIds])));
+      }
+      else if (type === "answer") { await db.update(questions).set({ bestAnswerId: null }).where(eq(questions.bestAnswerId, id)); await db.delete(answers).where(eq(answers.id, id)); await db.delete(notifications).where(and(eq(notifications.type, "report"), eq(notifications.entityId, id))); }
       else throw new InputError("نوع الحذف غير صحيح.");
       if (["service", "community", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
     }
