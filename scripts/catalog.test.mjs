@@ -905,7 +905,8 @@ test("Windows 11 Fluent theme presets are registered and accepted by the design 
 
 test("provider edge tools and tap feedback settings sanitize correctly", () => {
   const { sanitizeDesignSettings, defaultDesignSettings, parseProviderEdgeTools, providerEdgeToolIds } = catalog;
-  assert.deepEqual(providerEdgeToolIds, ["call", "whatsapp", "share", "favorite"]);
+  assert.deepEqual(providerEdgeToolIds, ["call", "whatsapp", "share", "favorite", "copy"]);
+  assert.deepEqual(parseProviderEdgeTools("copy,call"), ["copy", "call"], "copy-number tool is optional and off by default");
   assert.equal(defaultDesignSettings.providerEdgeTools, "call,whatsapp,share,favorite");
   assert.deepEqual(parseProviderEdgeTools("favorite, call,bogus,call"), ["favorite", "call"]);
   assert.deepEqual(parseProviderEdgeTools(""), []);

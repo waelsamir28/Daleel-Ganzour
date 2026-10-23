@@ -1828,9 +1828,9 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
 };
 
 // Quick circular tools on the provider card: order = display order, missing ids = hidden.
-export const providerEdgeToolIds = ["call", "whatsapp", "share", "favorite"] as const;
+export const providerEdgeToolIds = ["call", "whatsapp", "share", "favorite", "copy"] as const;
 export type ProviderEdgeToolId = (typeof providerEdgeToolIds)[number];
-export const providerEdgeToolLabels: Record<ProviderEdgeToolId, string> = { call: "اتصال", whatsapp: "واتساب", share: "مشاركة", favorite: "المفضلة" };
+export const providerEdgeToolLabels: Record<ProviderEdgeToolId, string> = { call: "اتصال", whatsapp: "واتساب", share: "مشاركة", favorite: "المفضلة", copy: "نسخ الرقم" };
 export function parseProviderEdgeTools(value: string | undefined): ProviderEdgeToolId[] {
   const seen = new Set<string>();
   const out: ProviderEdgeToolId[] = [];

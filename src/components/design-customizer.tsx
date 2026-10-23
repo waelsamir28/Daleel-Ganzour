@@ -28,9 +28,6 @@ import {
   Type,
   Upload,
   UsersRound,
-  EyeOff,
-  Heart,
-  Share2,
 } from "lucide-react";
 import {
   defaultDesignSettings,
@@ -41,10 +38,10 @@ import {
   type DesignSettings,
   parseProviderEdgeTools,
   providerEdgeToolIds,
-  providerEdgeToolLabels,
   type ProviderEdgeToolId,
 } from "@/lib/catalog";
 import { applyDesignSettingsToDocument } from "@/components/design-applicator";
+import EdgeToolsEditor from "@/components/edge-tools-editor";
 import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
 
@@ -201,18 +198,6 @@ export default function DesignCustomizer({
   function commitEdgeTools(order: ProviderEdgeToolId[], visible: ProviderEdgeToolId[]) {
     setEdgeToolOrder(order);
     updateField("providerEdgeTools", order.filter((id) => visible.includes(id)).join(","));
-  }
-  function moveEdgeTool(tool: ProviderEdgeToolId, delta: number) {
-    const index = edgeToolOrder.indexOf(tool);
-    const target = index + delta;
-    if (index < 0 || target < 0 || target >= edgeToolOrder.length) return;
-    const order = [...edgeToolOrder];
-    [order[index], order[target]] = [order[target], order[index]];
-    commitEdgeTools(order, edgeToolsVisible);
-  }
-  function toggleEdgeTool(tool: ProviderEdgeToolId) {
-    const visible = edgeToolsVisible.includes(tool) ? edgeToolsVisible.filter((id) => id !== tool) : [...edgeToolsVisible, tool];
-    commitEdgeTools(edgeToolOrder, visible);
   }
   function applyPreset(presetKey: Exclude<DesignSettings["themePreset"], "custom">) {
     const preset = designThemePresets[presetKey];
@@ -1156,22 +1141,7 @@ export default function DesignCustomizer({
             {!collapsedGroups.providers && (
               <div className="design-group-content">
                 <InnerDivider title="الأدوات الدائرية على كارت مقدم الخدمة" subtitle="دوائر شفافة تظهر عند المرور على الكارت: اتصال وواتساب مباشرة، مشاركة، والمفضلة. رتّبها أو أخفِها أو غيّر مكانها، ويظهر تلميح عربي بجانب كل دائرة." />
-                <div className="edge-tools-editor">
-                  {edgeToolOrder.map((tool, index) => {
-                    const visible = edgeToolsVisible.includes(tool);
-                    return (
-                      <div className={`edge-tool-row ${visible ? "" : "is-hidden"}`} key={tool}>
-                        <span className={`edge-tool-row-icon is-${tool}`}>{tool === "call" ? <PhoneCall size={15}/> : tool === "whatsapp" ? <MessageCircle size={15}/> : tool === "share" ? <Share2 size={15}/> : <Heart size={15}/>}</span>
-                        <strong>{providerEdgeToolLabels[tool]}</strong>
-                        <span className="edge-tool-row-actions">
-                          <button type="button" className="icon-button" disabled={index === 0} onClick={() => moveEdgeTool(tool, -1)} aria-label={`تحريك ${providerEdgeToolLabels[tool]} لأعلى`}><ArrowUp size={14}/></button>
-                          <button type="button" className="icon-button" disabled={index === edgeToolOrder.length - 1} onClick={() => moveEdgeTool(tool, 1)} aria-label={`تحريك ${providerEdgeToolLabels[tool]} لأسفل`}><ArrowDown size={14}/></button>
-                          <button type="button" className={`icon-button ${visible ? "" : "is-off"}`} onClick={() => toggleEdgeTool(tool)} aria-pressed={visible} aria-label={visible ? `إخفاء ${providerEdgeToolLabels[tool]}` : `إظهار ${providerEdgeToolLabels[tool]}`}>{visible ? <Eye size={14}/> : <EyeOff size={14}/>}</button>
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+                <EdgeToolsEditor order={edgeToolOrder} visible={edgeToolsVisible} onChange={commitEdgeTools} />
                 <div className="form-row design-two-col">
                   <label className="field">
                     مكان الدوائر على الكارت
