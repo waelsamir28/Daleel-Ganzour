@@ -27,8 +27,30 @@ export function readAnalyticsEvents(): AnalyticsEventRecord[] {
   }
 }
 
+// Server-side aggregate per specialty (feeds «أهم مهن القرية»). Anonymous; de-duplicated per
+// browser session so repeated taps on the same provider do not inflate the ranking.
+const HIT_SESSION_KEY = "janzour-hits-sent-v1";
+export function sendCategoryHit(categoryId: string | undefined, kind: "view" | "contact", dedupeKey = categoryId) {
+  if (typeof window === "undefined" || !categoryId) return;
+  try {
+    const key = `${kind}:${dedupeKey}`;
+    const sent: string[] = JSON.parse(sessionStorage.getItem(HIT_SESSION_KEY) ?? "[]");
+    if (sent.includes(key)) return;
+    sessionStorage.setItem(HIT_SESSION_KEY, JSON.stringify([...sent, key].slice(-200)));
+  } catch {
+    // session storage unavailable — still count the hit
+  }
+  try {
+    void fetch("/api/hits", { method: "POST", keepalive: true, headers: { "content-type": "application/json", "x-silent": "1" }, body: JSON.stringify({ categoryId, kind }) }).catch(() => undefined);
+  } catch {
+    // ignore network errors
+  }
+}
+
 export function trackDirectoryEvent(event: Omit<AnalyticsEventRecord, "timestamp">) {
   if (typeof window === "undefined") return;
+  if (event.kind === "view") sendCategoryHit(event.categoryId, "view", event.serviceId ?? event.categoryId);
+  if (event.kind === "call" || event.kind === "whatsapp") sendCategoryHit(event.categoryId, "contact", `${event.kind}:${event.serviceId ?? event.categoryId}`);
   try {
     const label = event.label.trim();
     if (!label) return;

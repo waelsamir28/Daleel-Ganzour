@@ -5,6 +5,7 @@ import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star } from "lucide-react";
 import { isNewService, serviceWhatsappMessage, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon } from "@/components/ui";
+import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 
 // Category colours reach the card icon through CSS custom properties.
 export function categoryTheme(item: CategoryRecord) {
@@ -95,7 +96,7 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
                   href={`tel:${service.phone}`}
                   className="edge-tool edge-tool-call"
                   data-tip="اتصال"
-                  onClick={(event) => { event.stopPropagation(); if (preview) event.preventDefault(); }}
+                  onClick={(event) => { event.stopPropagation(); if (preview) { event.preventDefault(); return; } trackDirectoryEvent({ kind: "call", label: service.name, serviceId: service.id, categoryId: service.category }); }}
                   aria-label={`اتصال بـ ${service.name}`}
                 >
                   <PhoneCall size={15}/>
@@ -111,7 +112,7 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
                   rel="noopener noreferrer"
                   className="edge-tool edge-tool-whatsapp"
                   data-tip="واتساب"
-                  onClick={(event) => { event.stopPropagation(); if (preview) event.preventDefault(); }}
+                  onClick={(event) => { event.stopPropagation(); if (preview) { event.preventDefault(); return; } trackDirectoryEvent({ kind: "whatsapp", label: service.name, serviceId: service.id, categoryId: service.category }); }}
                   aria-label={`واتساب ${service.name}`}
                 >
                   <MessageCircle size={15}/>

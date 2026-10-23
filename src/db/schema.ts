@@ -142,6 +142,14 @@ export const specialtyFollows = pgTable("directory_specialty_follows", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [primaryKey({ columns: [table.memberId, table.categoryId] })]);
 
+// Aggregated real usage per specialty (opened pages/details + calls/WhatsApp) feeding «أهم مهن القرية».
+export const categoryHits = pgTable("directory_category_hits", {
+  categoryId: varchar("category_id", { length: 60 }).primaryKey().references(() => directoryCategories.id, { onDelete: "cascade" }),
+  views: integer("views").notNull().default(0),
+  contacts: integer("contacts").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const appointmentRequests = pgTable("directory_appointment_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
   serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),

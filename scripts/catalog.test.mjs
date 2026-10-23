@@ -921,3 +921,13 @@ test("provider edge tools and tap feedback settings sanitize correctly", () => {
   delete legacy.tapFeedback;
   assert.equal(sanitizeDesignSettings({ ...legacy, menuFeedback: "haptic" }).tapFeedback, "haptic");
 });
+
+test("top professions, power-save and detail preview settings sanitize correctly", () => {
+  const { sanitizeDesignSettings, defaultDesignSettings } = catalog;
+  assert.equal(defaultDesignSettings.showTopProfessions, true);
+  assert.equal(defaultDesignSettings.powerSaveMode, "auto");
+  const cleaned = sanitizeDesignSettings({ ...defaultDesignSettings, showTopProfessions: false, powerSaveMode: "on" });
+  assert.equal(cleaned.showTopProfessions, false);
+  assert.equal(cleaned.powerSaveMode, "on");
+  assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, powerSaveMode: "sometimes" }).powerSaveMode, "auto");
+});

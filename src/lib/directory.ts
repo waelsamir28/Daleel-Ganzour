@@ -1,8 +1,8 @@
 import "server-only";
 import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
-import { adBanners, adRequests, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { adBanners, adRequests, categoryHits, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
+import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type TopCategoryRecord } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 export const DELETED_CATEGORIES_KEY = "deleted_categories";
@@ -72,6 +72,7 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_ad_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), name varchar(80) NOT NULL, business varchar(120) NOT NULL DEFAULT '', phone varchar(16) NOT NULL, tier_label varchar(60) NOT NULL DEFAULT '', kind varchar(20) NOT NULL DEFAULT 'template', template varchar(40) NOT NULL DEFAULT '', notes varchar(400) NOT NULL DEFAULT '', status varchar(12) NOT NULL DEFAULT 'new', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_events (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title varchar(160) NOT NULL, kind varchar(20) NOT NULL DEFAULT 'other', starts_at timestamptz NOT NULL, ends_at timestamptz, location varchar(160) NOT NULL DEFAULT '', description text NOT NULL DEFAULT '', pinned boolean NOT NULL DEFAULT false, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_events_starts_idx ON directory_events (starts_at)`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_category_hits (category_id varchar(60) PRIMARY KEY REFERENCES directory_categories(id) ON DELETE CASCADE, views integer NOT NULL DEFAULT 0, contacts integer NOT NULL DEFAULT 0, updated_at timestamptz NOT NULL DEFAULT now())`);
       // «اسأل جنزور» was removed from the product: drop its tables and notifications if they exist.
       await tx.execute(sql`DROP TABLE IF EXISTS directory_answers`);
       await tx.execute(sql`DROP TABLE IF EXISTS directory_questions`);
@@ -221,6 +222,26 @@ async function getCatalog() {
   ]);
   return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads, adPricing, events, greetings: activeGreetings(greetingSettings), greetingSettings };
 }
+// «أهم مهن القرية»: specialties ranked by real usage (opened pages/details count once, calls and
+// WhatsApp taps count double). Until enough real data exists, the list is topped up with the
+// specialties that have the most approved providers so the strip is useful from day one.
+async function getTopCategories(visible: CategoryRecord[], providers: ServiceRecord[]): Promise<TopCategoryRecord[]> {
+  const rows = await db.select().from(categoryHits);
+  const providerCount = new Map<string, number>();
+  for (const service of providers) providerCount.set(service.category, (providerCount.get(service.category) ?? 0) + 1);
+  const specialties = visible.filter((category) => category.parentId && providerCount.get(category.id));
+  const scored = specialties.map((category) => {
+    const hit = rows.find((row) => row.categoryId === category.id);
+    return { id: category.id, score: hit ? hit.views + hit.contacts * 2 : 0, providers: providerCount.get(category.id) ?? 0 };
+  });
+  scored.sort((a, b) => b.score - a.score || b.providers - a.providers || a.id.localeCompare(b.id));
+  return scored.slice(0, 8);
+}
+export async function recordCategoryHit(categoryId: string, kind: "view" | "contact") {
+  const column = kind === "contact" ? categoryHits.contacts : categoryHits.views;
+  await db.insert(categoryHits).values({ categoryId, views: kind === "view" ? 1 : 0, contacts: kind === "contact" ? 1 : 0 })
+    .onConflictDoUpdate({ target: categoryHits.categoryId, set: { [kind === "contact" ? "contacts" : "views"]: sql`${column} + 1`, updatedAt: new Date() } });
+}
 export async function getPublicDirectory(): Promise<PublicDirectory> {
   if (!databaseConfigured) return getPreviewDirectory();
   const catalog = await getCatalog();
@@ -253,7 +274,8 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     return record;
   });
   const { greetingSettings: _adminOnlyGreetings, ...publicCatalog } = catalog;
-  return { ...publicCatalog, ads: catalog.ads.filter((ad) => isAdLive(ad)), categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
+  const topCategories = await getTopCategories(visibleCategories, blended);
+  return { ...publicCatalog, topCategories, ads: catalog.ads.filter((ad) => isAdLive(ad)), categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();

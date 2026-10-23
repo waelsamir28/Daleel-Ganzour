@@ -42,6 +42,7 @@ import {
 } from "@/lib/catalog";
 import { applyDesignSettingsToDocument } from "@/components/design-applicator";
 import EdgeToolsEditor from "@/components/edge-tools-editor";
+import DetailPreview from "@/components/detail-preview";
 import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
 
@@ -1153,6 +1154,14 @@ export default function DesignCustomizer({
                   </label>
                 </div>
 
+                <InnerDivider title="معاينة حية لصفحة مقدم الخدمة" subtitle="نسخة ثابتة من نافذة التفاصيل (الهيرو الأبيض، صندوق الاسم، الشارات، البلاطات بأيقونة علوية، وأزرار الاتصال والواتساب) تتبع الثيم والألوان المختارة فورًا." />
+                <DetailPreview />
+
+                <InnerDivider title="أهم مهن القرية" subtitle="صف أفقي على الرئيسية لأكثر 8 تخصصات طلبًا حسب فتح الصفحات والاتصالات الفعلية (يُستكمل بعدد مقدمي الخدمة حتى تتجمع بيانات كافية)." />
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showTopProfessions} onChange={(e) => updateField("showTopProfessions", e.target.checked)}/>إظهار صف «أهم مهن القرية» فوق أقسام القرية في الرئيسية</label>
+                </div>
+
                 <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
                 <div className="form-row design-two-col">
                   <label className="field">
@@ -1311,6 +1320,14 @@ export default function DesignCustomizer({
                       <option value="haptic">اهتزاز خفيف فقط</option>
                       <option value="sound">صوت نقرة فقط</option>
                       <option value="off">بدون</option>
+                    </SelectField>
+                  </label>
+                  <label className="field">
+                    وضع توفير البطارية
+                    <SelectField value={draft.powerSaveMode} onChange={(e) => updateField("powerSaveMode", e.target.value as DesignSettings["powerSaveMode"])}>
+                      <option value="auto">تلقائي — عند انخفاض البطارية أو طلب تقليل الحركة (الافتراضي)</option>
+                      <option value="on">مفعّل دائمًا (بدون ضبابية ولا اهتزاز)</option>
+                      <option value="off">معطّل دائمًا</option>
                     </SelectField>
                   </label>
                 </div>
