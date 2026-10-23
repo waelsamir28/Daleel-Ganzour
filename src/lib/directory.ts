@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, avg, count, desc, eq, inArray, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { adBanners, communityListings, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { areas, defaultDesignSettings, isAdLive, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
+import { areas, defaultAdPricing, defaultDesignSettings, isAdLive, sanitizeAdPricing, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 export const DELETED_CATEGORIES_KEY = "deleted_categories";
@@ -30,6 +30,7 @@ function getPreviewDirectory(): PublicDirectory {
     utilityNumbers: publicUtilityNumbers,
     memberCount: 0,
     ads: [],
+    adPricing: defaultAdPricing,
     previewMode: true,
   };
 }
@@ -64,6 +65,7 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_push_subscriptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), endpoint text NOT NULL UNIQUE, subscription text NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_ad_banners (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title varchar(120) NOT NULL, caption varchar(240) NOT NULL DEFAULT '', service_id uuid REFERENCES directory_services(id) ON DELETE SET NULL, whatsapp varchar(24) NOT NULL DEFAULT '', active boolean NOT NULL DEFAULT true, starts_at timestamptz, ends_at timestamptz, sort_order integer NOT NULL DEFAULT 0, duration_seconds integer NOT NULL DEFAULT 6, image_mime varchar(60) NOT NULL DEFAULT 'image/gif', image_data text NOT NULL DEFAULT '', image_version integer NOT NULL DEFAULT 1, created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS template varchar(40) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_categories ALTER COLUMN description TYPE text`);
       await tx.execute(sql`ALTER TABLE directory_categories ADD COLUMN IF NOT EXISTS art varchar(40) NOT NULL DEFAULT ''`);
       // Advertising was removed from the product: clean the legacy tables and their notifications
@@ -142,6 +144,13 @@ export async function getUtilityNumbers(): Promise<PublicUtilityContact[]> {
   if (!row) return publicUtilityNumbers;
   try { return sanitizeUtilityNumbers(JSON.parse(row.value)); } catch { return publicUtilityNumbers; }
 }
+export async function getAdPricing(): Promise<AdPricing> {
+  if (!databaseConfigured) return defaultAdPricing;
+  await ensureSeed();
+  const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "ad_pricing"));
+  if (!row) return defaultAdPricing;
+  try { return sanitizeAdPricing(JSON.parse(row.value)); } catch { return defaultAdPricing; }
+}
 export async function getDesignSettings(): Promise<DesignSettings> {
   if (!databaseConfigured) return defaultDesignSettings;
   await ensureSeed();
@@ -155,8 +164,8 @@ export function serializeService(item: typeof services.$inferSelect): ServiceRec
   return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
-const adColumns = { id: adBanners.id, title: adBanners.title, caption: adBanners.caption, serviceId: adBanners.serviceId, whatsapp: adBanners.whatsapp, active: adBanners.active, startsAt: adBanners.startsAt, endsAt: adBanners.endsAt, sortOrder: adBanners.sortOrder, durationSeconds: adBanners.durationSeconds, imageMime: adBanners.imageMime, imageVersion: adBanners.imageVersion, hasImage: sql<boolean>`length(${adBanners.imageData}) > 0`, createdAt: adBanners.createdAt };
-export function serializeAd(row: { id: string; title: string; caption: string; serviceId: string | null; whatsapp: string; active: boolean; startsAt: Date | null; endsAt: Date | null; sortOrder: number; durationSeconds: number; imageMime: string; imageVersion: number; hasImage: boolean; createdAt: Date }): AdBannerRecord {
+const adColumns = { id: adBanners.id, template: adBanners.template, title: adBanners.title, caption: adBanners.caption, serviceId: adBanners.serviceId, whatsapp: adBanners.whatsapp, active: adBanners.active, startsAt: adBanners.startsAt, endsAt: adBanners.endsAt, sortOrder: adBanners.sortOrder, durationSeconds: adBanners.durationSeconds, imageMime: adBanners.imageMime, imageVersion: adBanners.imageVersion, hasImage: sql<boolean>`length(${adBanners.imageData}) > 0`, createdAt: adBanners.createdAt };
+export function serializeAd(row: { id: string; template: string; title: string; caption: string; serviceId: string | null; whatsapp: string; active: boolean; startsAt: Date | null; endsAt: Date | null; sortOrder: number; durationSeconds: number; imageMime: string; imageVersion: number; hasImage: boolean; createdAt: Date }): AdBannerRecord {
   return { ...row, hasImage: Boolean(row.hasImage), startsAt: row.startsAt?.toISOString() ?? null, endsAt: row.endsAt?.toISOString() ?? null, createdAt: row.createdAt.toISOString() };
 }
 /** Ad metadata only (the image payload is streamed by /api/ad-banner/:id). */
@@ -166,12 +175,12 @@ export async function listAds(): Promise<AdBannerRecord[]> {
 }
 async function getCatalog() {
   await ensureSeed();
-  const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal, ads] = await Promise.all([
+  const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal, ads, adPricing] = await Promise.all([
     db.select().from(directoryCategories).orderBy(asc(directoryCategories.sortOrder), asc(directoryCategories.name)),
     db.select().from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
-    getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: sql<number>`count(*)::int` }).from(members), listAds(),
+    getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: sql<number>`count(*)::int` }).from(members), listAds(), getAdPricing(),
   ]);
-  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads };
+  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads, adPricing };
 }
 export async function getPublicDirectory(): Promise<PublicDirectory> {
   if (!databaseConfigured) return getPreviewDirectory();

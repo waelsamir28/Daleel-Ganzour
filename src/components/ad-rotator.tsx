@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Megaphone, MessageCircle, Sparkles, UserRound } from "lucide-react";
-import { adImageUrl, isAdLive, whatsappUrl, type AdBannerRecord, type ServiceRecord } from "@/lib/catalog";
+import { adImageUrl, adPricingSummary, cheapestAdTier, formatEgp, isAdLive, whatsappUrl, type AdBannerRecord, type AdPricing, type ServiceRecord } from "@/lib/catalog";
+import AdTemplateArt from "@/components/ad-template-art";
 
 type AdRotatorProps = {
   ads: AdBannerRecord[];
@@ -9,16 +10,18 @@ type AdRotatorProps = {
   /** Admin WhatsApp number used by «اطلب إعلانك». */
   adminPhone: string;
   siteName: string;
+  logoUrl?: string;
+  pricing?: AdPricing | null;
   onOpenService: (service: ServiceRecord) => void;
 };
 
-const REQUEST_AD_MESSAGE = (siteName: string) => `مرحبًا، أنا عضو في ${siteName} وأرغب في حجز إعلان متحرك في المساحة الإعلانية بالتطبيق. من فضلكم أرسلوا لي التفاصيل والأسعار.`;
+const REQUEST_AD_MESSAGE = (siteName: string, pricing: AdPricing | null) => `مرحبًا، أنا عضو في ${siteName} وأرغب في حجز إعلان متحرك في المساحة الإعلانية بالتطبيق.${pricing?.enabled && pricing.tiers.length ? ` الأسعار المعلنة: ${adPricingSummary(pricing)}.` : ""} من فضلكم أرسلوا لي التفاصيل وطريقة الدفع.`;
 
 /**
  * Rotating promotional slot shown above the directory on every browsing page.
  * Each ad can jump to its advertiser's page inside the directory and/or to their WhatsApp.
  */
-export default function AdRotator({ ads, services, adminPhone, siteName, onOpenService }: AdRotatorProps) {
+export default function AdRotator({ ads, services, adminPhone, siteName, logoUrl = "", pricing = null, onOpenService }: AdRotatorProps) {
   const live = useMemo(() => ads.filter((ad) => isAdLive(ad)), [ads]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -32,7 +35,9 @@ export default function AdRotator({ ads, services, adminPhone, siteName, onOpenS
     return () => clearTimeout(timer);
   }, [live.length, paused, current, index]);
 
-  const requestHref = adminPhone ? whatsappUrl(adminPhone, REQUEST_AD_MESSAGE(siteName)) : "";
+  const requestHref = adminPhone ? whatsappUrl(adminPhone, REQUEST_AD_MESSAGE(siteName, pricing)) : "";
+  const cheapest = pricing?.enabled ? cheapestAdTier(pricing) : null;
+  const priceHint = cheapest ? `من ${formatEgp(cheapest.price)} / ${cheapest.label}` : "";
   const linkedService = current?.serviceId ? services.find((service) => service.id === current.serviceId) ?? null : null;
 
   function openProvider() {
@@ -53,6 +58,8 @@ export default function AdRotator({ ads, services, adminPhone, siteName, onOpenS
           <span className="ad-placeholder-icon"><Sparkles size={26}/></span>
           <strong>مساحة إعلانية هنا</strong>
           <p>إعلانك المتحرك يظهر لكل أهل جنزور في كل صفحات الدليل.</p>
+          {pricing?.enabled && pricing.tiers.length > 0 && <span className="ad-rotator-prices">{pricing.tiers.map((tier) => <i key={`${tier.label}-${tier.days}`}>{tier.label} <b>{formatEgp(tier.price)}</b></i>)}</span>}
+          {pricing?.enabled && pricing.note && <small className="ad-rotator-note">{pricing.note}</small>}
           {requestHref && <a href={requestHref} target="_blank" rel="noopener noreferrer" className="button button-whatsapp button-small"><MessageCircle size={15}/> اطلب إعلانك عبر واتساب</a>}
         </div>
       </section>
@@ -75,10 +82,14 @@ export default function AdRotator({ ads, services, adminPhone, siteName, onOpenS
         if (Math.abs(delta) > 40) step(delta < 0 ? -1 : 1);
       }}
     >
-      <span className="ad-rotator-badge"><Megaphone size={12}/> إعلان</span>
+      {!current.template && <span className="ad-rotator-badge"><Megaphone size={12}/> إعلان</span>}
       <div className="ad-rotator-stage" key={current.id}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- Admin-uploaded animated GIF served from the database. */}
-        <img src={adImageUrl(current)} alt={current.caption || current.title} className="ad-rotator-image" draggable={false}/>
+        {current.template ? (
+          <AdTemplateArt template={current.template} title={current.title} caption={current.caption} siteName={siteName} logoUrl={logoUrl} pricing={pricing}/>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- Admin-uploaded animated GIF served from the database.
+          <img src={adImageUrl(current)} alt={current.caption || current.title} className="ad-rotator-image" draggable={false}/>
+        )}
         {live.length > 1 && (
           <>
             <button type="button" className="ad-rotator-arrow is-prev" onClick={() => step(-1)} aria-label="الإعلان السابق"><ChevronRight size={18}/></button>
@@ -102,7 +113,7 @@ export default function AdRotator({ ads, services, adminPhone, siteName, onOpenS
             {live.map((ad, position) => <button key={ad.id} type="button" role="tab" aria-selected={position === index % live.length} aria-label={`الإعلان ${position + 1}: ${ad.title}`} className={position === index % live.length ? "is-active" : ""} onClick={() => setIndex(position)}/>)}
           </div>
         )}
-        {requestHref && <a href={requestHref} target="_blank" rel="noopener noreferrer" className="ad-rotator-request"><Sparkles size={12}/> اطلب إعلانك الخاص</a>}
+        {requestHref && <a href={requestHref} target="_blank" rel="noopener noreferrer" className="ad-rotator-request"><Sparkles size={12}/> اطلب إعلانك الخاص{priceHint ? ` — ${priceHint}` : ""}</a>}
       </div>
     </section>
   );

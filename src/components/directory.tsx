@@ -123,7 +123,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const root = rootId ? getCategory(rootId, categories) : null, specialty = specialtyId ? getCategory(specialtyId, categories) : null;
   const scoped = Boolean(rootId), isHome = !scoped;
   const whatsapp = whatsappUrl(settings.phone);
-  const adSlot = <AdRotator ads={data.ads ?? []} services={data.services} adminPhone={settings.phone} siteName={settings.siteName} onOpenService={(service) => openDetail(service)}/>;
+  const adSlot = <AdRotator ads={data.ads ?? []} services={data.services} adminPhone={settings.phone} siteName={settings.siteName} logoUrl={design.headerLogoUrl} pricing={data.adPricing ?? null} onOpenService={(service) => openDetail(service)}/>;
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);

@@ -1997,6 +1997,8 @@ export type PublicDirectory = {
   designSettings?: DesignSettings;
   /** Live promotional banners for the rotating ad slot (image bytes are served separately by /api/ad-banner/:id). */
   ads?: AdBannerRecord[];
+  /** Advertising price list in Egyptian pounds shown in the ad slot and the request message. */
+  adPricing?: AdPricing;
 };
 
 /** Rotating ad banner metadata (never includes the image payload). */
@@ -2004,13 +2006,57 @@ export type AdBannerRecord = {
   id: string; title: string; caption: string; serviceId: string | null; whatsapp: string;
   active: boolean; startsAt: string | null; endsAt: string | null; sortOrder: number;
   durationSeconds: number; imageMime: string; imageVersion: number; hasImage: boolean; createdAt: string;
+  /** Built-in animated template id; empty when the ad shows an uploaded image. */
+  template: string;
 };
+/** Ready-made animated banners the admin can publish without uploading a file. Title/caption of the ad override the defaults. */
+export type AdTemplateId = "ad-space" | "app-promo" | "add-profession" | "special-offer" | "grand-opening" | "design-office" | "greeting";
+export const adTemplates: { id: AdTemplateId; name: string; description: string; title: string; caption: string }[] = [
+  { id: "ad-space", name: "مساحة إعلانية — اطلب الآن", description: "دعوة للمعلنين مع السعر بالجنيه.", title: "مساحة إعلانية", caption: "إعلانك هنا يوصل لكل أهل جنزور — اطلب الآن" },
+  { id: "app-promo", name: "التطبيق: الاسم والأيقونة ونبذة", description: "يعرض شعار التطبيق واسمه ونبذة قصيرة.", title: "", caption: "كل مهن وخدمات جنزور في مكان واحد — ابحث، اتصل، وشارك" },
+  { id: "add-profession", name: "أضف مهنتك مجانًا", description: "يشجع أصحاب المهن على التسجيل.", title: "أضف مهنتك مجانًا", caption: "سجّل في الدليل وخلّي أهل جنزور يوصلولك بضغطة" },
+  { id: "special-offer", name: "عرض خاص", description: "لافتة عروض وخصومات باسم المعلن.", title: "عرض خاص", caption: "خصم لفترة محدودة — اسأل عن التفاصيل" },
+  { id: "grand-opening", name: "افتتاح جديد", description: "إعلان افتتاح محل أو عيادة جديدة.", title: "افتتاح جديد", caption: "نورونا — زورونا واستمتعوا بعروض الافتتاح" },
+  { id: "design-office", name: "مكتب الجمال للدعاية والإعلان", description: "تصميم إعلانك المتحرك وطباعتك.", title: "مكتب الجمال للدعاية والإعلان", caption: "تصميم إعلانات متحركة ولافتات وكروت — كلّمنا واتساب" },
+  { id: "greeting", name: "تهنئة ومناسبات", description: "كل عام وأنتم بخير / تهنئة باسم المعلن.", title: "كل عام وأنتم بخير", caption: "أطيب التهاني لأهل جنزور الكرام" },
+];
+export function isAdTemplateId(value: unknown): value is AdTemplateId { return typeof value === "string" && adTemplates.some((template) => template.id === value); }
+export function getAdTemplate(id: string) { return adTemplates.find((template) => template.id === id) ?? null; }
+/** Advertising price list shown to members (Egyptian pounds), editable by the admin. */
+export type AdPricingTier = { label: string; days: number; price: number };
+export type AdPricing = { enabled: boolean; tiers: AdPricingTier[]; note: string };
+export const AD_CURRENCY = "ج.م";
+export const defaultAdPricing: AdPricing = {
+  enabled: true,
+  tiers: [
+    { label: "أسبوع", days: 7, price: 150 },
+    { label: "شهر", days: 30, price: 400 },
+    { label: "٣ شهور", days: 90, price: 1000 },
+  ],
+  note: "السعر يشمل ظهور الإعلان في كل صفحات الدليل. تصميم الـ GIF متاح بسعر إضافي عند الطلب.",
+};
+export function sanitizeAdPricing(value: unknown): AdPricing {
+  const input = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const rawTiers = Array.isArray(input.tiers) ? input.tiers.slice(0, 6) : defaultAdPricing.tiers;
+  const tiers = rawTiers.flatMap((tier): AdPricingTier[] => {
+    if (!tier || typeof tier !== "object") return [];
+    const record = tier as Record<string, unknown>;
+    const label = typeof record.label === "string" ? record.label.trim().slice(0, 40) : "";
+    const days = Number(record.days), price = Number(record.price);
+    if (!label || !Number.isFinite(days) || days < 1 || days > 3650 || !Number.isFinite(price) || price < 0 || price > 1_000_000) return [];
+    return [{ label, days: Math.round(days), price: Math.round(price) }];
+  });
+  return { enabled: input.enabled !== false, tiers: tiers.length ? tiers : defaultAdPricing.tiers, note: typeof input.note === "string" ? input.note.trim().slice(0, 300) : defaultAdPricing.note };
+}
+export function formatEgp(amount: number) { return `${amount.toLocaleString("ar-EG")} ${AD_CURRENCY}`; }
+export function cheapestAdTier(pricing: AdPricing) { return pricing.tiers.reduce<AdPricingTier | null>((best, tier) => (!best || tier.price < best.price ? tier : best), null); }
+export function adPricingSummary(pricing: AdPricing) { return pricing.tiers.map((tier) => `${tier.label}: ${formatEgp(tier.price)}`).join(" • "); }
 export const AD_IMAGE_MAX_BYTES = 3 * 1024 * 1024;
 export const AD_IMAGE_MIMES = ["image/gif", "image/png", "image/jpeg", "image/webp"] as const;
 export const AD_MIN_SECONDS = 3, AD_MAX_SECONDS = 60, AD_MAX_COUNT = 10;
 /** Whether an ad should be displayed right now: active, has artwork and inside its optional date window. */
-export function isAdLive(ad: Pick<AdBannerRecord, "active" | "startsAt" | "endsAt" | "hasImage">, now = Date.now()) {
-  if (!ad.active || !ad.hasImage) return false;
+export function isAdLive(ad: Pick<AdBannerRecord, "active" | "startsAt" | "endsAt" | "hasImage"> & { template?: string }, now = Date.now()) {
+  if (!ad.active || !(ad.hasImage || ad.template)) return false;
   if (ad.startsAt) { const start = Date.parse(ad.startsAt); if (Number.isFinite(start) && start > now) return false; }
   if (ad.endsAt) { const end = Date.parse(ad.endsAt); if (Number.isFinite(end) && end <= now) return false; }
   return true;

@@ -3,10 +3,10 @@ import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { adBanners, communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
-import { ensureSeed, getAdminDirectory, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
+import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, parseAdImageDataUrl, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdTemplateId, parseAdImageDataUrl, sanitizeAdPricing, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -22,7 +22,11 @@ function uuid(value: unknown) { if (!validId(value)) throw new InputError("مع�
 
 /** Shared validation for ad banner create/edit payloads (image handled separately). */
 async function adInput(values: Record<string, unknown>) {
-  const title = cleanText(values.title, 120), caption = cleanText(values.caption, 240), whatsapp = cleanPhone(values.whatsapp ?? "");
+  const template = isAdTemplateId(values.template) ? values.template : "";
+  if (values.template && !template) throw new InputError("القالب المختار غير معروف.");
+  let title = cleanText(values.title, 120);
+  if (title.length < 2 && template) title = getAdTemplate(template)?.title || (await getSettings()).siteName;
+  const caption = cleanText(values.caption, 240), whatsapp = cleanPhone(values.whatsapp ?? "");
   if (title.length < 2) throw new InputError("اكتب عنوان الإعلان (اسم المعلن).");
   if (whatsapp && !validPhone(whatsapp)) throw new InputError("رقم واتساب المعلن غير صحيح.");
   const serviceId = typeof values.serviceId === "string" && values.serviceId ? uuid(values.serviceId) : null;
@@ -38,7 +42,7 @@ async function adInput(values: Record<string, unknown>) {
   };
   const startsAt = parseDate(values.startsAt, "تاريخ البداية"), endsAt = parseDate(values.endsAt, "تاريخ النهاية");
   if (startsAt && endsAt && endsAt <= startsAt) throw new InputError("تاريخ النهاية يجب أن يكون بعد تاريخ البداية.");
-  return { title, caption, whatsapp, serviceId, startsAt, endsAt, active: values.active !== false, durationSeconds: integerInput(values.durationSeconds ?? 6, AD_MIN_SECONDS, AD_MAX_SECONDS, "مدة عرض الإعلان بالثواني") };
+  return { title, caption, whatsapp, serviceId, startsAt, endsAt, template, active: values.active !== false, durationSeconds: integerInput(values.durationSeconds ?? 6, AD_MIN_SECONDS, AD_MAX_SECONDS, "مدة عرض الإعلان بالثواني") };
 }
 function adImageInput(value: unknown) {
   try { return parseAdImageDataUrl(value); }
@@ -93,8 +97,8 @@ export async function POST(request: Request) {
     } else if (body.type === "ad") {
       const [{ total }] = await db.select({ total: count() }).from(adBanners);
       if (total >= AD_MAX_COUNT) throw new InputError(`الحد الأقصى ${AD_MAX_COUNT} إعلانات. احذف إعلانًا قديمًا أولًا.`);
-      const fields = await adInput(values), image = adImageInput(values.image);
-      await db.insert(adBanners).values({ ...fields, imageMime: image.mime, imageData: image.base64, imageVersion: 1, sortOrder: total });
+      const fields = await adInput(values), image = fields.template ? null : adImageInput(values.image);
+      await db.insert(adBanners).values({ ...fields, imageMime: image?.mime ?? "", imageData: image?.base64 ?? "", imageVersion: 1, sortOrder: total });
     } else if (body.type === "service") {
       const basics = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
       await db.insert(services).values({ ...basics, ...availabilityInput(values.availabilityAction), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false });
@@ -116,6 +120,9 @@ export async function PATCH(request: Request) {
     } else if (type === "design-settings") {
       const designSettings = sanitizeDesignSettings(objectInput(body.values));
       await db.insert(directorySettings).values({ key: "design_config", value: JSON.stringify(designSettings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(designSettings) } });
+    } else if (type === "ad-pricing") {
+      const pricing = sanitizeAdPricing(body.values);
+      await db.insert(directorySettings).values({ key: "ad_pricing", value: JSON.stringify(pricing) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(pricing) } });
     } else if (type === "utility-numbers") {
       const utilityNumbers = sanitizeUtilityNumbers(body.utilityNumbers);
       await db.insert(directorySettings).values({ key: "utility_numbers", value: JSON.stringify(utilityNumbers) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(utilityNumbers) } });
@@ -140,8 +147,9 @@ export async function PATCH(request: Request) {
         await db.update(adBanners).set({ active: !existing.active }).where(eq(adBanners.id, id));
       } else {
         const values = objectInput(body.values), fields = await adInput(values);
-        const image = values.image ? adImageInput(values.image) : null;
-        await db.update(adBanners).set({ ...fields, ...(image ? { imageMime: image.mime, imageData: image.base64, imageVersion: existing.imageVersion + 1 } : {}) }).where(eq(adBanners.id, id));
+        const image = !fields.template && values.image ? adImageInput(values.image) : null;
+        if (!fields.template && !image && !existing.imageData) throw new InputError("ارفع صورة الإعلان أو اختر قالبًا جاهزًا.");
+        await db.update(adBanners).set({ ...fields, ...(image ? { imageMime: image.mime, imageData: image.base64, imageVersion: existing.imageVersion + 1 } : {}), ...(fields.template ? { imageMime: "", imageData: "" } : {}) }).where(eq(adBanners.id, id));
       }
     } else if (type === "category" && action === "move") {
       const id = cleanText(body.id, 60), direction = body.direction === "up" ? -1 : body.direction === "down" ? 1 : 0;

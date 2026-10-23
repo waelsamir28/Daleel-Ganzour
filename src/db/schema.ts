@@ -167,5 +167,7 @@ export const adBanners = pgTable("directory_ad_banners", {
   imageMime: varchar("image_mime", { length: 60 }).notNull().default("image/gif"),
   imageData: text("image_data").notNull().default(""),
   imageVersion: integer("image_version").notNull().default(1),
+  /** Built-in animated template id (empty when the ad uses an uploaded image). */
+  template: varchar("template", { length: 40 }).notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
