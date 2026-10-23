@@ -11411,3 +11411,37 @@ html.dark .theme-family .design-presets-grid { border-top-color: #284766; }
 html.dark .edge-tool-row { border-color: #284766; background: #102136; }
 html.dark .edge-tool-row strong { color: #e6f1ff; }
 html.dark .edge-tool-row-icon { background: #152b44; border-color: #284766; }
+
+/* ===== محرر الدواير: سحب وإفلات + معاينة حية ===== */
+.edge-tools-studio { display: grid; gap: 14px; margin-bottom: 14px; }
+@media (min-width: 900px) { .edge-tools-studio { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: start; } }
+.edge-tool-row { user-select: none; transition: box-shadow .18s ease, transform .18s ease, background-color .18s ease; }
+.edge-tool-row.is-dragging { background: #eaf3ff; border-color: #8abdf0; box-shadow: 0 10px 22px -12px rgba(16, 72, 128, .6); transform: scale(1.02); z-index: 2; }
+.edge-tool-row strong small { color: #6b7f99; font-size: 11px; font-weight: 700; }
+.edge-tool-grip { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #7b95b3; cursor: grab; touch-action: none; }
+.edge-tool-grip:hover { background: #eaf3ff; color: #1c5daa; }
+.edge-tool-grip:active, .edge-tool-row.is-dragging .edge-tool-grip { cursor: grabbing; }
+.edge-tool-grip:focus-visible { outline: 2px solid #1079ff; outline-offset: 1px; }
+.edge-tool-row-index { flex: none; width: 22px; height: 22px; display: inline-grid; place-items: center; border-radius: 50%; background: #eaf3ff; color: #1c5daa; font-size: 11px; font-weight: 900; }
+.edge-tool-row-icon.is-copy { color: #7c3aed; }
+.edge-tools-preview { padding: 12px; border: 1px dashed #b7cdea; border-radius: 14px; background: linear-gradient(135deg, #f7fbff, #eef5fd); }
+.edge-tools-preview-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 10px; color: #2f6fb5; font-size: 11.5px; font-weight: 800; }
+.edge-tools-preview-head span { display: inline-flex; align-items: center; gap: 5px; }
+.edge-tools-preview-head em { font-style: normal; color: #b45309; }
+.edge-tools-preview-grid { grid-template-columns: minmax(0, 1fr) !important; }
+.edge-tools-preview-empty { margin: 10px 0 0; color: #b45309; font-size: 12px; font-weight: 800; }
+html.dark .edge-tool-row.is-dragging { background: #1b3858; border-color: #3d6d9e; }
+html.dark .edge-tool-grip { color: #8fb3d9; }
+html.dark .edge-tool-grip:hover { background: #1b3858; color: #cfe6ff; }
+html.dark .edge-tool-row-index { background: #1b3858; color: #cfe6ff; }
+html.dark .edge-tools-preview { border-color: #3d6d9e; background: linear-gradient(135deg, #0f1b2d, #102136); }
+html.dark .edge-tools-preview-head { color: #9dc5f0; }
+/* في المعاينة الدوائر ظاهرة دائمًا */
+.provider-card.is-preview .provider-edge-tools { opacity: 1 !important; visibility: visible !important; }
+.provider-card.is-preview { cursor: default; }
+/* دائرة نسخ الرقم */
+.provider-card .provider-edge-tools .edge-tool-copy { --tool: #7c3aed; }
+.provider-card .provider-edge-tools .edge-tool-copy.is-copied { --tool: #047857; background: rgba(209, 250, 229, .95); border-color: #34d399; }
+.provider-card .provider-edge-tools .edge-tool-copy.is-copied::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+html[data-design-edge-tools-pos="bottom"] .provider-card .provider-edge-tools .edge-tool-copy.is-copied::after { transform: translateX(-50%) translateY(0); }
+@media (hover: none) { .provider-card .provider-edge-tools .edge-tool-copy.is-copied::after { display: block; } }
