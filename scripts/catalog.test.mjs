@@ -270,7 +270,7 @@ test("serves settings without any advertising field", () => {
   assert.equal(sanitizeSettings({ copyright: "© 2026 جميع الحقوق محفوظة — دليل جنزور" }).copyright, "جميع الحقوق محفوظة — دليل جنزور");
   assert.deepEqual(sanitizeSettings({}), defaultSettings);
   // The legacy paid-advertising API stays gone; the only ad-related exports are the admin-managed banner helpers.
-  const bannerApi = ["AD_IMAGE_MAX_BYTES", "AD_IMAGE_MIMES", "AD_MIN_SECONDS", "AD_MAX_SECONDS", "AD_MAX_COUNT", "AD_CURRENCY", "isAdLive", "adImageUrl", "parseAdImageDataUrl", "adTemplates", "isAdTemplateId", "getAdTemplate", "defaultAdPricing", "sanitizeAdPricing", "cheapestAdTier", "adPricingSummary"];
+  const bannerApi = ["AD_IMAGE_MAX_BYTES", "AD_IMAGE_MIMES", "AD_MIN_SECONDS", "AD_MAX_SECONDS", "AD_MAX_COUNT", "AD_CURRENCY", "isAdLive", "adImageUrl", "parseAdImageDataUrl", "adTemplates", "isAdTemplateId", "getAdTemplate", "defaultAdPricing", "sanitizeAdPricing", "cheapestAdTier", "adPricingSummary", "advertiseRequestMessage"];
   assert.deepEqual(Object.keys(catalog).filter((name) => /advert|campaign|placement|marquee|^ad[A-Z]|Ad[A-Z]|adPrice|adDays/.test(name) && !bannerApi.includes(name)), []);
 });
 
@@ -792,4 +792,22 @@ test("ad templates and EGP price list: live without image, sanitizing, summary",
   assert.equal(formatEgp(150), `${(150).toLocaleString("ar-EG")} ج.م`);
   assert.equal(cheapestAdTier(defaultAdPricing).label, "أسبوع");
   assert.match(adPricingSummary(defaultAdPricing), /أسبوع: .*ج\.م • شهر: /);
+});
+
+test("provider of the week rotates weekly through the top-rated approved providers", () => {
+  const { pickProviderOfWeek, isoWeekNumber, advertiseRequestMessage, adTemplates } = catalog;
+  const make = (name, rating, reviews, extra = {}) => ({ id: name, name, rating, reviews, status: "approved", demo: false, verified: true, category: "clinics", area: "x", phone: "0100", ...extra });
+  const pool = [make("a", "4.9", 10), make("b", "4.8", 50), make("c", "4.8", 20), make("d", "4.5", 5), make("e", "4.4", 1), make("f", "4.3", 1), make("pending", "5.0", 99, { status: "pending" }), make("demo", "5.0", 99, { demo: true }), make("unrated", "0", 0)];
+  assert.equal(isoWeekNumber(new Date(2026, 0, 1)), 1);
+  assert.equal(isoWeekNumber(new Date(2026, 11, 31)), 53);
+  const picks = new Set();
+  for (let week = 0; week < 10; week += 1) picks.add(pickProviderOfWeek(pool, new Date(2026, 0, 5 + week * 7)).name);
+  assert.deepEqual([...picks].sort(), ["a", "b", "c", "d", "e"], "only the best five rotate; pending/demo/unrated never appear");
+  assert.equal(pickProviderOfWeek(pool, new Date(2026, 2, 2)), pickProviderOfWeek(pool, new Date(2026, 2, 8)), "same ISO week → same provider");
+  assert.equal(pickProviderOfWeek([]), null);
+  assert.ok(adTemplates.find((template) => template.id === "pro-of-week")?.auto);
+  const message = advertiseRequestMessage({ siteName: "دليل جنزور", name: "وائل", business: "صيدلية", phone: "01000000000", tier: { label: "شهر", days: 30, price: 400 }, kind: "قالب", template: "special-offer", notes: "خصم" });
+  assert.match(message, /الباقة: شهر \(30 يوم\)/);
+  assert.match(message, /قالب «عرض خاص»/);
+  assert.match(message, /ملاحظات: خصم/);
 });

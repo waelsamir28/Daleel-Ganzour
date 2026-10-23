@@ -1,6 +1,6 @@
 "use client";
-import { BadgeCheck, CirclePlus, Gift, Megaphone, MessageCircle, PartyPopper, Search, Sparkles, Star, Store, Wrench } from "lucide-react";
-import { getAdTemplate, type AdPricing, cheapestAdTier, formatEgp } from "@/lib/catalog";
+import { Award, BadgeCheck, CirclePlus, Gift, MapPin, Megaphone, MessageCircle, PartyPopper, Search, Sparkles, Star, Store, Wrench } from "lucide-react";
+import { getAdTemplate, type AdPricing, type ServiceRecord, cheapestAdTier, formatEgp } from "@/lib/catalog";
 
 type Props = {
   template: string;
@@ -12,13 +12,16 @@ type Props = {
   pricing?: AdPricing | null;
   /** Compact mode for admin gallery thumbnails. */
   compact?: boolean;
+  /** Automatic «مهني الأسبوع» content (top-rated provider) for the pro-of-week template. */
+  service?: ServiceRecord | null;
+  categoryName?: string;
 };
 
 /**
  * Built-in animated banners (pure CSS, zero upload). They adapt to the current site name/logo,
  * and each ad's own title/caption override the defaults.
  */
-export default function AdTemplateArt({ template, title = "", caption = "", siteName, logoUrl = "", pricing = null, compact = false }: Props) {
+export default function AdTemplateArt({ template, title = "", caption = "", siteName, logoUrl = "", pricing = null, compact = false, service = null, categoryName = "" }: Props) {
   const meta = getAdTemplate(template);
   if (!meta) return null;
   const heading = title.trim() || meta.title || siteName;
@@ -26,6 +29,28 @@ export default function AdTemplateArt({ template, title = "", caption = "", site
   const cheapest = pricing?.enabled ? cheapestAdTier(pricing) : null;
   const logo = logoUrl || "/app-icon.png";
   const cls = `ad-art ad-art-${template} ${compact ? "is-compact" : ""}`;
+
+  if (template === "pro-of-week") {
+    const stars = Math.round(Number(service?.rating ?? 0));
+    return (
+      <div className={cls} dir="rtl">
+        <span className="ad-art-orb ad-art-orb-a"/><span className="ad-art-orb ad-art-orb-b"/>
+        <span className="ad-art-badge ad-art-badge-gold"><Award size={13}/> مهني الأسبوع</span>
+        <span className="ad-art-icon-tile ad-art-pulse ad-art-tile-gold"><Star size={30}/></span>
+        <div className="ad-art-copy">
+          <strong>{service ? service.name : "أعلى مهني تقييمًا"}</strong>
+          <p>{service ? [categoryName, service.area].filter(Boolean).join(" · ") : "يتم اختياره تلقائيًا من تقييمات الأعضاء"}</p>
+          <span className="ad-art-stars" aria-label={service ? `التقييم ${service.rating} من 5` : undefined}>
+            {[1, 2, 3, 4, 5].map((index) => <Star key={index} size={13} className={index <= stars ? "is-on" : ""}/>)}
+            {service && <b>{service.rating}</b>}
+            {service && service.reviews > 0 && <small>({service.reviews.toLocaleString("ar-EG")} تقييم)</small>}
+          </span>
+          <small>{caption.trim() || meta.caption}</small>
+        </div>
+        {service && <span className="ad-art-cta"><MapPin size={14}/> شوف صفحته</span>}
+      </div>
+    );
+  }
 
   if (template === "ad-space") return (
     <div className={cls} dir="rtl">

@@ -3,7 +3,7 @@ import { type ChangeEvent, type FormEvent, useMemo, useRef, useState } from "rea
 import { ArrowDown, ArrowUp, BadgeDollarSign, CalendarDays, Clapperboard, Clock3, ImagePlus, LayoutTemplate, LoaderCircle, MessageCircle, Pencil, Plus, Power, Save, Trash2, Upload, UserRound, X } from "lucide-react";
 import SelectField from "@/components/select-field";
 import AdTemplateArt from "@/components/ad-template-art";
-import { AD_CURRENCY, AD_IMAGE_MAX_BYTES, AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, adImageUrl, adTemplates, defaultAdPricing, formatEgp, isAdLive, type AdBannerRecord, type AdPricing, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
+import { AD_CURRENCY, AD_IMAGE_MAX_BYTES, AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, adImageUrl, adTemplates, defaultAdPricing, formatEgp, getCategory, isAdLive, pickProviderOfWeek, type AdBannerRecord, type AdPricing, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 
 type Mutate = (method: "POST" | "PATCH" | "DELETE", body: Record<string, unknown>, success?: string) => Promise<boolean>;
 type Source = "upload" | "template";
@@ -35,6 +35,9 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
   const providerOptions = useMemo(() => [{ value: "", label: "بدون ربط بصفحة مهني" }, ...services.filter((service) => service.status === "approved").map((service) => ({ value: service.id, label: `${service.name} — ${categories.find((category) => category.id === service.category)?.name ?? service.category}` }))], [services, categories]);
   const editing = editingId ? ads.find((ad) => ad.id === editingId) ?? null : null;
   const live = ads.filter((ad) => isAdLive(ad)).length;
+  const weekly = useMemo(() => pickProviderOfWeek(services), [services]);
+  const weeklyCategory = weekly ? getCategory(weekly.category, categories).name : "";
+  const artProps = { siteName, logoUrl, pricing, service: weekly, categoryName: weeklyCategory };
 
   function startCreate(source: Source = "upload", template = "") {
     setEditingId(null); setError(""); setOpen(true);
@@ -125,14 +128,17 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
               <div className="admin-ad-templates" role="radiogroup" aria-label="القوالب الجاهزة">
                 {adTemplates.map((template) => (
                   <button type="button" key={template.id} role="radio" aria-checked={draft.template === template.id} className={`admin-ad-template ${draft.template === template.id ? "is-selected" : ""}`} onClick={() => pickTemplate(template.id)}>
-                    <span className="admin-ad-template-art"><AdTemplateArt template={template.id} siteName={siteName} logoUrl={logoUrl} pricing={pricing} compact/></span>
-                    <span className="admin-ad-template-name">{template.name}</span>
+                    <span className="admin-ad-template-art"><AdTemplateArt template={template.id} {...artProps} compact/></span>
+                    <span className="admin-ad-template-name">{template.name}{template.auto && <em className="admin-ad-auto-chip">تلقائي</em>}</span>
                     <small>{template.description}</small>
                   </button>
                 ))}
               </div>
             )}
 
+            {draft.source === "template" && adTemplates.find((item) => item.id === draft.template)?.auto && (
+              <div className="form-notice admin-ad-auto-note"><span>هذا القالب تلقائي: يعرض كل أسبوع أعلى مهني تقييمًا ({weekly ? `حاليًا: ${weekly.name}` : "لا يوجد مهني بتقييم بعد"}) ويربط الأزرار بصفحته وواتسابه. لا حاجة لاختيار مهني أو رقم.</span></div>
+            )}
             <div className="admin-ad-fields">
               <label className="admin-ad-field admin-ad-field-wide">
                 <span>المعلن مرتبط بصفحة في الدليل</span>
@@ -172,7 +178,7 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
           <aside className="admin-ad-form-side">
             <span className="admin-ad-side-title">معاينة حيّة</span>
             <div className="admin-ad-preview">
-              {previewTemplate ? <AdTemplateArt template={previewTemplate} title={draft.title} caption={draft.caption} siteName={siteName} logoUrl={logoUrl} pricing={pricing}/>
+              {previewTemplate ? <AdTemplateArt template={previewTemplate} title={draft.title} caption={draft.caption} {...artProps}/>
                 : previewImage ? (
                   // eslint-disable-next-line @next/next/no-img-element -- Local data-URL / database-served preview.
                   <img src={previewImage} alt="معاينة الإعلان"/>
@@ -202,7 +208,7 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
           return <article key={ad.id} className={`admin-ad-row ${isLive ? "" : "is-off"}`}>
             <span className="admin-ad-order">{position + 1}</span>
             <div className="admin-ad-thumb">
-              {ad.template ? <AdTemplateArt template={ad.template} title={ad.title} caption={ad.caption} siteName={siteName} logoUrl={logoUrl} pricing={pricing} compact/>
+              {ad.template ? <AdTemplateArt template={ad.template} title={ad.title} caption={ad.caption} {...artProps} compact/>
                 : ad.hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element -- Database-served ad artwork.
                   <img src={adImageUrl(ad)} alt=""/>
