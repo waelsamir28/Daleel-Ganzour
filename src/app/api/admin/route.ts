@@ -1,12 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { adBanners, communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
+import { adBanners, adRequests, communityListings, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdTemplateId, parseAdImageDataUrl, sanitizeAdPricing, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isHexColor, parseAdImageDataUrl, sanitizeAdPricing, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -42,7 +42,9 @@ async function adInput(values: Record<string, unknown>) {
   };
   const startsAt = parseDate(values.startsAt, "تاريخ البداية"), endsAt = parseDate(values.endsAt, "تاريخ النهاية");
   if (startsAt && endsAt && endsAt <= startsAt) throw new InputError("تاريخ النهاية يجب أن يكون بعد تاريخ البداية.");
-  return { title, caption, whatsapp, serviceId, startsAt, endsAt, template, active: values.active !== false, durationSeconds: integerInput(values.durationSeconds ?? 6, AD_MIN_SECONDS, AD_MAX_SECONDS, "مدة عرض الإعلان بالثواني") };
+  const transition = isAdTransition(values.transition) ? values.transition : "random", motion = isAdMotion(values.motion) ? values.motion : "kenburns";
+  const accentColor = isHexColor(values.accentColor) ? values.accentColor.toLowerCase() : "";
+  return { title, caption, whatsapp, serviceId, startsAt, endsAt, template, transition, motion, accentColor, active: values.active !== false, durationSeconds: integerInput(values.durationSeconds ?? 6, AD_MIN_SECONDS, AD_MAX_SECONDS, "مدة عرض الإعلان بالثواني") };
 }
 function adImageInput(value: unknown) {
   try { return parseAdImageDataUrl(value); }
@@ -97,7 +99,7 @@ export async function POST(request: Request) {
     } else if (body.type === "ad") {
       const [{ total }] = await db.select({ total: count() }).from(adBanners);
       if (total >= AD_MAX_COUNT) throw new InputError(`الحد الأقصى ${AD_MAX_COUNT} إعلانات. احذف إعلانًا قديمًا أولًا.`);
-      const fields = await adInput(values), image = fields.template ? null : adImageInput(values.image);
+      const fields = await adInput(values), image = values.image || !fields.template ? adImageInput(values.image) : null;
       await db.insert(adBanners).values({ ...fields, imageMime: image?.mime ?? "", imageData: image?.base64 ?? "", imageVersion: 1, sortOrder: total });
     } else if (body.type === "service") {
       const basics = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
@@ -147,10 +149,17 @@ export async function PATCH(request: Request) {
         await db.update(adBanners).set({ active: !existing.active }).where(eq(adBanners.id, id));
       } else {
         const values = objectInput(body.values), fields = await adInput(values);
-        const image = !fields.template && values.image ? adImageInput(values.image) : null;
+        const image = values.image ? adImageInput(values.image) : null;
+        const removeImage = fields.template && values.removeImage === true && !image;
         if (!fields.template && !image && !existing.imageData) throw new InputError("ارفع صورة الإعلان أو اختر قالبًا جاهزًا.");
-        await db.update(adBanners).set({ ...fields, ...(image ? { imageMime: image.mime, imageData: image.base64, imageVersion: existing.imageVersion + 1 } : {}), ...(fields.template ? { imageMime: "", imageData: "" } : {}) }).where(eq(adBanners.id, id));
+        await db.update(adBanners).set({ ...fields, ...(image ? { imageMime: image.mime, imageData: image.base64, imageVersion: existing.imageVersion + 1 } : {}), ...(removeImage ? { imageMime: "", imageData: "" } : {}) }).where(eq(adBanners.id, id));
       }
+    } else if (type === "ad-request") {
+      const id = uuid(body.id);
+      const status = action === "handle" ? "handled" : action === "reopen" ? "new" : null;
+      if (!status) throw new InputError("إجراء غير معروف.");
+      await db.update(adRequests).set({ status }).where(eq(adRequests.id, id));
+      if (status === "handled") await db.update(notifications).set({ read: true }).where(and(eq(notifications.type, "ad-request"), eq(notifications.entityId, id)));
     } else if (type === "category" && action === "move") {
       const id = cleanText(body.id, 60), direction = body.direction === "up" ? -1 : body.direction === "down" ? 1 : 0;
       if (!direction) throw new InputError("اتجاه الترتيب غير صحيح.");
@@ -350,6 +359,7 @@ export async function DELETE(request: Request) {
       else if (type === "notification") await db.delete(notifications).where(eq(notifications.id, id));
       else if (type === "rating") await db.delete(serviceRatings).where(eq(serviceRatings.id, id));
       else if (type === "ad") await db.delete(adBanners).where(eq(adBanners.id, id));
+      else if (type === "ad-request") { await db.delete(adRequests).where(eq(adRequests.id, id)); await db.delete(notifications).where(and(eq(notifications.type, "ad-request"), eq(notifications.entityId, id))); }
       else throw new InputError("نوع الحذف غير صحيح.");
       if (["service", "community", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
     }

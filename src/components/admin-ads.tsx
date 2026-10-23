@@ -1,14 +1,15 @@
 "use client";
 import { type ChangeEvent, type FormEvent, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, BadgeDollarSign, CalendarDays, Clapperboard, Clock3, ImagePlus, LayoutTemplate, LoaderCircle, MessageCircle, Pencil, Plus, Power, Save, Trash2, Upload, UserRound, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BadgeDollarSign, CalendarDays, Check, Clapperboard, Clock3, ImagePlus, Inbox, LayoutTemplate, LoaderCircle, MessageCircle, Palette, Pencil, Plus, Power, RotateCcw, Save, Sparkles, Trash2, Upload, UserRound, Wand2, X } from "lucide-react";
 import SelectField from "@/components/select-field";
 import AdTemplateArt from "@/components/ad-template-art";
-import { AD_CURRENCY, AD_IMAGE_MAX_BYTES, AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, adImageUrl, adTemplates, defaultAdPricing, formatEgp, getCategory, isAdLive, pickProviderOfWeek, type AdBannerRecord, type AdPricing, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
+import { AD_ACCENT_PRESETS, AD_CURRENCY, AD_IMAGE_MAX_BYTES, AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, AD_MOTIONS, AD_REQUEST_KINDS, AD_TRANSITIONS, adImageUrl, adTemplates, autoTemplateService, defaultAdPricing, formatEgp, getCategory, isAdLive, whatsappUrl, type AdBannerRecord, type AdPricing, type AdRequestRecord, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
+import { adAccentStyle } from "@/components/ad-rotator";
 
 type Mutate = (method: "POST" | "PATCH" | "DELETE", body: Record<string, unknown>, success?: string) => Promise<boolean>;
 type Source = "upload" | "template";
-type Draft = { source: Source; template: string; title: string; caption: string; serviceId: string; whatsapp: string; durationSeconds: string; startsAt: string; endsAt: string; active: boolean; image: string; imageName: string };
-const emptyDraft: Draft = { source: "upload", template: "", title: "", caption: "", serviceId: "", whatsapp: "", durationSeconds: "6", startsAt: "", endsAt: "", active: true, image: "", imageName: "" };
+type Draft = { source: Source; template: string; title: string; caption: string; serviceId: string; whatsapp: string; durationSeconds: string; startsAt: string; endsAt: string; active: boolean; image: string; imageName: string; transition: string; motion: string; accentColor: string; removeImage: boolean };
+const emptyDraft: Draft = { source: "upload", template: "", title: "", caption: "", serviceId: "", whatsapp: "", durationSeconds: "6", startsAt: "", endsAt: "", active: true, image: "", imageName: "", transition: "random", motion: "kenburns", accentColor: "", removeImage: false };
 
 function toDateInput(value: string | null) { return value ? value.slice(0, 10) : ""; }
 function readFileAsDataUrl(file: File) {
@@ -21,12 +22,12 @@ function readFileAsDataUrl(file: File) {
 }
 
 type Props = {
-  ads: AdBannerRecord[]; services: ServiceRecord[]; categories: CategoryRecord[]; busy: string | null; mutate: Mutate;
-  siteName: string; logoUrl: string; pricing: AdPricing; onConfirmDelete: (ad: AdBannerRecord) => void;
+  ads: AdBannerRecord[]; requests: AdRequestRecord[]; services: ServiceRecord[]; categories: CategoryRecord[]; busy: string | null; mutate: Mutate;
+  siteName: string; logoUrl: string; pricing: AdPricing; onConfirmDelete: (ad: AdBannerRecord) => void; onConfirmDeleteRequest: (request: AdRequestRecord) => void;
 };
 
 /** Admin tab: upload or pick ready-made animated banners, order/schedule them, and manage the EGP price list. */
-export default function AdminAds({ ads, services, categories, busy, mutate, siteName, logoUrl, pricing, onConfirmDelete }: Props) {
+export default function AdminAds({ ads, requests, services, categories, busy, mutate, siteName, logoUrl, pricing, onConfirmDelete, onConfirmDeleteRequest }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [error, setError] = useState("");
@@ -35,19 +36,19 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
   const providerOptions = useMemo(() => [{ value: "", label: "بدون ربط بصفحة مهني" }, ...services.filter((service) => service.status === "approved").map((service) => ({ value: service.id, label: `${service.name} — ${categories.find((category) => category.id === service.category)?.name ?? service.category}` }))], [services, categories]);
   const editing = editingId ? ads.find((ad) => ad.id === editingId) ?? null : null;
   const live = ads.filter((ad) => isAdLive(ad)).length;
-  const weekly = useMemo(() => pickProviderOfWeek(services), [services]);
-  const weeklyCategory = weekly ? getCategory(weekly.category, categories).name : "";
-  const artProps = { siteName, logoUrl, pricing, service: weekly, categoryName: weeklyCategory };
+  const autoFor = (template: string) => { const service = autoTemplateService(template, services, categories); return { service, categoryName: service ? getCategory(service.category, categories).name : "" }; };
+  const artProps = { siteName, logoUrl, pricing };
+  const weekly = autoFor(draft.template).service;
 
-  function startCreate(source: Source = "upload", template = "") {
+  function startCreate(source: Source = "upload", template = "", prefill: Partial<Draft> = {}) {
     setEditingId(null); setError(""); setOpen(true);
     const meta = adTemplates.find((item) => item.id === template);
-    setDraft({ ...emptyDraft, source, template, title: meta?.title ?? "", caption: meta?.caption ?? "" });
+    setDraft({ ...emptyDraft, source, template, title: meta?.title ?? "", caption: meta?.caption ?? "", ...prefill });
     window.setTimeout(() => document.getElementById("admin-ad-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
   function startEdit(ad: AdBannerRecord) {
     setEditingId(ad.id); setError(""); setOpen(true);
-    setDraft({ source: ad.template ? "template" : "upload", template: ad.template, title: ad.title, caption: ad.caption, serviceId: ad.serviceId ?? "", whatsapp: ad.whatsapp, durationSeconds: String(ad.durationSeconds), startsAt: toDateInput(ad.startsAt), endsAt: toDateInput(ad.endsAt), active: ad.active, image: "", imageName: "" });
+    setDraft({ source: ad.template ? "template" : "upload", template: ad.template, title: ad.title, caption: ad.caption, serviceId: ad.serviceId ?? "", whatsapp: ad.whatsapp, durationSeconds: String(ad.durationSeconds), startsAt: toDateInput(ad.startsAt), endsAt: toDateInput(ad.endsAt), active: ad.active, image: "", imageName: "", transition: ad.transition || "random", motion: ad.motion || "kenburns", accentColor: ad.accentColor || "", removeImage: false });
     window.setTimeout(() => document.getElementById("admin-ad-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
   function pickTemplate(id: string) {
@@ -69,7 +70,7 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
     setError("");
     if (!/^image\/(gif|png|jpeg|webp)$/.test(file.type)) { setError("ارفع ملف GIF أو PNG أو JPG أو WebP فقط."); event.target.value = ""; return; }
     if (file.size > AD_IMAGE_MAX_BYTES) { setError(`حجم الملف ${(file.size / 1024 / 1024).toFixed(1)} ميجا. الحد الأقصى ٣ ميجا — صغّر الـ GIF (مثلًا بتقليل الأبعاد إلى 1200×400 أو عدد الإطارات).`); event.target.value = ""; return; }
-    try { const image = await readFileAsDataUrl(file); setDraft((current) => ({ ...current, source: "upload", template: "", image, imageName: file.name })); }
+    try { const image = await readFileAsDataUrl(file); setDraft((current) => ({ ...current, image, imageName: file.name, removeImage: false, ...(current.source === "template" ? {} : { template: "" }) })); }
     catch { setError("تعذر قراءة الملف. جرّب ملفًا آخر."); }
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -77,13 +78,21 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
     const usingTemplate = draft.source === "template" && draft.template;
     if (draft.source === "template" && !draft.template) { setError("اختر قالبًا من القوالب الجاهزة."); return; }
     if (!usingTemplate && !editing?.hasImage && !draft.image) { setError("ارفع صورة الإعلان المتحركة أولًا أو اختر قالبًا جاهزًا."); return; }
-    const values: Record<string, unknown> = { title: draft.title, caption: draft.caption, serviceId: draft.serviceId || null, whatsapp: draft.whatsapp, durationSeconds: Number(draft.durationSeconds || 6), startsAt: draft.startsAt ? `${draft.startsAt}T00:00:00` : null, endsAt: draft.endsAt ? `${draft.endsAt}T23:59:59` : null, active: draft.active, template: usingTemplate ? draft.template : "", ...(!usingTemplate && draft.image ? { image: draft.image } : {}) };
+    const values: Record<string, unknown> = { title: draft.title, caption: draft.caption, serviceId: draft.serviceId || null, whatsapp: draft.whatsapp, durationSeconds: Number(draft.durationSeconds || 6), startsAt: draft.startsAt ? `${draft.startsAt}T00:00:00` : null, endsAt: draft.endsAt ? `${draft.endsAt}T23:59:59` : null, active: draft.active, template: usingTemplate ? draft.template : "", transition: draft.transition, motion: draft.motion, accentColor: draft.accentColor, removeImage: usingTemplate && draft.removeImage, ...(draft.image ? { image: draft.image } : {}) };
     const ok = editing ? await mutate("PATCH", { type: "ad", id: editing.id, action: "edit", values }, "تم حفظ الإعلان.") : await mutate("POST", { type: "ad", values }, "تم نشر الإعلان في المساحة الإعلانية.");
     if (ok) { setOpen(false); setDraft(emptyDraft); setEditingId(null); }
   }
 
   const previewTemplate = draft.source === "template" ? draft.template : "";
-  const previewImage = draft.source === "upload" ? draft.image || (editing?.hasImage ? adImageUrl(editing) : "") : "";
+  const existingImage = editing?.hasImage && !draft.removeImage ? adImageUrl(editing) : "";
+  const previewImage = draft.image || existingImage;
+  const pendingRequests = requests.filter((request) => request.status !== "handled");
+  function convertRequest(request: AdRequestRecord) {
+    const source: Source = request.kind === "template" ? "template" : "upload";
+    const template = source === "template" ? request.template || "special-offer" : "";
+    const matched = services.find((service) => service.phone === request.phone);
+    startCreate(source, template, { title: request.business || request.name, caption: request.notes.slice(0, 240), whatsapp: request.phone, serviceId: matched?.id ?? "" });
+  }
 
   return <div className="admin-ads">
     <section className="admin-ads-hero">
@@ -117,24 +126,48 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
 
         <div className="admin-ad-form-grid">
           <div className="admin-ad-form-main">
-            {draft.source === "upload" ? (
-              <label className="admin-ad-dropzone">
-                <input ref={fileInput} type="file" accept="image/gif,image/png,image/jpeg,image/webp" onChange={(event) => void onFile(event)}/>
-                <span className="admin-ad-dropzone-icon"><ImagePlus size={26}/></span>
-                <strong>{draft.imageName ? draft.imageName : "اضغط لاختيار GIF / صورة من جهازك"}</strong>
-                <small>{editing?.hasImage && !draft.image ? "اترك الحقل فارغًا للإبقاء على الصورة الحالية." : "GIF أو PNG أو JPG أو WebP — حتى ٣ ميجا. الأفضل 1200×400 بكسل (3:1)."}</small>
-              </label>
-            ) : (
+            {draft.source === "template" && (
               <div className="admin-ad-templates" role="radiogroup" aria-label="القوالب الجاهزة">
-                {adTemplates.map((template) => (
+                {adTemplates.map((template) => {
+                  const auto = template.auto ? autoFor(template.id) : { service: null, categoryName: "" };
+                  return (
                   <button type="button" key={template.id} role="radio" aria-checked={draft.template === template.id} className={`admin-ad-template ${draft.template === template.id ? "is-selected" : ""}`} onClick={() => pickTemplate(template.id)}>
-                    <span className="admin-ad-template-art"><AdTemplateArt template={template.id} {...artProps} compact/></span>
+                    <span className="admin-ad-template-art" style={adAccentStyle(draft.accentColor)}><AdTemplateArt template={template.id} {...artProps} {...auto} compact/></span>
                     <span className="admin-ad-template-name">{template.name}{template.auto && <em className="admin-ad-auto-chip">تلقائي</em>}</span>
                     <small>{template.description}</small>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             )}
+            {(
+              <label className={`admin-ad-dropzone ${draft.source === "template" ? "is-optional" : ""}`}>
+                <input ref={fileInput} type="file" accept="image/gif,image/png,image/jpeg,image/webp" onChange={(event) => void onFile(event)}/>
+                <span className="admin-ad-dropzone-icon"><ImagePlus size={26}/></span>
+                <strong>{draft.imageName ? draft.imageName : draft.source === "template" ? "صورة خلفية للقالب (اختياري) — اضغط للاختيار" : "اضغط لاختيار GIF / صورة من جهازك"}</strong>
+                <small>{existingImage && !draft.image ? "توجد صورة محفوظة؛ اترك الحقل فارغًا للإبقاء عليها." : draft.source === "template" ? "صورة أو GIF تظهر خلف القالب بتدرّج بلون المعلن. حتى ٣ ميجا." : "GIF أو PNG أو JPG أو WebP — حتى ٣ ميجا. الأفضل 1200×400 بكسل (3:1)."}</small>
+                {draft.source === "template" && (existingImage || draft.image) && <button type="button" className="button button-soft button-small admin-ad-remove-bg" onClick={(event) => { event.preventDefault(); setDraft({ ...draft, image: "", imageName: "", removeImage: true }); if (fileInput.current) fileInput.current.value = ""; }}><X size={13}/> إزالة الخلفية</button>}
+              </label>
+            )}
+
+            <div className="admin-ad-fx">
+              <label className="admin-ad-field">
+                <span><Wand2 size={13}/> حركة الانتقال بين الإعلانات</span>
+                <SelectField value={draft.transition} onChange={(event) => setDraft({ ...draft, transition: event.target.value })} options={AD_TRANSITIONS.map((item) => ({ value: item.id, label: item.name }))} aria-label="حركة الانتقال"/>
+              </label>
+              <label className="admin-ad-field">
+                <span><Sparkles size={13}/> حركة الإعلان أثناء العرض</span>
+                <SelectField value={draft.motion} onChange={(event) => setDraft({ ...draft, motion: event.target.value })} options={AD_MOTIONS.map((item) => ({ value: item.id, label: item.name }))} aria-label="حركة العرض"/>
+              </label>
+              <div className="admin-ad-field admin-ad-field-wide">
+                <span><Palette size={13}/> لون المعلن (يلوّن القالب والخلفية)</span>
+                <div className="admin-ad-colors">
+                  <button type="button" className={`admin-ad-color is-none ${!draft.accentColor ? "is-selected" : ""}`} onClick={() => setDraft({ ...draft, accentColor: "" })} title="اللون الافتراضي للقالب"><RotateCcw size={13}/></button>
+                  {AD_ACCENT_PRESETS.map((color) => <button type="button" key={color} className={`admin-ad-color ${draft.accentColor === color ? "is-selected" : ""}`} style={{ background: color }} onClick={() => setDraft({ ...draft, accentColor: color })} aria-label={`لون ${color}`}>{draft.accentColor === color && <Check size={13}/>}</button>)}
+                  <label className="admin-ad-color-custom" title="لون مخصص"><input type="color" value={draft.accentColor || "#0b63c9"} onChange={(event) => setDraft({ ...draft, accentColor: event.target.value })}/><span>مخصص</span></label>
+                </div>
+              </div>
+            </div>
 
             {draft.source === "template" && adTemplates.find((item) => item.id === draft.template)?.auto && (
               <div className="form-notice admin-ad-auto-note"><span>هذا القالب تلقائي: يعرض كل أسبوع أعلى مهني تقييمًا ({weekly ? `حاليًا: ${weekly.name}` : "لا يوجد مهني بتقييم بعد"}) ويربط الأزرار بصفحته وواتسابه. لا حاجة لاختيار مهني أو رقم.</span></div>
@@ -178,7 +211,7 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
           <aside className="admin-ad-form-side">
             <span className="admin-ad-side-title">معاينة حيّة</span>
             <div className="admin-ad-preview">
-              {previewTemplate ? <AdTemplateArt template={previewTemplate} title={draft.title} caption={draft.caption} {...artProps}/>
+              {previewTemplate ? <div className={`admin-ad-preview-art ad-motion-${draft.motion}`} style={adAccentStyle(draft.accentColor)}><AdTemplateArt template={previewTemplate} title={draft.title} caption={draft.caption} {...artProps} {...autoFor(previewTemplate)} backgroundUrl={previewImage} animated/></div>
                 : previewImage ? (
                   // eslint-disable-next-line @next/next/no-img-element -- Local data-URL / database-served preview.
                   <img src={previewImage} alt="معاينة الإعلان"/>
@@ -200,6 +233,35 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
       </form>
     )}
 
+    <section className="admin-ad-requests">
+      <h3 className="admin-ads-section-title"><Inbox size={17}/> طلبات الإعلانات من صفحة «أعلن معنا» <span>{pendingRequests.length}</span></h3>
+      {requests.length ? <div className="admin-ad-requests-list">
+        {requests.map((request) => (
+          <article key={request.id} className={`admin-ad-request ${request.status === "handled" ? "is-handled" : ""}`}>
+            <div className="admin-ad-request-info">
+              <h4>{request.business || request.name}<span className={`status-badge ${request.status === "handled" ? "status-approved" : "status-pending"}`}>{request.status === "handled" ? "تمت المعالجة" : "جديد"}</span></h4>
+              <p>
+                <span><UserRound size={12}/> {request.name}</span>
+                <span dir="ltr"><MessageCircle size={12}/> {request.phone}</span>
+                {request.tierLabel && <span><BadgeDollarSign size={12}/> {request.tierLabel}</span>}
+                <span><LayoutTemplate size={12}/> {AD_REQUEST_KINDS[request.kind] ?? request.kind}{request.template ? ` — ${adTemplates.find((item) => item.id === request.template)?.name ?? request.template}` : ""}</span>
+                <span><CalendarDays size={12}/> {new Date(request.createdAt).toLocaleDateString("ar-EG")}</span>
+              </p>
+              {request.notes && <blockquote>{request.notes}</blockquote>}
+            </div>
+            <div className="admin-ad-actions">
+              <button type="button" className="button button-primary button-small" onClick={() => convertRequest(request)} disabled={ads.length >= AD_MAX_COUNT}><Wand2 size={14}/> حوّله لإعلان</button>
+              <a className="button button-whatsapp button-small" href={whatsappUrl(request.phone, `مرحبًا ${request.name}، وصلنا طلبك لإعلان «${request.business || ""}» في ${siteName}.`)} target="_blank" rel="noopener noreferrer"><MessageCircle size={14}/> واتساب</a>
+              {request.status === "handled"
+                ? <button type="button" className="button button-soft button-small" onClick={() => void mutate("PATCH", { type: "ad-request", id: request.id, action: "reopen" }, "تمت إعادة فتح الطلب.")}><RotateCcw size={14}/> إعادة فتح</button>
+                : <button type="button" className="button button-success button-small" onClick={() => void mutate("PATCH", { type: "ad-request", id: request.id, action: "handle" }, "تم تحديد الطلب كمعالَج.")}><Check size={14}/> تمت المعالجة</button>}
+              <button type="button" className="icon-button admin-delete" onClick={() => onConfirmDeleteRequest(request)} aria-label="حذف الطلب"><Trash2 size={15}/></button>
+            </div>
+          </article>
+        ))}
+      </div> : <p className="admin-ad-requests-empty">لسه مفيش طلبات. كل طلب من صفحة «أعلن معنا» هيظهر هنا ومعاه إشعار في الجرس.</p>}
+    </section>
+
     <section className="admin-ads-list-section">
       <h3 className="admin-ads-section-title"><Clapperboard size={17}/> الإعلانات الحالية <span>{ads.length}</span></h3>
       <div className="admin-ads-list">
@@ -207,8 +269,8 @@ export default function AdminAds({ ads, services, categories, busy, mutate, site
           const isLive = isAdLive(ad), linked = ad.serviceId ? services.find((service) => service.id === ad.serviceId) : null;
           return <article key={ad.id} className={`admin-ad-row ${isLive ? "" : "is-off"}`}>
             <span className="admin-ad-order">{position + 1}</span>
-            <div className="admin-ad-thumb">
-              {ad.template ? <AdTemplateArt template={ad.template} title={ad.title} caption={ad.caption} {...artProps} compact/>
+            <div className="admin-ad-thumb" style={adAccentStyle(ad.accentColor)}>
+              {ad.template ? <AdTemplateArt template={ad.template} title={ad.title} caption={ad.caption} {...artProps} {...autoFor(ad.template)} backgroundUrl={ad.hasImage ? adImageUrl(ad) : ""} compact/>
                 : ad.hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element -- Database-served ad artwork.
                   <img src={adImageUrl(ad)} alt=""/>

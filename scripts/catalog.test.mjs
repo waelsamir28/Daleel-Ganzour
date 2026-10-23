@@ -270,7 +270,7 @@ test("serves settings without any advertising field", () => {
   assert.equal(sanitizeSettings({ copyright: "© 2026 جميع الحقوق محفوظة — دليل جنزور" }).copyright, "جميع الحقوق محفوظة — دليل جنزور");
   assert.deepEqual(sanitizeSettings({}), defaultSettings);
   // The legacy paid-advertising API stays gone; the only ad-related exports are the admin-managed banner helpers.
-  const bannerApi = ["AD_IMAGE_MAX_BYTES", "AD_IMAGE_MIMES", "AD_MIN_SECONDS", "AD_MAX_SECONDS", "AD_MAX_COUNT", "AD_CURRENCY", "isAdLive", "adImageUrl", "parseAdImageDataUrl", "adTemplates", "isAdTemplateId", "getAdTemplate", "defaultAdPricing", "sanitizeAdPricing", "cheapestAdTier", "adPricingSummary", "advertiseRequestMessage"];
+  const bannerApi = ["AD_IMAGE_MAX_BYTES", "AD_IMAGE_MIMES", "AD_MIN_SECONDS", "AD_MAX_SECONDS", "AD_MAX_COUNT", "AD_CURRENCY", "isAdLive", "adImageUrl", "parseAdImageDataUrl", "adTemplates", "isAdTemplateId", "getAdTemplate", "defaultAdPricing", "sanitizeAdPricing", "cheapestAdTier", "adPricingSummary", "advertiseRequestMessage", "AD_TRANSITIONS", "AD_MOTIONS", "AD_ACCENT_PRESETS", "AD_REQUEST_KINDS", "isAdTransition", "isAdMotion", "nextAdTransition", "autoTemplateService"];
   assert.deepEqual(Object.keys(catalog).filter((name) => /advert|campaign|placement|marquee|^ad[A-Z]|Ad[A-Z]|adPrice|adDays/.test(name) && !bannerApi.includes(name)), []);
 });
 
@@ -810,4 +810,26 @@ test("provider of the week rotates weekly through the top-rated approved provide
   assert.match(message, /الباقة: شهر \(30 يوم\)/);
   assert.match(message, /قالب «عرض خاص»/);
   assert.match(message, /ملاحظات: خصم/);
+});
+
+test("automatic templates: shop of the month, most reviewed, newest member; transitions and brand colours", () => {
+  const { autoTemplateService, nextAdTransition, shadeHex, isHexColor, AD_TRANSITIONS, AD_MOTIONS, adTemplates } = catalog;
+  const make = (name, rating, reviews, extra = {}) => ({ id: name, name, rating, reviews, status: "approved", demo: false, verified: true, category: "clinics", area: "x", phone: "0100", createdAt: "2026-01-01T00:00:00.000Z", ...extra });
+  const categories = [{ id: "shops", name: "محلات", parentId: null }, { id: "grocery", name: "بقالة", parentId: "shops" }];
+  const pool = [make("doc", "4.9", 10), make("shop1", "4.7", 3, { category: "grocery" }), make("shop2", "4.2", 8, { category: "shops" }), make("newest", "0", 0, { createdAt: "2026-09-01T00:00:00.000Z" }), make("talk", "4.0", 99), make("demo", "5", 99, { demo: true, category: "shops" }), make("pending", "5", 99, { status: "pending", createdAt: "2027-01-01T00:00:00.000Z" })];
+  for (const id of ["shop-of-month", "most-reviewed", "new-in-directory"]) assert.ok(adTemplates.find((template) => template.id === id)?.auto, `${id} is automatic`);
+  const monthPick = autoTemplateService("shop-of-month", pool, categories, new Date(2026, 3, 1));
+  assert.ok(["shop1", "shop2"].includes(monthPick.name), "shop of the month comes from shop categories only");
+  assert.equal(autoTemplateService("shop-of-month", pool, categories, new Date(2026, 3, 1)).name, autoTemplateService("shop-of-month", pool, categories, new Date(2026, 3, 28)).name, "stable within the month");
+  assert.equal(autoTemplateService("most-reviewed", pool, categories).name === "demo", false);
+  assert.ok(["talk", "doc", "shop2", "shop1"].includes(autoTemplateService("most-reviewed", pool, categories).name));
+  assert.equal(autoTemplateService("new-in-directory", pool, categories).name, "newest", "pending members never appear");
+  assert.equal(autoTemplateService("pro-of-week", pool, categories, new Date(2026, 0, 5)).name, "doc");
+  assert.equal(autoTemplateService("special-offer", pool, categories), null);
+  assert.equal(autoTemplateService("shop-of-month", [], categories), null);
+  assert.equal(nextAdTransition("flip", "fade"), "flip", "explicit transition wins");
+  for (let i = 0; i < 30; i += 1) { const pick = nextAdTransition("random", "fade"); assert.notEqual(pick, "fade"); assert.notEqual(pick, "random"); assert.ok(AD_TRANSITIONS.some((item) => item.id === pick)); }
+  assert.ok(AD_MOTIONS.some((item) => item.id === "none") && AD_MOTIONS.some((item) => item.id === "kenburns"));
+  assert.equal(isHexColor("#0b63c9"), true); assert.equal(isHexColor("red"), false); assert.equal(isHexColor("#fff"), false);
+  assert.equal(shadeHex("#000000", 0.5), "#808080"); assert.equal(shadeHex("#ffffff", -0.5), "#808080"); assert.equal(shadeHex("nope", 0.5), "nope");
 });

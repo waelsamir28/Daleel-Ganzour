@@ -169,5 +169,25 @@ export const adBanners = pgTable("directory_ad_banners", {
   imageVersion: integer("image_version").notNull().default(1),
   /** Built-in animated template id (empty when the ad uses an uploaded image). */
   template: varchar("template", { length: 40 }).notNull().default(""),
+  /** Slide-change effect (fade, slide, zoom, flip, blur, curtain, random). */
+  transition: varchar("transition", { length: 20 }).notNull().default("random"),
+  /** Motion applied while the ad is on screen (none, kenburns, float, pulse, shine). */
+  motion: varchar("motion", { length: 20 }).notNull().default("kenburns"),
+  /** Advertiser brand colour (hex) used by the templates; empty keeps the template default. */
+  accentColor: varchar("accent_color", { length: 9 }).notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Advertising requests sent from the public «أعلن معنا» page, kept so the admin can convert them into ads. */
+export const adRequests = pgTable("directory_ad_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 80 }).notNull(),
+  business: varchar("business", { length: 120 }).notNull().default(""),
+  phone: varchar("phone", { length: 16 }).notNull(),
+  tierLabel: varchar("tier_label", { length: 60 }).notNull().default(""),
+  kind: varchar("kind", { length: 20 }).notNull().default("template"),
+  template: varchar("template", { length: 40 }).notNull().default(""),
+  notes: varchar("notes", { length: 400 }).notNull().default(""),
+  status: varchar("status", { length: 12 }).notNull().default("new"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
