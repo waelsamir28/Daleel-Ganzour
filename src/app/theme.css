@@ -434,3 +434,24 @@ html.dark .filter-tags .emergency-filter { background: #2b1417; color: #ff9d9d; 
 
 /* Splash overlay behind the app while dark */
 html.dark .splash-screen { background: #091321; }
+
+/* زر كتم/تشغيل صوت النقرات في الهيدر */
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #cfe2f4;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f3f9ff, #e4f0fc);
+  color: #17436b;
+  box-shadow: 0 2px 8px rgba(14, 56, 98, .08);
+  cursor: pointer;
+  transition: background .24s ease, border-color .24s ease, color .24s ease, transform .18s ease;
+}
+.sound-toggle:hover { border-color: #96c3ea; transform: translateY(-1px); }
+.sound-toggle.is-muted { color: #b91c1c; background: linear-gradient(135deg, #fff5f5, #ffe4e6); border-color: #fecaca; }
+html.dark .sound-toggle { background: linear-gradient(145deg, #152b44, #102136); border-color: #284766; color: #cfe6ff; }
+html.dark .sound-toggle.is-muted { color: #fca5a5; background: linear-gradient(145deg, #3b1a22, #2a1218); border-color: #7f1d1d; }

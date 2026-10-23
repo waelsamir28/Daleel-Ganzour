@@ -1001,6 +1001,16 @@ export type DesignThemePresetId =
   | "vista-gold"
   | "vista-pearl"
   | "vista-midnight"
+  | "win11-bloom"
+  | "win11-dark"
+  | "win11-mica"
+  | "win11-sunrise"
+  | "win11-glow"
+  | "win11-flow"
+  | "win11-motion"
+  | "win11-sunset"
+  | "win11-graphite"
+  | "win11-ocean"
   | "custom";
 
 export type DesignSettings = {
@@ -1123,7 +1133,9 @@ export type DesignSettings = {
   providerCardLayout: "classic" | "compact" | "centered";
   showProviderBadges: boolean;
   showProviderShareBtn: boolean;
-  menuFeedback: "off" | "haptic" | "sound" | "both";
+  tapFeedback: "off" | "haptic" | "sound" | "both";
+  providerEdgeTools: string;
+  providerEdgeToolsPosition: "left" | "right" | "bottom";
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
   sectionSpacing: "compact" | "normal" | "relaxed";
@@ -1451,7 +1463,9 @@ export const defaultDesignSettings: DesignSettings = {
   providerCardLayout: "classic",
   showProviderBadges: true,
   showProviderShareBtn: true,
-  menuFeedback: "both",
+  tapFeedback: "both",
+  providerEdgeTools: "call,whatsapp,share,favorite",
+  providerEdgeToolsPosition: "left",
   showProviderWhatsappBtn: true,
   whatsappButtonColor: "#1fa855",
   sectionSpacing: "normal",
@@ -1731,8 +1745,105 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     colors: { primaryColor: "#1e3a8a", pageBgColor: "#eef1fb", modalHeaderBg: "#dfe5fa", buttonColor: "#3730a3", borderColor: "#c3ccf5", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#020617" },
     darkColors: { darkPageBgColor: "#030816", darkCardBgColor: "#0f1a3d", darkBorderColor: "#3730a3", darkPrimaryColor: "#a5b4fc", announcementBgColor: "#1e1b4b", detailNameBoxColor: "#0f1a3d" },
   },
+  "win11-bloom": {
+    label: "🪟 سمة Windows 11 Bloom الزرقاء",
+    badge: "Win 11",
+    description: "خلفية Bloom الزرقاء الشهيرة مع أسطح Mica شبه شفافة، زوايا 8px ناعمة، وأزرار Fluent مسطحة بلون التمييز الأزرق",
+    gradientPreview: "linear-gradient(135deg, #0067c0 0%, #4cc2ff 55%, #dbeafe 100%)",
+    colors: { primaryColor: "#0067c0", pageBgColor: "#f3f6fb", modalHeaderBg: "#e8f1fb", buttonColor: "#005fb8", borderColor: "#c9d9ea", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1b2a3d" },
+    darkColors: { darkPageBgColor: "#202020", darkCardBgColor: "#2b2b2b", darkBorderColor: "#3a3a3a", darkPrimaryColor: "#60cdff", announcementBgColor: "#1f3550", detailNameBoxColor: "#2b2b2b" },
+  },
+  "win11-dark": {
+    label: "🌑 سمة Windows 11 Dark الداكنة",
+    badge: "Win 11",
+    description: "Bloom داكن بأسطح Mica رمادية غامقة ولمسة تمييز سماوية — الأنسب لمحبي الوضع الليلي الكامل",
+    gradientPreview: "linear-gradient(135deg, #1e5fa8 0%, #60cdff 55%, #c7d2fe 100%)",
+    colors: { primaryColor: "#1e5fa8", pageBgColor: "#eef1f6", modalHeaderBg: "#e3e8f0", buttonColor: "#1e5fa8", borderColor: "#c6cfdc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#161616" },
+    darkColors: { darkPageBgColor: "#161616", darkCardBgColor: "#232323", darkBorderColor: "#333333", darkPrimaryColor: "#60cdff", announcementBgColor: "#1f2f45", detailNameBoxColor: "#232323" },
+  },
+  "win11-mica": {
+    label: "🩶 سمة Windows 11 Mica الهادئة",
+    badge: "Win 11",
+    description: "أسطح Mica الرمادية الفاتحة الهادئة كما في تطبيقات ويندوز 11 الأصلية، تمييز أزرق هادئ وبدون ضجيج لوني",
+    gradientPreview: "linear-gradient(135deg, #005fb8 0%, #8fbce8 55%, #f3f3f3 100%)",
+    colors: { primaryColor: "#005fb8", pageBgColor: "#f3f3f3", modalHeaderBg: "#e9e9e9", buttonColor: "#005fb8", borderColor: "#d6d6d6", cardBgColor: "#fbfbfb", headerBgColor: "#fbfbfb", footerBgColor: "#2b2b2b" },
+    darkColors: { darkPageBgColor: "#202020", darkCardBgColor: "#2c2c2c", darkBorderColor: "#3b3b3b", darkPrimaryColor: "#8fbce8", announcementBgColor: "#2c3a4a", detailNameBoxColor: "#2c2c2c" },
+  },
+  "win11-sunrise": {
+    label: "🌅 سمة Windows 11 Sunrise البرتقالية",
+    badge: "Win 11",
+    description: "Bloom بألوان الشروق البرتقالية والوردية مع أسطح Mica دافئة وأزرار Fluent بلون المرجان",
+    gradientPreview: "linear-gradient(135deg, #c2410c 0%, #fb923c 55%, #ffe4d6 100%)",
+    colors: { primaryColor: "#c2410c", pageBgColor: "#fff5ef", modalHeaderBg: "#ffe8db", buttonColor: "#c2410c", borderColor: "#f5cdb6", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#3b1a0a" },
+    darkColors: { darkPageBgColor: "#1f1511", darkCardBgColor: "#2d1f19", darkBorderColor: "#4a2f24", darkPrimaryColor: "#fdba74", announcementBgColor: "#4a2314", detailNameBoxColor: "#2d1f19" },
+  },
+  "win11-glow": {
+    label: "💜 سمة Windows 11 Glow البنفسجية",
+    badge: "Win 11",
+    description: "Bloom بنفسجي متوهج مع أسطح Mica أرجوانية فاتحة وأزرار Fluent بنفسجية",
+    gradientPreview: "linear-gradient(135deg, #6b21a8 0%, #a855f7 55%, #ede9fe 100%)",
+    colors: { primaryColor: "#6b21a8", pageBgColor: "#f7f3ff", modalHeaderBg: "#ece4fb", buttonColor: "#6d28d9", borderColor: "#d9cdf3", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#2a1246" },
+    darkColors: { darkPageBgColor: "#17112a", darkCardBgColor: "#231a3a", darkBorderColor: "#3a2b5a", darkPrimaryColor: "#c4b5fd", announcementBgColor: "#3b1e6a", detailNameBoxColor: "#231a3a" },
+  },
+  "win11-flow": {
+    label: "🌿 سمة Windows 11 Flow الخضراء",
+    badge: "Win 11",
+    description: "Bloom بالأخضر الزمردي مع أسطح Mica نعناعية وأزرار Fluent خضراء",
+    gradientPreview: "linear-gradient(135deg, #047857 0%, #34d399 55%, #d1fae5 100%)",
+    colors: { primaryColor: "#047857", pageBgColor: "#f1fbf6", modalHeaderBg: "#e1f5ea", buttonColor: "#047857", borderColor: "#bfe6d2", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#06281d" },
+    darkColors: { darkPageBgColor: "#0f1d18", darkCardBgColor: "#17302a", darkBorderColor: "#24473c", darkPrimaryColor: "#6ee7b7", announcementBgColor: "#0b3a2c", detailNameBoxColor: "#17302a" },
+  },
+  "win11-motion": {
+    label: "🌹 سمة Windows 11 Motion الوردية",
+    badge: "Win 11",
+    description: "Bloom وردي أحمر مستوحى من Captured Motion مع أسطح Mica وردية فاتحة وأزرار Fluent قرمزية",
+    gradientPreview: "linear-gradient(135deg, #be123c 0%, #fb7185 55%, #ffe4e6 100%)",
+    colors: { primaryColor: "#be123c", pageBgColor: "#fff4f6", modalHeaderBg: "#ffe1e7", buttonColor: "#be123c", borderColor: "#f5c1cc", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#3b0a16" },
+    darkColors: { darkPageBgColor: "#1f1216", darkCardBgColor: "#2e1a20", darkBorderColor: "#4c2a33", darkPrimaryColor: "#fda4af", announcementBgColor: "#4c1120", detailNameBoxColor: "#2e1a20" },
+  },
+  "win11-sunset": {
+    label: "🌇 سمة Windows 11 Sunset الذهبية",
+    badge: "Win 11",
+    description: "Bloom ذهبي كهرماني مع أسطح Mica عسلية وأزرار Fluent بلون العنبر",
+    gradientPreview: "linear-gradient(135deg, #b45309 0%, #fbbf24 55%, #fef3c7 100%)",
+    colors: { primaryColor: "#b45309", pageBgColor: "#fff9ec", modalHeaderBg: "#fdeecf", buttonColor: "#b45309", borderColor: "#f1d8a6", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#3a2605" },
+    darkColors: { darkPageBgColor: "#1f1810", darkCardBgColor: "#2e2416", darkBorderColor: "#4a3a22", darkPrimaryColor: "#fcd34d", announcementBgColor: "#4a3008", detailNameBoxColor: "#2e2416" },
+  },
+  "win11-graphite": {
+    label: "🩶 سمة Windows 11 Graphite الرمادية",
+    badge: "Win 11",
+    description: "Bloom رمادي فولاذي أنيق مع أسطح Mica محايدة وأزرار Fluent بلون الأردواز — مظهر رسمي هادئ",
+    gradientPreview: "linear-gradient(135deg, #334155 0%, #94a3b8 55%, #f1f5f9 100%)",
+    colors: { primaryColor: "#334155", pageBgColor: "#f3f5f8", modalHeaderBg: "#e6eaf0", buttonColor: "#334155", borderColor: "#cfd6df", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#0f172a" },
+    darkColors: { darkPageBgColor: "#141a24", darkCardBgColor: "#1e2633", darkBorderColor: "#2f3b4d", darkPrimaryColor: "#cbd5e1", announcementBgColor: "#1e293b", detailNameBoxColor: "#1e2633" },
+  },
+  "win11-ocean": {
+    label: "🌊 سمة Windows 11 Ocean البحرية",
+    badge: "Win 11",
+    description: "Bloom كحلي وسماوي كأعماق البحر مع أسطح Mica زرقاء فاتحة وأزرار Fluent سماوية",
+    gradientPreview: "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 55%, #e0f2fe 100%)",
+    colors: { primaryColor: "#0c4a6e", pageBgColor: "#eff8fe", modalHeaderBg: "#def0fb", buttonColor: "#0369a1", borderColor: "#bcdcf0", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#082f49" },
+    darkColors: { darkPageBgColor: "#0b1a26", darkCardBgColor: "#12283a", darkBorderColor: "#1f405a", darkPrimaryColor: "#7dd3fc", announcementBgColor: "#0c3a55", detailNameBoxColor: "#12283a" },
+  },
 };
 
+// Quick circular tools on the provider card: order = display order, missing ids = hidden.
+export const providerEdgeToolIds = ["call", "whatsapp", "share", "favorite"] as const;
+export type ProviderEdgeToolId = (typeof providerEdgeToolIds)[number];
+export const providerEdgeToolLabels: Record<ProviderEdgeToolId, string> = { call: "اتصال", whatsapp: "واتساب", share: "مشاركة", favorite: "المفضلة" };
+export function parseProviderEdgeTools(value: string | undefined): ProviderEdgeToolId[] {
+  const seen = new Set<string>();
+  const out: ProviderEdgeToolId[] = [];
+  for (const part of String(value ?? "").split(",")) {
+    const id = part.trim() as ProviderEdgeToolId;
+    if ((providerEdgeToolIds as readonly string[]).includes(id) && !seen.has(id)) { seen.add(id); out.push(id); }
+  }
+  return out;
+}
+function sanitizeProviderEdgeTools(value: unknown): string {
+  if (typeof value !== "string") return defaultDesignSettings.providerEdgeTools;
+  return parseProviderEdgeTools(value).join(",");
+}
 export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   const next: DesignSettings = { ...defaultDesignSettings };
   if (!saved || typeof saved !== "object") return next;
@@ -1749,7 +1860,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.themePreset = pickEnum(
     record.themePreset,
-    ["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "vista-aero", "vista-frost", "vista-ultimate", "vista-emerald", "vista-sunset", "vista-violet", "vista-ruby", "vista-gold", "vista-pearl", "vista-midnight", "custom"] as const,
+    ["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "vista-aero", "vista-frost", "vista-ultimate", "vista-emerald", "vista-sunset", "vista-violet", "vista-ruby", "vista-gold", "vista-pearl", "vista-midnight", "win11-bloom", "win11-dark", "win11-mica", "win11-sunrise", "win11-glow", "win11-flow", "win11-motion", "win11-sunset", "win11-graphite", "win11-ocean", "custom"] as const,
     defaultDesignSettings.themePreset,
   );
   next.primaryColor = hexColor(record.primaryColor, defaultDesignSettings.primaryColor);
@@ -1872,7 +1983,9 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.providerCardLayout = pickEnum(record.providerCardLayout, ["classic", "compact", "centered"] as const, defaultDesignSettings.providerCardLayout);
   next.showProviderBadges = pickBool(record.showProviderBadges, defaultDesignSettings.showProviderBadges);
   next.showProviderShareBtn = pickBool(record.showProviderShareBtn, defaultDesignSettings.showProviderShareBtn);
-  next.menuFeedback = pickEnum(record.menuFeedback, ["off", "haptic", "sound", "both"] as const, defaultDesignSettings.menuFeedback);
+  next.tapFeedback = pickEnum(record.tapFeedback ?? record.menuFeedback, ["off", "haptic", "sound", "both"] as const, defaultDesignSettings.tapFeedback);
+  next.providerEdgeTools = sanitizeProviderEdgeTools(record.providerEdgeTools);
+  next.providerEdgeToolsPosition = pickEnum(record.providerEdgeToolsPosition, ["left", "right", "bottom"] as const, defaultDesignSettings.providerEdgeToolsPosition);
   next.showProviderWhatsappBtn = pickBool(record.showProviderWhatsappBtn, defaultDesignSettings.showProviderWhatsappBtn);
   next.whatsappButtonColor = hexColor(record.whatsappButtonColor, defaultDesignSettings.whatsappButtonColor);
   next.sectionSpacing = pickEnum(record.sectionSpacing, ["compact", "normal", "relaxed"] as const, defaultDesignSettings.sectionSpacing);

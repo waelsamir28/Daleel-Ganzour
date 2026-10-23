@@ -889,3 +889,34 @@ test("Vista Aero theme presets are registered and accepted by the design sanitiz
   }
   assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, themePreset: "vista-xp" }).themePreset, defaultDesignSettings.themePreset);
 });
+
+test("Windows 11 Fluent theme presets are registered and accepted by the design sanitizer", () => {
+  const { designThemePresets, sanitizeDesignSettings, defaultDesignSettings } = catalog;
+  const ids = Object.keys(designThemePresets).filter((id) => id.startsWith("win11-"));
+  assert.equal(ids.length, 10, "ten Windows 11 themes");
+  for (const id of ids) {
+    assert.match(designThemePresets[id].label, /Windows 11/);
+    assert.equal(designThemePresets[id].badge, "Win 11");
+    assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, themePreset: id }).themePreset, id);
+  }
+  const fluentCss = readFileSync(new URL("../src/app/fluent.css", import.meta.url), "utf8");
+  for (const id of ids.filter((item) => item !== "win11-bloom")) assert.ok(fluentCss.includes(`html[data-design-preset="${id}"]`), `${id} has its own Bloom palette`);
+});
+
+test("provider edge tools and tap feedback settings sanitize correctly", () => {
+  const { sanitizeDesignSettings, defaultDesignSettings, parseProviderEdgeTools, providerEdgeToolIds } = catalog;
+  assert.deepEqual(providerEdgeToolIds, ["call", "whatsapp", "share", "favorite"]);
+  assert.equal(defaultDesignSettings.providerEdgeTools, "call,whatsapp,share,favorite");
+  assert.deepEqual(parseProviderEdgeTools("favorite, call,bogus,call"), ["favorite", "call"]);
+  assert.deepEqual(parseProviderEdgeTools(""), []);
+  const cleaned = sanitizeDesignSettings({ ...defaultDesignSettings, providerEdgeTools: "share,nope,whatsapp", providerEdgeToolsPosition: "bottom", tapFeedback: "sound" });
+  assert.equal(cleaned.providerEdgeTools, "share,whatsapp");
+  assert.equal(cleaned.providerEdgeToolsPosition, "bottom");
+  assert.equal(cleaned.tapFeedback, "sound");
+  assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, providerEdgeToolsPosition: "top", providerEdgeTools: 42 }).providerEdgeToolsPosition, "left");
+  assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, providerEdgeTools: 42 }).providerEdgeTools, defaultDesignSettings.providerEdgeTools);
+  // legacy key from the previous release still maps onto the new setting
+  const legacy = { ...defaultDesignSettings };
+  delete legacy.tapFeedback;
+  assert.equal(sanitizeDesignSettings({ ...legacy, menuFeedback: "haptic" }).tapFeedback, "haptic");
+});

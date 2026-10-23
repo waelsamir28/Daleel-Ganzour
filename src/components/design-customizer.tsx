@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   AlignCenter,
   AlignLeft,
@@ -28,6 +28,9 @@ import {
   Type,
   Upload,
   UsersRound,
+  EyeOff,
+  Heart,
+  Share2,
 } from "lucide-react";
 import {
   defaultDesignSettings,
@@ -36,6 +39,10 @@ import {
   parseColorScaleOrThemeJson,
   sanitizeDesignSettings,
   type DesignSettings,
+  parseProviderEdgeTools,
+  providerEdgeToolIds,
+  providerEdgeToolLabels,
+  type ProviderEdgeToolId,
 } from "@/lib/catalog";
 import { applyDesignSettingsToDocument } from "@/components/design-applicator";
 import { MainCategoryIcon } from "@/components/ui";
@@ -151,6 +158,15 @@ export default function DesignCustomizer({
   const [activeFilter, setActiveFilter] = useState<SectionFilter>("all");
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [openThemeFamilies, setOpenThemeFamilies] = useState<Record<string, boolean>>({});
+  const themeFamilies = useMemo(() => {
+    const keys = Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>;
+    return [
+      { id: "gradient", title: "ثيمات الجريديانت", subtitle: "الثيمات المتدرجة الأساسية والمواسم", preview: "linear-gradient(135deg, #0b3d91, #1079ff 50%, #ffb703)", keys: keys.filter((key) => !key.startsWith("vista-") && !key.startsWith("win11-")) },
+      { id: "vista", title: "ثيمات Windows Vista Aero", subtitle: "زجاج Aero الشفاف وخلفيات Aurora", preview: "linear-gradient(135deg, #062a55, #1b74d0 45%, #9fdcff)", keys: keys.filter((key) => key.startsWith("vista-")) },
+      { id: "win11", title: "ثيمات Windows 11 Fluent", subtitle: "أسطح Mica وزوايا ناعمة وخلفيات Bloom", preview: "linear-gradient(135deg, #0067c0, #4cc2ff 55%, #dbeafe)", keys: keys.filter((key) => key.startsWith("win11-")) },
+    ];
+  }, []);
   const [saving, setSaving] = useState(false);
   const [savedPresets, setSavedPresets] = useState<SavedCustomPreset[]>(() => {
     if (typeof window === "undefined") return [];
@@ -175,6 +191,29 @@ export default function DesignCustomizer({
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
+  // Edge tools: the saved string keeps only visible tools in order; hidden ones keep their last
+  // position in a local order list so re-showing them does not jump them to the end.
+  const edgeToolsVisible = useMemo(() => parseProviderEdgeTools(draft.providerEdgeTools), [draft.providerEdgeTools]);
+  const [edgeToolOrder, setEdgeToolOrder] = useState<ProviderEdgeToolId[]>(() => {
+    const visible = parseProviderEdgeTools(draft.providerEdgeTools);
+    return [...visible, ...providerEdgeToolIds.filter((id) => !visible.includes(id))];
+  });
+  function commitEdgeTools(order: ProviderEdgeToolId[], visible: ProviderEdgeToolId[]) {
+    setEdgeToolOrder(order);
+    updateField("providerEdgeTools", order.filter((id) => visible.includes(id)).join(","));
+  }
+  function moveEdgeTool(tool: ProviderEdgeToolId, delta: number) {
+    const index = edgeToolOrder.indexOf(tool);
+    const target = index + delta;
+    if (index < 0 || target < 0 || target >= edgeToolOrder.length) return;
+    const order = [...edgeToolOrder];
+    [order[index], order[target]] = [order[target], order[index]];
+    commitEdgeTools(order, edgeToolsVisible);
+  }
+  function toggleEdgeTool(tool: ProviderEdgeToolId) {
+    const visible = edgeToolsVisible.includes(tool) ? edgeToolsVisible.filter((id) => id !== tool) : [...edgeToolsVisible, tool];
+    commitEdgeTools(edgeToolOrder, visible);
+  }
   function applyPreset(presetKey: Exclude<DesignSettings["themePreset"], "custom">) {
     const preset = designThemePresets[presetKey];
     setDraft((current) => ({
@@ -468,33 +507,51 @@ export default function DesignCustomizer({
             {!collapsedGroups.colors && (
               <div className="design-group-content">
                 <InnerDivider title="ثيمات الجريديانت المتكاملة (تعمل في الليل والنهار وتناسب البراويز الرئيسية)" subtitle="اختر أي ثيم جريديانت ليضبط ألوان الوضع الليلي والنهاري وبراويز العناوين تلقائياً بضغطة واحدة" />
-                <div className="design-presets-grid">
-                  {(Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>).map((key) => {
-                    const preset = designThemePresets[key];
-                    const isSelected = draft.themePreset === key;
-                    return (
-                      <button
-                        type="button"
-                        key={key}
-                        className={`design-preset-card ${isSelected ? "is-selected" : ""}`}
-                        onClick={() => applyPreset(key)}
-                      >
-                        <div className="design-preset-gradient-bar" style={{ background: preset.gradientPreview }} aria-hidden="true"/>
-                        <div className="design-preset-top-row">
-                          <div className="design-preset-swatches">
-                            <span style={{ background: preset.colors.primaryColor }} title="اللون النهاري"/>
-                            <span style={{ background: preset.colors.buttonColor }} title="لون الأزرار"/>
-                            <span style={{ background: preset.darkColors.darkCardBgColor }} title="لون الكارت الليلي"/>
-                            <span style={{ background: preset.darkColors.darkPrimaryColor }} title="لون التمييز الليلي"/>
-                          </div>
-                          {preset.badge && <span className="design-preset-season-badge">{preset.badge}</span>}
-                        </div>
-                        <strong>{preset.label}</strong>
-                        <small>{preset.description}</small>
+                {themeFamilies.map((family) => {
+                  const open = Boolean(openThemeFamilies[family.id]);
+                  const selectedInFamily = family.keys.find((key) => key === draft.themePreset);
+                  return (
+                    <div className={`theme-family ${open ? "is-open" : ""}`} key={family.id}>
+                      <button type="button" className="theme-family-toggle" onClick={() => setOpenThemeFamilies((current) => ({ ...current, [family.id]: !current[family.id] }))} aria-expanded={open} aria-controls={`theme-family-${family.id}`}>
+                        <span className="theme-family-swatch" style={{ background: family.preview }} aria-hidden="true"/>
+                        <span className="theme-family-text">
+                          <strong>{family.title} <small>({family.keys.length})</small></strong>
+                          <small>{selectedInFamily ? `المختار حاليًا: ${designThemePresets[selectedInFamily].label}` : family.subtitle}</small>
+                        </span>
+                        <ChevronDown size={18} className={`theme-family-chevron ${open ? "is-open" : ""}`}/>
                       </button>
-                    );
-                  })}
-                </div>
+                      {open && (
+                        <div className="design-presets-grid" id={`theme-family-${family.id}`}>
+                          {family.keys.map((key) => {
+                            const preset = designThemePresets[key];
+                            const isSelected = draft.themePreset === key;
+                            return (
+                              <button
+                                type="button"
+                                key={key}
+                                className={`design-preset-card ${isSelected ? "is-selected" : ""}`}
+                                onClick={() => applyPreset(key)}
+                              >
+                                <div className="design-preset-gradient-bar" style={{ background: preset.gradientPreview }} aria-hidden="true"/>
+                                <div className="design-preset-top-row">
+                                  <div className="design-preset-swatches">
+                                    <span style={{ background: preset.colors.primaryColor }} title="اللون النهاري"/>
+                                    <span style={{ background: preset.colors.buttonColor }} title="لون الأزرار"/>
+                                    <span style={{ background: preset.darkColors.darkCardBgColor }} title="لون الكارت الليلي"/>
+                                    <span style={{ background: preset.darkColors.darkPrimaryColor }} title="لون التمييز الليلي"/>
+                                  </div>
+                                  {preset.badge && <span className="design-preset-season-badge">{preset.badge}</span>}
+                                </div>
+                                <strong>{preset.label}</strong>
+                                <small>{preset.description}</small>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 <label className="field">
                   شريط التهنئة والمواسم الاحتفالي الجاهز أعلى الموقع
@@ -1098,6 +1155,34 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.providers && (
               <div className="design-group-content">
+                <InnerDivider title="الأدوات الدائرية على كارت مقدم الخدمة" subtitle="دوائر شفافة تظهر عند المرور على الكارت: اتصال وواتساب مباشرة، مشاركة، والمفضلة. رتّبها أو أخفِها أو غيّر مكانها، ويظهر تلميح عربي بجانب كل دائرة." />
+                <div className="edge-tools-editor">
+                  {edgeToolOrder.map((tool, index) => {
+                    const visible = edgeToolsVisible.includes(tool);
+                    return (
+                      <div className={`edge-tool-row ${visible ? "" : "is-hidden"}`} key={tool}>
+                        <span className={`edge-tool-row-icon is-${tool}`}>{tool === "call" ? <PhoneCall size={15}/> : tool === "whatsapp" ? <MessageCircle size={15}/> : tool === "share" ? <Share2 size={15}/> : <Heart size={15}/>}</span>
+                        <strong>{providerEdgeToolLabels[tool]}</strong>
+                        <span className="edge-tool-row-actions">
+                          <button type="button" className="icon-button" disabled={index === 0} onClick={() => moveEdgeTool(tool, -1)} aria-label={`تحريك ${providerEdgeToolLabels[tool]} لأعلى`}><ArrowUp size={14}/></button>
+                          <button type="button" className="icon-button" disabled={index === edgeToolOrder.length - 1} onClick={() => moveEdgeTool(tool, 1)} aria-label={`تحريك ${providerEdgeToolLabels[tool]} لأسفل`}><ArrowDown size={14}/></button>
+                          <button type="button" className={`icon-button ${visible ? "" : "is-off"}`} onClick={() => toggleEdgeTool(tool)} aria-pressed={visible} aria-label={visible ? `إخفاء ${providerEdgeToolLabels[tool]}` : `إظهار ${providerEdgeToolLabels[tool]}`}>{visible ? <Eye size={14}/> : <EyeOff size={14}/>}</button>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    مكان الدوائر على الكارت
+                    <SelectField value={draft.providerEdgeToolsPosition} onChange={(e) => updateField("providerEdgeToolsPosition", e.target.value as DesignSettings["providerEdgeToolsPosition"])}>
+                      <option value="left">على الحافة اليسرى (الافتراضي)</option>
+                      <option value="right">على الحافة اليمنى</option>
+                      <option value="bottom">صف أفقي أسفل الكارت</option>
+                    </SelectField>
+                  </label>
+                </div>
+
                 <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
                 <div className="form-row design-two-col">
                   <label className="field">
@@ -1247,11 +1332,11 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.header && (
               <div className="design-group-content">
-                <InnerDivider title="تغذية راجعة عند فتح قائمة الهيدر" subtitle="اهتزاز خفيف وصوت نقرة ناعمة على الموبايل عند فتح القائمة (الاهتزاز يعمل على أندرويد فقط)." />
+                <InnerDivider title="صوت النقرات والاهتزاز" subtitle="نقرة ناعمة + اهتزاز خفيف عند الضغط على أي زر أو كارت في التطبيق (الاهتزاز على أندرويد فقط). يظهر للزوار زر مكبر صوت في الهيدر لكتم الصوت وتشغيله." />
                 <div className="form-row design-two-col">
                   <label className="field">
-                    عند فتح القائمة
-                    <SelectField value={draft.menuFeedback} onChange={(e) => updateField("menuFeedback", e.target.value as DesignSettings["menuFeedback"])}>
+                    عند الضغط على أي زر
+                    <SelectField value={draft.tapFeedback} onChange={(e) => updateField("tapFeedback", e.target.value as DesignSettings["tapFeedback"])}>
                       <option value="both">اهتزاز خفيف + صوت نقرة ناعمة (الافتراضي)</option>
                       <option value="haptic">اهتزاز خفيف فقط</option>
                       <option value="sound">صوت نقرة فقط</option>
