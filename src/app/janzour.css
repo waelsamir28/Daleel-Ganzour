@@ -2932,7 +2932,8 @@ html.dark .design-choice-pills > button,
 html.dark .design-section-tabs > button { background: #14293f; border-color: #274a6e; color: #cde2f7; }
 html.dark .design-preset-card.is-selected { border-color: #3898ff; background: #173452; }
 
-/* ===================================================   الميزات المجتمعية واستوديو الثيمات والتحليلات وتطبيق الموبايل
+/* ==========================================================
+   الميزات المجتمعية واستوديو الثيمات والتحليلات وتطبيق الموبايل
    ========================================================== */
 
 /* 1. شريط المواسم والمناسبات */
@@ -10590,7 +10591,6 @@ html.dark .admin-ads-intro, html.dark .admin-ad-form, html.dark .admin-ad-row { 
 html.dark .admin-ad-form input[type="file"] { background: rgba(255, 255, 255, 0.05); border-color: rgba(80, 180, 255, 0.45); }
 html.dark .admin-ads-intro p, html.dark .admin-ad-info p { color: #a9c3e2; }
 html.dark .admin-empty-state h3 { color: #e8f2ff; }
-=======
 
 /* Guided "Need a service?" helper */
 .service-helper-entry{width:100%;display:flex;align-items:center;gap:15px;margin:0 0 20px;padding:17px 20px;border:1px solid #cde8ff;border-radius:20px;background:linear-gradient(115deg,#eff9ff 0%,#fff 54%,#f0fbf7 100%);box-shadow:0 8px 22px #0c4d7d0d}
