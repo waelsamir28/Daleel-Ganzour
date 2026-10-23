@@ -22,11 +22,12 @@ export default function AdvertisePage({ data, viewer }: { data: PublicDirectory;
   const weekly = useMemo(() => pickProviderOfWeek(data.services), [data.services]);
   const demoAds = useMemo<AdBannerRecord[]>(() => ["ad-space", "app-promo", "special-offer", "grand-opening"].map((template, index) => ({
     id: `demo-${template}`, title: template === "special-offer" ? "عيادة أو محل — اسم المعلن" : template === "grand-opening" ? "افتتاح جديد في جنزور" : "", caption: "", serviceId: null, whatsapp: "",
-    active: true, startsAt: null, endsAt: null, sortOrder: index, durationSeconds: 5, imageMime: "", imageVersion: 1, hasImage: false, template, createdAt: "2026-01-01T00:00:00.000Z",
+    active: true, startsAt: null, endsAt: null, sortOrder: index, durationSeconds: 5, imageMime: "", imageVersion: 1, hasImage: false, template, transition: "random", motion: "kenburns", accentColor: "", createdAt: "2026-01-01T00:00:00.000Z",
   })), []);
 
   const [form, setForm] = useState({ name: viewer.name ?? "", business: "", phone: viewer.phone ?? "", tier: pricing.tiers[0] ? `${pricing.tiers[0].label}|${pricing.tiers[0].days}` : "", kind: "template" as Kind, template: "special-offer", notes: "" });
   const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
   const tierOptions = [...pricing.tiers.map((tier) => ({ value: `${tier.label}|${tier.days}`, label: `${tier.label} (${tier.days} يوم) — ${formatEgp(tier.price)}` })), { value: "", label: "مش متأكد — محتاج استشارة" }];
   const selectedTier = pricing.tiers.find((tier) => `${tier.label}|${tier.days}` === form.tier) ?? null;
 
@@ -36,7 +37,11 @@ export default function AdvertisePage({ data, viewer }: { data: PublicDirectory;
     if (!/^01[0-9]{9}$/.test(form.phone.replace(/\D/g, ""))) { setError("اكتب رقم موبايل مصري صحيح (11 رقمًا يبدأ بـ 01)."); return; }
     if (!settings.phone) { setError("رقم واتساب الإدارة غير مضبوط بعد."); return; }
     const message = advertiseRequestMessage({ siteName: settings.siteName, name: form.name, business: form.business, phone: form.phone, tier: selectedTier, kind: kindLabels[form.kind], template: form.kind === "template" ? form.template : "", notes: form.notes });
+    // Open WhatsApp synchronously (popup blockers), then store the request so the admin sees it as an inbox item + bell alert.
     window.open(whatsappUrl(settings.phone, message), "_blank", "noopener,noreferrer");
+    void fetch("/api/ad-request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: form.name, business: form.business, phone: form.phone, tierLabel: selectedTier ? `${selectedTier.label} (${selectedTier.days} يوم)` : "", kind: form.kind, template: form.kind === "template" ? form.template : "", notes: form.notes }) })
+      .then((response) => { if (response.ok) setSent(true); })
+      .catch(() => undefined);
   }
 
   const quickHref = settings.phone ? whatsappUrl(settings.phone, `مرحبًا، أرغب في معرفة تفاصيل الإعلان المتحرك في ${settings.siteName}.`) : "";
@@ -135,6 +140,7 @@ export default function AdvertisePage({ data, viewer }: { data: PublicDirectory;
           {form.kind === "template" && <label className="admin-ad-field admin-ad-field-wide"><span>القالب</span><SelectField value={form.template} onChange={(event) => setForm({ ...form, template: event.target.value })} options={adTemplates.filter((template) => !template.auto).map((template) => ({ value: template.id, label: template.name }))} aria-label="اختيار القالب"/></label>}
           <label className="admin-ad-field admin-ad-field-wide"><span>ملاحظات (العرض، المدة المفضلة، أي تفاصيل)</span><textarea value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} maxLength={400} rows={3} placeholder="مثال: خصم ٢٠٪ على الكشف طوال رمضان"/></label>
           {error && <div className="form-error admin-ad-field-wide" role="alert">{error}</div>}
+          {sent && !error && <div className="adv-form-sent admin-ad-field-wide" role="status">وصل طلبك للإدارة وهيتواصلوا معاك قريبًا على واتساب.</div>}
           <div className="adv-form-actions admin-ad-field-wide">
             <button type="submit" className="button button-whatsapp"><MessageCircle size={17}/> إرسال الطلب عبر واتساب</button>
             {selectedTier && <span className="adv-form-total">الإجمالي التقريبي: <b>{formatEgp(selectedTier.price)}</b> / {selectedTier.label}</span>}

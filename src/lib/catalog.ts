@@ -2008,11 +2008,60 @@ export type AdBannerRecord = {
   durationSeconds: number; imageMime: string; imageVersion: number; hasImage: boolean; createdAt: string;
   /** Built-in animated template id; empty when the ad shows an uploaded image. */
   template: string;
+  transition: string;
+  motion: string;
+  accentColor: string;
 };
+export const AD_TRANSITIONS = [
+  { id: "random", name: "عشوائي (مختلف كل مرة)" },
+  { id: "fade", name: "تلاشي ناعم" },
+  { id: "slide", name: "انزلاق جانبي" },
+  { id: "zoom", name: "تكبير" },
+  { id: "flip", name: "قلب ثلاثي الأبعاد" },
+  { id: "blur", name: "ضبابي ثم واضح" },
+  { id: "curtain", name: "ستارة" },
+  { id: "drop", name: "سقوط من أعلى" },
+] as const;
+export const AD_MOTIONS = [
+  { id: "kenburns", name: "تقريب بطيء (Ken Burns)" },
+  { id: "float", name: "طفو خفيف" },
+  { id: "pulse", name: "نبض" },
+  { id: "shine", name: "لمعة تمر على الإعلان" },
+  { id: "tilt", name: "ميل ثلاثي الأبعاد" },
+  { id: "none", name: "ثابت بدون حركة" },
+] as const;
+export type AdTransition = (typeof AD_TRANSITIONS)[number]["id"];
+export type AdMotion = (typeof AD_MOTIONS)[number]["id"];
+export function isAdTransition(value: unknown): value is AdTransition { return typeof value === "string" && AD_TRANSITIONS.some((item) => item.id === value); }
+export function isAdMotion(value: unknown): value is AdMotion { return typeof value === "string" && AD_MOTIONS.some((item) => item.id === value); }
+export function isHexColor(value: unknown): value is string { return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value); }
+/** Lightens/darkens a hex colour by mixing with white (positive) or black (negative). */
+export function shadeHex(hex: string, amount: number) {
+  if (!isHexColor(hex)) return hex;
+  const channel = (offset: number) => {
+    const value = parseInt(hex.slice(offset, offset + 2), 16);
+    const mixed = amount >= 0 ? value + (255 - value) * amount : value * (1 + amount);
+    return Math.round(Math.min(255, Math.max(0, mixed))).toString(16).padStart(2, "0");
+  };
+  return `#${channel(1)}${channel(3)}${channel(5)}`;
+}
+export const AD_ACCENT_PRESETS = ["#0b63c9", "#059669", "#e11d48", "#7c3aed", "#f59e0b", "#0891b2", "#b45309", "#111827"];
+/** Pick the next effect; "random" never repeats the previous one so consecutive slides always look different. */
+export function nextAdTransition(preferred: string, previous: string): Exclude<AdTransition, "random"> {
+  const pool = AD_TRANSITIONS.map((item) => item.id).filter((id): id is Exclude<AdTransition, "random"> => id !== "random");
+  if (preferred !== "random" && isAdTransition(preferred)) return preferred as Exclude<AdTransition, "random">;
+  const candidates = pool.filter((id) => id !== previous);
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+export type AdRequestRecord = { id: string; name: string; business: string; phone: string; tierLabel: string; kind: string; template: string; notes: string; status: string; createdAt: string };
+export const AD_REQUEST_KINDS: Record<string, string> = { template: "قالب متحرك جاهز من التطبيق", gif: "عندي GIF جاهز", design: "محتاج تصميم إعلان" };
 /** Ready-made animated banners the admin can publish without uploading a file. Title/caption of the ad override the defaults. */
-export type AdTemplateId = "ad-space" | "app-promo" | "add-profession" | "special-offer" | "grand-opening" | "design-office" | "greeting" | "pro-of-week";
+export type AdTemplateId = "ad-space" | "app-promo" | "add-profession" | "special-offer" | "grand-opening" | "design-office" | "greeting" | "pro-of-week" | "shop-of-month" | "most-reviewed" | "new-in-directory";
 export const adTemplates: { id: AdTemplateId; name: string; description: string; title: string; caption: string; auto?: boolean }[] = [
   { id: "pro-of-week", name: "مهني الأسبوع (تلقائي)", description: "يختار أعلى مهني تقييمًا كل أسبوع ويعرضه تلقائيًا — محتوى مجاني يحرّك المساحة.", title: "مهني الأسبوع", caption: "اختيار الأسبوع من أعلى التقييمات في جنزور", auto: true },
+  { id: "shop-of-month", name: "محل الشهر (تلقائي)", description: "أعلى محل تقييمًا في قسم المحلات، يتبدّل كل شهر.", title: "محل الشهر", caption: "اختيار الشهر من محلات جنزور الأعلى تقييمًا", auto: true },
+  { id: "most-reviewed", name: "الأكثر طلبًا (تلقائي)", description: "المهني صاحب أكبر عدد تقييمات من الأعضاء — يتبدّل أسبوعيًا بين الأعلى خمسة.", title: "الأكثر طلبًا", caption: "الأكثر تقييمًا من أعضاء الدليل", auto: true },
+  { id: "new-in-directory", name: "جديد في الدليل (تلقائي)", description: "يرحّب بآخر مهني انضم للدليل ويعرّف الناس عليه.", title: "جديد في الدليل", caption: "انضم حديثًا لدليل جنزور — رحّبوا به", auto: true },
   { id: "ad-space", name: "مساحة إعلانية — اطلب الآن", description: "دعوة للمعلنين مع السعر بالجنيه.", title: "مساحة إعلانية", caption: "إعلانك هنا يوصل لكل أهل جنزور — اطلب الآن" },
   { id: "app-promo", name: "التطبيق: الاسم والأيقونة ونبذة", description: "يعرض شعار التطبيق واسمه ونبذة قصيرة.", title: "", caption: "كل مهن وخدمات جنزور في مكان واحد — ابحث، اتصل، وشارك" },
   { id: "add-profession", name: "أضف مهنتك مجانًا", description: "يشجع أصحاب المهن على التسجيل.", title: "أضف مهنتك مجانًا", caption: "سجّل في الدليل وخلّي أهل جنزور يوصلولك بضغطة" },
@@ -2037,6 +2086,26 @@ export function pickProviderOfWeek(services: ServiceRecord[], date = new Date())
   const pool = ranked.slice(0, 5);
   if (!pool.length) return null;
   return pool[(isoWeekNumber(date) + date.getFullYear()) % pool.length];
+}
+const SHOP_ROOTS = ["shops", "markets", "stores", "commerce"];
+/** Resolves the provider shown by each automatic template. Returns null when the directory has no suitable provider yet. */
+export function autoTemplateService(template: string, services: ServiceRecord[], categories: CategoryRecord[] = [], date = new Date()): ServiceRecord | null {
+  const approved = services.filter((service) => service.status === "approved" && !service.demo);
+  if (template === "pro-of-week") return pickProviderOfWeek(services, date);
+  if (template === "most-reviewed") {
+    const pool = approved.filter((service) => service.reviews > 0).sort((a, b) => b.reviews - a.reviews || Number(b.rating) - Number(a.rating)).slice(0, 5);
+    return pool.length ? pool[(isoWeekNumber(date) + 2) % pool.length] : null;
+  }
+  if (template === "new-in-directory") {
+    return [...approved].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0] ?? null;
+  }
+  if (template === "shop-of-month") {
+    const shopIds = new Set(categories.filter((category) => SHOP_ROOTS.includes(category.id) || SHOP_ROOTS.includes(category.parentId ?? "") || /محل|متجر|سوبر|بقال/.test(category.name)).map((category) => category.id));
+    const shops = approved.filter((service) => shopIds.has(service.category)).sort((a, b) => Number(b.rating) - Number(a.rating) || b.reviews - a.reviews || a.name.localeCompare(b.name, "ar"));
+    const pool = (shops.length ? shops : approved.filter((service) => Number(service.rating) > 0).sort((a, b) => Number(b.rating) - Number(a.rating))).slice(0, 5);
+    return pool.length ? pool[(date.getFullYear() * 12 + date.getMonth()) % pool.length] : null;
+  }
+  return null;
 }
 export function isAdTemplateId(value: unknown): value is AdTemplateId { return typeof value === "string" && adTemplates.some((template) => template.id === value); }
 export function getAdTemplate(id: string) { return adTemplates.find((template) => template.id === id) ?? null; }
@@ -2109,7 +2178,7 @@ export type RatingRecord = { id: string; serviceId: string; serviceName: string;
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };
 export type FollowFeedItem = { id: string; createdAt: string };
 export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
-export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
+export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",
