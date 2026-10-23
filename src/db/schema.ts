@@ -151,3 +151,21 @@ export const appointmentRequests = pgTable("directory_appointment_requests", {
   status: varchar("status", { length: 20 }).notNull().default("waiting"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Rotating promotional banners shown above the directory; the image itself is stored inline (Vercel has no persistent disk). */
+export const adBanners = pgTable("directory_ad_banners", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: varchar("title", { length: 120 }).notNull(),
+  caption: varchar("caption", { length: 240 }).notNull().default(""),
+  serviceId: uuid("service_id").references(() => services.id, { onDelete: "set null" }),
+  whatsapp: varchar("whatsapp", { length: 24 }).notNull().default(""),
+  active: boolean("active").notNull().default(true),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  sortOrder: integer("sort_order").notNull().default(0),
+  durationSeconds: integer("duration_seconds").notNull().default(6),
+  imageMime: varchar("image_mime", { length: 60 }).notNull().default("image/gif"),
+  imageData: text("image_data").notNull().default(""),
+  imageVersion: integer("image_version").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

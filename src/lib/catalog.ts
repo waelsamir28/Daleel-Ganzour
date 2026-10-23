@@ -1995,12 +1995,44 @@ export type PublicDirectory = {
   utilityNumbers?: PublicUtilityContact[];
   providerNotifications?: NotificationRecord[];
   designSettings?: DesignSettings;
+  /** Live promotional banners for the rotating ad slot (image bytes are served separately by /api/ad-banner/:id). */
+  ads?: AdBannerRecord[];
 };
+
+/** Rotating ad banner metadata (never includes the image payload). */
+export type AdBannerRecord = {
+  id: string; title: string; caption: string; serviceId: string | null; whatsapp: string;
+  active: boolean; startsAt: string | null; endsAt: string | null; sortOrder: number;
+  durationSeconds: number; imageMime: string; imageVersion: number; hasImage: boolean; createdAt: string;
+};
+export const AD_IMAGE_MAX_BYTES = 3 * 1024 * 1024;
+export const AD_IMAGE_MIMES = ["image/gif", "image/png", "image/jpeg", "image/webp"] as const;
+export const AD_MIN_SECONDS = 3, AD_MAX_SECONDS = 60, AD_MAX_COUNT = 10;
+/** Whether an ad should be displayed right now: active, has artwork and inside its optional date window. */
+export function isAdLive(ad: Pick<AdBannerRecord, "active" | "startsAt" | "endsAt" | "hasImage">, now = Date.now()) {
+  if (!ad.active || !ad.hasImage) return false;
+  if (ad.startsAt) { const start = Date.parse(ad.startsAt); if (Number.isFinite(start) && start > now) return false; }
+  if (ad.endsAt) { const end = Date.parse(ad.endsAt); if (Number.isFinite(end) && end <= now) return false; }
+  return true;
+}
+export function adImageUrl(ad: Pick<AdBannerRecord, "id" | "imageVersion">) { return `/api/ad-banner/${ad.id}?v=${ad.imageVersion}`; }
+/** Parses a `data:image/...;base64,...` upload, enforcing the allowed formats and the size cap. */
+export function parseAdImageDataUrl(value: unknown): { mime: string; base64: string } {
+  if (typeof value !== "string") throw new Error("ارفع صورة الإعلان أولًا.");
+  const match = /^data:(image\/(?:gif|png|jpeg|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(value.trim());
+  if (!match) throw new Error("صيغة الصورة غير مدعومة. ارفع GIF أو PNG أو JPG أو WebP.");
+  const base64 = match[2].replace(/\s+/g, "");
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  const bytes = Math.floor((base64.length * 3) / 4) - padding;
+  if (bytes < 100) throw new Error("ملف الصورة فارغ أو تالف.");
+  if (bytes > AD_IMAGE_MAX_BYTES) throw new Error("حجم الصورة أكبر من ٣ ميجا. صغّر الـ GIF وحاول مرة أخرى.");
+  return { mime: match[1], base64 };
+}
 export type RatingRecord = { id: string; serviceId: string; serviceName: string; memberName: string; stars: number; comment: string; status: string; createdAt: string };
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };
 export type FollowFeedItem = { id: string; createdAt: string };
 export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
-export type AdminDirectory = PublicDirectory & { members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
+export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",
