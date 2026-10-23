@@ -1999,6 +1999,10 @@ export type PublicDirectory = {
   ads?: AdBannerRecord[];
   /** Advertising price list in Egyptian pounds shown in the ad slot and the request message. */
   adPricing?: AdPricing;
+  /** Upcoming (and recent) village events for the calendar page and the ticker. */
+  events?: VillageEventRecord[];
+  /** Seasonal greetings active today (computed server-side in Cairo time). */
+  greetings?: ActiveGreeting[];
 };
 
 /** Rotating ad banner metadata (never includes the image payload). */
@@ -2178,7 +2182,7 @@ export type RatingRecord = { id: string; serviceId: string; serviceName: string;
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };
 export type FollowFeedItem = { id: string; createdAt: string };
 export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
-export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
+export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; questions: QuestionRecord[]; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",
@@ -2407,3 +2411,205 @@ export const sampleServices = [
   { id: "00000000-0000-4000-8000-000000000007", name: "د. سارة أحمد", category: "family", area: areas[6], address: areas[6], phone: "01066778899", description: "عيادة طب الأسرة والباطنة، متابعة وفحوصات دورية. يرجى الاتصال لحجز موعد.", rating: "4.9", reviews: 61, emergency: false, featured: false },
   { id: "00000000-0000-4000-8000-000000000008", name: "مكتب العدالة للمحاماة", category: "lawyers", area: areas[0], address: areas[0], phone: "01077889900", description: "استشارات قانونية وصياغة العقود وخدمات تأسيس الشركات.", rating: "4.7", reviews: 24, emergency: false, featured: false },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Village events calendar («مناسبات القرية»)                           */
+/* ------------------------------------------------------------------ */
+export type VillageEventRecord = { id: string; title: string; kind: string; startsAt: string; endsAt: string | null; location: string; description: string; pinned: boolean; createdAt: string };
+export const EVENT_KINDS: Array<{ id: string; name: string; icon: string; color: string }> = [
+  { id: "wedding", name: "فرح", icon: "💍", color: "#db2777" },
+  { id: "condolence", name: "عزاء", icon: "🕊️", color: "#475569" },
+  { id: "medical", name: "قافلة / حملة طبية", icon: "🩺", color: "#dc2626" },
+  { id: "exhibition", name: "معرض / سوق", icon: "🛍️", color: "#d97706" },
+  { id: "meeting", name: "اجتماع / ندوة", icon: "🗣️", color: "#0b63c9" },
+  { id: "religious", name: "ديني", icon: "🕌", color: "#047857" },
+  { id: "charity", name: "خيري / تطوعي", icon: "🤝", color: "#7c3aed" },
+  { id: "sport", name: "رياضي", icon: "⚽", color: "#0891b2" },
+  { id: "other", name: "أخرى", icon: "📌", color: "#64748b" },
+];
+export function getEventKind(id: string) { return EVENT_KINDS.find((kind) => kind.id === id) ?? EVENT_KINDS[EVENT_KINDS.length - 1]; }
+export function isEventKind(value: unknown): value is string { return typeof value === "string" && EVENT_KINDS.some((kind) => kind.id === value); }
+export const CAIRO_TZ = "Africa/Cairo";
+export function formatEventDate(iso: string, withTime = true) {
+  const date = new Date(iso);
+  const day = date.toLocaleDateString("ar-EG", { weekday: "long", day: "numeric", month: "long", timeZone: CAIRO_TZ });
+  if (!withTime) return day;
+  const time = date.toLocaleTimeString("ar-EG", { hour: "numeric", minute: "2-digit", timeZone: CAIRO_TZ });
+  return `${day} — ${time}`;
+}
+/** Local date key (YYYY-MM-DD) in Cairo time, used for "today / upcoming" grouping. */
+export function cairoDateKey(date: Date) { return new Intl.DateTimeFormat("en-CA", { timeZone: CAIRO_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(date); }
+export function eventPhase(event: Pick<VillageEventRecord, "startsAt" | "endsAt">, now = new Date()): "today" | "upcoming" | "past" {
+  const start = new Date(event.startsAt), end = event.endsAt ? new Date(event.endsAt) : new Date(start.getTime() + 3 * 3600_000);
+  if (end.getTime() < now.getTime() && cairoDateKey(start) !== cairoDateKey(now)) return "past";
+  return cairoDateKey(start) <= cairoDateKey(now) ? "today" : "upcoming";
+}
+const icsStamp = (date: Date) => date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+const icsEscape = (value: string) => value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/[,;]/g, (match) => `\\${match}`);
+/** iCalendar payload for «ذكّرني» — opens the phone's calendar app with a reminder one day and one hour before. */
+export function eventIcs(event: VillageEventRecord, siteName: string, url: string) {
+  const start = new Date(event.startsAt), end = event.endsAt ? new Date(event.endsAt) : new Date(start.getTime() + 2 * 3600_000);
+  const kind = getEventKind(event.kind);
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//${icsEscape(siteName)}//AR`, "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "BEGIN:VEVENT", `UID:${event.id}@daleel-ganzour`, `DTSTAMP:${icsStamp(new Date())}`, `DTSTART:${icsStamp(start)}`, `DTEND:${icsStamp(end)}`, `SUMMARY:${icsEscape(`${kind.icon} ${event.title}`)}`,
+    `DESCRIPTION:${icsEscape(`${event.description || kind.name}\n${siteName}: ${url}`)}`, ...(event.location ? [`LOCATION:${icsEscape(event.location)}`] : []), `URL:${url}`,
+    "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", `DESCRIPTION:${icsEscape(`غدًا: ${event.title}`)}`, "END:VALARM",
+    "BEGIN:VALARM", "TRIGGER:-PT1H", "ACTION:DISPLAY", `DESCRIPTION:${icsEscape(`بعد ساعة: ${event.title}`)}`, "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+}
+export function googleCalendarUrl(event: VillageEventRecord, siteName: string) {
+  const start = new Date(event.startsAt), end = event.endsAt ? new Date(event.endsAt) : new Date(start.getTime() + 2 * 3600_000);
+  const params = new URLSearchParams({ action: "TEMPLATE", text: event.title, dates: `${icsStamp(start)}/${icsStamp(end)}`, details: `${event.description || getEventKind(event.kind).name} — ${siteName}`, location: event.location, ctz: CAIRO_TZ });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+export function eventShareText(event: VillageEventRecord, siteName: string, url: string) {
+  return `${getEventKind(event.kind).icon} ${event.title}\n🗓️ ${formatEventDate(event.startsAt)}${event.location ? `\n📍 ${event.location}` : ""}${event.description ? `\n${event.description}` : ""}\n— ${siteName}\n${url}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Seasonal greetings («تهاني موسمية») — Hijri dates come from ICU       */
+/* ------------------------------------------------------------------ */
+export type GreetingOverride = { enabled?: boolean; message?: string; start?: string; end?: string };
+export type CustomGreeting = { id: string; name: string; icon: string; message: string; start: string; end: string };
+export type GreetingSettings = { enabled: boolean; showHeaderBadge: boolean; overrides: Record<string, GreetingOverride>; custom: CustomGreeting[] };
+export const defaultGreetingSettings: GreetingSettings = { enabled: true, showHeaderBadge: true, overrides: {}, custom: [] };
+export type GreetingOccasion = { id: string; name: string; icon: string; message: string; start: string; end: string; enabled: boolean; custom?: boolean; source: "hijri" | "fixed" | "computed" | "custom" };
+type OccasionDef = { id: string; name: string; icon: string; message: string } & ({ hijri: [month: number, day: number, days: number] } | { fixed: [month: number, day: number, days: number] } | { computed: "sham-el-nessim" });
+const OCCASIONS: OccasionDef[] = [
+  { id: "ramadan", name: "شهر رمضان", icon: "🌙", message: "رمضان كريم 🌙 كل عام وأهل جنزور بخير وصحة وسلام — تقبل الله صيامكم وقيامكم", hijri: [9, 1, 30] },
+  { id: "eid-fitr", name: "عيد الفطر", icon: "🎉", message: "عيد فطر مبارك 🎉 كل سنة وأهل جنزور طيبين — وعساكم من عواده", hijri: [10, 1, 3] },
+  { id: "eid-adha", name: "عيد الأضحى", icon: "🐑", message: "عيد أضحى مبارك 🐑 كل عام وأنتم بخير — تقبل الله طاعتكم وأضاحيكم", hijri: [12, 9, 5] },
+  { id: "hijri-new-year", name: "رأس السنة الهجرية", icon: "☪️", message: "كل عام وأنتم بخير بمناسبة العام الهجري الجديد ☪️ أعاده الله على أهل جنزور باليُمن والبركات", hijri: [1, 1, 2] },
+  { id: "mawlid", name: "المولد النبوي الشريف", icon: "🕌", message: "كل عام وأنتم بخير بمناسبة ذكرى المولد النبوي الشريف 🕌 ﷺ", hijri: [3, 12, 2] },
+  { id: "new-year", name: "رأس السنة الميلادية", icon: "🎆", message: "كل عام وأهل جنزور بخير 🎆 سنة جديدة سعيدة", fixed: [1, 1, 2] },
+  { id: "coptic-christmas", name: "عيد الميلاد المجيد", icon: "🎄", message: "كل سنة وإخوتنا الأقباط طيبين 🎄 عيد ميلاد مجيد", fixed: [1, 6, 2] },
+  { id: "jan25", name: "عيد الشرطة و٢٥ يناير", icon: "🇪🇬", message: "كل عام ومصر بخير 🇪🇬 ذكرى ٢٥ يناير وعيد الشرطة", fixed: [1, 25, 1] },
+  { id: "mothers-day", name: "عيد الأم", icon: "💐", message: "كل سنة وكل أمهات جنزور بخير 💐 عيد أم سعيد", fixed: [3, 21, 1] },
+  { id: "sham-el-nessim", name: "عيد القيامة وشم النسيم", icon: "🌸", message: "كل سنة وأهل جنزور طيبين 🌸 عيد قيامة مجيد وشم نسيم سعيد", computed: "sham-el-nessim" },
+  { id: "sinai", name: "عيد تحرير سيناء", icon: "🇪🇬", message: "كل عام ومصر بخير 🇪🇬 ذكرى تحرير سيناء", fixed: [4, 25, 1] },
+  { id: "labour", name: "عيد العمال", icon: "🛠️", message: "كل سنة وكل العمال والمهنيين في جنزور بخير 🛠️ عيد عمال سعيد", fixed: [5, 1, 1] },
+  { id: "june30", name: "ذكرى ٣٠ يونيو", icon: "🇪🇬", message: "كل عام ومصر بخير 🇪🇬 ذكرى ٣٠ يونيو", fixed: [6, 30, 1] },
+  { id: "july23", name: "ثورة ٢٣ يوليو", icon: "🇪🇬", message: "كل عام ومصر بخير 🇪🇬 ذكرى ثورة ٢٣ يوليو", fixed: [7, 23, 1] },
+  { id: "oct6", name: "انتصارات أكتوبر", icon: "🎖️", message: "كل عام ومصر بخير 🎖️ ذكرى انتصارات السادس من أكتوبر المجيدة", fixed: [10, 6, 1] },
+  { id: "back-to-school", name: "بداية العام الدراسي", icon: "🎒", message: "سنة دراسية سعيدة لكل طلاب جنزور 🎒 ولو محتاج مدرّس خصوصي الدليل فيه كل التخصصات", fixed: [9, 20, 3] },
+];
+const dateKey = (year: number, month: number, day: number) => `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+const addDays = (key: string, days: number) => { const [y, m, d] = key.split("-").map(Number); const date = new Date(Date.UTC(y, m - 1, d + days)); return dateKey(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate()); };
+let hijriFormatter: Intl.DateTimeFormat | null | undefined;
+function hijriParts(date: Date): { month: number; day: number } | null {
+  if (hijriFormatter === undefined) { try { hijriFormatter = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { timeZone: CAIRO_TZ, day: "numeric", month: "numeric", year: "numeric" }); } catch { hijriFormatter = null; } }
+  if (!hijriFormatter) return null;
+  const parts = hijriFormatter.formatToParts(date);
+  const month = Number(parts.find((part) => part.type === "month")?.value), day = Number(parts.find((part) => part.type === "day")?.value);
+  return Number.isFinite(month) && Number.isFinite(day) ? { month, day } : null;
+}
+const hijriCache = new Map<number, Map<string, string[]>>();
+/** Gregorian dates (Cairo) on which each requested Hijri month/day falls inside a Gregorian year (a Hijri date can occur twice). */
+function hijriDatesInYear(year: number) {
+  const cached = hijriCache.get(year); if (cached) return cached;
+  const map = new Map<string, string[]>();
+  for (let offset = 0; offset < 366; offset += 1) {
+    const date = new Date(Date.UTC(year, 0, 1 + offset, 12));
+    if (date.getUTCFullYear() !== year) break;
+    const parts = hijriParts(date); if (!parts) break;
+    const key = `${parts.month}/${parts.day}`;
+    map.set(key, [...(map.get(key) ?? []), dateKey(year, date.getUTCMonth() + 1, date.getUTCDate())]);
+  }
+  hijriCache.set(year, map); return map;
+}
+/** Orthodox (Coptic) Easter Sunday in the Gregorian calendar — Meeus' Julian algorithm + 13-day offset (valid 1900–2099). */
+export function orthodoxEaster(year: number) {
+  const a = year % 4, b = year % 7, c = year % 19, d = (19 * c + 15) % 30, e = (2 * a + 4 * b - d + 34) % 7;
+  const month = Math.floor((d + e + 114) / 31), day = ((d + e + 114) % 31) + 1;
+  const julian = new Date(Date.UTC(year, month - 1, day + 13));
+  return dateKey(julian.getUTCFullYear(), julian.getUTCMonth() + 1, julian.getUTCDate());
+}
+/** All built-in occasions with their dates for one Gregorian year (Hijri ones may appear twice or be absent that year). */
+export function occasionsForYear(year: number): GreetingOccasion[] {
+  const list: GreetingOccasion[] = [];
+  for (const def of OCCASIONS) {
+    if ("fixed" in def) { const start = dateKey(year, def.fixed[0], def.fixed[1]); list.push({ id: def.id, name: def.name, icon: def.icon, message: def.message, start, end: addDays(start, def.fixed[2] - 1), enabled: true, source: "fixed" }); }
+    else if ("computed" in def) { const start = orthodoxEaster(year); list.push({ id: def.id, name: def.name, icon: def.icon, message: def.message, start, end: addDays(start, 1), enabled: true, source: "computed" }); }
+    else for (const start of hijriDatesInYear(year).get(`${def.hijri[0]}/${def.hijri[1]}`) ?? []) list.push({ id: def.id, name: def.name, icon: def.icon, message: def.message, start, end: addDays(start, def.hijri[2] - 1), enabled: true, source: "hijri" });
+  }
+  return list.sort((a, b) => a.start.localeCompare(b.start));
+}
+export function sanitizeGreetingSettings(input: unknown): GreetingSettings {
+  const raw = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const text = (value: unknown, max: number) => (typeof value === "string" ? value.trim().slice(0, max) : "");
+  const day = (value: unknown) => (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "");
+  const overrides: Record<string, GreetingOverride> = {};
+  const rawOverrides = (raw.overrides && typeof raw.overrides === "object" ? raw.overrides : {}) as Record<string, Record<string, unknown>>;
+  for (const def of OCCASIONS) {
+    const item = rawOverrides[def.id]; if (!item || typeof item !== "object") continue;
+    const entry: GreetingOverride = {};
+    if (item.enabled === false) entry.enabled = false;
+    if (text(item.message, 260)) entry.message = text(item.message, 260);
+    if (day(item.start)) entry.start = day(item.start);
+    if (day(item.end)) entry.end = day(item.end);
+    if (Object.keys(entry).length) overrides[def.id] = entry;
+  }
+  const custom = (Array.isArray(raw.custom) ? raw.custom : []).slice(0, 20).map((item) => {
+    const entry = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    const start = day(entry.start), end = day(entry.end) || start;
+    return { id: text(entry.id, 40) || `custom-${Math.random().toString(36).slice(2, 8)}`, name: text(entry.name, 80), icon: text(entry.icon, 4) || "🎊", message: text(entry.message, 260), start, end: end < start ? start : end };
+  }).filter((item) => item.name && item.message && item.start);
+  return { enabled: raw.enabled !== false, showHeaderBadge: raw.showHeaderBadge !== false, overrides, custom };
+}
+/** Built-in + custom occasions for a year with the admin's overrides applied — what the admin edits and what the ticker reads. */
+export function resolvedGreetings(settings: GreetingSettings, year: number): GreetingOccasion[] {
+  const builtIn = occasionsForYear(year).map((item) => {
+    const override = settings.overrides[item.id] ?? {};
+    // Date overrides are year-specific: an admin correction for 2026 must not stretch the 2025 instance.
+    const sameYear = (value?: string) => Boolean(value && value.startsWith(String(year)));
+    const start = sameYear(override.start) ? override.start! : item.start;
+    const end = sameYear(override.end) && override.end! >= start ? override.end! : sameYear(override.start) ? start : item.end;
+    return { ...item, enabled: override.enabled !== false, message: override.message || item.message, start, end };
+  });
+  const custom = settings.custom.map((item) => ({ ...item, enabled: true, custom: true, source: "custom" as const }));
+  return [...builtIn, ...custom].sort((a, b) => a.start.localeCompare(b.start));
+}
+export type ActiveGreeting = { id: string; name: string; icon: string; message: string };
+/** Greetings that should be visible right now (Cairo date), de-duplicated by occasion. */
+export function activeGreetings(settings: GreetingSettings, now = new Date()): ActiveGreeting[] {
+  if (!settings.enabled) return [];
+  const today = cairoDateKey(now), year = Number(today.slice(0, 4));
+  const seen = new Set<string>(), result: ActiveGreeting[] = [];
+  for (const item of [...resolvedGreetings(settings, year - 1), ...resolvedGreetings(settings, year)]) {
+    if (!item.enabled || item.start > today || item.end < today || seen.has(item.id)) continue;
+    seen.add(item.id); result.push({ id: item.id, name: item.name, icon: item.icon, message: item.message });
+  }
+  return result;
+}
+/** Extra ticker lines: active greetings first, then the nearest event within two weeks. */
+export function liveTickerItems(greetings: ActiveGreeting[] | undefined, events: VillageEventRecord[] | undefined, now = new Date()): string[] {
+  const lines = (greetings ?? []).map((item) => `${item.icon} ${item.message}`);
+  const soon = (events ?? []).filter((event) => eventPhase(event, now) !== "past" && new Date(event.startsAt).getTime() - now.getTime() < 14 * 86_400_000).sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0];
+  if (soon) lines.push(`📅 ${eventPhase(soon, now) === "today" ? "اليوم" : "قريبًا"}: ${soon.title} — ${formatEventDate(soon.startsAt, false)}${soon.location ? ` — ${soon.location}` : ""}`);
+  return lines;
+}
+
+/* ------------------------------------------------------------------ */
+/* «اسأل جنزور» — questions answered by nominating directory providers  */
+/* ------------------------------------------------------------------ */
+export type AnswerRecord = { id: string; questionId: string; memberId: string | null; memberName: string; serviceId: string | null; text: string; createdAt: string; mine?: boolean };
+export type QuestionRecord = { id: string; memberId: string | null; memberName: string; text: string; category: string; status: string; bestAnswerId: string | null; createdAt: string; answers: AnswerRecord[]; mine?: boolean };
+export const QUESTION_MIN = 10, QUESTION_MAX = 400, ANSWER_MAX = 300;
+export type NominationGroup = { serviceId: string | null; answers: AnswerRecord[]; count: number; names: string[]; isBest: boolean };
+/** Groups answers so a provider nominated by several members shows once with «رشّحه ٣ أعضاء». Text-only answers stay individual. */
+export function groupNominations(question: Pick<QuestionRecord, "answers" | "bestAnswerId">): NominationGroup[] {
+  const groups = new Map<string, NominationGroup>();
+  for (const answer of question.answers) {
+    const key = answer.serviceId ?? `text-${answer.id}`;
+    const group = groups.get(key) ?? { serviceId: answer.serviceId, answers: [], count: 0, names: [], isBest: false };
+    group.answers.push(answer); group.count += 1;
+    if (!group.names.includes(answer.memberName)) group.names.push(answer.memberName);
+    if (answer.id === question.bestAnswerId) group.isBest = true;
+    groups.set(key, group);
+  }
+  return [...groups.values()].sort((a, b) => Number(b.isBest) - Number(a.isBest) || b.count - a.count || a.answers[0].createdAt.localeCompare(b.answers[0].createdAt));
+}
+export function relativeTimeAr(iso: string, now = new Date()) {
+  const diff = Math.max(0, now.getTime() - new Date(iso).getTime()), minutes = Math.floor(diff / 60_000), hours = Math.floor(minutes / 60), days = Math.floor(hours / 24);
+  if (minutes < 1) return "الآن"; if (minutes < 60) return `منذ ${minutes} دقيقة`; if (hours < 24) return `منذ ${hours} ساعة`; if (days < 30) return `منذ ${days} يوم`;
+  return new Date(iso).toLocaleDateString("ar-EG", { day: "numeric", month: "long", timeZone: CAIRO_TZ });
+}

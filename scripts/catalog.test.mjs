@@ -833,3 +833,56 @@ test("automatic templates: shop of the month, most reviewed, newest member; tran
   assert.equal(isHexColor("#0b63c9"), true); assert.equal(isHexColor("red"), false); assert.equal(isHexColor("#fff"), false);
   assert.equal(shadeHex("#000000", 0.5), "#808080"); assert.equal(shadeHex("#ffffff", -0.5), "#808080"); assert.equal(shadeHex("nope", 0.5), "nope");
 });
+
+test("seasonal greetings: Hijri/fixed/computed occasions, overrides, custom entries and active-today lookup", () => {
+  const { occasionsForYear, orthodoxEaster, resolvedGreetings, activeGreetings, sanitizeGreetingSettings, defaultGreetingSettings, liveTickerItems } = catalog;
+  const year = occasionsForYear(2026);
+  const ramadan = year.find((item) => item.id === "ramadan"), fitr = year.find((item) => item.id === "eid-fitr");
+  assert.ok(ramadan && ramadan.start >= "2026-02-16" && ramadan.start <= "2026-02-19", `Ramadan 1447 starts mid-February 2026 (got ${ramadan?.start})`);
+  assert.ok(fitr && fitr.start >= "2026-03-18" && fitr.start <= "2026-03-21", `Eid al-Fitr 1447 around 20 March 2026 (got ${fitr?.start})`);
+  assert.equal(year.find((item) => item.id === "oct6")?.start, "2026-10-06");
+  assert.equal(orthodoxEaster(2026), "2026-04-12");
+  assert.equal(orthodoxEaster(2025), "2025-04-20");
+  const sham = year.find((item) => item.id === "sham-el-nessim"); assert.equal(sham.start, "2026-04-12"); assert.equal(sham.end, "2026-04-13");
+  const settings = sanitizeGreetingSettings({ overrides: { oct6: { message: "كل سنة ومصر طيبة", start: "2026-10-05", end: "2026-10-07" }, labour: { enabled: false }, bogus: { enabled: false } }, custom: [{ name: "مولد القرية", message: "مولد سعيد", start: "2026-11-01", end: "2026-10-01" }, { name: "", message: "x", start: "2026-01-01" }] });
+  assert.deepEqual(Object.keys(settings.overrides).sort(), ["labour", "oct6"]);
+  assert.equal(settings.custom.length, 1); assert.equal(settings.custom[0].end, "2026-11-01", "end before start collapses to start");
+  const resolved = resolvedGreetings(settings, 2026);
+  assert.equal(resolved.find((item) => item.id === "oct6").message, "كل سنة ومصر طيبة");
+  assert.equal(resolved.find((item) => item.id === "labour").enabled, false);
+  assert.deepEqual(activeGreetings(settings, new Date(Date.UTC(2026, 9, 5, 10))).map((item) => item.id), ["oct6"], "override start date counts");
+  assert.deepEqual(activeGreetings(settings, new Date(Date.UTC(2026, 4, 1, 10))).map((item) => item.id), [], "disabled occasion never shows");
+  assert.deepEqual(activeGreetings(settings, new Date(Date.UTC(2026, 10, 1, 10))).map((item) => item.id), ["custom-" + settings.custom[0].id.split("custom-")[1]]);
+  assert.deepEqual(activeGreetings({ ...defaultGreetingSettings, enabled: false }, new Date(Date.UTC(2026, 9, 6, 10))), []);
+  assert.deepEqual(activeGreetings(defaultGreetingSettings, new Date(Date.UTC(2026, 0, 1, 10))).map((item) => item.id), ["new-year"]);
+  const lines = liveTickerItems([{ id: "oct6", name: "x", icon: "🎖️", message: "كل عام ومصر بخير" }], [{ id: "e1", title: "قافلة طبية", kind: "medical", startsAt: "2026-10-08T08:00:00.000Z", endsAt: null, location: "مركز الشباب", description: "", pinned: false, createdAt: "" }], new Date("2026-10-06T10:00:00Z"));
+  assert.equal(lines.length, 2); assert.match(lines[0], /^🎖️ كل عام/); assert.match(lines[1], /قافلة طبية/);
+  assert.equal(liveTickerItems([], [{ id: "e2", title: "بعيد", kind: "other", startsAt: "2026-12-01T08:00:00.000Z", endsAt: null, location: "", description: "", pinned: false, createdAt: "" }], new Date("2026-10-06T10:00:00Z")).length, 0, "events further than two weeks stay out of the ticker");
+});
+
+test("village events: phases, ICS payload, Google link; ask: nominations grouped by provider with the best answer first", () => {
+  const { eventPhase, eventIcs, googleCalendarUrl, groupNominations, getEventKind, isEventKind } = catalog;
+  const now = new Date("2026-10-06T10:00:00Z");
+  assert.equal(eventPhase({ startsAt: "2026-10-06T15:00:00Z", endsAt: null }, now), "today");
+  assert.equal(eventPhase({ startsAt: "2026-10-09T15:00:00Z", endsAt: null }, now), "upcoming");
+  assert.equal(eventPhase({ startsAt: "2026-10-01T15:00:00Z", endsAt: null }, now), "past");
+  assert.equal(eventPhase({ startsAt: "2026-10-05T15:00:00Z", endsAt: "2026-10-07T15:00:00Z" }, now), "today", "multi-day event still running");
+  const event = { id: "11111111-2222-4333-8444-555555555555", title: "قافلة طبية, مجانية", kind: "medical", startsAt: "2026-10-08T08:00:00.000Z", endsAt: null, location: "مركز الشباب", description: "سطر١\nسطر٢", pinned: false, createdAt: "" };
+  const ics = eventIcs(event, "دليل جنزور", "https://x.test/events?event=1");
+  assert.match(ics, /BEGIN:VCALENDAR\r\n/); assert.match(ics, /DTSTART:20261008T080000Z/); assert.match(ics, /DTEND:20261008T100000Z/, "default two-hour duration");
+  assert.match(ics, /SUMMARY:🩺 قافلة طبية\\, مجانية/); assert.match(ics, /DESCRIPTION:سطر١\\nسطر٢/); assert.match(ics, /TRIGGER:-P1D/);
+  const google = new URL(googleCalendarUrl(event, "دليل جنزور"));
+  assert.equal(google.searchParams.get("dates"), "20261008T080000Z/20261008T100000Z"); assert.equal(google.searchParams.get("location"), "مركز الشباب");
+  assert.equal(getEventKind("nope").id, "other"); assert.equal(isEventKind("wedding"), true); assert.equal(isEventKind("party"), false);
+  const answers = [
+    { id: "a1", questionId: "q", memberId: "m1", memberName: "أحمد", serviceId: "s1", text: "", createdAt: "2026-01-01T00:00:00Z" },
+    { id: "a2", questionId: "q", memberId: "m2", memberName: "منى", serviceId: "s2", text: "ممتاز", createdAt: "2026-01-02T00:00:00Z" },
+    { id: "a3", questionId: "q", memberId: "m3", memberName: "سعيد", serviceId: "s1", text: "شغله نضيف", createdAt: "2026-01-03T00:00:00Z" },
+    { id: "a4", questionId: "q", memberId: "m4", memberName: "هدى", serviceId: null, text: "اسأل في الوحدة الصحية", createdAt: "2026-01-04T00:00:00Z" },
+  ];
+  const groups = groupNominations({ answers, bestAnswerId: "a2" });
+  assert.equal(groups.length, 3);
+  assert.equal(groups[0].serviceId, "s2"); assert.equal(groups[0].isBest, true, "best answer group leads");
+  assert.equal(groups[1].serviceId, "s1"); assert.equal(groups[1].count, 2); assert.deepEqual(groups[1].names, ["أحمد", "سعيد"]);
+  assert.equal(groups[2].serviceId, null); assert.equal(groups[2].answers[0].text, "اسأل في الوحدة الصحية");
+});
