@@ -92,7 +92,8 @@ export function tapFeedback(kind: TickKind = "tap") {
   const now = Date.now();
   if (now - lastTick < 60) return; // one tick per gesture even if several handlers fire
   lastTick = now;
-  if (mode === "haptic" || mode === "both") vibrate(kind === "success" ? [10, 40, 18] : kind === "error" ? [30, 50, 30] : kind === "open" ? 12 : kind === "close" ? 8 : 6);
+  const powerSave = typeof document !== "undefined" && document.documentElement.classList.contains("power-save");
+  if (!powerSave && (mode === "haptic" || mode === "both")) vibrate(kind === "success" ? [10, 40, 18] : kind === "error" ? [30, 50, 30] : kind === "open" ? 12 : kind === "close" ? 8 : 6);
   if ((mode === "sound" || mode === "both") && !isSoundMuted()) tick(kind);
 }
 

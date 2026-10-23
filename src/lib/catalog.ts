@@ -1136,6 +1136,8 @@ export type DesignSettings = {
   tapFeedback: "off" | "haptic" | "sound" | "both";
   providerEdgeTools: string;
   providerEdgeToolsPosition: "left" | "right" | "bottom";
+  showTopProfessions: boolean;
+  powerSaveMode: "auto" | "on" | "off";
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
   sectionSpacing: "compact" | "normal" | "relaxed";
@@ -1466,6 +1468,8 @@ export const defaultDesignSettings: DesignSettings = {
   tapFeedback: "both",
   providerEdgeTools: "call,whatsapp,share,favorite",
   providerEdgeToolsPosition: "left",
+  showTopProfessions: true,
+  powerSaveMode: "auto",
   showProviderWhatsappBtn: true,
   whatsappButtonColor: "#1fa855",
   sectionSpacing: "normal",
@@ -1986,6 +1990,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.tapFeedback = pickEnum(record.tapFeedback ?? record.menuFeedback, ["off", "haptic", "sound", "both"] as const, defaultDesignSettings.tapFeedback);
   next.providerEdgeTools = sanitizeProviderEdgeTools(record.providerEdgeTools);
   next.providerEdgeToolsPosition = pickEnum(record.providerEdgeToolsPosition, ["left", "right", "bottom"] as const, defaultDesignSettings.providerEdgeToolsPosition);
+  next.showTopProfessions = pickBool(record.showTopProfessions, defaultDesignSettings.showTopProfessions);
+  next.powerSaveMode = pickEnum(record.powerSaveMode, ["auto", "on", "off"] as const, defaultDesignSettings.powerSaveMode);
   next.showProviderWhatsappBtn = pickBool(record.showProviderWhatsappBtn, defaultDesignSettings.showProviderWhatsappBtn);
   next.whatsappButtonColor = hexColor(record.whatsappButtonColor, defaultDesignSettings.whatsappButtonColor);
   next.sectionSpacing = pickEnum(record.sectionSpacing, ["compact", "normal", "relaxed"] as const, defaultDesignSettings.sectionSpacing);
@@ -2177,7 +2183,11 @@ export type PublicDirectory = {
   events?: VillageEventRecord[];
   /** Seasonal greetings active today (computed server-side in Cairo time). */
   greetings?: ActiveGreeting[];
+  /** «أهم مهن القرية»: up to 8 specialties ranked by real usage (views + 2×contacts), topped up by provider count. */
+  topCategories?: TopCategoryRecord[];
 };
+
+export type TopCategoryRecord = { id: string; score: number; providers: number };
 
 /** Rotating ad banner metadata (never includes the image payload). */
 export type AdBannerRecord = {

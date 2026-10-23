@@ -30,7 +30,8 @@ export default function TapFeedback() {
     const patched: typeof window.fetch = async (input, init) => {
       const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
       const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-      const track = MUTATING.has(method) && url.includes("/api/");
+      const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+      const track = MUTATING.has(method) && url.includes("/api/") && !url.includes("/api/hits") && !headers.has("x-silent");
       try {
         const response = await original(input, init);
         if (track) {

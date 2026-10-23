@@ -10,6 +10,7 @@ import InstallAppModal from "@/components/install-app-modal";
 import RouteTransition from "@/components/route-transition";
 import SplashScreen from "@/components/splash-screen";
 import TapFeedback from "@/components/tap-feedback";
+import PowerSave from "@/components/power-save";
 import "./globals.css";
 import "./janzour.css";
 import "./availability.css";
@@ -59,5 +60,5 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   // The blocking script applies Dark Mode by default before first paint (unless the user explicitly chose "light"),
   // and hides the splash screen on any inner page or after the initial start screen has already been shown.
-  return <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: `(function(){window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__janzourInstallPrompt=e;});try{var stored=localStorage.getItem("janzour-theme");if(stored==="light"){document.documentElement.classList.remove("dark");}else{document.documentElement.classList.add("dark");}if(window.location.pathname!=="/"||sessionStorage.getItem("janzour-splash-shown")==="1"){document.documentElement.classList.add("skip-splash");}else{sessionStorage.setItem("janzour-splash-shown","1");}}catch(e){document.documentElement.classList.add("dark");}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><InstallAppModal /><TapFeedback /></body></html>;
+  return <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: `(function(){window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__janzourInstallPrompt=e;});try{var stored=localStorage.getItem("janzour-theme");if(stored==="light"){document.documentElement.classList.remove("dark");}else{document.documentElement.classList.add("dark");}if(window.location.pathname!=="/"||sessionStorage.getItem("janzour-splash-shown")==="1"){document.documentElement.classList.add("skip-splash");}else{sessionStorage.setItem("janzour-splash-shown","1");}}catch(e){document.documentElement.classList.add("dark");}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><InstallAppModal /><TapFeedback /><PowerSave /></body></html>;
 }

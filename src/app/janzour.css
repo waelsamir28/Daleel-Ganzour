@@ -11445,3 +11445,40 @@ html.dark .edge-tools-preview-head { color: #9dc5f0; }
 .provider-card .provider-edge-tools .edge-tool-copy.is-copied::after { opacity: 1; transform: translateY(-50%) translateX(0); }
 html[data-design-edge-tools-pos="bottom"] .provider-card .provider-edge-tools .edge-tool-copy.is-copied::after { transform: translateX(-50%) translateY(0); }
 @media (hover: none) { .provider-card .provider-edge-tools .edge-tool-copy.is-copied::after { display: block; } }
+
+/* ===== أهم مهن القرية: صف أفقي قابل للتمرير حسب الاستخدام الفعلي ===== */
+.top-professions { margin: 0 0 16px; padding: 12px 12px 10px; border: 1.5px solid #dbe7f3; border-radius: 18px; background: #fff; box-shadow: 0 10px 26px -20px rgba(15, 48, 92, .45); }
+.top-professions-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; margin-bottom: 10px; }
+.top-professions-head h2 { display: inline-flex; align-items: center; gap: 7px; margin: 0; color: #0f2f55; font-size: 1rem; font-weight: 900; }
+.top-professions-head h2 svg { color: #f97316; }
+.top-professions-head small { color: #6b7f99; font-size: 11.5px; font-weight: 700; }
+.top-professions-scroller { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.top-profession-chip { position: relative; flex: 0 0 auto; display: grid; justify-items: center; gap: 4px; width: 128px; padding: 12px 8px 10px; border: 1px solid color-mix(in srgb, var(--cat, #0876e1) 25%, #dbe7f3); border-radius: 16px; background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--cat, #0876e1) 7%, #fff)); color: #0f2f55; text-decoration: none; text-align: center; scroll-snap-align: start; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.top-profession-chip:hover { transform: translateY(-2px); border-color: var(--cat, #0876e1); box-shadow: 0 12px 22px -14px color-mix(in srgb, var(--cat, #0876e1) 70%, #000); }
+.top-profession-rank { position: absolute; top: 6px; right: 6px; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--cat, #0876e1); color: #fff; font-size: 10.5px; font-weight: 900; }
+.top-profession-icon { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(140deg, var(--cat, #0876e1), color-mix(in srgb, var(--cat, #0876e1) 60%, #0b2d52)); color: #fff; box-shadow: 0 8px 14px -10px color-mix(in srgb, var(--cat, #0876e1) 85%, #000); }
+.top-profession-chip strong { font-size: 12.5px; font-weight: 900; line-height: 1.5; }
+.top-profession-chip small { color: #6b7f99; font-size: 10.5px; font-weight: 700; line-height: 1.5; }
+html.dark .top-professions { border-color: rgba(148, 163, 184, .28); background: var(--design-dark-card, #10233a); box-shadow: none; }
+html.dark .top-professions-head h2 { color: #eaf4ff; }
+html.dark .top-professions-head small, html.dark .top-profession-chip small { color: #9dbbdc; }
+html.dark .top-profession-chip { color: #eaf4ff; background: linear-gradient(180deg, rgba(255, 255, 255, .04), color-mix(in srgb, var(--cat, #0876e1) 14%, transparent)); border-color: color-mix(in srgb, var(--cat, #0876e1) 35%, rgba(148, 163, 184, .3)); }
+@media (max-width: 420px) { .top-profession-chip { width: 112px; } .top-profession-icon { width: 42px; height: 42px; } }
+
+/* ===== وضع توفير البطارية: بلا ضبابية ولا خلفيات ثابتة ولا حركات ثقيلة ===== */
+html.power-save *, html.power-save *::before, html.power-save *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html.power-save body { background-attachment: scroll !important; }
+html.power-save .provider-card:hover, html.power-save .category-tile:hover, html.power-save .top-profession-chip:hover, html.power-save .provider-card:hover .provider-card-icon { transform: none !important; }
+html.power-save .ad-rotator-slide > *, html.power-save .ad-art, html.power-save .new-flag, html.power-save .featured-strip-panel { animation: none !important; }
+html.power-save .site-header, html.power-save .modal-panel, html.power-save .ui-select-menu { background-color: var(--design-card-bg, #fff) !important; background-image: none !important; }
+html.power-save.dark .site-header, html.power-save.dark .modal-panel, html.power-save.dark .ui-select-menu { background-color: var(--design-dark-card, #10233a) !important; }
+.power-save-pill { position: fixed; left: 50%; bottom: 18px; z-index: 70; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid #fcd34d; background: #fffbeb; color: #92400e; font-size: 11.5px; font-weight: 800; box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .35); pointer-events: none; transform: translateX(-50%); animation: powerSavePill 5s ease forwards; }
+@keyframes powerSavePill { 0% { opacity: 0; transform: translateX(-50%) translateY(8px); } 10%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); } 100% { opacity: 0; transform: translateX(-50%) translateY(8px); visibility: hidden; } }
+html.dark .power-save-pill { background: #3b2a08; border-color: #b45309; color: #fde68a; }
+
+/* ===== معاينة صفحة مقدم الخدمة داخل الاستوديو ===== */
+.detail-preview-frame { display: flex; justify-content: center; padding: 14px; margin-bottom: 14px; border: 1px dashed #b7cdea; border-radius: 16px; background: radial-gradient(80% 80% at 50% 0%, #eaf3ff, #f7fbff); }
+.detail-preview-panel.modal-panel { position: relative; width: min(100%, 440px); max-height: none; animation: none; pointer-events: auto; }
+.detail-preview-panel .modal-close { pointer-events: none; }
+.detail-preview-panel .detail-v2-cta, .detail-preview-panel .detail-popup-trigger-btn { cursor: default; }
+html.dark .detail-preview-frame { border-color: #3d6d9e; background: radial-gradient(80% 80% at 50% 0%, #15304f, #0f1b2d); }

@@ -17,7 +17,7 @@ import BusinessCardModal from "@/components/business-card-modal";
 import SelectField from "@/components/select-field";
 import { LocationPicker, ServiceForm } from "@/components/request-forms";
 import { ProviderCompletionModalForm } from "@/components/management-editor";
-import { trackDirectoryEvent } from "@/lib/analytics-tracker";
+import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 
 const ADD_PROFESSION_INVITE = "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية";
@@ -85,6 +85,12 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const liveDetail = detail ? data.services.find((service) => service.id === detail.id) ?? detail : null;
   const design = useMemo(() => ({ ...defaultDesignSettings, ...(data.designSettings ?? {}) }), [data.designSettings]);
   const edgeTools = useMemo(() => parseProviderEdgeTools(design.providerEdgeTools), [design.providerEdgeTools]);
+  const topProfessions = useMemo(() => (data.topCategories ?? []).flatMap((item) => {
+    const category = data.categories.find((entry) => entry.id === item.id);
+    const parent = category?.parentId ? data.categories.find((entry) => entry.id === category.parentId) : undefined;
+    return category && parent ? [{ item, category, parent }] : [];
+  }), [data.topCategories, data.categories]);
+  useEffect(() => { if (specialtyId && !guestLocked) sendCategoryHit(specialtyId, "view", `page:${specialtyId}`); }, [specialtyId, guestLocked]);
   const [view, setView] = useState<"all" | "favorites">(initialFavorites ? "favorites" : "all");
   const [appShareState, setAppShareState] = useState<"idle" | "shared" | "copied">("idle");
   useEffect(() => { if (appShareState === "idle") return; const timer = setTimeout(() => setAppShareState("idle"), 2600); return () => clearTimeout(timer); }, [appShareState]);
@@ -852,6 +858,24 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               <span>أضف مهنتك</span>
             </button>
           </div>
+          {!scoped && design.showTopProfessions && topProfessions.length >= 3 && (
+            <section className="top-professions" aria-labelledby="top-professions-title">
+              <div className="top-professions-head">
+                <h2 id="top-professions-title"><Flame size={18}/> أهم مهن القرية</h2>
+                <small>الأكثر طلبًا حسب استخدام الأهالي الفعلي</small>
+              </div>
+              <div className="top-professions-scroller" role="list">
+                {topProfessions.map(({ item, category, parent }, index) => (
+                  <Link key={item.id} role="listitem" href={`/categories/${parent.id}/${category.id}`} className="top-profession-chip" style={categoryTheme(category)} onClick={() => sendCategoryHit(category.id, "view", `top:${category.id}`)}>
+                    <span className="top-profession-rank" aria-hidden="true">{index + 1}</span>
+                    <span className="top-profession-icon"><CategoryIcon icon={category.icon} size={22}/></span>
+                    <strong>{category.name}</strong>
+                    <small>{parent.name} · {item.providers} {item.providers === 1 ? "مقدم خدمة" : "مقدمي خدمة"}</small>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
           <div className="section-heading directory-section-heading">
             <div>
               <h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2>
