@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, avg, count, desc, eq, inArray, like, ne, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { adBanners, adRequests, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
 import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings } from "@/lib/catalog";
@@ -127,6 +127,19 @@ export async function ensureSeed() {
         const removed = await readDeletedCategoryIds(tx);
         const fresh = seedRows.filter((row) => !removed.has(row.id) && !(row.parentId && removed.has(row.parentId)));
         if (fresh.length) await tx.insert(directoryCategories).values(fresh).onConflictDoNothing();
+        // One-time move (existing databases): «الكوافير» و«الميكب» و«الحلاقة الرجالي» leave «الأفراح والمناسبات»
+        // for the new «الحلاقة والتجميل» section, unless the admin removed that section.
+        const beautyMove = await tx.insert(directorySettings).values({ key: "beauty_section_v1", value: new Date().toISOString() }).onConflictDoNothing().returning();
+        if (beautyMove.length && !removed.has("beauty")) {
+          const beautyRoot = seedRows.find((row) => row.id === "beauty");
+          if (beautyRoot) {
+            // Make room so the new section sits right after «الأفراح» instead of tying with «المواصلات».
+            await tx.update(directoryCategories).set({ sortOrder: sql`${directoryCategories.sortOrder} + 1` }).where(and(isNull(directoryCategories.parentId), gte(directoryCategories.sortOrder, beautyRoot.sortOrder), ne(directoryCategories.id, "beauty")));
+            for (const child of seedRows.filter((row) => row.parentId === "beauty")) {
+              await tx.update(directoryCategories).set({ parentId: "beauty", color: beautyRoot.color, icon: child.icon, sortOrder: child.sortOrder }).where(and(eq(directoryCategories.id, child.id), eq(directoryCategories.parentId, "events")));
+            }
+          }
+        }
       }
       if (!marker.length) return;
       await tx.insert(directoryAreas).values(areas.map((name, sortOrder) => ({ name, sortOrder }))).onConflictDoNothing();
