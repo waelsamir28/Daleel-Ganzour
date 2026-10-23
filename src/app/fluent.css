@@ -1,0 +1,123 @@
+/* =========================================================================
+   سمات Windows 11 (Fluent): خلفية Bloom، أسطح Mica/Acrylic شبه شفافة، زوايا 8px،
+   حدود رقيقة، ظلال هادئة، وأزرار Fluent مسطحة بخط سفلي داكن. عشر درجات لونية.
+   ========================================================================= */
+html[data-design-preset^="win11-"] { --win-a: #0067c0; --win-b: #4cc2ff; --win-c: #dbeafe; --win-radius: 8px; }
+html[data-design-preset="win11-dark"] { --win-a: #1e5fa8; --win-b: #60cdff; --win-c: #c7d2fe; }
+html[data-design-preset="win11-mica"] { --win-a: #005fb8; --win-b: #8fbce8; --win-c: #e5e7eb; }
+html[data-design-preset="win11-sunrise"] { --win-a: #c2410c; --win-b: #fb923c; --win-c: #ffe4d6; }
+html[data-design-preset="win11-glow"] { --win-a: #6b21a8; --win-b: #a855f7; --win-c: #ede9fe; }
+html[data-design-preset="win11-flow"] { --win-a: #047857; --win-b: #34d399; --win-c: #d1fae5; }
+html[data-design-preset="win11-motion"] { --win-a: #be123c; --win-b: #fb7185; --win-c: #ffe4e6; }
+html[data-design-preset="win11-sunset"] { --win-a: #b45309; --win-b: #fbbf24; --win-c: #fef3c7; }
+html[data-design-preset="win11-graphite"] { --win-a: #334155; --win-b: #94a3b8; --win-c: #f1f5f9; }
+html[data-design-preset="win11-ocean"] { --win-a: #0c4a6e; --win-b: #0ea5e9; --win-c: #e0f2fe; }
+
+/* خلفية Bloom ثابتة (زهرة ويندوز 11) */
+html[data-design-preset^="win11-"]:not(.dark) body {
+  background:
+    radial-gradient(42% 38% at 78% 18%, color-mix(in srgb, var(--win-b) 55%, transparent) 0%, transparent 70%),
+    radial-gradient(38% 34% at 22% 30%, color-mix(in srgb, var(--win-c) 90%, transparent) 0%, transparent 72%),
+    radial-gradient(45% 40% at 50% 85%, color-mix(in srgb, var(--win-a) 28%, transparent) 0%, transparent 72%),
+    linear-gradient(180deg, #f6f8fc 0%, color-mix(in srgb, var(--win-c) 35%, #f1f5fa) 100%) !important;
+  background-attachment: fixed !important;
+}
+html[data-design-preset^="win11-"].dark body {
+  background:
+    radial-gradient(42% 38% at 78% 18%, color-mix(in srgb, var(--win-a) 55%, transparent) 0%, transparent 70%),
+    radial-gradient(38% 34% at 22% 30%, color-mix(in srgb, var(--win-b) 22%, transparent) 0%, transparent 72%),
+    radial-gradient(45% 40% at 50% 85%, color-mix(in srgb, var(--win-b) 14%, transparent) 0%, transparent 72%),
+    linear-gradient(180deg, #161616 0%, #1c1f26 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* أسطح Mica: كروت وهيدر وبراويز */
+html[data-design-preset^="win11-"]:not(.dark) .site-header,
+html[data-design-preset^="win11-"]:not(.dark) .provider-card,
+html[data-design-preset^="win11-"]:not(.dark) .category-tile,
+html[data-design-preset^="win11-"]:not(.dark) .categories-top-action-frame,
+html[data-design-preset^="win11-"]:not(.dark) .site-announcement-ticker-card,
+html[data-design-preset^="win11-"]:not(.dark) .duty-card,
+html[data-design-preset^="win11-"]:not(.dark) .community-card,
+html[data-design-preset^="win11-"]:not(.dark) .guest-gate-card,
+html[data-design-preset^="win11-"]:not(.dark) .directory-section-heading {
+  background: rgba(255, 255, 255, .72) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.25);
+  backdrop-filter: blur(30px) saturate(1.25);
+  border: 1px solid rgba(0, 0, 0, .07) !important;
+  border-radius: var(--win-radius) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .04), 0 8px 16px -12px rgba(0, 0, 0, .18) !important;
+}
+html[data-design-preset^="win11-"].dark .site-header,
+html[data-design-preset^="win11-"].dark .provider-card,
+html[data-design-preset^="win11-"].dark .category-tile,
+html[data-design-preset^="win11-"].dark .categories-top-action-frame,
+html[data-design-preset^="win11-"].dark .site-announcement-ticker-card,
+html[data-design-preset^="win11-"].dark .duty-card,
+html[data-design-preset^="win11-"].dark .community-card,
+html[data-design-preset^="win11-"].dark .guest-gate-card,
+html[data-design-preset^="win11-"].dark .directory-section-heading {
+  background: rgba(44, 44, 44, .72) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.25);
+  backdrop-filter: blur(30px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  border-radius: var(--win-radius) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .25), 0 8px 16px -12px rgba(0, 0, 0, .6) !important;
+}
+html[data-design-preset^="win11-"] .provider-card:hover,
+html[data-design-preset^="win11-"] .category-tile:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--win-a) 35%, transparent) !important; }
+
+/* النوافذ العائمة والقوائم: Acrylic بزوايا 8px */
+html[data-design-preset^="win11-"] .modal-panel,
+html[data-design-preset^="win11-"] .ui-select-menu,
+html[data-design-preset^="win11-"] .search-suggestions,
+html[data-design-preset^="win11-"] .public-notification-dropdown {
+  border-radius: var(--win-radius) !important;
+  border: 1px solid rgba(0, 0, 0, .1) !important;
+}
+
+/* أزرار Fluent: مسطحة بخط سفلي أغمق ولمسة تمييز */
+html[data-design-preset^="win11-"] .button-primary,
+html[data-design-preset^="win11-"] .site-header .add-service-header,
+html[data-design-preset^="win11-"] .header-menu-toggle-btn.is-open,
+html[data-design-preset^="win11-"] .search-button {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, 0)), var(--design-button-color, var(--win-a)) !important;
+  border: 1px solid color-mix(in srgb, var(--design-button-color, var(--win-a)) 80%, #000) !important;
+  border-bottom-color: color-mix(in srgb, var(--design-button-color, var(--win-a)) 55%, #000) !important;
+  border-radius: calc(var(--win-radius) - 2px) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+html[data-design-preset^="win11-"] .button-primary:hover,
+html[data-design-preset^="win11-"] .site-header .add-service-header:hover,
+html[data-design-preset^="win11-"] .search-button:hover { filter: brightness(1.07); }
+html[data-design-preset^="win11-"] .button-whatsapp {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, 0)), var(--design-whatsapp-color, #1fa855) !important;
+  border: 1px solid #15803d !important;
+  border-bottom-color: #14532d !important;
+  border-radius: calc(var(--win-radius) - 2px) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+html[data-design-preset^="win11-"] .button-soft,
+html[data-design-preset^="win11-"] .theme-toggle,
+html[data-design-preset^="win11-"] .sound-toggle,
+html[data-design-preset^="win11-"] .header-menu-toggle-btn,
+html[data-design-preset^="win11-"] .header-auth-btn {
+  border-radius: calc(var(--win-radius) - 2px) !important;
+  box-shadow: none !important;
+}
+html[data-design-preset^="win11-"] button:focus-visible,
+html[data-design-preset^="win11-"] a:focus-visible { outline: 2px solid var(--win-a) !important; outline-offset: 2px; }
+
+/* الهيدر: شريط رفيع بلون التمييز أعلى الصفحة مثل نافذة ويندوز النشطة */
+html[data-design-preset^="win11-"] .site-header { border-top: 2px solid var(--win-a) !important; border-radius: 0 0 var(--win-radius) var(--win-radius) !important; }
+
+/* الفوتر */
+html[data-design-preset^="win11-"] .site-footer {
+  background: color-mix(in srgb, var(--design-footer-bg, var(--win-a)) 92%, #000) !important;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+}
+
+/* أيقونات الأقسام: مربعات بزوايا 8px بدل الدوائر */
+html[data-design-preset^="win11-"] .category-tile .category-icon { border-radius: var(--win-radius) !important; }

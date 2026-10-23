@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
-import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
-import { menuFeedback } from "@/lib/feedback";
+import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX } from "lucide-react";
+import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId } from "@/lib/catalog";
+import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import { openInstallAppModal } from "@/components/install-app-modal";
 import AppInfoModal from "@/components/app-info-modal";
@@ -43,6 +43,14 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [data, setData] = useState(initialData), [modal, setModal] = useState<ModalName>(null), [detail, setDetail] = useState<ServiceRecord | null>(null);
   const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
+  const [soundMuted, setSoundMutedState] = useState(false);
+  useEffect(() => {
+    const sync = () => setSoundMutedState(isSoundMuted());
+    sync();
+    window.addEventListener(SOUND_MUTE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => { window.removeEventListener(SOUND_MUTE_EVENT, sync); window.removeEventListener("storage", sync); };
+  }, []);
   const [queryDraft, setQueryDraft] = useState(""), [query, setQuery] = useState(""), [rootFilter, setRootFilter] = useState(rootId ?? "");
   const [area, setArea] = useState(""), [customAddress, setCustomAddress] = useState(""), [emergency, setEmergency] = useState(false);
   const [deliveryOnly, setDeliveryOnly] = useState(false), [teacherStage, setTeacherStage] = useState<TeacherStageId>("all"), [now, setNow] = useState(0);
@@ -79,6 +87,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   }, [viewer.role]);
   const liveDetail = detail ? data.services.find((service) => service.id === detail.id) ?? detail : null;
   const design = useMemo(() => ({ ...defaultDesignSettings, ...(data.designSettings ?? {}) }), [data.designSettings]);
+  const edgeTools = useMemo(() => parseProviderEdgeTools(design.providerEdgeTools), [design.providerEdgeTools]);
   const [view, setView] = useState<"all" | "favorites">(initialFavorites ? "favorites" : "all");
   const [appShareState, setAppShareState] = useState<"idle" | "shared" | "copied">("idle");
   useEffect(() => { if (appShareState === "idle") return; const timer = setTimeout(() => setAppShareState("idle"), 2600); return () => clearTimeout(timer); }, [appShareState]);
@@ -488,6 +497,17 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               </Link>
             </div>
           ) : null}
+          <button
+            type="button"
+            className={`sound-toggle ${soundMuted ? "is-muted" : ""}`}
+            aria-pressed={soundMuted}
+            aria-label={soundMuted ? "تشغيل صوت النقرات" : "كتم صوت النقرات"}
+            title={soundMuted ? "الصوت مكتوم — اضغط للتشغيل" : "كتم صوت النقرات"}
+            onClick={() => setSoundMuted(!soundMuted)}
+            data-no-feedback
+          >
+            {soundMuted ? <VolumeX size={17}/> : <Volume2 size={17}/>}
+          </button>
           {design.showHeaderDarkToggle && (
             <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي والنهاري" title="وضع الليل والنهار" onClick={toggleTheme}>
               <span className="theme-toggle-track">
@@ -500,7 +520,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <button
             type="button"
             className={`header-menu-toggle-btn mobile-menu-button ${menuOpen ? "is-open" : ""}`}
-            onClick={() => { menuFeedback(!menuOpen); setMenuOpen((open) => !open); }}
+            onClick={() => { menuFeedback(!menuOpen); setMenuOpen((open) => !open); }} data-no-feedback
             aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
             aria-expanded={menuOpen}
           >
@@ -905,7 +925,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || activeSpecialtyCategory) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
-      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className={`provider-grid ${isFeaturedCollapsible ? "featured-strip-panel" : ""}`} id={isFeaturedCollapsible ? "featured-providers-panel" : undefined}>{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => openAddService()}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}</section>}
+      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className={`provider-grid ${isFeaturedCollapsible ? "featured-strip-panel" : ""}`} id={isFeaturedCollapsible ? "featured-providers-panel" : undefined}>{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} edgeTools={edgeTools} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => openAddService()}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}</section>}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
         <div className="category-grid main-category-grid feature-cards-grid">
           <button
@@ -1749,13 +1769,14 @@ type ProviderCardProps = {
   favorite: boolean;
   now: number;
   showAdminQuickEdit?: boolean;
+  edgeTools: ProviderEdgeToolId[];
   onOpen: (service: ServiceRecord) => void;
   onOpenCompletion: (service: ServiceRecord) => void;
   onShare: (service: ServiceRecord) => void;
   onToggleFavorite: (id: string) => void;
 };
 // Restored classic provider card with Share & Favorite icons on the left and two action buttons («اتصال» & «واتساب») that both open the provider detail page.
-function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, onOpen, onShare, onToggleFavorite }: ProviderCardProps) {
+function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, edgeTools, onOpen, onShare, onToggleFavorite }: ProviderCardProps) {
   return (
     <article
       className="provider-card"
@@ -1794,58 +1815,83 @@ function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, on
           )}
         </div>
       </div>
-      {/* Edge tools: four circles straddling the left border — call & WhatsApp open the detail page
-          (no direct dialling from the outer card), share & favourite act directly. */}
-      <div className="provider-edge-tools" role="group" aria-label="أدوات سريعة">
-        <button
-          type="button"
-          className="edge-tool edge-tool-call"
-          onClick={(event) => { event.stopPropagation(); onOpen(service); }}
-          aria-label={`اتصال بـ ${service.name} — عرض صفحة مقدم الخدمة`}
-          title="اتصال"
-        >
-          <PhoneCall size={15}/>
-        </button>
-        <button
-          type="button"
-          className="edge-tool edge-tool-whatsapp"
-          onClick={(event) => { event.stopPropagation(); onOpen(service); }}
-          aria-label={`واتساب ${service.name} — عرض صفحة مقدم الخدمة`}
-          title="واتساب"
-        >
-          <MessageCircle size={15}/>
-        </button>
-        <button
-          type="button"
-          className="edge-tool edge-tool-share provider-share-button"
-          onClick={(event) => { event.stopPropagation(); onShare(service); }}
-          aria-label={`مشاركة ${service.name}`}
-          title="مشاركة"
-        >
-          <Share2 size={14}/>
-        </button>
-        <button
-          type="button"
-          className={`edge-tool edge-tool-favorite favorite-button ${favorite ? "is-favorite" : ""}`}
-          onClick={(event) => { event.stopPropagation(); onToggleFavorite(service.id); }}
-          aria-pressed={favorite}
-          aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`}
-          title={favorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-        >
-          <Heart size={14} fill={favorite ? "currentColor" : "none"}/>
-        </button>
-        {showAdminQuickEdit && (
-          <Link
-            href={`/admin?tab=directory&editService=${encodeURIComponent(service.id)}`}
-            className="edge-tool edge-tool-admin provider-admin-edit-btn"
-            onClick={(event) => event.stopPropagation()}
-            aria-label={`تعديل سريع لـ ${service.name} كأدمن`}
-            title="تعديل سريع كأدمن"
-          >
-            <Pencil size={13}/>
-          </Link>
-        )}
-      </div>
+      {/* Edge tools: flat icons in translucent circles on the card edge, revealed on hover/focus
+          (always faintly visible on touch screens). Order/visibility/position come from استوديو المظهر.
+          اتصال/واتساب act directly; مشاركة/المفضلة act in place. */}
+      {edgeTools.length > 0 && (
+        <div className="provider-edge-tools" role="group" aria-label="أدوات سريعة">
+          {edgeTools.map((tool) => {
+            if (tool === "call") {
+              return (
+                <a
+                  key={tool}
+                  href={`tel:${service.phone}`}
+                  className="edge-tool edge-tool-call"
+                  data-tip="اتصال"
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label={`اتصال بـ ${service.name}`}
+                >
+                  <PhoneCall size={15}/>
+                </a>
+              );
+            }
+            if (tool === "whatsapp") {
+              return (
+                <a
+                  key={tool}
+                  href={whatsappUrl(service.phone, serviceWhatsappMessage(service, category.name))}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="edge-tool edge-tool-whatsapp"
+                  data-tip="واتساب"
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label={`واتساب ${service.name}`}
+                >
+                  <MessageCircle size={15}/>
+                </a>
+              );
+            }
+            if (tool === "share") {
+              return (
+                <button
+                  key={tool}
+                  type="button"
+                  className="edge-tool edge-tool-share provider-share-button"
+                  data-tip="مشاركة"
+                  onClick={(event) => { event.stopPropagation(); onShare(service); }}
+                  aria-label={`مشاركة ${service.name}`}
+                >
+                  <Share2 size={14}/>
+                </button>
+              );
+            }
+            return (
+              <button
+                key={tool}
+                type="button"
+                className={`edge-tool edge-tool-favorite favorite-button ${favorite ? "is-favorite" : ""}`}
+                data-tip={favorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+                onClick={(event) => { event.stopPropagation(); onToggleFavorite(service.id); }}
+                aria-pressed={favorite}
+                aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`}
+              >
+                <Heart size={14} fill={favorite ? "currentColor" : "none"}/>
+              </button>
+            );
+          })}
+          {showAdminQuickEdit && (
+            <Link
+              href={`/admin?tab=directory&editService=${encodeURIComponent(service.id)}`}
+              className="edge-tool edge-tool-admin provider-admin-edit-btn"
+              data-tip="تعديل سريع"
+              onClick={(event) => event.stopPropagation()}
+              aria-label={`تعديل سريع لـ ${service.name} كأدمن`}
+            >
+              <Pencil size={13}/>
+            </Link>
+          )}
+        </div>
+      )}
       <div className="provider-action-dock" role="group" aria-label="طرق التواصل — تفتح صفحة مقدم الخدمة">
         <button
           type="button"

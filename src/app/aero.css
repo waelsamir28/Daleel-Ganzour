@@ -224,3 +224,27 @@ html[data-design-preset^="vista-"] .site-footer {
   backdrop-filter: blur(14px);
   border-top: 1px solid rgba(255, 255, 255, .35);
 }
+
+/* ---------- 4) عنوان «تصفح أقسام القرية»: البرواز الخارجي فقط — لا كبسولة ولا تدرّج ولا خط تحت النص في أي سمة ---------- */
+html .directory-section-heading h2,
+html[data-design-preset] .directory-section-heading h2,
+html[data-design-heading-style] .directory-section-heading h2,
+html[data-design-section-heading] .directory-section-heading h2 {
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  padding: 0 !important;
+  width: auto !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+html .directory-section-heading h2 { color: #153c66; }
+html.dark .directory-section-heading h2 { color: #eaf4ff; }
+html .directory-section-heading h2::after,
+html .directory-section-heading h2::before,
+html .directory-section-heading::after {
+  display: none !important;
+  content: none !important;
+}
