@@ -270,7 +270,7 @@ test("serves settings without any advertising field", () => {
   assert.equal(sanitizeSettings({ copyright: "© 2026 جميع الحقوق محفوظة — دليل جنزور" }).copyright, "جميع الحقوق محفوظة — دليل جنزور");
   assert.deepEqual(sanitizeSettings({}), defaultSettings);
   // The legacy paid-advertising API stays gone; the only ad-related exports are the admin-managed banner helpers.
-  const bannerApi = ["AD_IMAGE_MAX_BYTES", "AD_IMAGE_MIMES", "AD_MIN_SECONDS", "AD_MAX_SECONDS", "AD_MAX_COUNT", "isAdLive", "adImageUrl", "parseAdImageDataUrl"];
+  const bannerApi = ["AD_IMAGE_MAX_BYTES", "AD_IMAGE_MIMES", "AD_MIN_SECONDS", "AD_MAX_SECONDS", "AD_MAX_COUNT", "AD_CURRENCY", "isAdLive", "adImageUrl", "parseAdImageDataUrl", "adTemplates", "isAdTemplateId", "getAdTemplate", "defaultAdPricing", "sanitizeAdPricing", "cheapestAdTier", "adPricingSummary"];
   assert.deepEqual(Object.keys(catalog).filter((name) => /advert|campaign|placement|marquee|^ad[A-Z]|Ad[A-Z]|adPrice|adDays/.test(name) && !bannerApi.includes(name)), []);
 });
 
@@ -755,7 +755,7 @@ test("guest gate: visitors browse without contact numbers; members and the admin
 
 test("ad banners: live filter, image URL versioning and data-URL parsing limits", () => {
   const { isAdLive, adImageUrl, parseAdImageDataUrl, AD_IMAGE_MAX_BYTES } = catalog;
-  const base = { id: "a1", title: "x", caption: "", serviceId: null, whatsapp: "", active: true, startsAt: null, endsAt: null, sortOrder: 0, durationSeconds: 6, imageMime: "image/gif", hasImage: true, imageVersion: 3, createdAt: "2026-01-01T00:00:00.000Z" };
+  const base = { id: "a1", title: "x", caption: "", serviceId: null, whatsapp: "", active: true, startsAt: null, endsAt: null, sortOrder: 0, durationSeconds: 6, imageMime: "image/gif", hasImage: true, imageVersion: 3, template: "", createdAt: "2026-01-01T00:00:00.000Z" };
   const now = new Date("2026-10-23T12:00:00Z");
   assert.equal(isAdLive(base, now), true);
   assert.equal(isAdLive({ ...base, active: false }, now), false);
@@ -772,4 +772,24 @@ test("ad banners: live filter, image URL versioning and data-URL parsing limits"
   assert.throws(() => parseAdImageDataUrl("data:text/html;base64,PGI+"), /GIF|PNG|صورة/);
   assert.throws(() => parseAdImageDataUrl("not a data url"), Error);
   assert.throws(() => parseAdImageDataUrl(`data:image/png;base64,${"A".repeat(Math.ceil((AD_IMAGE_MAX_BYTES + 1024) * 4 / 3))}`), /ميجا|حجم/);
+});
+
+test("ad templates and EGP price list: live without image, sanitizing, summary", () => {
+  const { isAdLive, adTemplates, isAdTemplateId, sanitizeAdPricing, defaultAdPricing, formatEgp, cheapestAdTier, adPricingSummary } = catalog;
+  const base = { active: true, startsAt: null, endsAt: null, hasImage: false, template: "" };
+  assert.equal(isAdLive(base), false, "no image and no template → hidden");
+  assert.equal(isAdLive({ ...base, template: "ad-space" }), true, "a built-in template needs no upload");
+  assert.ok(adTemplates.length >= 6);
+  assert.ok(adTemplates.some((template) => template.id === "app-promo"));
+  assert.equal(isAdTemplateId("ad-space"), true);
+  assert.equal(isAdTemplateId("evil"), false);
+  assert.deepEqual(sanitizeAdPricing(undefined), defaultAdPricing);
+  const custom = sanitizeAdPricing({ enabled: false, tiers: [{ label: "أسبوعين", days: "14", price: "250.4" }, { label: "", days: 3, price: 10 }, { label: "سالب", days: 7, price: -5 }], note: "x".repeat(400) });
+  assert.equal(custom.enabled, false);
+  assert.deepEqual(custom.tiers, [{ label: "أسبوعين", days: 14, price: 250 }]);
+  assert.equal(custom.note.length, 300);
+  assert.deepEqual(sanitizeAdPricing({ tiers: [] }).tiers, defaultAdPricing.tiers, "empty list falls back to defaults");
+  assert.equal(formatEgp(150), `${(150).toLocaleString("ar-EG")} ج.م`);
+  assert.equal(cheapestAdTier(defaultAdPricing).label, "أسبوع");
+  assert.match(adPricingSummary(defaultAdPricing), /أسبوع: .*ج\.م • شهر: /);
 });
