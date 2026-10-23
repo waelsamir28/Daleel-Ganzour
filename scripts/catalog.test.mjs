@@ -877,7 +877,9 @@ test("village events: phases, ICS payload, Google link", () => {
 
 test("Vista Aero theme presets are registered and accepted by the design sanitizer", () => {
   const { designThemePresets, sanitizeDesignSettings, defaultDesignSettings } = catalog;
-  for (const id of ["vista-aero", "vista-frost", "vista-ultimate"]) {
+  const vistaIds = Object.keys(designThemePresets).filter((id) => id.startsWith("vista-"));
+  assert.equal(vistaIds.length, 10, "ten Vista themes");
+  for (const id of vistaIds) {
     assert.ok(designThemePresets[id], `${id} preset exists`);
     assert.match(designThemePresets[id].label, /Vista/);
     assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, themePreset: id }).themePreset, id);

@@ -120,13 +120,20 @@ html.dark .ui-select-option::before { background: linear-gradient(180deg, rgba(1
 html[data-design-preset^="vista-"] { --vista-a: #0a3d7a; --vista-b: #1f7fd8; --vista-c: #9fdcff; }
 html[data-design-preset="vista-frost"] { --vista-a: #063b4a; --vista-b: #0c93b5; --vista-c: #c7f3ff; }
 html[data-design-preset="vista-ultimate"] { --vista-a: #020a12; --vista-b: #0f6e8f; --vista-c: #7ef2c8; }
+html[data-design-preset="vista-emerald"] { --vista-a: #03301f; --vista-b: #0f9f6e; --vista-c: #a7f3d0; }
+html[data-design-preset="vista-sunset"] { --vista-a: #4a1326; --vista-b: #f05a28; --vista-c: #ffd27a; }
+html[data-design-preset="vista-violet"] { --vista-a: #2e1065; --vista-b: #7c3aed; --vista-c: #e9d5ff; }
+html[data-design-preset="vista-ruby"] { --vista-a: #4c0519; --vista-b: #e11d48; --vista-c: #fecdd3; }
+html[data-design-preset="vista-gold"] { --vista-a: #3b2104; --vista-b: #d97706; --vista-c: #fde68a; }
+html[data-design-preset="vista-pearl"] { --vista-a: #1f2937; --vista-b: #64748b; --vista-c: #f1f5f9; }
+html[data-design-preset="vista-midnight"] { --vista-a: #020617; --vista-b: #1e3a8a; --vista-c: #818cf8; }
 
 /* خلفية Aurora ثابتة مثل سطح مكتب Vista */
 html[data-design-preset^="vista-"]:not(.dark) body {
   background:
     radial-gradient(60% 50% at 85% 10%, color-mix(in srgb, var(--vista-c) 55%, transparent) 0%, transparent 70%),
     radial-gradient(55% 45% at 10% 90%, color-mix(in srgb, var(--vista-b) 30%, transparent) 0%, transparent 70%),
-    linear-gradient(160deg, #eef6ff 0%, #dfeefc 50%, #d2e7fa 100%) !important;
+    linear-gradient(160deg, color-mix(in srgb, var(--vista-c) 18%, #f7fbff) 0%, color-mix(in srgb, var(--vista-b) 10%, #eef5fc) 50%, color-mix(in srgb, var(--vista-b) 16%, #e6f0fa) 100%) !important;
   background-attachment: fixed !important;
 }
 html[data-design-preset^="vista-"].dark body {
