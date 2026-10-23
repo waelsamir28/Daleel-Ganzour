@@ -1247,6 +1247,18 @@ export default function DesignCustomizer({
 
             {!collapsedGroups.header && (
               <div className="design-group-content">
+                <InnerDivider title="تغذية راجعة عند فتح قائمة الهيدر" subtitle="اهتزاز خفيف وصوت نقرة ناعمة على الموبايل عند فتح القائمة (الاهتزاز يعمل على أندرويد فقط)." />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    عند فتح القائمة
+                    <SelectField value={draft.menuFeedback} onChange={(e) => updateField("menuFeedback", e.target.value as DesignSettings["menuFeedback"])}>
+                      <option value="both">اهتزاز خفيف + صوت نقرة ناعمة (الافتراضي)</option>
+                      <option value="haptic">اهتزاز خفيف فقط</option>
+                      <option value="sound">صوت نقرة فقط</option>
+                      <option value="off">بدون</option>
+                    </SelectField>
+                  </label>
+                </div>
                 <InnerDivider title="الشريط الإخباري المتحرك (أسفل البانر الترحيبي)" subtitle="أضف خبراً واحداً أو عدة أخبار وتنبيهات متتالية لأهل القرية مع تحكم في الحركة والسرعة" />
                 <div className="design-toggles-grid">
                   <label className="checkbox-field"><input type="checkbox" checked={draft.announcementEnabled} onChange={(e) => updateField("announcementEnabled", e.target.checked)}/>تفعيل وإظهار الشريط الإخباري المتحرك أسفل البانر الترحيبي</label>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
 import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
+import { menuFeedback } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import { openInstallAppModal } from "@/components/install-app-modal";
 import AppInfoModal from "@/components/app-info-modal";
@@ -499,7 +500,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <button
             type="button"
             className={`header-menu-toggle-btn mobile-menu-button ${menuOpen ? "is-open" : ""}`}
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => { menuFeedback(!menuOpen); setMenuOpen((open) => !open); }}
             aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
             aria-expanded={menuOpen}
           >
@@ -1792,44 +1793,58 @@ function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, on
             </span>
           )}
         </div>
-        <div className="provider-card-side" role="group" aria-label="المفضلة والمشاركة">
-          <button
-            type="button"
-            className={`favorite-button ${favorite ? "is-favorite" : ""}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onToggleFavorite(service.id);
-            }}
-            aria-pressed={favorite}
-            aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`}
-            title={favorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+      </div>
+      {/* Edge tools: four circles straddling the left border — call & WhatsApp open the detail page
+          (no direct dialling from the outer card), share & favourite act directly. */}
+      <div className="provider-edge-tools" role="group" aria-label="أدوات سريعة">
+        <button
+          type="button"
+          className="edge-tool edge-tool-call"
+          onClick={(event) => { event.stopPropagation(); onOpen(service); }}
+          aria-label={`اتصال بـ ${service.name} — عرض صفحة مقدم الخدمة`}
+          title="اتصال"
+        >
+          <PhoneCall size={15}/>
+        </button>
+        <button
+          type="button"
+          className="edge-tool edge-tool-whatsapp"
+          onClick={(event) => { event.stopPropagation(); onOpen(service); }}
+          aria-label={`واتساب ${service.name} — عرض صفحة مقدم الخدمة`}
+          title="واتساب"
+        >
+          <MessageCircle size={15}/>
+        </button>
+        <button
+          type="button"
+          className="edge-tool edge-tool-share provider-share-button"
+          onClick={(event) => { event.stopPropagation(); onShare(service); }}
+          aria-label={`مشاركة ${service.name}`}
+          title="مشاركة"
+        >
+          <Share2 size={14}/>
+        </button>
+        <button
+          type="button"
+          className={`edge-tool edge-tool-favorite favorite-button ${favorite ? "is-favorite" : ""}`}
+          onClick={(event) => { event.stopPropagation(); onToggleFavorite(service.id); }}
+          aria-pressed={favorite}
+          aria-label={favorite ? `إزالة ${service.name} من المفضلة` : `أضف ${service.name} للمفضلة`}
+          title={favorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+        >
+          <Heart size={14} fill={favorite ? "currentColor" : "none"}/>
+        </button>
+        {showAdminQuickEdit && (
+          <Link
+            href={`/admin?tab=directory&editService=${encodeURIComponent(service.id)}`}
+            className="edge-tool edge-tool-admin provider-admin-edit-btn"
+            onClick={(event) => event.stopPropagation()}
+            aria-label={`تعديل سريع لـ ${service.name} كأدمن`}
+            title="تعديل سريع كأدمن"
           >
-            <Heart size={16} fill={favorite ? "currentColor" : "none"}/>
-          </button>
-          <button
-            type="button"
-            className="provider-share-button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onShare(service);
-            }}
-            aria-label={`مشاركة ${service.name}`}
-            title="مشاركة"
-          >
-            <Share2 size={15}/>
-          </button>
-          {showAdminQuickEdit && (
-            <Link
-              href={`/admin?tab=directory&editService=${encodeURIComponent(service.id)}`}
-              className="provider-admin-edit-btn"
-              onClick={(event) => event.stopPropagation()}
-              aria-label={`تعديل سريع لـ ${service.name} كأدمن`}
-              title="تعديل سريع كأدمن"
-            >
-              <Pencil size={14}/>
-            </Link>
-          )}
-        </div>
+            <Pencil size={13}/>
+          </Link>
+        )}
       </div>
       <div className="provider-action-dock" role="group" aria-label="طرق التواصل — تفتح صفحة مقدم الخدمة">
         <button

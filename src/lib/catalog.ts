@@ -1123,6 +1123,7 @@ export type DesignSettings = {
   providerCardLayout: "classic" | "compact" | "centered";
   showProviderBadges: boolean;
   showProviderShareBtn: boolean;
+  menuFeedback: "off" | "haptic" | "sound" | "both";
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
   sectionSpacing: "compact" | "normal" | "relaxed";
@@ -1450,6 +1451,7 @@ export const defaultDesignSettings: DesignSettings = {
   providerCardLayout: "classic",
   showProviderBadges: true,
   showProviderShareBtn: true,
+  menuFeedback: "both",
   showProviderWhatsappBtn: true,
   whatsappButtonColor: "#1fa855",
   sectionSpacing: "normal",
@@ -1870,6 +1872,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.providerCardLayout = pickEnum(record.providerCardLayout, ["classic", "compact", "centered"] as const, defaultDesignSettings.providerCardLayout);
   next.showProviderBadges = pickBool(record.showProviderBadges, defaultDesignSettings.showProviderBadges);
   next.showProviderShareBtn = pickBool(record.showProviderShareBtn, defaultDesignSettings.showProviderShareBtn);
+  next.menuFeedback = pickEnum(record.menuFeedback, ["off", "haptic", "sound", "both"] as const, defaultDesignSettings.menuFeedback);
   next.showProviderWhatsappBtn = pickBool(record.showProviderWhatsappBtn, defaultDesignSettings.showProviderWhatsappBtn);
   next.whatsappButtonColor = hexColor(record.whatsappButtonColor, defaultDesignSettings.whatsappButtonColor);
   next.sectionSpacing = pickEnum(record.sectionSpacing, ["compact", "normal", "relaxed"] as const, defaultDesignSettings.sectionSpacing);

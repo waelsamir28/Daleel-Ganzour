@@ -11311,3 +11311,63 @@ html.dark .event-kind, html.dark .admin-event-kind { background: color-mix(in sr
   .event-actions .button { flex: 1; justify-content: center; }
   .admin-greeting-fields { grid-template-columns: 1fr; }
 }
+
+/* ===== Provider card edge tools: four glossy circles straddling the card's left border =====
+   اتصال/واتساب تفتحان صفحة مقدم الخدمة (لا اتصال مباشر من الكارت الخارجي)، المشاركة والمفضلة تعملان مباشرة. */
+.provider-grid { padding-left: 20px; column-gap: 30px; }
+.provider-card { min-height: 188px; }
+.provider-card .provider-card-main,
+.provider-card .provider-action-dock { margin-left: 22px; }
+.provider-card .provider-edge-tools {
+  position: absolute;
+  left: -19px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  z-index: 2;
+}
+.provider-card .provider-edge-tools .edge-tool {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #fff;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--tool, #1c5daa) 78%, #fff), var(--tool, #1c5daa) 55%, color-mix(in srgb, var(--tool, #1c5daa) 72%, #000));
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45), inset 0 -3px 0 rgba(0, 0, 0, .18), 0 3px 0 color-mix(in srgb, var(--tool, #1c5daa) 55%, #000), 0 8px 16px -8px color-mix(in srgb, var(--tool, #1c5daa) 85%, #000);
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.provider-card .provider-edge-tools .edge-tool svg { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .3)); }
+.provider-card .provider-edge-tools .edge-tool:hover,
+.provider-card .provider-edge-tools .edge-tool:focus-visible { transform: scale(1.1); filter: brightness(1.06); outline: none; }
+.provider-card .provider-edge-tools .edge-tool:active { transform: scale(.96) translateY(1px); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .3), inset 0 -1px 0 rgba(0, 0, 0, .18), 0 1px 0 color-mix(in srgb, var(--tool, #1c5daa) 55%, #000); }
+.provider-card .provider-edge-tools .edge-tool-call { --tool: var(--cat, #0876e1); }
+.provider-card .provider-edge-tools .edge-tool-whatsapp { --tool: #1fa855; }
+.provider-card .provider-edge-tools .edge-tool-share { --tool: #1c5daa; }
+.provider-card .provider-edge-tools .edge-tool-favorite { --tool: #fb536b; color: #fff; }
+.provider-card .provider-edge-tools .edge-tool-favorite:not(.is-favorite) {
+  background: linear-gradient(145deg, #fff, #ffe9ee);
+  color: #e11d48;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), inset 0 -3px 0 rgba(225, 29, 72, .14), 0 3px 0 #f4b6c3, 0 8px 16px -8px rgba(225, 29, 72, .45);
+}
+.provider-card .provider-edge-tools .edge-tool-admin { --tool: #f59e0b; width: 38px; height: 38px; background: linear-gradient(145deg, #fde68a, #f59e0b 55%, #b45309); color: #3b2300; }
+html.dark .provider-card .provider-edge-tools .edge-tool { border-color: #0f1b2d; }
+html.dark .provider-card .provider-edge-tools .edge-tool-favorite:not(.is-favorite) { background: linear-gradient(145deg, #2a1622, #1a0f16); color: #ff7a94; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .08), 0 3px 0 #4a1c2b, 0 8px 16px -8px rgba(0, 0, 0, .6); }
+@media (max-width: 420px) {
+  .provider-grid { padding-left: 18px; }
+  .provider-card .provider-edge-tools { left: -17px; gap: 6px; }
+  .provider-card .provider-edge-tools .edge-tool,
+  .provider-card .provider-edge-tools .edge-tool-admin { width: 34px; height: 34px; }
+  .provider-card .provider-card-main,
+  .provider-card .provider-action-dock { margin-left: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .provider-card .provider-edge-tools .edge-tool,
+  .provider-card .provider-edge-tools .edge-tool:hover { transform: none !important; }
+}
