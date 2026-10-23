@@ -60,6 +60,7 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-provider-layout", design.providerCardLayout);
   root.setAttribute("data-design-provider-badges", design.showProviderBadges ? "true" : "false");
   root.setAttribute("data-design-provider-share", design.showProviderShareBtn ? "true" : "false");
+  root.setAttribute("data-design-menu-feedback", design.menuFeedback);
   root.setAttribute("data-design-provider-whatsapp", design.showProviderWhatsappBtn ? "true" : "false");
   root.setAttribute("data-design-section-spacing", design.sectionSpacing);
   root.setAttribute("data-design-hover-effect", design.cardHoverEffect);
