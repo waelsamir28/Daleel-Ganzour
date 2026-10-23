@@ -991,20 +991,20 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                 const cat = getCategory(service.category, categories);
                 const liveNow = now > 0 && isAvailableNow(service, now);
                 return (
-                  <article key={service.id} className="duty-card" onClick={() => { closeModal(); openDetail(service); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); closeModal(); openDetail(service); } }}>
-                    <div className="duty-card-top">
-                      <span className="duty-card-icon" style={categoryTheme(cat)}><CategoryIcon icon={cat.icon} size={20}/></span>
-                      <div className="duty-card-copy">
-                        <h3>{service.name}</h3>
-                        <span>{cat.name} • {service.address || service.area}</span>
+                  <article key={service.id} className="duty-card duty-card-v2" onClick={() => { closeModal(); openDetail(service); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); closeModal(); openDetail(service); } }}>
+                    <span className={`duty-status-pill ${liveNow ? "is-live" : "is-emergency"}`}>{liveNow ? "متاح الآن" : service.emergency ? "طوارئ" : "مناوبة"}</span>
+                    {!contactLocked && (
+                      <div className="duty-hover-tools" onClick={(event) => event.stopPropagation()}>
+                        <a href={whatsappUrl(service.phone, serviceWhatsappMessage(service, cat.name))} target="_blank" rel="noopener noreferrer" className="duty-tool-btn is-whatsapp" aria-label={`واتساب ${service.name}`} title="واتساب"><MessageCircle size={15}/></a>
+                        <button type="button" className="duty-tool-btn" onClick={() => { closeModal(); openDetail(service); }} aria-label={`تفاصيل ${service.name}`} title="التفاصيل"><Info size={15}/></button>
                       </div>
-                      <span className={`duty-status-pill ${liveNow ? "is-live" : "is-emergency"}`}>{liveNow ? "متاح الآن" : service.emergency ? "طوارئ" : "مناوبة"}</span>
-                    </div>
-                    <div className="duty-card-actions" onClick={(event) => event.stopPropagation()}>
-                      {contactLocked ? <Link href={registerHref} className="button button-primary button-small"><LockKeyhole size={14}/>سجّل لعرض الرقم</Link> : <>
-                      <a href={`tel:${service.phone}`} className="button button-primary button-small"><PhoneCall size={14}/><span dir="ltr">{service.phone}</span></a>
-                      <a href={whatsappUrl(service.phone, serviceWhatsappMessage(service, cat.name))} target="_blank" rel="noopener noreferrer" className="button button-whatsapp button-small"><MessageCircle size={14}/>واتساب</a>
-                      </>}
+                    )}
+                    <h3 className="duty-card-title"><span className="duty-card-icon" style={categoryTheme(cat)}><CategoryIcon icon={cat.icon} size={17}/></span><span>{service.name}</span></h3>
+                    <p className="duty-card-sub">{cat.name} • {service.address || service.area}</p>
+                    <div className="duty-card-foot" onClick={(event) => event.stopPropagation()}>
+                      {contactLocked
+                        ? <Link href={registerHref} className="button button-primary duty-call-full"><LockKeyhole size={15}/>سجّل لعرض الرقم</Link>
+                        : <a href={`tel:${service.phone}`} className="button button-primary duty-call-full"><PhoneCall size={15}/><span>اتصال</span><span dir="ltr">{service.phone}</span></a>}
                     </div>
                   </article>
                 );
@@ -1057,34 +1057,24 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             {utilityNumbers.map((item) => {
               const UtilityIcon = utilityIcon(item);
               return (
-              <article key={item.id} className={`duty-card utility-duty-card is-${item.tone}`}>
-                <div className="duty-card-top">
-                  <span className="duty-card-icon utility-tone-icon"><UtilityIcon size={20}/></span>
-                  <div className="duty-card-copy">
-                    <h3>{item.name}</h3>
-                    <span>{item.detail || item.category}</span>
-                  </div>
-                  <span className="duty-status-pill utility-tone-pill">{item.category}</span>
-                </div>
-                <div className="duty-card-actions">
-                  <a href={`tel:${item.number}`} className="button button-primary button-small" aria-label={`اتصال بـ ${item.name} على رقم ${item.number}`}>
-                    <PhoneCall size={14}/><span dir="ltr">{item.number}</span>
-                  </a>
-                  <button type="button" className="button button-soft button-small utility-copy-btn" onClick={() => void copyUtilityNumber(item.id, item.number)} aria-label={`نسخ رقم ${item.name}`} title="نسخ الرقم">
-                    {copiedUtilityId === item.id ? <ClipboardCheck size={14}/> : <Clipboard size={14}/>}
-                    <span>{copiedUtilityId === item.id ? "تم النسخ" : "نسخ"}</span>
+              <article key={item.id} className={`duty-card duty-card-v2 utility-duty-card is-${item.tone}`}>
+                <span className="duty-status-pill utility-tone-pill">{item.category}</span>
+                <div className="duty-hover-tools">
+                  <button type="button" className={`duty-tool-btn ${copiedUtilityId === item.id ? "is-copied" : ""}`} onClick={() => void copyUtilityNumber(item.id, item.number)} aria-label={`نسخ رقم ${item.name}`} title={copiedUtilityId === item.id ? "تم النسخ" : "نسخ الرقم"}>
+                    {copiedUtilityId === item.id ? <ClipboardCheck size={15}/> : <Clipboard size={15}/>}
                   </button>
+                  {isAdmin && (
+                    <>
+                      <button type="button" className="duty-tool-btn" onClick={() => setEditingUtility(item)} aria-label={`تعديل ${item.name}`} title="تعديل"><Pencil size={14}/></button>
+                      <button type="button" className="duty-tool-btn is-delete" onClick={() => handleUtilityDelete(item.id)} aria-label={`حذف ${item.name}`} title="حذف"><Trash2 size={14}/></button>
+                    </>
+                  )}
                 </div>
-                {isAdmin && (
-                  <div className="utility-card-tools">
-                    <button type="button" className="utility-admin-btn" onClick={() => setEditingUtility(item)} aria-label={`تعديل ${item.name}`} title="تعديل">
-                      <Pencil size={13}/>تعديل
-                    </button>
-                    <button type="button" className="utility-admin-btn is-delete" onClick={() => handleUtilityDelete(item.id)} aria-label={`حذف ${item.name}`} title="حذف">
-                      <Trash2 size={13}/>حذف
-                    </button>
-                  </div>
-                )}
+                <h3 className="duty-card-title"><span className="duty-card-icon utility-tone-icon"><UtilityIcon size={17}/></span><span>{item.name}</span></h3>
+                <p className="duty-card-sub">{item.detail || item.category}</p>
+                <div className="duty-card-foot">
+                  <a href={`tel:${item.number}`} className="button button-primary duty-call-full" aria-label={`اتصال بـ ${item.name} على رقم ${item.number}`}><PhoneCall size={15}/><span>اتصال</span><span dir="ltr">{item.number}</span></a>
+                </div>
               </article>
               );
             })}

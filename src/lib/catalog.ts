@@ -969,6 +969,9 @@ export type DesignThemePresetId =
   | "lavender-soft"
   | "graphite-modern"
   | "olive-country"
+  | "vista-aero"
+  | "vista-frost"
+  | "vista-ultimate"
   | "custom";
 
 export type DesignSettings = {
@@ -1617,6 +1620,30 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     colors: { primaryColor: "#3f6212", pageBgColor: "#f7fee7", modalHeaderBg: "#ecfccb", buttonColor: "#4d7c0f", borderColor: "#d9f99d", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#1a2e05" },
     darkColors: { darkPageBgColor: "#111f04", darkCardBgColor: "#1e3508", darkBorderColor: "#4d7c0f", darkPrimaryColor: "#a3e635", announcementBgColor: "#365314", detailNameBoxColor: "#1a2e05" },
   },
+  "vista-aero": {
+    label: "🪟 سمة Windows Vista Aero الزجاجية",
+    badge: "Vista",
+    description: "زجاج Aero الأزرق الشفاف: هيدر وكروت ونوافذ ضبابية لامعة فوق خلفية Aurora مثل سطح مكتب Vista، بأزرار لامعة بخط منتصف",
+    gradientPreview: "linear-gradient(135deg, #062a55 0%, #1b74d0 45%, #9fdcff 100%)",
+    colors: { primaryColor: "#1b5fb4", pageBgColor: "#dfeefc", modalHeaderBg: "#cfe3f8", buttonColor: "#2a7fd4", borderColor: "#a9c9ea", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#0b2a4d" },
+    darkColors: { darkPageBgColor: "#0b1c30", darkCardBgColor: "#12304f", darkBorderColor: "#2f6aa8", darkPrimaryColor: "#7cc3ff", announcementBgColor: "#1b4f8f", detailNameBoxColor: "#12304f" },
+  },
+  "vista-frost": {
+    label: "🧊 سمة Vista Frost الجليدية التركواز",
+    badge: "Vista",
+    description: "زجاج Aero بلمسة جليدية تركواز وخلفية Aurora باردة، مع نفس اللمعان والشفافية في النوافذ والقوائم",
+    gradientPreview: "linear-gradient(135deg, #083344 0%, #0e94b4 50%, #c7f3ff 100%)",
+    colors: { primaryColor: "#0e7490", pageBgColor: "#e6f6fb", modalHeaderBg: "#d2eef7", buttonColor: "#0891b2", borderColor: "#a5dbea", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#083344" },
+    darkColors: { darkPageBgColor: "#071e26", darkCardBgColor: "#0d3340", darkBorderColor: "#0e7490", darkPrimaryColor: "#67e8f9", announcementBgColor: "#155e75", detailNameBoxColor: "#0d3340" },
+  },
+  "vista-ultimate": {
+    label: "🖤 سمة Vista Ultimate السوداء الزجاجية",
+    badge: "Vista",
+    description: "زجاج Aero داكن فوق شفق Ultimate الأخضر والأزرق، الأنسب للوضع الليلي مع كروت ونوافذ شبه شفافة",
+    gradientPreview: "linear-gradient(135deg, #020a12 0%, #0f6e8f 45%, #7ef2c8 100%)",
+    colors: { primaryColor: "#0f6e8f", pageBgColor: "#e3f1f1", modalHeaderBg: "#cfe9ea", buttonColor: "#11889a", borderColor: "#9fd3d6", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#04121c" },
+    darkColors: { darkPageBgColor: "#04121c", darkCardBgColor: "#0b2430", darkBorderColor: "#166e7c", darkPrimaryColor: "#5eead4", announcementBgColor: "#0f4c5c", detailNameBoxColor: "#0b2430" },
+  },
 };
 
 export function sanitizeDesignSettings(saved: unknown): DesignSettings {
@@ -1635,7 +1662,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.themePreset = pickEnum(
     record.themePreset,
-    ["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "custom"] as const,
+    ["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "vista-aero", "vista-frost", "vista-ultimate", "custom"] as const,
     defaultDesignSettings.themePreset,
   );
   next.primaryColor = hexColor(record.primaryColor, defaultDesignSettings.primaryColor);

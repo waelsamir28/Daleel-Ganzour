@@ -745,8 +745,8 @@ export default function DesignCustomizer({
                     <SelectField value={draft.fontScale} onChange={(e) => updateField("fontScale", e.target.value as DesignSettings["fontScale"])}>
                       <option value="small">صغير مدمج (94%)</option>
                       <option value="normal">متوسط متوازن (100% - الافتراضي)</option>
-                      <option value="large">كبير واضح (107%)</option>
-                      <option value="xlarge">كبير جداً لكبار السن (114%)</option>
+                      <option value="large">كبير واضح (108%)</option>
+                      <option value="xlarge">كبير جداً لكبار السن (116%)</option>
                     </SelectField>
                   </label>
 

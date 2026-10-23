@@ -1,0 +1,219 @@
+/* =========================================================================
+   Aero Glass (Windows Vista) — النوافذ العائمة والقوائم المنسدلة + سمات Vista
+   يُحمَّل بعد theme.css ليتغلب على خلفيات الوضع الليلي الصلبة.
+   ========================================================================= */
+
+/* ---------- 1) النوافذ العائمة (Modal) بزجاج Aero ---------- */
+.modal-overlay {
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+.modal-panel,
+.modal-panel.modal-floating {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, .18) 38%, rgba(255, 255, 255, 0) 60%),
+    rgba(244, 249, 255, .82);
+  -webkit-backdrop-filter: blur(26px) saturate(1.7);
+  backdrop-filter: blur(26px) saturate(1.7);
+  border: 1px solid rgba(255, 255, 255, .8);
+  box-shadow:
+    0 30px 70px rgba(6, 22, 40, .34),
+    0 0 0 1px rgba(16, 72, 128, .2),
+    inset 0 1px 0 rgba(255, 255, 255, .95);
+  animation: aero-panel-in .4s cubic-bezier(.2, .9, .25, 1.1) both;
+}
+.modal-panel .modal-body { background: transparent; }
+html .modal-panel.modal-panel .modal-heading.modal-heading,
+html[data-design-active="true"]:not(.dark) .modal-panel.modal-panel .modal-heading.modal-heading {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .7) 0%, rgba(255, 255, 255, .25) 48%, rgba(255, 255, 255, 0) 52%, rgba(255, 255, 255, .15) 100%),
+    color-mix(in srgb, var(--design-modal-header-bg, #dcecfb) 62%, transparent) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .75) !important;
+  box-shadow: 0 1px 0 rgba(16, 72, 128, .12);
+}
+html .modal-panel.modal-panel .modal-heading .modal-close.modal-close {
+  background: rgba(255, 255, 255, .55) !important;
+  border-color: rgba(255, 255, 255, .9) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 2px 6px rgba(16, 72, 128, .14);
+}
+@keyframes aero-panel-in {
+  0% { opacity: 0; transform: translateY(18px) scale(.95); filter: blur(10px); }
+  65% { filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@media (max-width: 700px) {
+  .modal-panel, .modal-panel.modal-floating { animation-name: aero-sheet-in; }
+  @keyframes aero-sheet-in {
+    from { opacity: 0; transform: translateY(32px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* الوضع الليلي: زجاج كحلي داكن */
+html.dark .modal-panel,
+html.dark .modal-panel.modal-floating,
+html.dark .modal-body {
+  background:
+    linear-gradient(180deg, rgba(140, 190, 240, .16) 0%, rgba(90, 140, 200, .06) 38%, rgba(0, 0, 0, 0) 60%),
+    rgba(10, 26, 46, .82);
+  border-color: rgba(150, 200, 250, .32);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, .65),
+    0 0 0 1px rgba(80, 140, 210, .3),
+    inset 0 1px 0 rgba(200, 230, 255, .3);
+}
+html.dark .modal-body { background: transparent; box-shadow: none; border: 0; }
+html.dark .modal-panel.modal-panel .modal-heading.modal-heading {
+  background:
+    linear-gradient(180deg, rgba(170, 210, 255, .2) 0%, rgba(120, 170, 225, .08) 48%, rgba(0, 0, 0, 0) 52%, rgba(120, 170, 225, .06) 100%),
+    rgba(14, 36, 62, .55) !important;
+  border-bottom-color: rgba(150, 200, 250, .25) !important;
+}
+html.dark .modal-panel.modal-panel .modal-heading .modal-close.modal-close {
+  background: rgba(20, 44, 72, .6) !important;
+  border-color: rgba(150, 200, 250, .35) !important;
+}
+
+/* ---------- 2) القوائم المنسدلة (SelectField + اقتراحات البحث) ---------- */
+.ui-select-menu {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .7) 0%, rgba(255, 255, 255, .3) 40%, rgba(255, 255, 255, .05) 41%, rgba(255, 255, 255, .25) 100%),
+    rgba(226, 239, 252, .72);
+  -webkit-backdrop-filter: blur(20px) saturate(1.7);
+  backdrop-filter: blur(20px) saturate(1.7);
+  border: 1px solid rgba(255, 255, 255, .85);
+  box-shadow:
+    0 22px 48px -14px rgba(10, 42, 78, .38),
+    0 0 0 1px rgba(16, 72, 128, .18),
+    inset 0 1px 0 rgba(255, 255, 255, .95);
+}
+.ui-select-option::before { background: linear-gradient(180deg, rgba(255, 255, 255, .85), rgba(190, 221, 250, .55)); }
+.search-suggestions {
+  background: rgba(244, 249, 255, .8);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+  border-color: rgba(255, 255, 255, .85);
+  box-shadow: 0 20px 44px -16px rgba(10, 42, 78, .35), inset 0 1px 0 rgba(255, 255, 255, .95);
+}
+html.dark .ui-select-menu,
+html.dark .search-suggestions {
+  background:
+    linear-gradient(180deg, rgba(140, 190, 240, .16) 0%, rgba(90, 140, 200, .05) 40%, rgba(0, 0, 0, 0) 41%, rgba(60, 110, 170, .08) 100%),
+    rgba(10, 28, 48, .78);
+  border-color: rgba(150, 200, 250, .3);
+  box-shadow: 0 22px 48px -14px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(200, 230, 255, .3);
+}
+html.dark .ui-select-option::before { background: linear-gradient(180deg, rgba(150, 200, 250, .22), rgba(50, 110, 180, .3)); }
+
+/* بديل للمتصفحات التي لا تدعم الضبابية */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .modal-panel, .modal-panel.modal-floating, .ui-select-menu, .search-suggestions { background: rgba(246, 250, 255, .98); }
+  html.dark .modal-panel, html.dark .modal-panel.modal-floating, html.dark .ui-select-menu, html.dark .search-suggestions { background: rgba(12, 30, 52, .98); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-panel, .modal-panel.modal-floating { animation: none; }
+}
+
+/* ---------- 3) سمات Windows Vista (Aero / Frost / Ultimate) ---------- */
+html[data-design-preset^="vista-"] { --vista-a: #0a3d7a; --vista-b: #1f7fd8; --vista-c: #9fdcff; }
+html[data-design-preset="vista-frost"] { --vista-a: #063b4a; --vista-b: #0c93b5; --vista-c: #c7f3ff; }
+html[data-design-preset="vista-ultimate"] { --vista-a: #020a12; --vista-b: #0f6e8f; --vista-c: #7ef2c8; }
+
+/* خلفية Aurora ثابتة مثل سطح مكتب Vista */
+html[data-design-preset^="vista-"]:not(.dark) body {
+  background:
+    radial-gradient(60% 50% at 85% 10%, color-mix(in srgb, var(--vista-c) 55%, transparent) 0%, transparent 70%),
+    radial-gradient(55% 45% at 10% 90%, color-mix(in srgb, var(--vista-b) 30%, transparent) 0%, transparent 70%),
+    linear-gradient(160deg, #eef6ff 0%, #dfeefc 50%, #d2e7fa 100%) !important;
+  background-attachment: fixed !important;
+}
+html[data-design-preset^="vista-"].dark body {
+  background:
+    radial-gradient(60% 50% at 85% 10%, color-mix(in srgb, var(--vista-b) 45%, transparent) 0%, transparent 70%),
+    radial-gradient(55% 45% at 10% 90%, color-mix(in srgb, var(--vista-c) 22%, transparent) 0%, transparent 70%),
+    linear-gradient(160deg, #04101f 0%, var(--vista-a) 55%, #020810 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* هيدر وكروت وأقسام زجاجية */
+html[data-design-preset^="vista-"]:not(.dark) .site-header,
+html[data-design-preset^="vista-"]:not(.dark) .provider-card,
+html[data-design-preset^="vista-"]:not(.dark) .category-tile,
+html[data-design-preset^="vista-"]:not(.dark) .categories-top-action-frame,
+html[data-design-preset^="vista-"]:not(.dark) .site-announcement-ticker-card,
+html[data-design-preset^="vista-"]:not(.dark) .duty-card,
+html[data-design-preset^="vista-"]:not(.dark) .community-card,
+html[data-design-preset^="vista-"]:not(.dark) .guest-gate-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .72) 0%, rgba(255, 255, 255, .35) 45%, rgba(255, 255, 255, .18) 46%, rgba(255, 255, 255, .4) 100%),
+    rgba(235, 245, 255, .55) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
+  border-color: rgba(255, 255, 255, .85) !important;
+  box-shadow: 0 14px 34px -18px rgba(10, 42, 78, .4), 0 0 0 1px rgba(16, 72, 128, .14), inset 0 1px 0 rgba(255, 255, 255, .95) !important;
+}
+html[data-design-preset^="vista-"].dark .site-header,
+html[data-design-preset^="vista-"].dark .provider-card,
+html[data-design-preset^="vista-"].dark .category-tile,
+html[data-design-preset^="vista-"].dark .categories-top-action-frame,
+html[data-design-preset^="vista-"].dark .site-announcement-ticker-card,
+html[data-design-preset^="vista-"].dark .duty-card,
+html[data-design-preset^="vista-"].dark .community-card,
+html[data-design-preset^="vista-"].dark .guest-gate-card {
+  background:
+    linear-gradient(180deg, rgba(160, 205, 250, .2) 0%, rgba(110, 160, 220, .08) 45%, rgba(0, 0, 0, 0) 46%, rgba(90, 140, 200, .08) 100%),
+    rgba(8, 24, 44, .58) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
+  border-color: rgba(150, 200, 250, .3) !important;
+  box-shadow: 0 14px 34px -18px rgba(0, 0, 0, .7), 0 0 0 1px rgba(80, 140, 210, .25), inset 0 1px 0 rgba(200, 230, 255, .3) !important;
+}
+
+/* أزرار Aero اللامعة: لمعة علوية وخط منتصف */
+html[data-design-preset^="vista-"] .button-primary,
+html[data-design-preset^="vista-"] .site-header .add-service-header,
+html[data-design-preset^="vista-"] .header-menu-toggle-btn.is-open {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, .18) 48%, rgba(0, 0, 0, .08) 52%, rgba(255, 255, 255, .06) 100%),
+    var(--design-button-color, var(--vista-b)) !important;
+  border: 1px solid color-mix(in srgb, var(--design-button-color, var(--vista-b)) 60%, #000) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 4px 10px color-mix(in srgb, var(--design-button-color, var(--vista-b)) 35%, transparent) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
+}
+html[data-design-preset^="vista-"] .button-primary:hover,
+html[data-design-preset^="vista-"] .site-header .add-service-header:hover {
+  filter: brightness(1.08) saturate(1.1);
+}
+html[data-design-preset^="vista-"] .button-whatsapp {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, .15) 48%, rgba(0, 0, 0, .08) 52%, rgba(255, 255, 255, .05) 100%),
+    var(--design-whatsapp-color, #1fa855) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .65), 0 4px 10px rgba(31, 168, 85, .35) !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
+}
+
+/* عناوين الأقسام بإطار زجاجي */
+html[data-design-preset^="vista-"] .directory-section-heading h2 {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .1) 50%, rgba(255, 255, 255, 0) 51%),
+    var(--design-heading-gradient) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 8px 22px -10px rgba(10, 42, 78, .5) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+}
+
+/* الهيدر بلا backdrop-filter حتى لا يكسر الخلفية الثابتة لقائمته المنسدلة؛ نعوّضه بشفافية أعلى */
+html[data-design-preset^="vista-"] .site-header { -webkit-backdrop-filter: none; backdrop-filter: none; }
+html[data-design-preset^="vista-"]:not(.dark) .site-header { background: linear-gradient(180deg, rgba(255, 255, 255, .96) 0%, rgba(255, 255, 255, .8) 50%, rgba(232, 243, 255, .86) 51%, rgba(255, 255, 255, .9) 100%) !important; }
+html[data-design-preset^="vista-"].dark .site-header { background: linear-gradient(180deg, rgba(24, 52, 86, .96) 0%, rgba(12, 32, 58, .9) 50%, rgba(8, 24, 44, .92) 51%, rgba(10, 28, 50, .94) 100%) !important; }
+
+/* الفوتر */
+html[data-design-preset^="vista-"] .site-footer {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, 0) 40%),
+    color-mix(in srgb, var(--design-footer-bg, var(--vista-a)) 85%, transparent) !important;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, .35);
+}
