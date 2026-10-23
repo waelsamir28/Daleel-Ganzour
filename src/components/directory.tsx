@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ALargeSmall, ArrowLeft, Award, BellRing, Megaphone, CalendarCheck, CalendarDays, CircleHelp, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
+import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
 import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer } from "@/lib/catalog";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
 import { openInstallAppModal } from "@/components/install-app-modal";
@@ -19,6 +19,19 @@ import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 
 const ADD_PROFESSION_INVITE = "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية";
+/** أيقونة بطاقة «أرقام تهمك» حسب نوع الجهة (إسعاف، شرطة، إطفاء، كهرباء، مياه، غاز، صحة…). */
+function utilityIcon(item: { id: string; name: string; category: string; tone: string }) {
+  const text = `${item.id} ${item.name} ${item.category}`;
+  if (/ambulance|إسعاف|طوارئ طبية/.test(text)) return Siren;
+  if (/police|شرطة|نجدة|أمن/.test(text)) return ShieldCheck;
+  if (/fire|مطافئ|حريق|إطفاء|gas|غاز/.test(text)) return Flame;
+  if (/electric|كهرباء/.test(text)) return Zap;
+  if (/water|مياه|صرف/.test(text)) return Droplets;
+  if (/health|صحة|مستشفى|رعاية/.test(text)) return Stethoscope;
+  if (/daleel|office|دليل|مكتب|إدارة/.test(text)) return Building2;
+  if (/complaint|شكاوى|حكوم/.test(text)) return Megaphone;
+  return PhoneCall;
+}
 type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | "about" | null;
 // Category colours reach the card icon through CSS custom properties.
 function categoryTheme(item: CategoryRecord) {
@@ -80,11 +93,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [ratingStars, setRatingStars] = useState(0), [ratingComment, setRatingComment] = useState(""), [ratingMessage, setRatingMessage] = useState(""), [ratingBusy, setRatingBusy] = useState(false);
   const [followIds, setFollowIds] = useState<string[]>([]), [feedItems, setFeedItems] = useState<FollowFeedItem[]>([]), [feedOpen, setFeedOpen] = useState(false), [followBusy, setFollowBusy] = useState(false), [followError, setFollowError] = useState("");
   const [feedSeen, setFeedSeen] = useState(() => { try { return Number(localStorage.getItem("janzour-feed-seen")) || 0; } catch { return 0; } });
-  const [bigText, setBigText] = useState(false);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Read the persisted font size from the pre-paint script.
-    setBigText(document.documentElement.classList.contains("big-text"));
-  }, []);
   const closeModal = useCallback(() => setModal(null), []);
   const isGuest = viewer.role === "guest";
   /** «أضف مهنتك»: visitors without an account are taken straight to the membership screen and come back to the form afterwards. */
@@ -232,11 +240,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   function selectLocation(value: string, custom = "") { setArea(value); setCustomAddress(custom); setView("all"); setModal(null); scrollToProviders(); }
   function showEmergency() { setModal("emergency"); setMenuOpen(false); }
   function clearFilters() { setRootFilter(rootId ?? ""); setArea(""); setCustomAddress(""); setQuery(""); setQueryDraft(""); setEmergency(false); setDeliveryOnly(false); setTeacherStage("all"); setOpenTeacherStage(null); setTeacherSpecialtyFilter(specialtyId ?? ""); setClinicFilter("all"); setView("all"); }
-  function toggleBigText() {
-    const on = document.documentElement.classList.toggle("big-text");
-    setBigText(on);
-    try { localStorage.setItem("janzour-bigtext", on ? "1" : "0"); } catch { /* The toggle still works for this visit. */ }
-  }
   function toggleTheme() {
     const dark = document.documentElement.classList.toggle("dark");
     try { localStorage.setItem("janzour-theme", dark ? "dark" : "light"); } catch { /* The toggle still works for this visit. */ }
@@ -529,18 +532,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               {favorites.length > 0 && <span className="nav-count">{favorites.length}</span>}
             </button>
           )}
-          <button type="button" onClick={() => { setMenuOpen(false); setModal("utilities"); }}>
-            <PhoneCall size={17}/>
-            <span>أرقام تهمك والطوارئ</span>
-          </button>
-          <button type="button" onClick={() => { setModal("contact"); setMenuOpen(false); }}>
-            <MessageCircle size={17}/>
-            <span>اتصل بنا</span>
-          </button>
-          <Link href="/ask" onClick={() => setMenuOpen(false)}>
-            <CircleHelp size={17}/>
-            <span>اسأل جنزور</span>
-          </Link>
           <Link href="/events" onClick={() => setMenuOpen(false)}>
             <CalendarDays size={17}/>
             <span>مناسبات القرية</span>
@@ -559,15 +550,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               {feedUnread > 0 && <span className="nav-count is-alert">{feedUnread > 99 ? "99+" : feedUnread}</span>}
             </button>
           )}
-          <button type="button" aria-pressed={bigText} onClick={() => { toggleBigText(); }}>
-            <ALargeSmall size={18}/>
-            <span>حجم الخط الكبير</span>
-            <span className={`nav-count ${bigText ? "is-on" : ""}`}>{bigText ? "مفعّل" : "عادي"}</span>
-          </button>
-          <button type="button" onClick={() => { setMenuOpen(false); setModal("about"); }}>
-            <Info size={17}/>
-            <span>عن التطبيق وطريقة الاستخدام</span>
-          </button>
           <button type="button" className="menu-install-item" onClick={() => { setMenuOpen(false); openInstallAppModal(); }}>
             <Smartphone size={17}/>
             <span>تثبيت التطبيق على الموبايل</span>
@@ -971,7 +953,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title" style={!scoped ? { order: sectionOrderIndex("professionBanner", 5) } : undefined}><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
       </>)}
     </main></div>
-    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/ask"><CircleHelp size={15}/> اسأل جنزور</Link><Link href="/events"><CalendarDays size={15}/> مناسبات القرية</Link><Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
+    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/events"><CalendarDays size={15}/> مناسبات القرية</Link><Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
     {isAdmin && !modal && !detail && <AdminAlertsFab/>}
     {!aboutFabHidden && !modal && !detail && (
       <div className="floating-about-fab" role="group" aria-label="عن التطبيق">
@@ -1071,37 +1053,41 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               </div>
             </form>
           )}
-          <div className="utilities-grid">
-            {utilityNumbers.map((item) => (
-              <article key={item.id} className={`utility-card is-${item.tone}`}>
-                <div className="utility-card-head">
-                  <span className="utility-category-tag">{item.category}</span>
-                  <div className="utility-card-tools">
-                    <button type="button" className="utility-copy-btn" onClick={() => void copyUtilityNumber(item.id, item.number)} aria-label={`نسخ رقم ${item.name}`} title="نسخ الرقم">
-                      {copiedUtilityId === item.id ? <ClipboardCheck size={14}/> : <Clipboard size={14}/>}
-                      <span>{copiedUtilityId === item.id ? "تم النسخ" : "نسخ"}</span>
-                    </button>
-                    {isAdmin && (
-                      <>
-                        <button type="button" className="utility-admin-btn" onClick={() => setEditingUtility(item)} aria-label={`تعديل ${item.name}`} title="تعديل">
-                          <Pencil size={13}/>تعديل
-                        </button>
-                        <button type="button" className="utility-admin-btn is-delete" onClick={() => handleUtilityDelete(item.id)} aria-label={`حذف ${item.name}`} title="حذف">
-                          <Trash2 size={13}/>حذف
-                        </button>
-                      </>
-                    )}
+          <div className="duty-grid utilities-grid">
+            {utilityNumbers.map((item) => {
+              const UtilityIcon = utilityIcon(item);
+              return (
+              <article key={item.id} className={`duty-card utility-duty-card is-${item.tone}`}>
+                <div className="duty-card-top">
+                  <span className="duty-card-icon utility-tone-icon"><UtilityIcon size={20}/></span>
+                  <div className="duty-card-copy">
+                    <h3>{item.name}</h3>
+                    <span>{item.detail || item.category}</span>
                   </div>
+                  <span className="duty-status-pill utility-tone-pill">{item.category}</span>
                 </div>
-                <h3>{item.name}</h3>
-                <p>{item.detail}</p>
-                <a href={`tel:${item.number}`} className="utility-call-link" aria-label={`اتصال بـ ${item.name} على رقم ${item.number}`}>
-                  <PhoneCall size={16}/>
-                  <strong dir="ltr">{item.number}</strong>
-                  <span>اتصل الآن</span>
-                </a>
+                <div className="duty-card-actions">
+                  <a href={`tel:${item.number}`} className="button button-primary button-small" aria-label={`اتصال بـ ${item.name} على رقم ${item.number}`}>
+                    <PhoneCall size={14}/><span dir="ltr">{item.number}</span>
+                  </a>
+                  <button type="button" className="button button-soft button-small utility-copy-btn" onClick={() => void copyUtilityNumber(item.id, item.number)} aria-label={`نسخ رقم ${item.name}`} title="نسخ الرقم">
+                    {copiedUtilityId === item.id ? <ClipboardCheck size={14}/> : <Clipboard size={14}/>}
+                    <span>{copiedUtilityId === item.id ? "تم النسخ" : "نسخ"}</span>
+                  </button>
+                </div>
+                {isAdmin && (
+                  <div className="utility-card-tools">
+                    <button type="button" className="utility-admin-btn" onClick={() => setEditingUtility(item)} aria-label={`تعديل ${item.name}`} title="تعديل">
+                      <Pencil size={13}/>تعديل
+                    </button>
+                    <button type="button" className="utility-admin-btn is-delete" onClick={() => handleUtilityDelete(item.id)} aria-label={`حذف ${item.name}`} title="حذف">
+                      <Trash2 size={13}/>حذف
+                    </button>
+                  </div>
+                )}
               </article>
-            ))}
+              );
+            })}
           </div>
         </div>
       </Modal>

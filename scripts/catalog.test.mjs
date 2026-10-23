@@ -6,7 +6,7 @@ import ts from "typescript";
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
 const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { categoryArt, categoryArtOptions, isPharmacyCategory, NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, ganzourTransitRoutes, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, getClinicBookingMode, getClinicBookingLabel, getClinicScheduleSummary, matchesClinicFilter, parseShopItemString, getShopCatalogItems, buildShopWhatsappOrderMessage } = catalog;
+const { categoryArt, categoryArtOptions, isPharmacyCategory, NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, getClinicBookingMode, getClinicBookingLabel, getClinicScheduleSummary, matchesClinicFilter, parseShopItemString, getShopCatalogItems, buildShopWhatsappOrderMessage } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -478,12 +478,11 @@ test("sanitizeDesignSettings validates all 8 design customizer groups and falls 
   assert.equal(seasonal.mobileBottomNavEnabled, false);
 });
 
-test("community helpers compute prayer times, transit routes, and open-now status accurately", () => {
+test("community helpers compute prayer times and open-now status accurately", () => {
   const pw = getGanzourPrayerAndWeather(Date.parse("2026-06-15T10:30:00Z"));
   assert.equal(pw.prayers.length, 5);
   assert.ok(pw.nextPrayer.name.length > 0);
   assert.ok(pw.weather.tempC > 0);
-  assert.ok(ganzourTransitRoutes.length >= 4);
 
   const sampleHours = Array.from({ length: 7 }, () => ({ closed: false, opens: "09:00", closes: "22:00" }));
   const noonTime = new Date(2026, 5, 15, 13, 0, 0).getTime();
@@ -860,8 +859,8 @@ test("seasonal greetings: Hijri/fixed/computed occasions, overrides, custom entr
   assert.equal(liveTickerItems([], [{ id: "e2", title: "بعيد", kind: "other", startsAt: "2026-12-01T08:00:00.000Z", endsAt: null, location: "", description: "", pinned: false, createdAt: "" }], new Date("2026-10-06T10:00:00Z")).length, 0, "events further than two weeks stay out of the ticker");
 });
 
-test("village events: phases, ICS payload, Google link; ask: nominations grouped by provider with the best answer first", () => {
-  const { eventPhase, eventIcs, googleCalendarUrl, groupNominations, getEventKind, isEventKind } = catalog;
+test("village events: phases, ICS payload, Google link", () => {
+  const { eventPhase, eventIcs, googleCalendarUrl, getEventKind, isEventKind } = catalog;
   const now = new Date("2026-10-06T10:00:00Z");
   assert.equal(eventPhase({ startsAt: "2026-10-06T15:00:00Z", endsAt: null }, now), "today");
   assert.equal(eventPhase({ startsAt: "2026-10-09T15:00:00Z", endsAt: null }, now), "upcoming");
@@ -874,15 +873,4 @@ test("village events: phases, ICS payload, Google link; ask: nominations grouped
   const google = new URL(googleCalendarUrl(event, "دليل جنزور"));
   assert.equal(google.searchParams.get("dates"), "20261008T080000Z/20261008T100000Z"); assert.equal(google.searchParams.get("location"), "مركز الشباب");
   assert.equal(getEventKind("nope").id, "other"); assert.equal(isEventKind("wedding"), true); assert.equal(isEventKind("party"), false);
-  const answers = [
-    { id: "a1", questionId: "q", memberId: "m1", memberName: "أحمد", serviceId: "s1", text: "", createdAt: "2026-01-01T00:00:00Z" },
-    { id: "a2", questionId: "q", memberId: "m2", memberName: "منى", serviceId: "s2", text: "ممتاز", createdAt: "2026-01-02T00:00:00Z" },
-    { id: "a3", questionId: "q", memberId: "m3", memberName: "سعيد", serviceId: "s1", text: "شغله نضيف", createdAt: "2026-01-03T00:00:00Z" },
-    { id: "a4", questionId: "q", memberId: "m4", memberName: "هدى", serviceId: null, text: "اسأل في الوحدة الصحية", createdAt: "2026-01-04T00:00:00Z" },
-  ];
-  const groups = groupNominations({ answers, bestAnswerId: "a2" });
-  assert.equal(groups.length, 3);
-  assert.equal(groups[0].serviceId, "s2"); assert.equal(groups[0].isBest, true, "best answer group leads");
-  assert.equal(groups[1].serviceId, "s1"); assert.equal(groups[1].count, 2); assert.deepEqual(groups[1].names, ["أحمد", "سعيد"]);
-  assert.equal(groups[2].serviceId, null); assert.equal(groups[2].answers[0].text, "اسأل في الوحدة الصحية");
 });

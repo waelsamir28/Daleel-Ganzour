@@ -204,25 +204,3 @@ export const villageEvents = pgTable("directory_events", {
   pinned: boolean("pinned").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("directory_events_starts_idx").on(table.startsAt)]);
-
-/** «اسأل جنزور»: a member's question answered by other members nominating providers from the directory. */
-export const questions = pgTable("directory_questions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
-  memberName: varchar("member_name", { length: 120 }).notNull(),
-  text: varchar("text", { length: 400 }).notNull(),
-  category: varchar("category", { length: 60 }).notNull().default(""),
-  status: varchar("status", { length: 20 }).notNull().default("open"),
-  bestAnswerId: uuid("best_answer_id"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
-
-export const answers = pgTable("directory_answers", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  questionId: uuid("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }),
-  memberId: uuid("member_id").references(() => members.id, { onDelete: "set null" }),
-  memberName: varchar("member_name", { length: 120 }).notNull(),
-  serviceId: uuid("service_id").references(() => services.id, { onDelete: "set null" }),
-  text: varchar("text", { length: 300 }).notNull().default(""),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [index("directory_answers_question_idx").on(table.questionId)]);

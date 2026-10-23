@@ -28,9 +28,12 @@ export const metadata: Metadata = {
     siteName: "دليل جنزور",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [{ url: "/images/og-cover.png", width: 1200, height: 630, alt: SITE_TITLE }],
+    images: [
+      { url: "/images/og-cover.jpg?v=2", width: 1200, height: 630, type: "image/jpeg", alt: SITE_TITLE },
+      { url: "/images/og-square.jpg?v=2", width: 1080, height: 1080, type: "image/jpeg", alt: SITE_TITLE },
+    ],
   },
-  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION, images: ["/images/og-cover.png"] },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION, images: ["/images/og-cover.jpg?v=2"] },
   keywords: ["جنزور", "دليل جنزور", "حرفيين جنزور", "عيادات جنزور", "صيدليات جنزور", "محلات جنزور", "مدرسين جنزور", "المنوفية", "شبين الكوم"],
   title: "دليل المهن والخدمات بقرية جنزور",
   description: "دليل الحرفيين والعيادات والمحلات والمدرسين والجمعيات الخيرية والخدمات بقرية جنزور، بإدارة مكتب الجمال للدعاية والإعلان. واتساب 01222355769.",
@@ -53,5 +56,5 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   // The blocking script applies Dark Mode by default before first paint (unless the user explicitly chose "light"),
   // and hides the splash screen on any inner page or after the initial start screen has already been shown.
-  return <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: `(function(){window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__janzourInstallPrompt=e;});try{var stored=localStorage.getItem("janzour-theme");if(stored==="light"){document.documentElement.classList.remove("dark");}else{document.documentElement.classList.add("dark");}if(localStorage.getItem("janzour-bigtext")==="1")document.documentElement.classList.add("big-text");if(window.location.pathname!=="/"||sessionStorage.getItem("janzour-splash-shown")==="1"){document.documentElement.classList.add("skip-splash");}else{sessionStorage.setItem("janzour-splash-shown","1");}}catch(e){document.documentElement.classList.add("dark");}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><InstallAppModal /></body></html>;
+  return <html lang="ar" dir="rtl" className="dark" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: `(function(){window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__janzourInstallPrompt=e;});try{var stored=localStorage.getItem("janzour-theme");if(stored==="light"){document.documentElement.classList.remove("dark");}else{document.documentElement.classList.add("dark");}if(window.location.pathname!=="/"||sessionStorage.getItem("janzour-splash-shown")==="1"){document.documentElement.classList.add("skip-splash");}else{sessionStorage.setItem("janzour-splash-shown","1");}}catch(e){document.documentElement.classList.add("dark");}})();` }}/></head><body><SplashScreen /><RouteTransition>{children}</RouteTransition><InstallAppModal /></body></html>;
 }

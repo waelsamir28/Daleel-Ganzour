@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { adBanners, adRequests, answers, communityListings, questions, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
+import { adBanners, adRequests, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
@@ -145,10 +145,6 @@ export async function PATCH(request: Request) {
       const id = uuid(body.id);
       if (action === "pin") await db.update(villageEvents).set({ pinned: body.pinned === true }).where(eq(villageEvents.id, id));
       else await db.update(villageEvents).set(eventInput(objectInput(body.values))).where(eq(villageEvents.id, id));
-    } else if (type === "question") {
-      const id = uuid(body.id);
-      if (action === "close" || action === "reopen") await db.update(questions).set({ status: action === "close" ? "closed" : "open" }).where(eq(questions.id, id));
-      else throw new InputError("إجراء غير معروف.");
     } else if (type === "utility-numbers") {
       const utilityNumbers = sanitizeUtilityNumbers(body.utilityNumbers);
       await db.insert(directorySettings).values({ key: "utility_numbers", value: JSON.stringify(utilityNumbers) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(utilityNumbers) } });
@@ -385,12 +381,6 @@ export async function DELETE(request: Request) {
       else if (type === "ad") await db.delete(adBanners).where(eq(adBanners.id, id));
       else if (type === "ad-request") { await db.delete(adRequests).where(eq(adRequests.id, id)); await db.delete(notifications).where(and(eq(notifications.type, "ad-request"), eq(notifications.entityId, id))); }
       else if (type === "event") await db.delete(villageEvents).where(eq(villageEvents.id, id));
-      else if (type === "question") {
-        const answerIds = (await db.select({ id: answers.id }).from(answers).where(eq(answers.questionId, id))).map((row) => row.id);
-        await db.delete(questions).where(eq(questions.id, id));
-        await db.delete(notifications).where(and(inArray(notifications.type, ["question", "report"]), inArray(notifications.entityId, [id, ...answerIds])));
-      }
-      else if (type === "answer") { await db.update(questions).set({ bestAnswerId: null }).where(eq(questions.bestAnswerId, id)); await db.delete(answers).where(eq(answers.id, id)); await db.delete(notifications).where(and(eq(notifications.type, "report"), eq(notifications.entityId, id))); }
       else throw new InputError("نوع الحذف غير صحيح.");
       if (["service", "community", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
     }
