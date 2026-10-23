@@ -874,3 +874,13 @@ test("village events: phases, ICS payload, Google link", () => {
   assert.equal(google.searchParams.get("dates"), "20261008T080000Z/20261008T100000Z"); assert.equal(google.searchParams.get("location"), "مركز الشباب");
   assert.equal(getEventKind("nope").id, "other"); assert.equal(isEventKind("wedding"), true); assert.equal(isEventKind("party"), false);
 });
+
+test("Vista Aero theme presets are registered and accepted by the design sanitizer", () => {
+  const { designThemePresets, sanitizeDesignSettings, defaultDesignSettings } = catalog;
+  for (const id of ["vista-aero", "vista-frost", "vista-ultimate"]) {
+    assert.ok(designThemePresets[id], `${id} preset exists`);
+    assert.match(designThemePresets[id].label, /Vista/);
+    assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, themePreset: id }).themePreset, id);
+  }
+  assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, themePreset: "vista-xp" }).themePreset, defaultDesignSettings.themePreset);
+});
