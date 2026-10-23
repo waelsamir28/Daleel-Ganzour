@@ -192,8 +192,11 @@ test("resolves categories and falls back safely for unknown ids", () => {
 });
 
 test("keeps sections, specialties and icons coherent", () => {
-  assert.equal(categories.length, 13, "the published roots are the thirteen village sections");
-  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "pharmacies", "shops", "teachers", "charities", "printing", "events", "transport", "cleaning", "law", "other-services"], "roots in display order");
+  assert.equal(categories.length, 14, "the published roots are the fourteen village sections");
+  const beauty = initialCategories.filter((category) => category.parentId === "beauty").map((category) => category.id);
+  assert.deepEqual(beauty, ["barbers", "hairdressers", "makeup"], "the beauty section owns barbers, hairdressers and makeup");
+  assert.equal(initialCategories.find((category) => category.id === "beauty").art, "beauty");
+  assert.deepEqual(categories.map(({ id }) => id), ["crafts", "clinics", "labs", "pharmacies", "shops", "teachers", "charities", "printing", "events", "beauty", "transport", "cleaning", "law", "other-services"], "roots in display order");
   // Every root section renders its own dimensional (3D) artwork instead of the generic fallback,
   // and every selectable artwork option exists in the sprite.
   const svg = readFileSync(new URL("../public/images/category-3d.svg", import.meta.url), "utf8");
