@@ -290,6 +290,29 @@ test("colloquial Egyptian synonym dictionary matches everyday queries and specia
   assert.ok(rxSuggestions[0]?.id === "community-pharmacies", "colloquial rx query suggests pharmacies");
 });
 
+test("service intent search extracts meaningful Egyptian Arabic terms from full sentences", () => {
+  const plumber = { id: "p1", name: "محمد حسن للسباكة", category: "plumbing", area: "جنزور", address: "جنزور", phone: "01000000000", description: "إصلاح وصيانة أدوات السباكة", subSpecialties: [], serviceItems: [] };
+  const advertising = { id: "a1", name: "مكتب دعاية وإعلان", category: "advertising", area: "جنزور", address: "جنزور", phone: "01000000000", description: "لافتات وإعلانات للمحلات", subSpecialties: [], serviceItems: [] };
+  const printing = { id: "p2", name: "مطبعة جنزور", category: "print-shops", area: "جنزور", address: "جنزور", phone: "01000000000", description: "طباعة كروت وفواتير", subSpecialties: [], serviceItems: [] };
+
+  assert.deepEqual(catalog.extractServiceIntentTokens("عايز اعمل"), [], "filler-only text has no service intent");
+  assert.deepEqual(catalog.extractServiceIntentTokens("عايز اعمل دعاية لمحل"), ["دعايه"]);
+  assert.equal(catalog.matchesServiceIntentQuery(advertising, "الدعاية والإعلان واللافتات", "عايز اعمل دعاية لمحل"), true);
+  assert.equal(catalog.matchesServiceIntentQuery(plumber, "السباكة", "عايز اعمل دعاية لمحل"), false);
+
+  assert.deepEqual(catalog.extractServiceIntentTokens("الحنفية عندى بتنقط مية كتير"), ["حنفيه", "بتنقط"]);
+  assert.equal(catalog.matchesServiceIntentQuery(plumber, "السباكة", "الحنفية عندى بتنقط مية كتير"), true);
+  assert.equal(catalog.matchesServiceIntentQuery(advertising, "الدعاية والإعلان واللافتات", "الحنفية عندى بتنقط مية كتير"), false);
+
+  assert.equal(catalog.matchesServiceIntentQuery(printing, "الطباعة وتصوير المستندات", "كروت لمحل"), true);
+  const adCategories = catalog.suggestServiceIntentCategories("عايز اعمل دعاية لمحل", initialCategories);
+  assert.ok(adCategories.some((category) => category.id === "advertising"), "a full shop-promotion sentence suggests advertising");
+  assert.ok(catalog.suggestServiceIntentCategories("كروت لمحل", initialCategories).some((category) => category.id === "advertising"), "business cards can suggest shop promotion too");
+  assert.equal(catalog.suggestServiceIntentCategories("عايز اعمل", initialCategories).length, 0, "generic filler does not reveal unrelated categories");
+  assert.ok(catalog.suggestServiceIntentCategories("الحنفية عندى بتنقط مية كتير", initialCategories).some((category) => category.id === "plumbing"));
+  assert.ok(catalog.suggestServiceIntentCategories("كروت لمحل", initialCategories).some((category) => category.id === "print-shops"));
+});
+
 test("automatic trust badges reward complete profiles, community ratings, and active availability (#9)", () => {
   const completeService = {
     address: "بجوار المسجد الكبير",
