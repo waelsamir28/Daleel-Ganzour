@@ -39,6 +39,9 @@ import {
   parseProviderEdgeTools,
   providerEdgeToolIds,
   type ProviderEdgeToolId,
+  type CategoryRecord,
+  initialCategories,
+  parsePinnedProfessions,
 } from "@/lib/catalog";
 import { applyDesignSettingsToDocument } from "@/components/design-applicator";
 import EdgeToolsEditor from "@/components/edge-tools-editor";
@@ -145,9 +148,11 @@ function ColorPickerField({
 export default function DesignCustomizer({
   initialDesign,
   onSave,
+  categories = initialCategories,
 }: {
   initialDesign?: DesignSettings;
   onSave: (values: DesignSettings) => Promise<boolean>;
+  categories?: CategoryRecord[];
 }) {
   const [draft, setDraft] = useState<DesignSettings>(() => ({
     ...defaultDesignSettings,
@@ -192,6 +197,15 @@ export default function DesignCustomizer({
   // Edge tools: the saved string keeps only visible tools in order; hidden ones keep their last
   // position in a local order list so re-showing them does not jump them to the end.
   const edgeToolsVisible = useMemo(() => parseProviderEdgeTools(draft.providerEdgeTools), [draft.providerEdgeTools]);
+  const pinnedProfessions = useMemo(() => parsePinnedProfessions(draft.topProfessionsPinned), [draft.topProfessionsPinned]);
+  const pinnableSpecialties = useMemo(() => {
+    const roots = categories.filter((category) => !category.parentId && category.active !== false);
+    return roots.map((root) => ({ root, items: categories.filter((category) => category.parentId === root.id && category.active !== false) })).filter((group) => group.items.length);
+  }, [categories]);
+  function togglePinned(id: string) {
+    const next = pinnedProfessions.includes(id) ? pinnedProfessions.filter((entry) => entry !== id) : [...pinnedProfessions, id].slice(0, 6);
+    updateField("topProfessionsPinned", next.join(","));
+  }
   const [edgeToolOrder, setEdgeToolOrder] = useState<ProviderEdgeToolId[]>(() => {
     const visible = parseProviderEdgeTools(draft.providerEdgeTools);
     return [...visible, ...providerEdgeToolIds.filter((id) => !visible.includes(id))];
@@ -1162,6 +1176,34 @@ export default function DesignCustomizer({
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showTopProfessions} onChange={(e) => updateField("showTopProfessions", e.target.checked)}/>إظهار صف «أهم مهن القرية» فوق أقسام القرية في الرئيسية</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>رسومات ثلاثية الأبعاد مرسومة باليد لأهم 12 مهنة (كهربائي، سباك، نجار، نقاش، تكييف، ميكانيكي، أسنان، صيدلية، مدرّس، حلاق، بقالة، مصوّر) في بطاقات التخصصات وصف أهم المهن</label>
                 </div>
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showWeeklyStars} onChange={(e) => updateField("showWeeklyStars", e.target.checked)}/>شارة «نجم الأسبوع ⭐» تلقائيًا لأفضل 3 مقدمي خدمة حسب تقييمات الأعضاء خلال آخر 7 أيام (متوسط 4 نجوم فأكثر)</label>
+                </div>
+                <details className="pinned-professions">
+                  <summary><strong>تثبيت تخصصات يدويًا في أول الصف</strong><span className="muted"> ({pinnedProfessions.length}/6) — المثبّتة تظهر أولًا بترتيب اختيارها، ثم يكمل الترتيب التلقائي.</span></summary>
+                  {pinnedProfessions.length > 0 && (
+                    <div className="pinned-professions-chips">
+                      {pinnedProfessions.map((id, index) => { const category = categories.find((entry) => entry.id === id); return (
+                        <button key={id} type="button" className="pinned-chip" onClick={() => togglePinned(id)} title="إلغاء التثبيت"><span className="pinned-chip-rank">{index + 1}</span>{category?.name ?? id}<Trash2 size={13}/></button>
+                      ); })}
+                      <button type="button" className="button button-ghost button-small" onClick={() => updateField("topProfessionsPinned", "")}>مسح الكل</button>
+                    </div>
+                  )}
+                  <div className="pinned-professions-groups">
+                    {pinnableSpecialties.map(({ root, items }) => (
+                      <div key={root.id} className="pinned-professions-group">
+                        <span className="pinned-professions-root">{root.name}</span>
+                        <div className="pinned-professions-list">
+                          {items.map((item) => (
+                            <label key={item.id} className={`checkbox-field pinned-option ${pinnedProfessions.includes(item.id) ? "is-on" : ""}`}>
+                              <input type="checkbox" checked={pinnedProfessions.includes(item.id)} disabled={!pinnedProfessions.includes(item.id) && pinnedProfessions.length >= 6} onChange={() => togglePinned(item.id)}/>{item.name}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
 
                 <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
                 <div className="form-row design-two-col">

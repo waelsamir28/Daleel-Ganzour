@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
-import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star } from "lucide-react";
+import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
 import { isNewService, serviceWhatsappMessage, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
@@ -31,10 +31,11 @@ type ProviderCardProps = {
   /** Design-studio preview: tools always visible, card does not open anything. */
   preview?: boolean;
   onShare: (service: ServiceRecord) => void;
+  onSuggest?: (service: ServiceRecord) => void;
   onToggleFavorite: (id: string) => void;
 };
 // Restored classic provider card with Share & Favorite icons on the left and two action buttons («اتصال» & «واتساب») that both open the provider detail page.
-export default function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, edgeTools, preview, onOpen, onShare, onToggleFavorite }: ProviderCardProps) {
+export default function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, edgeTools, preview, onOpen, onShare, onSuggest, onToggleFavorite }: ProviderCardProps) {
   const [copied, setCopied] = useState(false);
   async function copyPhone() {
     try {
@@ -74,6 +75,11 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
             <span className="provider-address">
               <MapPin size={13}/>
               {service.address || service.area}
+            </span>
+          )}
+          {service.weeklyStar && (
+            <span className="provider-weekly-star" title="من أكثر مقدمي الخدمة تقييمًا هذا الأسبوع">
+              <Star size={12}/> نجم الأسبوع
             </span>
           )}
           {service.verified && (
@@ -131,6 +137,21 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
                   aria-live="polite"
                 >
                   {copied ? <Check size={14}/> : <Copy size={14}/>}
+                </button>
+              );
+            }
+            if (tool === "suggest") {
+              if (!onSuggest) return null;
+              return (
+                <button
+                  key={tool}
+                  type="button"
+                  className="edge-tool edge-tool-suggest"
+                  data-tip="اقترح تعديل"
+                  onClick={(event) => { event.stopPropagation(); onSuggest(service); }}
+                  aria-label={`اقترح تعديلًا على بيانات ${service.name}`}
+                >
+                  <MessageSquareWarning size={14}/>
                 </button>
               );
             }

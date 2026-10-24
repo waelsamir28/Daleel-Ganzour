@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { Check, Copy, Eye, EyeOff, GripVertical, Heart, MessageCircle, PhoneCall, Share2 } from "lucide-react";
+import { Check, Copy, Eye, EyeOff, GripVertical, Heart, MessageCircle, PhoneCall, Share2, MessageSquareWarning } from "lucide-react";
 import { getCategory, initialCategories, providerEdgeToolLabels, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import ProviderCard from "@/components/provider-card";
 
@@ -11,7 +11,7 @@ type Props = {
   onChange: (order: ProviderEdgeToolId[], visible: ProviderEdgeToolId[]) => void;
 };
 
-const toolIcons: Record<ProviderEdgeToolId, typeof PhoneCall> = { call: PhoneCall, whatsapp: MessageCircle, share: Share2, favorite: Heart, copy: Copy };
+const toolIcons: Record<ProviderEdgeToolId, typeof PhoneCall> = { call: PhoneCall, whatsapp: MessageCircle, share: Share2, favorite: Heart, copy: Copy, suggest: MessageSquareWarning };
 
 // Sample provider for the live preview — never saved anywhere.
 const sampleService: ServiceRecord = {
@@ -95,7 +95,7 @@ export default function EdgeToolsEditor({ order, visible, onChange }: Props) {
               </button>
               <span className="edge-tool-row-index">{index + 1}</span>
               <span className={`edge-tool-row-icon is-${tool}`}><Icon size={15}/></span>
-              <strong>{providerEdgeToolLabels[tool]}{tool === "copy" && <small> — اختيارية</small>}</strong>
+              <strong>{providerEdgeToolLabels[tool]}{(tool === "copy" || tool === "suggest") && <small> — اختيارية</small>}</strong>
               <span className="edge-tool-row-actions">
                 <button type="button" className={`icon-button ${isVisible ? "" : "is-off"}`} onClick={() => toggle(tool)} aria-pressed={isVisible} aria-label={isVisible ? `إخفاء ${providerEdgeToolLabels[tool]}` : `إظهار ${providerEdgeToolLabels[tool]}`}>{isVisible ? <Eye size={14}/> : <EyeOff size={14}/>}</button>
               </span>

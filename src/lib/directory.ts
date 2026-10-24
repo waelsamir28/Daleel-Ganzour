@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { adBanners, adRequests, categoryHits, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type TopCategoryRecord } from "@/lib/catalog";
+import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type TopCategoryRecord, parsePinnedProfessions } from "@/lib/catalog";
 
 let seedPromise: Promise<void> | undefined;
 export const DELETED_CATEGORIES_KEY = "deleted_categories";
@@ -225,7 +225,7 @@ async function getCatalog() {
 // «أهم مهن القرية»: specialties ranked by real usage (opened pages/details count once, calls and
 // WhatsApp taps count double). Until enough real data exists, the list is topped up with the
 // specialties that have the most approved providers so the strip is useful from day one.
-async function getTopCategories(visible: CategoryRecord[], providers: ServiceRecord[]): Promise<TopCategoryRecord[]> {
+async function getTopCategories(visible: CategoryRecord[], providers: ServiceRecord[], pinned: string[] = []): Promise<TopCategoryRecord[]> {
   const rows = await db.select().from(categoryHits);
   const providerCount = new Map<string, number>();
   for (const service of providers) providerCount.set(service.category, (providerCount.get(service.category) ?? 0) + 1);
@@ -235,7 +235,15 @@ async function getTopCategories(visible: CategoryRecord[], providers: ServiceRec
     return { id: category.id, score: hit ? hit.views + hit.contacts * 2 : 0, providers: providerCount.get(category.id) ?? 0 };
   });
   scored.sort((a, b) => b.score - a.score || b.providers - a.providers || a.id.localeCompare(b.id));
-  return scored.slice(0, 8);
+  // التخصصات المثبّتة من لوحة التحكم تتصدر الصف دائمًا (حتى لو لم يكن لها مقدمو خدمة بعد)، ثم الترتيب الفعلي.
+  const pinnedRecords: TopCategoryRecord[] = pinned.flatMap((id) => {
+    const category = visible.find((entry) => entry.id === id && entry.parentId);
+    if (!category) return [];
+    const scoredEntry = scored.find((entry) => entry.id === id);
+    return [{ id, score: scoredEntry?.score ?? 0, providers: providerCount.get(id) ?? 0, pinned: true }];
+  });
+  const pinnedIds = new Set(pinnedRecords.map((entry) => entry.id));
+  return [...pinnedRecords, ...scored.filter((entry) => !pinnedIds.has(entry.id))].slice(0, Math.max(8, pinnedRecords.length + 4));
 }
 export async function recordCategoryHit(categoryId: string, kind: "view" | "contact") {
   const column = kind === "contact" ? categoryHits.contacts : categoryHits.views;
@@ -259,6 +267,17 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     if (list.length < 5) list.push({ stars: row.stars, comment: row.comment, member: row.memberName.trim().split(/\s+/)[0], date: row.createdAt.toISOString() });
     commentsByService.set(row.serviceId, list);
   }
+  // «نجم الأسبوع»: أفضل 3 مقدمي خدمة حسب تقييمات الأعضاء المعتمدة خلال آخر 7 أيام (متوسط 4 نجوم فأكثر).
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const weeklyRows = providerIds.length && catalog.designSettings?.showWeeklyStars !== false
+    ? await db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings)
+        .where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, providerIds), gte(serviceRatings.createdAt, weekAgo))).groupBy(serviceRatings.serviceId)
+    : [];
+  const weeklyStars = new Set(
+    weeklyRows.filter((row) => Number(row.avgStars ?? 0) >= 4)
+      .sort((a, b) => Number(b.total) - Number(a.total) || Number(b.avgStars ?? 0) - Number(a.avgStars ?? 0) || a.serviceId.localeCompare(b.serviceId))
+      .slice(0, 3).map((row) => row.serviceId),
+  );
   const providerNotificationRows = await db.select().from(notifications).where(eq(notifications.type, "provider")).orderBy(desc(notifications.createdAt)).limit(60);
   // Approved member ratings blend into the seeded score, weighted by the existing review count.
   const blended = providers.map((row) => {
@@ -271,10 +290,11 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     }
     const comments = commentsByService.get(row.id);
     if (comments?.length) record.comments = comments;
+    if (weeklyStars.has(row.id)) record.weeklyStar = true;
     return record;
   });
   const { greetingSettings: _adminOnlyGreetings, ...publicCatalog } = catalog;
-  const topCategories = await getTopCategories(visibleCategories, blended);
+  const topCategories = await getTopCategories(visibleCategories, blended, parsePinnedProfessions(catalog.designSettings?.topProfessionsPinned));
   return { ...publicCatalog, topCategories, ads: catalog.ads.filter((ad) => isAdLive(ad)), categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
