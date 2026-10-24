@@ -971,3 +971,13 @@ test("whatsapp alert helpers normalize Egyptian numbers, extract phones and sani
   assert.deepEqual(sanitizeWhatsappAlertKinds([]), []);
   assert.match(whatsappReplyLink("201222355769", "طلب مهنة"), /^https:\/\/wa\.me\/201222355769\?text=/);
 });
+
+test("readableTextOn picks white on dark backgrounds and navy on light ones", () => {
+  const { readableTextOn } = catalog;
+  assert.equal(readableTextOn("#0b4a93"), "#ffffff");
+  assert.equal(readableTextOn("#9f1239"), "#ffffff");
+  assert.equal(readableTextOn("#ffd766"), "#0f2340");
+  assert.equal(readableTextOn("#bfe3ff"), "#0f2340");
+  assert.equal(readableTextOn("#fff"), "#0f2340");
+  assert.equal(readableTextOn("not-a-color"), "#ffffff");
+});

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { defaultDesignSettings, designThemePresets, type DesignSettings } from "@/lib/catalog";
+import { defaultDesignSettings, designThemePresets, type DesignSettings, readableTextOn } from "@/lib/catalog";
 
 export function applyDesignSettingsToDocument(design: DesignSettings = defaultDesignSettings) {
   if (typeof document === "undefined") return;
@@ -24,6 +24,11 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-auth-border", design.authInputBorderColor);
   root.style.setProperty("--design-announcement-bg", design.announcementBgColor);
   root.style.setProperty("--design-announcement-bg-light", design.announcementBgColorLight);
+  // لون نص الشريط النهاري يتحدد تلقائيًا (أبيض على الداكن، كحلي على الفاتح) حتى لا يختفي الكلام مع أي لون.
+  const tickerFg = readableTextOn(design.announcementBgColorLight);
+  root.style.setProperty("--design-announcement-fg-light", tickerFg);
+  root.style.setProperty("--design-announcement-fg-light-soft", tickerFg === "#ffffff" ? "rgba(255,255,255,.22)" : "rgba(15,35,64,.12)");
+  root.style.setProperty("--design-announcement-accent-light", tickerFg === "#ffffff" ? "#ffe066" : "#b45309");
   root.style.setProperty("--design-whatsapp-color", design.whatsappButtonColor);
   root.style.setProperty("--design-detail-name-bg", design.detailNameBoxColor || "#134595");
   root.style.setProperty("--design-dark-bg", design.darkPageBgColor || "#112b5a");

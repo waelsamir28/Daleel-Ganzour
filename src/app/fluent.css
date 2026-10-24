@@ -126,10 +126,14 @@ html[data-design-preset^="win11-"] .category-tile .category-icon { border-radius
    بعض الثيمات (Vista / Win11) كانت تجعل خلفية الشريط بيضاء شفافة بينما النص أبيض فيختفي.
    هنا نثبّت خلفية زرقاء داكنة ونصًا أبيض في الوضع النهاري فقط — الوضع الليلي يبقى كما هو. */
 html:not(.dark) .site-announcement-ticker-card:not(.is-soft) {
-  /* اللون من استوديو التصميم (خانة «لون الشريط في الوضع النهاري»)، مع تدرّج خفيف أفتح/أغمق منه */
+  /* اللون من استوديو التصميم (خانة «لون الشريط في الوضع النهاري»)، مع تدرّج خفيف أفتح/أغمق منه،
+     ولون النص يتحدد تلقائيًا (أبيض على الداكن / كحلي على الفاتح) من DesignApplicator */
   --ticker-day: var(--design-announcement-bg-light, #0b4a93);
+  --ticker-day-fg: var(--design-announcement-fg-light, #ffffff);
+  --ticker-day-soft: var(--design-announcement-fg-light-soft, rgba(255, 255, 255, .22));
+  --ticker-day-accent: var(--design-announcement-accent-light, #ffe066);
   background: linear-gradient(135deg, var(--ticker-day) 0%, color-mix(in srgb, var(--ticker-day) 82%, white) 55%, color-mix(in srgb, var(--ticker-day) 78%, black) 100%) !important;
-  color: #ffffff !important;
+  color: var(--ticker-day-fg) !important;
   border: 2px solid color-mix(in srgb, var(--ticker-day) 45%, white) !important;
   box-shadow: 0 8px 22px color-mix(in srgb, var(--ticker-day) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
   -webkit-backdrop-filter: none !important;
@@ -140,17 +144,17 @@ html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-rotat
 html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-single-text,
 html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-rotate-counter,
 html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
-  color: #ffffff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  color: var(--ticker-day-fg) !important;
+  text-shadow: 0 1px 2px color-mix(in srgb, var(--ticker-day) 60%, black 0%);
 }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item i { color: #ffd84d !important; }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .ticker-badge-icon { background: rgba(255, 255, 255, .22) !important; color: #ffe066 !important; }
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item i { color: var(--ticker-day-accent) !important; }
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .ticker-badge-icon { background: var(--ticker-day-soft) !important; color: var(--ticker-day-accent) !important; }
 html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
-  background: rgba(255, 255, 255, .18) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, .45) !important;
+  background: var(--ticker-day-soft) !important;
+  color: var(--ticker-day-fg) !important;
+  border-color: color-mix(in srgb, var(--ticker-day-fg) 45%, transparent) !important;
 }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn:hover { background: rgba(255, 255, 255, .3) !important; }
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn:hover { background: color-mix(in srgb, var(--ticker-day-fg) 30%, transparent) !important; }
 /* النمط «الهادئ» (is-soft): خلفية فاتحة ثابتة مع نص أزرق داكن واضح */
 html:not(.dark) .site-announcement-ticker-card.is-soft {
   background: #eaf4ff !important;
