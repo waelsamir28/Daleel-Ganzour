@@ -2,23 +2,27 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX } from "lucide-react";
-import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId } from "@/lib/catalog";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
+import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy } from "lucide-react";
+import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
-import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt } from "@/components/ui";
+import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
 import { openInstallAppModal } from "@/components/install-app-modal";
-import AppInfoModal from "@/components/app-info-modal";
-import AdminAlertsFab from "@/components/admin-alerts-fab";
+import dynamic from "next/dynamic";
 import AdRotator from "@/components/ad-rotator";
 import DesignApplicator from "@/components/design-applicator";
-import BusinessCardModal from "@/components/business-card-modal";
 import SelectField from "@/components/select-field";
-import { LocationPicker, ServiceForm } from "@/components/request-forms";
-import { ProviderCompletionModalForm } from "@/components/management-editor";
+import { LocationPicker } from "@/components/request-forms";
 import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
+
+// تحميل كسول للمكوّنات التي لا تظهر إلا عند فتحها (نوافذ وأدوات الإدارة) لتخفيف الحزمة الأولى للصفحة الرئيسية.
+const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr: false });
+const AdminAlertsFab = dynamic(() => import("@/components/admin-alerts-fab"), { ssr: false });
+const BusinessCardModal = dynamic(() => import("@/components/business-card-modal"), { ssr: false });
+const ServiceForm = dynamic(() => import("@/components/request-forms").then((m) => m.ServiceForm), { ssr: false, loading: () => <p className="muted" style={{ padding: 16, textAlign: "center" }}>جارٍ تجهيز النموذج…</p> });
+const ProviderCompletionModalForm = dynamic(() => import("@/components/management-editor").then((m) => m.ProviderCompletionModalForm), { ssr: false });
 
 const ADD_PROFESSION_INVITE = "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية";
 /** أيقونة بطاقة «أرقام تهمك» حسب نوع الجهة (إسعاف، شرطة، إطفاء، كهرباء، مياه، غاز، صحة…). */
@@ -41,6 +45,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
   const [soundMuted, setSoundMutedState] = useState(false);
+  const [topPaused, setTopPaused] = useState(false);
+  const topPauseTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     const sync = () => setSoundMutedState(isSoundMuted());
     sync();
@@ -91,6 +97,15 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     return category && parent ? [{ item, category, parent }] : [];
   }), [data.topCategories, data.categories]);
   useEffect(() => { if (specialtyId && !guestLocked) sendCategoryHit(specialtyId, "view", `page:${specialtyId}`); }, [specialtyId, guestLocked]);
+  // صفحات الأقسام والتخصصات تفتح مباشرة على شبكة التخصصات/النتائج بدل أعلى الصفحة.
+  useEffect(() => {
+    if (!rootId) return;
+    const section = document.getElementById(specialtyId ? "providers" : "categories");
+    const target = section?.querySelector<HTMLElement>(".directory-section-heading") ?? section;
+    if (!target) return;
+    const frame = window.requestAnimationFrame(() => target.scrollIntoView({ block: "start", behavior: "auto" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [rootId, specialtyId]);
   const [view, setView] = useState<"all" | "favorites">(initialFavorites ? "favorites" : "all");
   const [appShareState, setAppShareState] = useState<"idle" | "shared" | "copied">("idle");
   useEffect(() => { if (appShareState === "idle") return; const timer = setTimeout(() => setAppShareState("idle"), 2600); return () => clearTimeout(timer); }, [appShareState]);
@@ -102,6 +117,10 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [detailRatingOpen, setDetailRatingOpen] = useState(false);
   const [detailClinicOpen, setDetailClinicOpen] = useState(false);
   const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
+  const [detailCopied, setDetailCopied] = useState(false);
+  async function copyDetailPhone(phone: string) {
+    try { await navigator.clipboard.writeText(phone); setDetailCopied(true); window.setTimeout(() => setDetailCopied(false), 1600); } catch { window.prompt("انسخ الرقم:", phone); }
+  }
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [ratingStars, setRatingStars] = useState(0), [ratingComment, setRatingComment] = useState(""), [ratingMessage, setRatingMessage] = useState(""), [ratingBusy, setRatingBusy] = useState(false);
   const [followIds, setFollowIds] = useState<string[]>([]), [feedItems, setFeedItems] = useState<FollowFeedItem[]>([]), [feedOpen, setFeedOpen] = useState(false), [followBusy, setFollowBusy] = useState(false), [followError, setFollowError] = useState("");
@@ -859,20 +878,35 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             </button>
           </div>
           {!scoped && design.showTopProfessions && topProfessions.length >= 3 && (
-            <section className="top-professions" aria-labelledby="top-professions-title">
+            <section className={`top-professions ${topPaused ? "is-paused" : ""}`} aria-labelledby="top-professions-title">
               <div className="top-professions-head">
                 <h2 id="top-professions-title"><Flame size={18}/> أهم مهن القرية</h2>
                 <small>الأكثر طلبًا حسب استخدام الأهالي الفعلي</small>
               </div>
-              <div className="top-professions-scroller" role="list">
-                {topProfessions.map(({ item, category, parent }, index) => (
-                  <Link key={item.id} role="listitem" href={`/categories/${parent.id}/${category.id}`} className="top-profession-chip" style={categoryTheme(category)} onClick={() => sendCategoryHit(category.id, "view", `top:${category.id}`)}>
-                    <span className="top-profession-rank" aria-hidden="true">{index + 1}</span>
-                    <span className="top-profession-icon"><CategoryIcon icon={category.icon} size={22}/></span>
-                    <strong>{category.name}</strong>
-                    <small>{parent.name} · {item.providers} {item.providers === 1 ? "مقدم خدمة" : "مقدمي خدمة"}</small>
-                  </Link>
-                ))}
+              <div
+                className="top-professions-scroller"
+                style={{ "--top-marquee-duration": `${Math.max(18, topProfessions.length * 4)}s` } as CSSProperties}
+                onPointerDown={() => { setTopPaused(true); window.clearTimeout(topPauseTimer.current); topPauseTimer.current = window.setTimeout(() => setTopPaused(false), 5000); }}
+              >
+                <div className="top-professions-track" role="list">
+                  {[0, 1].map((copy) => topProfessions.map(({ item, category, parent }, index) => (
+                    <Link
+                      key={`${copy}-${item.id}`}
+                      role={copy === 0 ? "listitem" : undefined}
+                      aria-hidden={copy === 1 ? true : undefined}
+                      tabIndex={copy === 1 ? -1 : undefined}
+                      href={`/categories/${parent.id}/${category.id}`}
+                      className="top-profession-chip"
+                      style={categoryTheme(category)}
+                      onClick={() => sendCategoryHit(category.id, "view", `top:${category.id}`)}
+                    >
+                      <span className="top-profession-rank" aria-hidden="true">{index + 1}</span>
+                      <span className="top-profession-icon"><SpecialtyIcon category={category} size={design.specialtyArt3d && hasProfessionArt(category.id) ? 34 : 22} art3d={design.specialtyArt3d}/></span>
+                      <strong>{category.name}</strong>
+                      <small>{parent.name} · {item.providers} {item.providers === 1 ? "مقدم خدمة" : "مقدمي خدمة"}</small>
+                    </Link>
+                  )))}
+                </div>
               </div>
             </section>
           )}
@@ -893,7 +927,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                   className="category-tile"
                   style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}
                 >
-                  <span className="category-icon">{category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon} art={category.art}/>}</span>
+                  <span className={`category-icon ${design.specialtyArt3d && hasProfessionArt(category.id) ? "has-profession-art" : ""}`}>{design.specialtyArt3d && hasProfessionArt(category.id) ? <SpecialtyIcon category={category} size={category.parentId ? 56 : 76} art3d/> : category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon} art={category.art}/>}</span>
                   <strong>{category.name}</strong>
                   <span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span>
                 </Link>
@@ -995,7 +1029,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title" style={!scoped ? { order: sectionOrderIndex("professionBanner", 5) } : undefined}><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
       </>)}
     </main></div>
-    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link><Link href="/#categories"><Grid2X2 size={15}/> التصنيفات</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/events"><CalendarDays size={15}/> مناسبات القرية</Link><Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
+    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/events"><CalendarDays size={15}/> مناسبات القرية</Link><Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
     {isAdmin && !modal && !detail && <AdminAlertsFab/>}
     {!aboutFabHidden && !modal && !detail && (
       <div className="floating-about-fab" role="group" aria-label="عن التطبيق">
@@ -1016,7 +1050,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     )}
     {suggestions.length > 0 && <section className="container search-assistance" aria-label="مساعدة البحث"><div className="specialty-suggestions"><h3>ملقيناش نتيجة مطابقة. جرّب التخصصات دي</h3><p>فتح التخصص يعرض كل خدماته بدون فلاتر البحث الحالية.</p>{suggestions.map((item) => <Link className="button button-soft" key={item.id} href={`/categories/${item.parentId}/${item.id}`}>{item.name}</Link>)}</div></section>}
     {modal === "duty" && (
-      <Modal floating wide title={dutyShift.title} subtitle={dutyShift.subtitle} onClose={closeModal}>
+      <Modal floating wide className="modal-quiet-scroll" title={dutyShift.title} subtitle={dutyShift.subtitle} onClose={closeModal}>
         <div className="duty-modal-content">
           <div className="duty-modal-head">
             <span className={`duty-shift-badge is-${dutyShift.mode}`}><Stethoscope size={15}/>{dutyShift.badge}</span>
@@ -1059,7 +1093,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       </Modal>
     )}
     {modal === "utilities" && (
-      <Modal floating wide title="أرقام تهمك في جنزور (المرافق والطوارئ العامة)" subtitle="أرقام الطوارئ والمرافق الحيوية وشكاوى الخدمات العامة للاتصال الفوري بضغطة واحدة" onClose={closeModal}>
+      <Modal floating wide className="modal-quiet-scroll" title="أرقام تهمك في جنزور (المرافق والطوارئ العامة)" subtitle="أرقام الطوارئ والمرافق الحيوية وشكاوى الخدمات العامة للاتصال الفوري بضغطة واحدة" onClose={closeModal}>
         <div className="utilities-modal-content">
           {isAdmin && (
             <div className="utilities-admin-bar">
@@ -1237,7 +1271,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         />
       </Modal>
     )}
-    {detail && <Modal floating title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details detail-v2">
+    {detail && <Modal floating className="modal-quiet-scroll detail-modal" title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details detail-v2">
       <header className="detail-v2-hero" style={categoryTheme(getCategory(detail.category, categories))}>
         <span className="detail-v2-hero-glow" aria-hidden="true"/>
         <div className="detail-v2-hero-row">
@@ -1253,27 +1287,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             <div className="detail-v2-stars">
               <ProviderRating value={detail.rating} reviews={detail.reviews}/>
             </div>
-          </div>
-          <div className="detail-v2-side-actions" role="group" aria-label="المشاركة والمفضلة">
-            <button
-              type="button"
-              className="detail-v2-icon-btn is-share"
-              onClick={() => void shareService(detail)}
-              aria-label={`مشاركة ${detail.name}`}
-              title="مشاركة الصفحة"
-            >
-              <Share2 size={17}/>
-            </button>
-            <button
-              type="button"
-              className={`detail-v2-icon-btn is-favorite ${favorites.includes(detail.id) ? "is-active" : ""}`}
-              onClick={() => toggleFavorite(detail.id)}
-              aria-pressed={favorites.includes(detail.id)}
-              aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`}
-              title={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-            >
-              <Heart size={17} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/>
-            </button>
           </div>
         </div>
         <button
@@ -1475,44 +1488,63 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </div>
         </div>
       ) : (
-      <div className="detail-actions detail-v2-actions">
-        <a
-          className="detail-v2-cta is-call"
-          href={`tel:${detail.phone}`}
-          onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
-        >
-          <span className="detail-v2-cta-icon"><PhoneCall size={20}/></span>
-          <span className="detail-v2-cta-copy">
-            <strong>اتصل الآن</strong>
-            <small dir="ltr">{detail.phone}</small>
-          </span>
-        </a>
-        <a
-          className="detail-v2-cta is-whatsapp"
-          href={whatsappUrl(detail.phone, design.whatsappDefaultGreeting || "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
-        >
-          <span className="detail-v2-cta-icon"><MessageCircle size={20}/></span>
-          <span className="detail-v2-cta-copy">
-            <strong>واتساب</strong>
-            <small>راسله مباشرة الآن</small>
-          </span>
-        </a>
-        {detail.phoneSecondary && (
+      <div className="circle-host detail-v2-tools-host">
+        <div className="circle-tools is-row detail-v2-tools" role="group" aria-label="اتصال وواتساب ومشاركة ومفضلة ونسخ الرقم">
           <a
-            className="detail-v2-cta is-secondary"
-            href={`tel:${detail.phoneSecondary}`}
+            className="circle-tool is-call"
+            href={`tel:${detail.phone}`}
+            data-tip="اتصال"
+            aria-label={`اتصال بـ ${detail.name}`}
             onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
           >
-            <span className="detail-v2-cta-icon"><Phone size={18}/></span>
-            <span className="detail-v2-cta-copy">
-              <strong>رقم إضافي</strong>
-              <small dir="ltr">{detail.phoneSecondary}</small>
-            </span>
+            <PhoneCall size={17}/>
           </a>
-        )}
+          {detail.phoneSecondary && (
+            <a
+              className="circle-tool is-call-secondary"
+              href={`tel:${detail.phoneSecondary}`}
+              data-tip="رقم إضافي"
+              aria-label={`اتصال بالرقم الإضافي لـ ${detail.name}`}
+              onClick={() => trackDirectoryEvent({ kind: "call", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+            >
+              <Phone size={16}/>
+            </a>
+          )}
+          <a
+            className="circle-tool is-whatsapp"
+            href={whatsappUrl(detail.phone, design.whatsappDefaultGreeting || "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-tip="واتساب"
+            aria-label={`واتساب ${detail.name}`}
+            onClick={() => trackDirectoryEvent({ kind: "whatsapp", label: detail.name, serviceId: detail.id, categoryId: detail.category })}
+          >
+            <MessageCircle size={17}/>
+          </a>
+          <button type="button" className="circle-tool is-share" data-tip="مشاركة" onClick={() => void shareService(detail)} aria-label={`مشاركة ${detail.name}`}>
+            <Share2 size={16}/>
+          </button>
+          <button
+            type="button"
+            className={`circle-tool is-favorite ${favorites.includes(detail.id) ? "is-active" : ""}`}
+            data-tip={favorites.includes(detail.id) ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+            onClick={() => toggleFavorite(detail.id)}
+            aria-pressed={favorites.includes(detail.id)}
+            aria-label={favorites.includes(detail.id) ? `إزالة ${detail.name} من المفضلة` : `أضف ${detail.name} للمفضلة`}
+          >
+            <Heart size={16} fill={favorites.includes(detail.id) ? "currentColor" : "none"}/>
+          </button>
+          <button
+            type="button"
+            className={`circle-tool is-copy ${detailCopied ? "is-active" : ""}`}
+            data-tip={detailCopied ? "تم النسخ ✓" : "نسخ الرقم"}
+            onClick={() => void copyDetailPhone(detail.phone)}
+            aria-label={detailCopied ? "تم نسخ الرقم" : `نسخ رقم ${detail.name}`}
+          >
+            {detailCopied ? <Check size={16}/> : <Copy size={16}/>}
+          </button>
+        </div>
+        <small className="detail-v2-tools-hint" dir="ltr">{detail.phone}</small>
       </div>
       )}
     </div></Modal>}

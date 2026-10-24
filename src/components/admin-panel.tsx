@@ -1,5 +1,7 @@
 "use client";
 
+import { notificationChime } from "@/lib/feedback";
+
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, BadgeCheck, BarChart3, Bell, CalendarDays, Clapperboard, BellRing, BriefcaseBusiness, Building2, Check, CheckCheck, CheckCircle2, ChevronDown, ChevronLeft, CircleX, ClipboardList, Crown, EllipsisVertical, Eye, EyeOff, FileClock, FileSpreadsheet, Grid2X2, Hammer, LoaderCircle, LockKeyhole, Link2, LogOut, MapPin, Menu, MessageCircle, Megaphone, MessageSquareQuote, Palette, Pencil, Phone, Plus, RotateCw, Search, Settings2, ShieldCheck, Star, Trash2, UserRound, UsersRound, X } from "lucide-react";
 import { defaultAdPricing, getCategory, normalizeSearch, whatsappUrl, type AdminDirectory, type CategoryRecord, type CommunityListingRecord, type NotificationRecord, type ServiceRecord } from "@/lib/catalog";
@@ -66,6 +68,7 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
         setData(next);
         const serviceNotice = fresh.find((item) => item.type === "service") ?? fresh[0];
         if (serviceNotice) {
+          notificationChime(serviceNotice.type === "service" || serviceNotice.type === "rating" || serviceNotice.type === "community" ? serviceNotice.type : "other");
           setToast({ text: `${serviceNotice.title}: ${serviceNotice.message}`, error: false });
           if (typeof Notification !== "undefined" && Notification.permission === "granted") new Notification(serviceNotice.title, { body: serviceNotice.message, icon: "/images/logo-janzour.png", tag: serviceNotice.id });
         }

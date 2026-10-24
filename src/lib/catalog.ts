@@ -1137,6 +1137,7 @@ export type DesignSettings = {
   providerEdgeTools: string;
   providerEdgeToolsPosition: "left" | "right" | "bottom";
   showTopProfessions: boolean;
+  specialtyArt3d: boolean;
   powerSaveMode: "auto" | "on" | "off";
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
@@ -1469,6 +1470,7 @@ export const defaultDesignSettings: DesignSettings = {
   providerEdgeTools: "call,whatsapp,share,favorite",
   providerEdgeToolsPosition: "left",
   showTopProfessions: true,
+  specialtyArt3d: true,
   powerSaveMode: "auto",
   showProviderWhatsappBtn: true,
   whatsappButtonColor: "#1fa855",
@@ -1991,6 +1993,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.providerEdgeTools = sanitizeProviderEdgeTools(record.providerEdgeTools);
   next.providerEdgeToolsPosition = pickEnum(record.providerEdgeToolsPosition, ["left", "right", "bottom"] as const, defaultDesignSettings.providerEdgeToolsPosition);
   next.showTopProfessions = pickBool(record.showTopProfessions, defaultDesignSettings.showTopProfessions);
+  next.specialtyArt3d = pickBool(record.specialtyArt3d, defaultDesignSettings.specialtyArt3d);
   next.powerSaveMode = pickEnum(record.powerSaveMode, ["auto", "on", "off"] as const, defaultDesignSettings.powerSaveMode);
   next.showProviderWhatsappBtn = pickBool(record.showProviderWhatsappBtn, defaultDesignSettings.showProviderWhatsappBtn);
   next.whatsappButtonColor = hexColor(record.whatsappButtonColor, defaultDesignSettings.whatsappButtonColor);
@@ -2982,3 +2985,7 @@ export function liveTickerItems(greetings: ActiveGreeting[] | undefined, events:
   return lines;
 }
 
+
+/** المهن الاثنتا عشرة التي لها رسم ثلاثي الأبعاد مرسوم باليد في /images/profession-art.svg (معرّف التصنيف = معرّف الرمز). */
+export const professionArtIds = ["electricity", "plumbing", "carpentry", "painting", "ac", "mechanics", "dentistry", "pharmacies", "teachers", "barbers", "groceries", "photography"] as const;
+export function hasProfessionArt(categoryId: string) { return (professionArtIds as readonly string[]).includes(categoryId); }

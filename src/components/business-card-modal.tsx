@@ -117,11 +117,12 @@ export default function BusinessCardModal({
   return (
     <Modal
       floating
+      className="modal-quiet-scroll"
       title="بطاقة العمل الرقمية ورمز QR"
       subtitle={`${service.name} • ${category.name}`}
       onClose={onClose}
     >
-      <div className="business-card-modal-wrap">
+      <div className="business-card-modal-wrap circle-host">
         <article
           className="provider-business-card"
           style={{ "--cat": category.color, "--cat-light": category.light } as CSSProperties}
@@ -208,27 +209,28 @@ export default function BusinessCardModal({
           </div>
         </article>
 
-        <div className="business-card-actions">
-          <button type="button" className="button button-primary button-small" onClick={() => void shareCard()}>
-            <Share2 size={16} /> مشاركة الكارت
+        <div className="business-card-actions circle-tools is-row" role="group" aria-label="إجراءات بطاقة العمل">
+          <button type="button" className="circle-tool is-share" data-tip="مشاركة الكارت" aria-label="مشاركة الكارت" onClick={() => void shareCard()}>
+            <Share2 size={16} />
           </button>
           <a
             href={whatsappUrl(service.phone, `مرحباً ${service.name}، وصلت إلى بطاقتك الرقمية في دليل جنزور.`)}
             target="_blank"
             rel="noopener noreferrer"
-            className="button button-whatsapp button-small"
+            className="circle-tool is-whatsapp"
+            data-tip="واتساب المهني"
+            aria-label="واتساب المهني"
           >
-            <MessageCircle size={16} /> واتساب المهني
+            <MessageCircle size={16} />
           </a>
-          <button type="button" className="button button-soft button-small" onClick={() => void copyLink()}>
+          <button type="button" className={`circle-tool is-copy ${copied ? "is-active" : ""}`} data-tip={copied ? "تم نسخ الرابط ✓" : "نسخ رابط الكارت"} aria-label={copied ? "تم نسخ الرابط" : "نسخ رابط الكارت"} onClick={() => void copyLink()}>
             {copied ? <Check size={16} /> : <Clipboard size={16} />}
-            <span>{copied ? "تم نسخ الرابط" : "نسخ رابط الكارت"}</span>
           </button>
-          <button type="button" className="button button-soft button-small" onClick={printCard}>
-            <Printer size={16} /> طباعة الكارت
+          <button type="button" className="circle-tool is-print" data-tip="طباعة الكارت" aria-label="طباعة الكارت" onClick={printCard}>
+            <Printer size={16} />
           </button>
-          <button type="button" className="button button-soft button-small" onClick={onClose}>
-            <X size={16} /> إغلاق
+          <button type="button" className="circle-tool is-close" data-tip="إغلاق" aria-label="إغلاق" onClick={onClose}>
+            <X size={16} />
           </button>
         </div>
       </div>

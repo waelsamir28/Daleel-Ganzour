@@ -248,3 +248,15 @@ html .directory-section-heading::after {
   display: none !important;
   content: none !important;
 }
+
+/* ---------- 5) أزرار الاتصال في «أرقام تهمك» و«المناوبة»: لون مختلف عند المرور/الضغط في كل السمات ---------- */
+.button-primary.duty-call-full:hover,
+.button-primary.duty-call-full:focus-visible,
+.button-primary.duty-call-full:active {
+  background: linear-gradient(135deg, #0ea5a4, #047857) !important;
+  border-color: #065f46 !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px -8px rgba(4, 120, 87, .7) !important;
+  filter: none !important;
+}
+.button-primary.duty-call-full:active { transform: translateY(1px); }

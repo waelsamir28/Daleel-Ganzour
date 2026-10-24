@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- رسومات ثلاثية الأبعاد بأسلوب "مرسوم باليد" لأهم 12 مهنة في جنزور. كل رمز 128×128 ويُستدعى عبر <use href="/images/profession-art.svg#id">. -->
+  <defs>
+    <filter id="sketch" x="-12%" y="-12%" width="124%" height="124%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="9" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  </defs>
+
+  <!-- 1) كهربائي: برق + شرارات -->
+  <symbol id="electricity" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="117" rx="36" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M74 19 42 71h22l-8 42 42-60H74z" fill="#c77d0a" transform="translate(5 5)"/>
+      <path d="M74 19 42 71h22l-8 42 42-60H74z" fill="#ffd23f"/>
+      <path d="M72 26 50 62" stroke="#fff6c0" stroke-width="5" opacity=".9"/>
+      <path d="M22 44l9 4M20 60h10M26 76l8-4" stroke="#f08a24"/>
+      <path d="M108 40l-9 4M110 56h-10" stroke="#f08a24"/>
+    </g>
+  </symbol>
+
+  <!-- 2) سباك: ماسورة كوع + قطرات ماء -->
+  <symbol id="plumbing" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M20 42h50q14 0 14 14v48" fill="none" stroke="#2b2118" stroke-width="30"/>
+      <path d="M20 42h50q14 0 14 14v48" fill="none" stroke="#5c7d9d" stroke-width="22"/>
+      <path d="M20 37h50q14 0 14 14v48" fill="none" stroke="#a9c4dd" stroke-width="9" stroke-opacity=".9"/>
+      <rect x="12" y="26" width="18" height="32" rx="4" fill="#8aa6c2"/>
+      <rect x="70" y="90" width="28" height="18" rx="4" fill="#8aa6c2"/>
+      <path d="M104 30c-7 10-11 16-11 22a11 11 0 0 0 22 0c0-6-4-12-11-22z" fill="#1e8ad6" transform="translate(3 4)" opacity=".8"/>
+      <path d="M104 30c-7 10-11 16-11 22a11 11 0 0 0 22 0c0-6-4-12-11-22z" fill="#3fb3f5"/>
+      <path d="M99 52c0-4 2-8 5-12" stroke="#d9f2ff" stroke-width="3"/>
+      <path d="M40 92c-3 5-5 8-5 11a5 5 0 0 0 10 0c0-3-2-6-5-11z" fill="#3fb3f5"/>
+    </g>
+  </symbol>
+
+  <!-- 3) نجار: لوح خشب + منشار -->
+  <symbol id="carpentry" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M14 86l82-34 10 22-82 34z" fill="#9a5a26" transform="translate(4 6)"/>
+      <path d="M14 86l82-34 10 22-82 34z" fill="#d9955a"/>
+      <path d="M26 92l62-26M34 102l56-24" stroke="#a9682f" stroke-width="2.5" opacity=".8"/>
+      <path d="M44 22h58l-6 36H40z" fill="#8c9bab" transform="translate(4 5)"/>
+      <path d="M44 22h58l-6 36H40z" fill="#d7dfe8"/>
+      <path d="M44 58l5 6 5-6 5 6 5-6 5 6 5-6 5 6 5-6 5 6 5-6" fill="none" stroke-width="3"/>
+      <path d="M30 20h18v22H30z" fill="#7a4a1f" transform="translate(3 4)"/>
+      <path d="M30 20h18v22H30z" fill="#a9652a"/>
+      <path d="M50 30h50" stroke="#fff" stroke-width="3" opacity=".7"/>
+    </g>
+  </symbol>
+
+  <!-- 4) نقاش: رولة دهان + خط دهان -->
+  <symbol id="painting" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M18 30q46-14 92 0v18q-46 14-92 0z" fill="#b8313f" transform="translate(4 6)"/>
+      <path d="M18 30q46-14 92 0v18q-46 14-92 0z" fill="#ea4b5a"/>
+      <path d="M26 30q38-10 76 0" stroke="#ffb3b9" stroke-width="4"/>
+      <path d="M64 50v16h20v22" fill="none" stroke="#2b2118" stroke-width="10"/>
+      <path d="M64 50v16h20v22" fill="none" stroke="#cfd6de" stroke-width="5"/>
+      <rect x="74" y="86" width="20" height="30" rx="5" fill="#d97a12" transform="translate(3 3)"/>
+      <rect x="74" y="86" width="20" height="30" rx="5" fill="#ffa534"/>
+      <path d="M10 70q20-8 32 0t28 2q10 10 2 20" fill="none" stroke="#ea4b5a" stroke-width="9"/>
+      <circle cx="26" cy="92" r="5" fill="#ea4b5a"/>
+    </g>
+  </symbol>
+
+  <!-- 5) تكييف: وحدة تكييف + ندفة ثلج + هواء -->
+  <symbol id="ac" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="14" y="26" width="100" height="44" rx="10" fill="#b4c3d4" transform="translate(5 6)"/>
+      <rect x="14" y="26" width="100" height="44" rx="10" fill="#f4f8fc"/>
+      <path d="M22 60h74" stroke="#7d93aa" stroke-width="5"/>
+      <circle cx="104" cy="38" r="4" fill="#3ad66a"/>
+      <path d="M26 46h50" stroke="#c7d5e3" stroke-width="4"/>
+      <path d="M30 84q14-8 28 0t28 0M38 100q14-8 28 0t28 0" fill="none" stroke="#39b0f0" stroke-width="5"/>
+      <g stroke="#1f7fd0" stroke-width="4">
+        <path d="M94 88v30M79 103h30M83 92l22 22M105 92l-22 22" stroke="#fff" stroke-width="8"/>
+        <path d="M94 88v30M79 103h30M83 92l22 22M105 92l-22 22"/>
+      </g>
+    </g>
+  </symbol>
+
+  <!-- 6) ميكانيكي: ترس + مفتاح -->
+  <symbol id="mechanics" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <circle cx="50" cy="60" r="27" fill="#5f6b78" stroke="none" transform="translate(4 6)"/>
+      <circle cx="50" cy="60" r="27" fill="none" stroke="#2b2118" stroke-width="22" stroke-dasharray="11 10"/>
+      <circle cx="50" cy="60" r="27" fill="#9aa6b3" stroke="none"/>
+      <circle cx="50" cy="60" r="27" fill="none" stroke="#9aa6b3" stroke-width="14" stroke-dasharray="11 10"/>
+      <circle cx="50" cy="60" r="27" fill="none"/>
+      <circle cx="50" cy="60" r="10" fill="#f4f7fa"/>
+      <path d="M42 44q6-6 16-4" stroke="#fff" stroke-width="3"/>
+      <path d="M112 30l-12 2-6 10 4 8-30 30 10 10 30-30 8 4 10-6 2-12-10 8-8-4-4-8z" fill="#8a2d1c" transform="translate(3 5)"/>
+      <path d="M112 30l-12 2-6 10 4 8-30 30 10 10 30-30 8 4 10-6 2-12-10 8-8-4-4-8z" fill="#f05a3a"/>
+      <path d="M74 76l20-20" stroke="#ffb7a3" stroke-width="3"/>
+    </g>
+  </symbol>
+
+  <!-- 7) أسنان: ضرس لامع + مرآة -->
+  <symbol id="dentistry" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="36" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M40 24c-14 0-20 12-18 26 2 12 8 20 10 40 2 16 12 18 16 2 2-10 4-14 10-14s8 4 10 14c4 16 14 14 16-2 2-20 8-28 10-40 2-14-4-26-18-26-8 0-12 4-18 4s-10-4-18-4z" fill="#b9c6d8" transform="translate(4 6)"/>
+      <path d="M40 24c-14 0-20 12-18 26 2 12 8 20 10 40 2 16 12 18 16 2 2-10 4-14 10-14s8 4 10 14c4 16 14 14 16-2 2-20 8-28 10-40 2-14-4-26-18-26-8 0-12 4-18 4s-10-4-18-4z" fill="#fdfeff"/>
+      <path d="M34 36q-6 6-4 18" stroke="#9fb3cb" stroke-width="3"/>
+      <path d="M96 16l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#5fd0ff" stroke-width="3"/>
+      <path d="M22 100l16-16" stroke="#2b2118" stroke-width="9"/>
+      <path d="M22 100l16-16" stroke="#cfd6de" stroke-width="4"/>
+      <circle cx="44" cy="78" r="8" fill="#6fd3ff"/>
+    </g>
+  </symbol>
+
+  <!-- 8) صيدلية: زجاجة دواء + كبسولة + صليب -->
+  <symbol id="pharmacies" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="30" y="38" width="44" height="70" rx="8" fill="#c26f0a" transform="translate(4 6)"/>
+      <rect x="30" y="38" width="44" height="70" rx="8" fill="#f9a826"/>
+      <rect x="36" y="22" width="32" height="18" rx="4" fill="#f4f7fa"/>
+      <rect x="36" y="58" width="32" height="26" rx="3" fill="#fff" stroke-width="3"/>
+      <path d="M52 62v18M43 71h18" stroke="#1fa463" stroke-width="5"/>
+      <path d="M38 44v40" stroke="#ffd58a" stroke-width="3"/>
+      <g transform="rotate(-35 96 84)">
+        <rect x="80" y="74" width="34" height="18" rx="9" fill="#9d1a3a" transform="translate(3 4)"/>
+        <rect x="80" y="74" width="34" height="18" rx="9" fill="#e23b5e"/>
+        <path d="M97 74v18" />
+        <path d="M80 83a9 9 0 0 1 9-9h8v18h-8a9 9 0 0 1-9-9z" fill="#fff"/>
+      </g>
+    </g>
+  </symbol>
+
+  <!-- 9) مدرّس: سبورة + طباشير + تفاحة -->
+  <symbol id="teachers" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="42" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="14" y="20" width="100" height="66" rx="6" fill="#8a5a2b" transform="translate(5 6)"/>
+      <rect x="14" y="20" width="100" height="66" rx="6" fill="#c98a4b"/>
+      <rect x="22" y="28" width="84" height="50" rx="3" fill="#2f7d5b"/>
+      <text x="64" y="64" text-anchor="middle" font-family="Tahoma, Arial, sans-serif" font-size="30" font-weight="bold" fill="#fff" stroke="none">أ ب ج</text>
+      <path d="M30 72h20" stroke="#fff" stroke-width="3" opacity=".7"/>
+      <path d="M40 86v24M88 86v24" stroke-width="5"/>
+      <circle cx="98" cy="102" r="11" fill="#9d1a3a" transform="translate(3 3)"/>
+      <circle cx="98" cy="102" r="11" fill="#e23b5e"/>
+      <path d="M98 91q0-6 6-8" fill="none" stroke="#2f7d5b" stroke-width="3"/>
+      <path d="M22 108h20" stroke="#fff" stroke-width="7"/>
+      <path d="M22 108h20" stroke="#fff" stroke-width="7" fill="none"/>
+    </g>
+  </symbol>
+
+  <!-- 10) حلاق: مقص + مشط -->
+  <symbol id="barbers" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M46 56 104 18M46 72 104 110" stroke="#2b2118" stroke-width="11"/>
+      <path d="M46 56 104 18M46 72 104 110" stroke="#cfd8e2" stroke-width="6"/>
+      <path d="M50 58 100 24" stroke="#fff" stroke-width="2"/>
+      <circle cx="30" cy="44" r="14" fill="#1d4f8f" transform="translate(3 4)"/>
+      <circle cx="30" cy="84" r="14" fill="#1d4f8f" transform="translate(3 4)"/>
+      <circle cx="30" cy="44" r="14" fill="#3b82f6"/>
+      <circle cx="30" cy="84" r="14" fill="#3b82f6"/>
+      <circle cx="30" cy="44" r="6" fill="#dbeafe" stroke-width="3"/>
+      <circle cx="30" cy="84" r="6" fill="#dbeafe" stroke-width="3"/>
+      <circle cx="48" cy="64" r="4" fill="#ffd23f"/>
+      <rect x="86" y="54" width="34" height="14" rx="4" fill="#2b2118" transform="rotate(-90 103 61) translate(4 4)" opacity=".7"/>
+      <rect x="86" y="54" width="34" height="14" rx="4" fill="#f59e0b" transform="rotate(-90 103 61)"/>
+      <path d="M92 58v6M98 58v6M104 58v6M110 58v6" stroke-width="3" transform="rotate(-90 103 61)"/>
+    </g>
+  </symbol>
+
+  <!-- 11) بقالة: سلة تسوق + فاكهة -->
+  <symbol id="groceries" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <circle cx="44" cy="50" r="14" fill="#f97316"/>
+      <circle cx="80" cy="48" r="14" fill="#22c55e"/>
+      <path d="M80 34q0-8 8-10" fill="none" stroke="#166534" stroke-width="3"/>
+      <path d="M56 46q10-12 24 0 2 10-12 12-14-2-12-12z" fill="#facc15"/>
+      <path d="M16 60h96l-10 48H26z" fill="#8a5a2b" transform="translate(4 6)"/>
+      <path d="M16 60h96l-10 48H26z" fill="#c98a4b"/>
+      <path d="M30 70l6 30M50 70l3 30M78 70l-3 30M98 70l-6 30M22 84h84M26 96h76" stroke="#8a5a2b" stroke-width="3"/>
+      <path d="M12 60h104" stroke-width="8"/>
+      <path d="M12 60h104" stroke="#e9b57d" stroke-width="4"/>
+      <path d="M46 60l-12-24M82 60l12-24" fill="none" stroke-width="5"/>
+    </g>
+  </symbol>
+
+  <!-- 12) مصوّر: كاميرا + فلاش -->
+  <symbol id="photography" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="14" y="40" width="100" height="64" rx="12" fill="#1f2a37" transform="translate(5 6)"/>
+      <rect x="14" y="40" width="100" height="64" rx="12" fill="#3d4a5a"/>
+      <path d="M42 40l8-14h28l8 14" fill="#2b3644"/>
+      <rect x="20" y="48" width="88" height="10" rx="4" fill="#64748b"/>
+      <circle cx="64" cy="76" r="22" fill="#111827"/>
+      <circle cx="64" cy="76" r="15" fill="#2563eb"/>
+      <circle cx="64" cy="76" r="7" fill="#0f172a"/>
+      <circle cx="58" cy="70" r="3" fill="#fff" stroke="none"/>
+      <rect x="92" y="60" width="14" height="10" rx="3" fill="#f97316"/>
+      <circle cx="30" cy="30" r="7" fill="#ffd23f"/>
+      <path d="M100 22l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fff" stroke-width="3"/>
+    </g>
+  </symbol>
+</svg>
