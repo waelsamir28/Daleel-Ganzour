@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { defaultDesignSettings, designThemePresets, type DesignSettings, readableTextOn } from "@/lib/catalog";
+import { defaultDesignSettings, designThemePresets, type DesignSettings, readableTextOn, shadeHex } from "@/lib/catalog";
 
 export function applyDesignSettingsToDocument(design: DesignSettings = defaultDesignSettings) {
   if (typeof document === "undefined") return;
@@ -25,6 +25,10 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-announcement-bg", design.announcementBgColor);
   root.style.setProperty("--design-announcement-bg-light", design.announcementBgColorLight);
   // لون نص الشريط النهاري يتحدد تلقائيًا (أبيض على الداكن، كحلي على الفاتح) حتى لا يختفي الكلام مع أي لون.
+  const tickerDay = /^#[0-9a-fA-F]{6}$/.test(design.announcementBgColorLight || "") ? design.announcementBgColorLight : "#0b4a93";
+  root.style.setProperty("--design-announcement-bg-light-mid", shadeHex(tickerDay, 0.18));
+  root.style.setProperty("--design-announcement-bg-light-deep", shadeHex(tickerDay, -0.22));
+  root.style.setProperty("--design-announcement-border-light", shadeHex(tickerDay, 0.55));
   const tickerFg = readableTextOn(design.announcementBgColorLight);
   root.style.setProperty("--design-announcement-fg-light", tickerFg);
   root.style.setProperty("--design-announcement-fg-light-soft", tickerFg === "#ffffff" ? "rgba(255,255,255,.22)" : "rgba(15,35,64,.12)");

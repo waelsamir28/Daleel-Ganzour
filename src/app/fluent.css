@@ -124,47 +124,53 @@ html[data-design-preset^="win11-"] .category-tile .category-icon { border-radius
 
 /* ===== الشريط المتحرك في الوضع النهاري: لون ثابت لا يتأثر بأي ثيم =====
    بعض الثيمات (Vista / Win11) كانت تجعل خلفية الشريط بيضاء شفافة بينما النص أبيض فيختفي.
-   هنا نثبّت خلفية زرقاء داكنة ونصًا أبيض في الوضع النهاري فقط — الوضع الليلي يبقى كما هو. */
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) {
-  /* اللون من استوديو التصميم (خانة «لون الشريط في الوضع النهاري»)، مع تدرّج خفيف أفتح/أغمق منه،
-     ولون النص يتحدد تلقائيًا (أبيض على الداكن / كحلي على الفاتح) من DesignApplicator */
-  --ticker-day: var(--design-announcement-bg-light, #0b4a93);
-  --ticker-day-fg: var(--design-announcement-fg-light, #ffffff);
-  --ticker-day-soft: var(--design-announcement-fg-light-soft, rgba(255, 255, 255, .22));
-  --ticker-day-accent: var(--design-announcement-accent-light, #ffe066);
-  background: linear-gradient(135deg, var(--ticker-day) 0%, color-mix(in srgb, var(--ticker-day) 82%, white) 55%, color-mix(in srgb, var(--ticker-day) 78%, black) 100%) !important;
-  color: var(--ticker-day-fg) !important;
-  border: 2px solid color-mix(in srgb, var(--ticker-day) 45%, white) !important;
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--ticker-day) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
+   هنا نثبّت خلفية داكنة (من خانة «لون الشريط في الوضع النهاري») ونصًا مقروءًا في الوضع النهاري فقط.
+   بلا color-mix إطلاقًا (المتصفحات القديمة تتجاهل التصريح كله) — درجات اللون تُحسب في DesignApplicator،
+   وقبلها تصريحات احتياطية ثابتة لو لم تُضبط المتغيرات بعد. الخصوصية (0,3,2) أعلى من قواعد الثيمات (0,3,1). */
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) {
+  background: #0b4a93 !important;
+  background: linear-gradient(135deg, #0b4a93 0%, #2d6fb8 55%, #083a74 100%) !important;
+  background: linear-gradient(135deg, var(--design-announcement-bg-light, #0b4a93) 0%, var(--design-announcement-bg-light-mid, #2d6fb8) 55%, var(--design-announcement-bg-light-deep, #083a74) 100%) !important;
+  color: #ffffff !important;
+  color: var(--design-announcement-fg-light, #ffffff) !important;
+  border: 2px solid #86b8ee !important;
+  border-color: var(--design-announcement-border-light, #86b8ee) !important;
+  box-shadow: 0 8px 22px rgba(8, 74, 147, .26), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item,
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-rotate-text,
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-single-text,
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-rotate-counter,
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
-  color: var(--ticker-day-fg) !important;
-  text-shadow: 0 1px 2px color-mix(in srgb, var(--ticker-day) 60%, black 0%);
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item,
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .announcement-rotate-text,
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .announcement-single-text,
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .announcement-rotate-counter,
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
+  color: #ffffff !important;
+  color: var(--design-announcement-fg-light, #ffffff) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .22);
 }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item i { color: var(--ticker-day-accent) !important; }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .ticker-badge-icon { background: var(--ticker-day-soft) !important; color: var(--ticker-day-accent) !important; }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
-  background: var(--ticker-day-soft) !important;
-  color: var(--ticker-day-fg) !important;
-  border-color: color-mix(in srgb, var(--ticker-day-fg) 45%, transparent) !important;
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item i { color: #ffe066 !important; color: var(--design-announcement-accent-light, #ffe066) !important; }
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .ticker-badge-icon {
+  background: rgba(255, 255, 255, .22) !important;
+  background: var(--design-announcement-fg-light-soft, rgba(255, 255, 255, .22)) !important;
+  color: #ffe066 !important;
+  color: var(--design-announcement-accent-light, #ffe066) !important;
 }
-html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn:hover { background: color-mix(in srgb, var(--ticker-day-fg) 30%, transparent) !important; }
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
+  background: rgba(255, 255, 255, .18) !important;
+  background: var(--design-announcement-fg-light-soft, rgba(255, 255, 255, .18)) !important;
+  border-color: rgba(255, 255, 255, .45) !important;
+}
+html:not(.dark) body .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn:hover { filter: brightness(1.15); }
 /* النمط «الهادئ» (is-soft): خلفية فاتحة ثابتة مع نص أزرق داكن واضح */
-html:not(.dark) .site-announcement-ticker-card.is-soft {
+html:not(.dark) body .site-announcement-ticker-card.is-soft {
   background: #eaf4ff !important;
   color: #0b3f7a !important;
   border: 2px solid #8ec2f5 !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-html:not(.dark) .site-announcement-ticker-card.is-soft .site-announcement-marquee-item,
-html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-rotate-text,
-html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-single-text,
-html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-rotate-counter { color: #0b3f7a !important; }
-html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-nav-btn { background: #0a5fb8 !important; color: #fff !important; border-color: #0a5fb8 !important; }
+html:not(.dark) body .site-announcement-ticker-card.is-soft .site-announcement-marquee-item,
+html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-rotate-text,
+html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-single-text,
+html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-rotate-counter { color: #0b3f7a !important; }
+html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-nav-btn { background: #0a5fb8 !important; color: #fff !important; border-color: #0a5fb8 !important; }
