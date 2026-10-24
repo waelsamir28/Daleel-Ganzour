@@ -123,3 +123,31 @@ export function isTapTarget(target: EventTarget | null): boolean {
   if (hit instanceof HTMLButtonElement && hit.disabled) return false;
   return true;
 }
+
+// Admin notification chimes — deliberately different from the success "ding": a three-note rising
+// arpeggio for new profession requests, a two-note bell for new ratings, and a soft double knock
+// for community posts. Independent of the visitor mute switch (the admin bell has its own toggle).
+export type NotificationChimeKind = "service" | "rating" | "community" | "other";
+export function notificationChime(kind: NotificationChimeKind) {
+  try {
+    const ctx = getContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    if (kind === "service") {
+      blip(ctx, now, 880, 0.42, 0.3, "sine", 880);
+      blip(ctx, now + 0.16, 1174.66, 0.42, 0.3, "sine", 1174.66);
+      blip(ctx, now + 0.32, 1567.98, 0.45, 0.32, "sine", 1567.98);
+    } else if (kind === "rating") {
+      blip(ctx, now, 1318.5, 0.35, 0.26, "triangle", 1318.5);
+      blip(ctx, now + 0.22, 987.77, 0.5, 0.26, "triangle", 987.77);
+    } else if (kind === "community") {
+      blip(ctx, now, 520, 0.12, 0.24, "square", 500);
+      blip(ctx, now + 0.18, 520, 0.14, 0.24, "square", 500);
+    } else {
+      blip(ctx, now, 740, 0.3, 0.24, "sine", 740);
+    }
+    vibrate(kind === "service" ? [40, 60, 40, 60, 80] : [40, 80, 40]);
+  } catch {
+    // optional
+  }
+}

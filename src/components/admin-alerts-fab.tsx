@@ -1,5 +1,7 @@
 "use client";
 
+import { notificationChime, type NotificationChimeKind } from "@/lib/feedback";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Bell, BellRing, CheckCheck, ChevronLeft, FileClock, Megaphone, Star, UserRound, Volume2, VolumeX, X } from "lucide-react";
@@ -9,6 +11,7 @@ const SOUND_KEY = "janzour-admin-alert-sound";
 const POLL_MS = 10000;
 
 type Feed = { notifications: NotificationRecord[]; unread: number };
+function chimeKind(type: string | undefined): NotificationChimeKind { return type === "service" || type === "rating" || type === "community" ? type : "other"; }
 
 /**
  * Floating admin bell on the public pages: polls the review feed, shows the unread count,
@@ -37,20 +40,9 @@ export default function AdminAlertsFab() {
     } catch { return null; }
   }, []);
 
-  const chime = useCallback(async () => {
-    const context = await ensureAudio();
-    if (!context) return;
-    const now = context.currentTime;
-    const notes = [[880, 0], [1174.66, 0.16], [1567.98, 0.32]];
-    for (const [frequency, offset] of notes) {
-      const oscillator = context.createOscillator(), gain = context.createGain();
-      oscillator.type = "sine"; oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(0.0001, now + offset);
-      gain.gain.exponentialRampToValueAtTime(0.35, now + offset + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.42);
-      oscillator.connect(gain); gain.connect(context.destination);
-      oscillator.start(now + offset); oscillator.stop(now + offset + 0.45);
-    }
+  const chime = useCallback(async (kind: NotificationChimeKind) => {
+    await ensureAudio();
+    notificationChime(kind);
   }, [ensureAudio]);
 
   // Browsers only allow audio after a user gesture: unlock the context on the first tap/key press.
@@ -74,8 +66,8 @@ export default function AdminAlertsFab() {
         if (knownIds.current && fresh.length) {
           setPulse(true);
           window.setTimeout(() => setPulse(false), 6000);
-          if (soundOnRef.current) void chime();
           const serviceNotice = fresh.find((item) => item.type === "service") ?? fresh[0];
+          if (soundOnRef.current) void chime(chimeKind(serviceNotice?.type));
           if (serviceNotice && typeof Notification !== "undefined" && Notification.permission === "granted") {
             try { new Notification(serviceNotice.title, { body: serviceNotice.message, icon: "/icon-192.png", tag: serviceNotice.id, dir: "rtl", lang: "ar" }); } catch { /* Notification UI unavailable. */ }
           }
@@ -102,7 +94,7 @@ export default function AdminAlertsFab() {
     const next = !soundOn;
     setSoundOn(next); soundOnRef.current = next;
     try { localStorage.setItem(SOUND_KEY, next ? "on" : "off"); } catch { /* Preference lives for this visit only. */ }
-    if (next) void chime();
+    if (next) void chime("service");
   }
 
   async function enableBrowserNotifications() {
@@ -126,7 +118,7 @@ export default function AdminAlertsFab() {
             </div>
           </div>
           {pendingServices > 0 && <Link href="/admin?tab=requests" className="admin-alerts-pending"><FileClock size={18}/><span>{pendingServices} طلب مهنة جديد بانتظار المراجعة</span><ChevronLeft size={15}/></Link>}
-          {soundOn && !soundReady && <button type="button" className="admin-alerts-sound-hint" onClick={() => void chime()}><Volume2 size={15}/> اضغط هنا مرة واحدة لتفعيل صوت التنبيه في هذا المتصفح</button>}
+          {soundOn && !soundReady && <button type="button" className="admin-alerts-sound-hint" onClick={() => void chime("service")}><Volume2 size={15}/> اضغط هنا مرة واحدة لتفعيل صوت التنبيه في هذا المتصفح</button>}
           <div className="admin-alerts-list">
             {feed.notifications.slice(0, 8).map((item) => (
               <Link key={item.id} href={`/admin?tab=${targetTab(item.type)}`} className={`admin-alerts-item ${item.read ? "" : "is-unread"}`}>

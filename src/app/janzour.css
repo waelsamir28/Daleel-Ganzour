@@ -11482,3 +11482,111 @@ html.dark .power-save-pill { background: #3b2a08; border-color: #b45309; color: 
 .detail-preview-panel .modal-close { pointer-events: none; }
 .detail-preview-panel .detail-v2-cta, .detail-preview-panel .detail-popup-trigger-btn { cursor: default; }
 html.dark .detail-preview-frame { border-color: #3d6d9e; background: radial-gradient(80% 80% at 50% 0%, #15304f, #0f1b2d); }
+
+/* ===== دوائر الأدوات العامة (صفحة التفاصيل، بطاقة العمل): نفس شكل دوائر الكارت ===== */
+.circle-tools { display: flex; gap: 8px; align-items: center; }
+.circle-tools.is-row { flex-wrap: wrap; justify-content: center; }
+.circle-tool {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(23, 61, 97, .14);
+  background: rgba(255, 255, 255, .7);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--tool, #1c5daa);
+  box-shadow: 0 2px 8px rgba(23, 61, 97, .1);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color .18s ease, border-color .18s ease, transform .18s ease, color .18s ease;
+}
+.circle-tool:hover, .circle-tool:focus-visible { background: #fff; border-color: var(--tool, #1c5daa); transform: scale(1.08); outline: none; }
+.circle-tool:active { transform: scale(.96); }
+.circle-tool.is-call { --tool: var(--cat, #0876e1); }
+.circle-tool.is-call-secondary { --tool: #0e7490; }
+.circle-tool.is-whatsapp { --tool: #1fa855; }
+.circle-tool.is-share { --tool: #1c5daa; }
+.circle-tool.is-favorite { --tool: #e11d48; }
+.circle-tool.is-favorite.is-active { background: rgba(255, 228, 230, .95); border-color: #fda4af; }
+.circle-tool.is-copy { --tool: #7c3aed; }
+.circle-tool.is-copy.is-active { --tool: #047857; background: rgba(209, 250, 229, .95); border-color: #34d399; }
+.circle-tool.is-print { --tool: #334155; }
+.circle-tool.is-close { --tool: #b91c1c; }
+.circle-tool::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%) translateY(4px);
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: #0f2f55;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.6;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .16s ease, transform .16s ease;
+  z-index: 3;
+}
+.circle-tool:hover::after, .circle-tool:focus-visible::after, .circle-tool.is-copy.is-active::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+html.dark .circle-tool { background: rgba(15, 27, 45, .65); border-color: rgba(148, 190, 230, .25); color: color-mix(in srgb, var(--tool, #8ac8ff) 70%, #fff); box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+html.dark .circle-tool:hover { background: rgba(20, 38, 62, .95); }
+html.dark .circle-tool.is-favorite.is-active { background: rgba(225, 29, 72, .28); border-color: #fb7185; color: #fda4af; }
+html.dark .circle-tool::after { background: #eaf4ff; color: #0f2f55; }
+/* مخفية حتى المرور على الحاوية (أو التركيز)، وباهتة دائمًا على شاشات اللمس */
+.circle-host .circle-tools { opacity: 0; visibility: hidden; transition: opacity .22s ease, visibility .22s ease; }
+.circle-host:hover .circle-tools, .circle-host:focus-within .circle-tools, .detail-modal:hover .detail-v2-tools, .detail-modal:focus-within .detail-v2-tools { opacity: 1; visibility: visible; }
+@media (hover: none) {
+  .circle-host .circle-tools, .detail-v2-tools { opacity: .78 !important; visibility: visible !important; }
+  .circle-tool::after { display: none; }
+  .circle-tool.is-copy.is-active::after { display: block; }
+}
+@media (prefers-reduced-motion: reduce) { .circle-tool, .circle-tool:hover { transform: none !important; } }
+/* صف دوائر صفحة التفاصيل */
+.detail-v2-tools-host { display: grid; justify-items: center; gap: 6px; padding: 10px 8px 4px; }
+.detail-v2-tools-hint { color: #5b7fa6; font-size: 12px; font-weight: 800; letter-spacing: .3px; }
+html.dark .detail-v2-tools-hint { color: #9dbbdc; }
+.business-card-actions.circle-tools { margin-top: 10px; }
+
+/* ===== إخفاء شريط التمرير مع بقاء التمرير شغالًا (التفاصيل، أرقام تهمك، المناوبة، بطاقة العمل) ===== */
+.modal-quiet-scroll, .modal-quiet-scroll .modal-body, .modal-quiet-scroll .modal-body * { scrollbar-width: none; -ms-overflow-style: none; }
+.modal-quiet-scroll::-webkit-scrollbar, .modal-quiet-scroll .modal-body::-webkit-scrollbar, .modal-quiet-scroll .modal-body *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* ===== بلاطات صفحة التفاصيل أصغر (التخصص/العنوان/الهاتف/التقييمات) ===== */
+.detail-v2-facts { gap: 8px !important; }
+.detail-v2-fact { padding: 8px 10px !important; gap: 8px !important; border-radius: 12px !important; }
+.detail-v2-fact-icon { width: 32px !important; height: 32px !important; border-radius: 10px !important; }
+.detail-v2-fact-icon svg { width: 15px; height: 15px; }
+.detail-v2-fact small { font-size: 10px !important; }
+.detail-v2-fact strong { font-size: 12.5px !important; }
+.detail-popup-trigger-btn { padding: 8px 10px !important; gap: 8px !important; border-radius: 12px !important; }
+.detail-popup-trigger-icon { width: 32px !important; height: 32px !important; }
+.detail-popup-trigger-icon svg { width: 16px; height: 16px; }
+.detail-popup-trigger-copy strong { font-size: 12.5px !important; }
+.detail-popup-trigger-copy small { font-size: 10.5px !important; }
+
+/* ===== أهم مهن القرية: تمرير تلقائي يتوقف عند المرور ===== */
+.top-professions-scroller { scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: none; }
+.top-professions-scroller::-webkit-scrollbar { display: none; }
+.top-professions-track { display: flex; gap: 10px; width: max-content; animation: topProfessionsMarquee var(--top-marquee-duration, 28s) linear infinite; }
+.top-professions.is-paused .top-professions-track, .top-professions-scroller:hover .top-professions-track, .top-professions-scroller:focus-within .top-professions-track { animation-play-state: paused; }
+@keyframes topProfessionsMarquee { from { transform: translateX(0); } to { transform: translateX(50%); } }
+html.power-save .top-professions-track, html[data-design-animation-speed="none"] .top-professions-track { animation: none; }
+@media (prefers-reduced-motion: reduce) { .top-professions-track { animation: none; } }
+/* فتح صفحة القسم/التخصص على مكان الشبكة مع ترك مسافة للهيدر الثابت */
+#categories .directory-section-heading, #providers .directory-section-heading, #providers, #categories { scroll-margin-top: 84px; }
+/* الرسومات ثلاثية الأبعاد المرسومة باليد لأهم 12 مهنة */
+.profession-art { display: block; overflow: visible; filter: drop-shadow(0 4px 4px #153b5b33); transition: transform .35s cubic-bezier(.2, .9, .3, 1.3); }
+.category-tile .category-icon.has-profession-art { width: 78px; height: 78px; background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--category-color) 28%, white), color-mix(in srgb, var(--category-color) 10%, white)); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--category-color) 25%, transparent); }
+.category-tile .category-icon.has-profession-art:before { display: none; }
+.category-tile:hover .profession-art { transform: translateY(-3px) rotate(-4deg) scale(1.06); }
+.top-profession-icon .profession-art { filter: drop-shadow(0 2px 2px #153b5b2e); }
+html.power-save .profession-art, html.power-save .category-tile:hover .profession-art { filter: none; transform: none; transition: none; }

@@ -63,6 +63,7 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-tap-feedback", design.tapFeedback);
   root.setAttribute("data-design-edge-tools-pos", design.providerEdgeToolsPosition);
   root.setAttribute("data-design-power-save", design.powerSaveMode);
+  root.setAttribute("data-design-specialty-art", design.specialtyArt3d ? "3d" : "flat");
   root.setAttribute("data-design-provider-whatsapp", design.showProviderWhatsappBtn ? "true" : "false");
   root.setAttribute("data-design-section-spacing", design.sectionSpacing);
   root.setAttribute("data-design-hover-effect", design.cardHoverEffect);
