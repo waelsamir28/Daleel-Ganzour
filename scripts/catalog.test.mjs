@@ -981,3 +981,13 @@ test("readableTextOn picks white on dark backgrounds and navy on light ones", ()
   assert.equal(readableTextOn("#fff"), "#0f2340");
   assert.equal(readableTextOn("not-a-color"), "#ffffff");
 });
+
+test("shadeHex lightens and darkens colors (used for the daytime ticker gradient without color-mix)", () => {
+  const { shadeHex } = catalog;
+  assert.equal(shadeHex("#000000", 0.5), "#808080");
+  assert.equal(shadeHex("#ffffff", -0.5), "#808080");
+  assert.equal(shadeHex("#0b4a93", 0), "#0b4a93");
+  assert.equal(shadeHex("#0b4a93", 1), "#ffffff");
+  assert.equal(shadeHex("#0b4a93", -1), "#000000");
+  assert.match(shadeHex("#0b4a93", 0.18), /^#[0-9a-f]{6}$/);
+});
