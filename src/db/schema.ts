@@ -212,3 +212,17 @@ export const villageEvents = pgTable("directory_events", {
   pinned: boolean("pinned").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("directory_events_starts_idx").on(table.startsAt)]);
+
+/** سجل نشاط الإدارة والمشرفين: كل إجراء (قبول/رفض/تعديل/حذف…) باسم من نفّذه. */
+export const activityLog = pgTable("directory_activity_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actorRole: varchar("actor_role", { length: 12 }).notNull(),
+  actorName: varchar("actor_name", { length: 120 }).notNull(),
+  actorUsername: varchar("actor_username", { length: 80 }).notNull().default(""),
+  action: varchar("action", { length: 40 }).notNull(),
+  entityKind: varchar("entity_kind", { length: 24 }).notNull(),
+  entityId: varchar("entity_id", { length: 64 }).notNull().default(""),
+  entityLabel: varchar("entity_label", { length: 160 }).notNull().default(""),
+  detail: varchar("detail", { length: 300 }).notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("directory_activity_log_created_idx").on(table.createdAt)]);
