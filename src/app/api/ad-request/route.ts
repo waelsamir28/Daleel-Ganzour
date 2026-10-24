@@ -5,6 +5,7 @@ import { ensureSeed } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { AD_REQUEST_KINDS, isAdTemplateId } from "@/lib/catalog";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
+import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 /** Public endpoint behind the «أعلن معنا» form: stores the request and raises an admin notification. */
 export async function POST(request: Request) {
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     await ensureSeed();
     const [row] = await db.insert(adRequests).values({ name, business, phone, tierLabel, kind, template, notes }).returning({ id: adRequests.id });
     await db.insert(notifications).values({ type: "ad-request", title: `طلب إعلان جديد من ${business || name}`, message: `${name} • ${phone}${tierLabel ? ` • ${tierLabel}` : ""} • ${AD_REQUEST_KINDS[kind]}`.slice(0, 300), entityId: row.id });
+    queueAdminWhatsappAlert("ad-request", `📢 طلب إعلان جديد من ${business || name}`, `${name} • ${phone}${tierLabel ? ` • ${tierLabel}` : ""} • ${AD_REQUEST_KINDS[kind]}`);
     return Response.json({ ok: true, id: row.id }, { status: 201 });
   } catch (error) { return apiError(error); }
 }

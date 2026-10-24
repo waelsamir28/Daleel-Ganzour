@@ -2,18 +2,25 @@
 
 import { useState, type FormEvent } from "react";
 import { BellRing, Building2, Check, Globe, LoaderCircle, MessageCircle, Send, Settings2, Share2, Sliders } from "lucide-react";
-import { defaultDesignSettings, type DesignSettings, type SiteSettings } from "@/lib/catalog";
+import { defaultDesignSettings, OFFICE_PHONE, type DesignSettings, type SiteSettings } from "@/lib/catalog";
+import { allWhatsappAlertKinds, sanitizeWhatsappAlertKinds, whatsappAlertKinds, type WhatsappAlertKind } from "@/lib/whatsapp-alert-kinds";
 
 export default function SettingsEditor({
   settings,
   designSettings,
   onSave,
   onSaveDesign,
+  alertKinds,
+  alertStatus,
+  onSaveAlertKinds,
 }: {
   settings: SiteSettings;
   designSettings?: DesignSettings;
   onSave: (values: SiteSettings) => Promise<boolean>;
   onSaveDesign?: (values: DesignSettings) => Promise<boolean>;
+  alertKinds?: string[];
+  alertStatus?: { lastSentAt: string | null; lastResult: string; lastKind: string };
+  onSaveAlertKinds?: (kinds: string[]) => Promise<boolean>;
 }) {
   const [values, setValues] = useState<SiteSettings>(settings);
   const [designValues, setDesignValues] = useState<DesignSettings>(() => ({
@@ -23,6 +30,16 @@ export default function SettingsEditor({
   const [busy, setBusy] = useState(false);
   const [testBusy, setTestBusy] = useState(false);
   const [testNotice, setTestNotice] = useState<{ text: string; error: boolean } | null>(null);
+  const [kinds, setKinds] = useState<WhatsappAlertKind[]>(() => (alertKinds ? sanitizeWhatsappAlertKinds(alertKinds) : [...allWhatsappAlertKinds]));
+  const [kindsBusy, setKindsBusy] = useState(false);
+  const savedKinds = alertKinds ? sanitizeWhatsappAlertKinds(alertKinds) : [...allWhatsappAlertKinds];
+  const kindsDirty = savedKinds.join(",") !== kinds.join(",");
+  function toggleKind(id: WhatsappAlertKind) { setKinds((current) => sanitizeWhatsappAlertKinds(current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id])); }
+  async function persistKinds() {
+    if (!onSaveAlertKinds) return;
+    setKindsBusy(true);
+    try { await onSaveAlertKinds(kinds); } finally { setKindsBusy(false); }
+  }
 
   function updateSetting<K extends keyof SiteSettings>(key: K, val: SiteSettings[K]) {
     setValues((curr) => ({ ...curr, [key]: val }));
@@ -59,12 +76,12 @@ export default function SettingsEditor({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "whatsapp-test" }),
       });
-      const result = (await response.json().catch(() => ({}))) as { error?: string };
+      const result = (await response.json().catch(() => ({}))) as { error?: string; detail?: string };
       if (!response.ok) {
         setTestNotice({ text: result.error ?? "تعذّر إرسال رسالة الاختبار.", error: true });
         return;
       }
-      setTestNotice({ text: "تم إرسال رسالة الاختبار إلى واتساب بنجاح!", error: false });
+      setTestNotice({ text: "تم إرسال رسالة الاختبار إلى واتساب بنجاح! افتح واتساب على الرقم المحفوظ للتأكد.", error: false });
     } catch {
       setTestNotice({ text: "تعذّر الاتصال بالخادم لإرسال رسالة الاختبار.", error: true });
     } finally {
@@ -444,14 +461,15 @@ export default function SettingsEditor({
             <MessageCircle size={22}/>
           </span>
           <div>
-            <h3>تنبيهات واتساب المجانية عند إضافة مهنة أو تقييم</h3>
-            <p>استقبل رسالة واتساب فورية على هاتفك بمجرد إرسال طلب إضافة مهنة جديدة أو تقييم أو تسجيل عضو.</p>
+            <h3>تنبيهات واتساب المجانية للإدارة</h3>
+            <p>استقبل رسالة واتساب فورية على هاتفك مع كل طلب مهنة، تقييم، اقتراح تعديل، منشور مجتمع، طلب إعلان، أو عضو جديد — واختر بالأسفل ما يصلك.</p>
           </div>
         </div>
 
         <ol className="whatsapp-alerts-steps">
           <li>
-            احفظ الرقم <strong dir="ltr">+34 644 51 95 23</strong> في جهات اتصالك باسم <strong>CallMeBot</strong>.
+            احفظ رقم البوت <strong dir="ltr">+34 623 78 95 80</strong> في جهات اتصالك باسم <strong>CallMeBot</strong>
+            <small className="settings-item-hint"> (الرقم يتغير أحيانًا — تأكد منه على <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" rel="noopener noreferrer">callmebot.com</a>)</small>.
           </li>
           <li>
             أرسل له على واتساب الرسالة التالية بالضبط:{" "}
@@ -463,12 +481,12 @@ export default function SettingsEditor({
         <div className="settings-items-grid">
           <div className="settings-item-box">
             <label className="settings-item-label" htmlFor="setting-waAlertNumber">١. رقم واتساب الأدمن لاستقبال التنبيهات</label>
-            <small className="settings-item-hint">الرقم الذي فعّلت عليه خدمة CallMeBot</small>
+            <small className="settings-item-hint">الرقم الذي فعّلت عليه خدمة CallMeBot — إن تُرك فارغًا يُستخدم رقم مكتب الجمال {OFFICE_PHONE}</small>
             <input
               id="setting-waAlertNumber"
               dir="ltr"
               className="studio-textbox"
-              placeholder="01222355769 أو 201222355769"
+              placeholder={`${OFFICE_PHONE} (الافتراضي) أو 2${OFFICE_PHONE.slice(1)}`}
               value={values.whatsappAlertsNumber}
               onChange={(event) => updateSetting("whatsappAlertsNumber", event.target.value)}
             />
@@ -488,11 +506,34 @@ export default function SettingsEditor({
           </div>
         </div>
 
+        <fieldset className="whatsapp-alert-kinds">
+          <legend>٣. الأحداث التي تصلك على واتساب</legend>
+          <div className="whatsapp-alert-kinds-grid">
+            {whatsappAlertKinds.map((kind) => (
+              <label key={kind.id} className={`checkbox-field whatsapp-alert-kind ${kinds.includes(kind.id) ? "is-on" : ""}`}>
+                <input type="checkbox" checked={kinds.includes(kind.id)} onChange={() => toggleKind(kind.id)}/>
+                <span><strong>{kind.label}</strong><small>{kind.hint}</small></span>
+              </label>
+            ))}
+          </div>
+          <div className="whatsapp-alert-kinds-actions">
+            <button type="button" className="button button-ghost button-small" onClick={() => setKinds([...allWhatsappAlertKinds])} disabled={kinds.length === allWhatsappAlertKinds.length}>تحديد الكل</button>
+            <button type="button" className="button button-ghost button-small" onClick={() => setKinds([])} disabled={kinds.length === 0}>إلغاء الكل</button>
+            {onSaveAlertKinds && <button type="button" className="button button-soft button-small" onClick={() => void persistKinds()} disabled={kindsBusy || !kindsDirty}>{kindsBusy ? <LoaderCircle size={15} className="spin"/> : <Check size={15}/>}<span>حفظ الأحداث المختارة</span></button>}
+            {kinds.length === 0 && <small className="settings-item-hint">لن تصلك أي رسالة واتساب (إشعارات اللوحة تبقى كما هي).</small>}
+          </div>
+          {alertStatus?.lastSentAt && (
+            <p className={`whatsapp-alert-status ${alertStatus.lastResult === "ok" ? "is-ok" : "is-error"}`}>
+              آخر محاولة إرسال: {new Date(alertStatus.lastSentAt).toLocaleString("ar-EG")} — {alertStatus.lastResult === "ok" ? "نجحت ✓" : alertStatus.lastResult}
+            </p>
+          )}
+        </fieldset>
+
         <div className="whatsapp-alerts-actions">
           <button
             type="button"
             className="button button-soft button-small"
-            disabled={testBusy || !values.whatsappAlertsNumber.trim() || !values.whatsappAlertsApiKey.trim()}
+            disabled={testBusy || !values.whatsappAlertsApiKey.trim()}
             onClick={() => void sendTestAlert()}
           >
             {testBusy ? <LoaderCircle size={16} className="spin"/> : <Send size={16}/>}

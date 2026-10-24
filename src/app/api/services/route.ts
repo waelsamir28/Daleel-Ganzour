@@ -5,7 +5,7 @@ import { getPublicDirectory } from "@/lib/directory";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { apiError, InputError, objectInput, serviceInput } from "@/lib/inputs";
 import { rateLimit } from "@/lib/validation";
-import { sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
+import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { directoryForViewer } from "@/lib/membership-gate";
 
 export const dynamic = "force-dynamic";
@@ -28,10 +28,10 @@ export async function POST(request: Request) {
     const service = await db.transaction(async (tx) => {
       const [created] = await tx.insert(services).values({ ...values, status: "pending", verified: false, featured: false, demo: false }).returning({ id: services.id, status: services.status });
       await tx.insert(submissionTracking).values({ serviceId: created.id, tokenHash: createHash("sha256").update(token).digest("hex") });
-      await tx.insert(notifications).values({ type: "service", title: "طلب مهنة جديد بانتظارك", message: `${values.name} أرسل طلب إضافة خدمة. راجع البيانات قبل النشر.`, entityId: created.id });
+      await tx.insert(notifications).values({ type: "service", title: "طلب مهنة جديد بانتظارك", message: `${values.name} أرسل طلب إضافة خدمة • ${values.phone}. راجع البيانات قبل النشر.`, entityId: created.id });
       return created;
     });
-    void sendAdminWhatsappAlert("🔔 طلب مهنة جديد بانتظارك", `${values.name} أرسل طلب إضافة مهنة (${values.category}). راجع البيانات قبل النشر.`);
+    queueAdminWhatsappAlert("service", "🔔 طلب مهنة جديد بانتظارك", `${values.name} أرسل طلب إضافة مهنة (${values.category}) • ${values.phone}. راجع البيانات قبل النشر.`);
     return Response.json({ ...service, trackingUrl: `/track/${token}`, message: "وصل طلبك للإدارة ومعاه إشعار. خدمتك مش هتظهر في الدليل إلا بعد الموافقة." }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error); }
 }

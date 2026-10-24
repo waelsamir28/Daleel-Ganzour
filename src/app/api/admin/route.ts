@@ -7,6 +7,7 @@ import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, wri
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isHexColor, parseAdImageDataUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -81,8 +82,14 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const role = await guard(request);
-    const body = objectInput(await request.json()), values = objectInput(body.values);
+    const body = objectInput(await request.json());
     if (role === "moderator" && body.type !== "category") denyModerator();
+    if (body.type === "whatsapp-test") {
+      const result = await sendAdminWhatsappAlert("✅ رسالة اختبار من دليل جنزور", "تنبيهات واتساب للإدارة تعمل بنجاح. ستصلك هنا الطلبات والتقييمات والاقتراحات الجديدة.", "test");
+      if (!result.ok) throw new InputError(result.detail, result.skipped ? 400 : 502);
+      return Response.json({ ok: true, detail: result.detail });
+    }
+    const values = objectInput(body.values);
     if (body.type === "service" && body.action === "availability-link") {
       const id = uuid(body.id);
       const [existing] = await db.select({ id: services.id, token: services.availabilityToken }).from(services).where(eq(services.id, id));
@@ -138,6 +145,8 @@ export async function PATCH(request: Request) {
     } else if (type === "ad-pricing") {
       const pricing = sanitizeAdPricing(body.values);
       await db.insert(directorySettings).values({ key: "ad_pricing", value: JSON.stringify(pricing) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(pricing) } });
+    } else if (type === "whatsapp-alert-kinds") {
+      await saveWhatsappAlertKinds(body.kinds);
     } else if (type === "greetings") {
       const greetings = sanitizeGreetingSettings(body.values);
       await db.insert(directorySettings).values({ key: "greetings", value: JSON.stringify(greetings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(greetings) } });

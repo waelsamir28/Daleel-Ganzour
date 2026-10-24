@@ -4,6 +4,7 @@ import { ensureSeed } from "@/lib/directory";
 import { apiError, objectInput } from "@/lib/inputs";
 import { sameOrigin } from "@/lib/auth";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
+import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
 function text(value: unknown, max: number) { return cleanText(value ?? "", max); }
@@ -40,6 +41,7 @@ export async function PATCH(request: Request) {
       if (name.length < 2 || message.length < 10 || !validPhone(phone)) return Response.json({ message: "اكتب الاسم ورقم صحيح وتفاصيل المشكلة." }, { status: 400 });
       await ensureSeed();
       await db.insert(communityComplaints).values({ name, phone, message });
+      queueAdminWhatsappAlert("community", "📨 رسالة/شكوى من المجتمع", `${name} • ${phone}: ${message.slice(0, 300)}`);
       return Response.json({ message: "وصلت رسالتك لمكتب الجمال، وسيتم التواصل معك وديًا." }, { status: 201 });
     }
     return Response.json({ message: "الطلب غير صحيح." }, { status: 400 });

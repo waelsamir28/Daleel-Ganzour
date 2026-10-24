@@ -2376,7 +2376,7 @@ export type RatingRecord = { id: string; serviceId: string; serviceName: string;
 export type ServiceComment = { stars: number; comment: string; member: string; date: string };
 export type FollowFeedItem = { id: string; createdAt: string };
 export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
-export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[] };
+export type AdminDirectory = PublicDirectory & { ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[]; whatsappAlertKinds?: string[]; whatsappAlertStatus?: { lastSentAt: string | null; lastResult: string; lastKind: string } };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",
