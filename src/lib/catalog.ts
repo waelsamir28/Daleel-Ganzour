@@ -384,7 +384,7 @@ export type ServiceCompletionDraft = {
 export type ServiceRecord = {
   id: string; name: string; category: string; area: string; address: string; phone: string; phoneSecondary: string;
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
-  availabilityToken?: string; comments?: ServiceComment[]; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
+  availabilityToken?: string; comments?: ServiceComment[]; weeklyStar?: boolean; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
   completionStatus?: CompletionStatus; completionNote?: string; completionDraft?: ServiceCompletionDraft | null;
 };
 
@@ -397,7 +397,7 @@ export function missingServiceData(service: ServiceRecord) {
 }
 
 export type TrustBadge = {
-  id: "complete-profile" | "community-recommended" | "fast-response";
+  id: "weekly-star" | "complete-profile" | "community-recommended" | "fast-response";
   label: string;
   tone: "emerald" | "amber" | "blue";
 };
@@ -407,6 +407,7 @@ export function getServiceTrustBadges(
   now = Date.now(),
 ): TrustBadge[] {
   const badges: TrustBadge[] = [];
+  if ("weeklyStar" in service && (service as { weeklyStar?: boolean }).weeklyStar) badges.push({ id: "weekly-star", label: "نجم الأسبوع ⭐", tone: "amber" });
   const isComplete = Boolean(service.address?.trim() && service.description?.trim() && service.serviceItems?.length && service.subSpecialties?.length);
   if (isComplete) badges.push({ id: "complete-profile", label: "ملف مكتمل ١٠٠٪", tone: "emerald" });
   const score = Number.parseFloat(service.rating) || 0;
@@ -1137,6 +1138,8 @@ export type DesignSettings = {
   providerEdgeTools: string;
   providerEdgeToolsPosition: "left" | "right" | "bottom";
   showTopProfessions: boolean;
+  topProfessionsPinned: string;
+  showWeeklyStars: boolean;
   specialtyArt3d: boolean;
   powerSaveMode: "auto" | "on" | "off";
   showProviderWhatsappBtn: boolean;
@@ -1470,6 +1473,8 @@ export const defaultDesignSettings: DesignSettings = {
   providerEdgeTools: "call,whatsapp,share,favorite",
   providerEdgeToolsPosition: "left",
   showTopProfessions: true,
+  topProfessionsPinned: "",
+  showWeeklyStars: true,
   specialtyArt3d: true,
   powerSaveMode: "auto",
   showProviderWhatsappBtn: true,
@@ -1834,9 +1839,9 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
 };
 
 // Quick circular tools on the provider card: order = display order, missing ids = hidden.
-export const providerEdgeToolIds = ["call", "whatsapp", "share", "favorite", "copy"] as const;
+export const providerEdgeToolIds = ["call", "whatsapp", "share", "favorite", "copy", "suggest"] as const;
 export type ProviderEdgeToolId = (typeof providerEdgeToolIds)[number];
-export const providerEdgeToolLabels: Record<ProviderEdgeToolId, string> = { call: "اتصال", whatsapp: "واتساب", share: "مشاركة", favorite: "المفضلة", copy: "نسخ الرقم" };
+export const providerEdgeToolLabels: Record<ProviderEdgeToolId, string> = { call: "اتصال", whatsapp: "واتساب", share: "مشاركة", favorite: "المفضلة", copy: "نسخ الرقم", suggest: "اقترح تعديل" };
 export function parseProviderEdgeTools(value: string | undefined): ProviderEdgeToolId[] {
   const seen = new Set<string>();
   const out: ProviderEdgeToolId[] = [];
@@ -1994,6 +1999,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.providerEdgeToolsPosition = pickEnum(record.providerEdgeToolsPosition, ["left", "right", "bottom"] as const, defaultDesignSettings.providerEdgeToolsPosition);
   next.showTopProfessions = pickBool(record.showTopProfessions, defaultDesignSettings.showTopProfessions);
   next.specialtyArt3d = pickBool(record.specialtyArt3d, defaultDesignSettings.specialtyArt3d);
+  next.topProfessionsPinned = parsePinnedProfessions(record.topProfessionsPinned).join(",");
+  next.showWeeklyStars = pickBool(record.showWeeklyStars, defaultDesignSettings.showWeeklyStars);
   next.powerSaveMode = pickEnum(record.powerSaveMode, ["auto", "on", "off"] as const, defaultDesignSettings.powerSaveMode);
   next.showProviderWhatsappBtn = pickBool(record.showProviderWhatsappBtn, defaultDesignSettings.showProviderWhatsappBtn);
   next.whatsappButtonColor = hexColor(record.whatsappButtonColor, defaultDesignSettings.whatsappButtonColor);
@@ -2190,7 +2197,7 @@ export type PublicDirectory = {
   topCategories?: TopCategoryRecord[];
 };
 
-export type TopCategoryRecord = { id: string; score: number; providers: number };
+export type TopCategoryRecord = { id: string; score: number; providers: number; pinned?: boolean };
 
 /** Rotating ad banner metadata (never includes the image payload). */
 export type AdBannerRecord = {
@@ -2989,3 +2996,15 @@ export function liveTickerItems(greetings: ActiveGreeting[] | undefined, events:
 /** المهن الاثنتا عشرة التي لها رسم ثلاثي الأبعاد مرسوم باليد في /images/profession-art.svg (معرّف التصنيف = معرّف الرمز). */
 export const professionArtIds = ["electricity", "plumbing", "carpentry", "painting", "ac", "mechanics", "dentistry", "pharmacies", "teachers", "barbers", "groceries", "photography"] as const;
 export function hasProfessionArt(categoryId: string) { return (professionArtIds as readonly string[]).includes(categoryId); }
+
+/** معرّفات التخصصات المثبّتة يدويًا في أول صف «أهم مهن القرية» (مفصولة بفواصل، بحد أقصى 6). */
+export function parsePinnedProfessions(value: unknown): string[] {
+  if (typeof value !== "string") return [];
+  const seen = new Set<string>(); const out: string[] = [];
+  for (const raw of value.split(",")) {
+    const id = raw.trim().toLowerCase();
+    if (/^[a-z0-9-]{2,60}$/.test(id) && !seen.has(id)) { seen.add(id); out.push(id); }
+    if (out.length >= 6) break;
+  }
+  return out;
+}

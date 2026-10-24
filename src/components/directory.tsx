@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy } from "lucide-react";
+import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, Pin, MessageSquareWarning } from "lucide-react";
 import { buildShopWhatsappOrderMessage, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon } from "@/components/ui";
@@ -114,6 +114,19 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [logoutError, setLogoutError] = useState("");
   const [suggestOpen, setSuggestOpen] = useState(false), [suggestActive, setSuggestActive] = useState(-1);
   const [detailQr, setDetailQr] = useState(false), [detailUpdate, setDetailUpdate] = useState(false);
+  const [suggestTarget, setSuggestTarget] = useState<ServiceRecord | null>(null);
+  const [suggestNote, setSuggestNote] = useState(""), [suggestContact, setSuggestContact] = useState(""), [suggestState, setSuggestState] = useState<{ busy: boolean; message: string; ok: boolean }>({ busy: false, message: "", ok: false });
+  function openSuggest(service: ServiceRecord) { setSuggestTarget(service); setSuggestNote(""); setSuggestContact(""); setSuggestState({ busy: false, message: "", ok: false }); }
+  async function submitSuggestion(event: FormEvent) {
+    event.preventDefault();
+    if (!suggestTarget) return;
+    setSuggestState({ busy: true, message: "", ok: false });
+    try {
+      const response = await fetch("/api/service-updates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ serviceId: suggestTarget.id, action: "suggest", note: suggestNote, contact: suggestContact }) });
+      const result = (await response.json().catch(() => ({}))) as { message?: string; error?: string };
+      setSuggestState({ busy: false, ok: response.ok, message: result.message ?? result.error ?? (response.ok ? "تم الإرسال." : "تعذر الإرسال، حاول مرة أخرى.") });
+    } catch { setSuggestState({ busy: false, ok: false, message: "تعذر الاتصال بالخادم." }); }
+  }
   const [detailRatingOpen, setDetailRatingOpen] = useState(false);
   const [detailClinicOpen, setDetailClinicOpen] = useState(false);
   const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
@@ -900,7 +913,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                       style={categoryTheme(category)}
                       onClick={() => sendCategoryHit(category.id, "view", `top:${category.id}`)}
                     >
-                      <span className="top-profession-rank" aria-hidden="true">{index + 1}</span>
+                      <span className={`top-profession-rank ${item.pinned ? "is-pinned" : ""}`} aria-hidden="true">{item.pinned ? <Pin size={11}/> : index + 1}</span>
                       <span className="top-profession-icon"><SpecialtyIcon category={category} size={design.specialtyArt3d && hasProfessionArt(category.id) ? 34 : 22} art3d={design.specialtyArt3d}/></span>
                       <strong>{category.name}</strong>
                       <small>{parent.name} · {item.providers} {item.providers === 1 ? "مقدم خدمة" : "مقدمي خدمة"}</small>
@@ -980,7 +993,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || activeSpecialtyCategory) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
-      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className={`provider-grid ${isFeaturedCollapsible ? "featured-strip-panel" : ""}`} id={isFeaturedCollapsible ? "featured-providers-panel" : undefined}>{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} edgeTools={edgeTools} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => openAddService()}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}</section>}
+      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className={`provider-grid ${isFeaturedCollapsible ? "featured-strip-panel" : ""}`} id={isFeaturedCollapsible ? "featured-providers-panel" : undefined}>{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} edgeTools={edgeTools} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onSuggest={openSuggest} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => openAddService()}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}</section>}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
         <div className="category-grid main-category-grid feature-cards-grid">
           <button
@@ -1543,6 +1556,15 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           >
             {detailCopied ? <Check size={16}/> : <Copy size={16}/>}
           </button>
+          <button
+            type="button"
+            className="circle-tool is-suggest"
+            data-tip="اقترح تعديل"
+            onClick={() => openSuggest(liveDetail ?? detail)}
+            aria-label={`اقترح تعديلًا على بيانات ${detail.name}`}
+          >
+            <MessageSquareWarning size={16}/>
+          </button>
         </div>
         <small className="detail-v2-tools-hint" dir="ltr">{detail.phone}</small>
       </div>
@@ -1691,6 +1713,21 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     )}
     {detail && detailQr && <BusinessCardModal service={liveDetail ?? detail} category={getCategory(detail.category, categories)} siteName={settings.siteName} now={now} onClose={() => setDetailQr(false)}/>}
     {detail && detailUpdate && isServiceOwner(liveDetail ?? detail, viewer, ownedServiceIds) && <Modal floating title="تحديث البيانات" subtitle={`تحديث بيانات ${detail.name} — ستراجعها الإدارة`} onClose={() => setDetailUpdate(false)}><div className="detail-update"><h4>هل هذه بياناتك؟</h4><p>حدّث رقم الهاتف أو أضف ملاحظة وسيراجعها فريق الإدارة.</p><input value={updatePhone} onChange={(event) => setUpdatePhone(event.target.value)} placeholder="رقم الهاتف الصحيح" inputMode="tel"/><input value={updateNote} onChange={(event) => setUpdateNote(event.target.value)} placeholder="ملاحظة أو رقم إضافي"/><div className="detail-update-actions"><button type="button" className="button button-primary" onClick={() => void requestServiceUpdate()}>حدّثها الآن</button><button type="button" className="button button-soft detail-floating-close" onClick={() => setDetailUpdate(false)}><X size={17}/>إغلاق</button></div>{updateMessage && <small role="status">{updateMessage}</small>}</div></Modal>}
+    {suggestTarget && (
+      <Modal floating title="اقترح تعديلًا" subtitle={`بيانات «${suggestTarget.name}» غير دقيقة؟ اكتب ملاحظتك وستراجعها الإدارة`} onClose={() => setSuggestTarget(null)} className="modal-quiet-scroll">
+        <form className="suggest-edit-form" onSubmit={(event) => void submitSuggestion(event)}>
+          <label className="field"><span>الملاحظة أو التعديل المقترح *</span><textarea required minLength={5} maxLength={400} rows={4} value={suggestNote} onChange={(event) => setSuggestNote(event.target.value)} placeholder="مثال: الرقم تغيّر، العنوان الجديد، المحل أغلق، التخصص غير صحيح…"/></label>
+          <label className="field"><span>رقم للتواصل معك (اختياري)</span><input type="tel" inputMode="tel" dir="ltr" maxLength={14} value={suggestContact} onChange={(event) => setSuggestContact(event.target.value)} placeholder="01xxxxxxxxx"/></label>
+          {suggestState.message && <p className={`form-message ${suggestState.ok ? "is-ok" : "is-error"}`} role="status">{suggestState.message}</p>}
+          <div className="suggest-edit-actions">
+            {suggestState.ok
+              ? <button type="button" className="button button-primary" onClick={() => setSuggestTarget(null)}>تم ✓ إغلاق</button>
+              : <button type="submit" className="button button-primary" disabled={suggestState.busy || suggestNote.trim().length < 5}>{suggestState.busy ? "جارٍ الإرسال…" : "إرسال للإدارة"}</button>}
+            <button type="button" className="button button-ghost" onClick={() => setSuggestTarget(null)}>إلغاء</button>
+          </div>
+        </form>
+      </Modal>
+    )}
     {searchModalOpen && (
       <Modal
         floating

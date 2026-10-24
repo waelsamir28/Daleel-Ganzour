@@ -11590,3 +11590,35 @@ html.power-save .top-professions-track, html[data-design-animation-speed="none"]
 .category-tile:hover .profession-art { transform: translateY(-3px) rotate(-4deg) scale(1.06); }
 .top-profession-icon .profession-art { filter: drop-shadow(0 2px 2px #153b5b2e); }
 html.power-save .profession-art, html.power-save .category-tile:hover .profession-art { filter: none; transform: none; transition: none; }
+/* تثبيت تخصصات في «أهم مهن القرية» (استوديو التصميم) */
+.pinned-professions { margin-top: 10px; border: 1px solid var(--border, #d6e2ee); border-radius: 14px; padding: 10px 12px; background: var(--surface-2, #f7fafd); }
+.pinned-professions > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; font-size: .92rem; }
+.pinned-professions > summary::-webkit-details-marker { display: none; }
+.pinned-professions > summary::before { content: "▾"; margin-inline-end: 4px; transition: transform .2s; display: inline-block; }
+.pinned-professions:not([open]) > summary::before { transform: rotate(90deg); }
+.pinned-professions-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px; align-items: center; }
+.pinned-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; border: 1px solid #1f8f75; background: #e3f7f1; color: #0f5c4b; font: inherit; font-size: .85rem; cursor: pointer; }
+.pinned-chip-rank { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #1f8f75; color: #fff; font-size: .72rem; font-weight: 700; }
+.pinned-professions-groups { display: grid; gap: 8px; margin-top: 10px; max-height: 320px; overflow: auto; padding-inline-end: 4px; }
+.pinned-professions-root { display: block; font-weight: 700; font-size: .85rem; margin-bottom: 4px; color: var(--muted, #4b6075); }
+.pinned-professions-list { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.pinned-professions-list .checkbox-field { font-size: .85rem; padding: 2px 4px; border-radius: 8px; }
+.pinned-option.is-on { background: #e3f7f1; }
+html.dark .pinned-professions { background: #0f1a26; border-color: #243447; }
+html.dark .pinned-chip, html.dark .pinned-option.is-on { background: #113b33; color: #bfeee0; }
+.top-profession-rank.is-pinned { background: #1f8f75; color: #fff; }
+/* شارة «نجم الأسبوع» على بطاقة مقدم الخدمة */
+.provider-weekly-star { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; padding: 2px 8px; border-radius: 999px; background: linear-gradient(135deg, #fff1c2, #ffd36b); color: #7a4a00; font-size: 10.5px; font-weight: 800; border: 1px solid #f3c45a; box-shadow: 0 1px 0 #fff inset; width: fit-content; }
+.provider-weekly-star svg { fill: #f59e0b; color: #b45309; }
+html.dark .provider-weekly-star { background: linear-gradient(135deg, #4a3608, #7a5a10); color: #ffe9b0; border-color: #a7801d; }
+/* «اقترح تعديل» — دائرة على البطاقة وصفحة التفاصيل + نافذة الاقتراح */
+.provider-card .provider-edge-tools .edge-tool-suggest, .circle-tool.is-suggest { --tool: #b45309; }
+.suggest-edit-form { display: grid; gap: 12px; }
+.suggest-edit-form .field { display: grid; gap: 6px; font-size: .9rem; font-weight: 700; }
+.suggest-edit-form textarea, .suggest-edit-form input { width: 100%; border: 1.5px solid var(--border, #c9d8e6); border-radius: 12px; padding: 10px 12px; font: inherit; font-weight: 500; background: var(--surface, #fff); color: inherit; resize: vertical; }
+.suggest-edit-form textarea:focus-visible, .suggest-edit-form input:focus-visible { outline: 2px solid #1c5daa; outline-offset: 1px; }
+.suggest-edit-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-start; }
+.suggest-edit-form .form-message { margin: 0; padding: 8px 12px; border-radius: 10px; font-size: .88rem; font-weight: 700; }
+.suggest-edit-form .form-message.is-ok { background: #e8f8f0; color: #0e7c4d; }
+.suggest-edit-form .form-message.is-error { background: #fdecec; color: #b42318; }
+html.dark .suggest-edit-form textarea, html.dark .suggest-edit-form input { background: #0f1a26; border-color: #2a3b50; }

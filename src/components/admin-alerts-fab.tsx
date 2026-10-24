@@ -4,7 +4,7 @@ import { notificationChime, type NotificationChimeKind } from "@/lib/feedback";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, BellRing, CheckCheck, ChevronLeft, FileClock, Megaphone, Star, UserRound, Volume2, VolumeX, X } from "lucide-react";
+import { Bell, BellRing, CheckCheck, ChevronLeft, FileClock, Megaphone, Star, UserRound, Volume2, VolumeX, X, MessageSquareWarning } from "lucide-react";
 import type { NotificationRecord } from "@/lib/catalog";
 
 const SOUND_KEY = "janzour-admin-alert-sound";
@@ -103,8 +103,8 @@ export default function AdminAlertsFab() {
   }
 
   const pendingServices = feed.notifications.filter((item) => item.type === "service" && !item.read).length;
-  const typeIcon = (type: string) => type === "service" ? <FileClock size={18}/> : type === "community" ? <Megaphone size={18}/> : type === "rating" ? <Star size={18}/> : <UserRound size={18}/>;
-  const targetTab = (type: string) => type === "service" ? "requests" : type === "community" ? "community" : type === "rating" ? "ratings" : "members";
+  const typeIcon = (type: string) => type === "service" ? <FileClock size={18}/> : type === "suggestion" ? <MessageSquareWarning size={18}/> : type === "community" ? <Megaphone size={18}/> : type === "rating" ? <Star size={18}/> : <UserRound size={18}/>;
+  const targetTab = (type: string) => type === "service" ? "requests" : type === "community" ? "community" : type === "rating" ? "ratings" : type === "suggestion" || type === "service-update" ? "notifications" : "members";
 
   return (
     <div className={`admin-alerts-fab ${open ? "is-open" : ""} ${pulse ? "is-pulsing" : ""}`}>

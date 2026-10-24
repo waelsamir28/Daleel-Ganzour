@@ -68,6 +68,16 @@ export async function POST(request: Request) {
       return Response.json({ ok: true, completionStatus: "submitted", completionDraft: draft, message: "تم إرسال استكمال البيانات للإدارة وبانتظار المراجعة." }, { status: 201 });
     }
 
+    if (body.action === "suggest") {
+      // اقتراح تعديل من أي زائر: ملاحظة إلزامية ورقم تواصل اختياري، يصل كإشعار للإدارة دون تغيير البيانات.
+      const note = cleanText(body.note ?? "", 400);
+      const contact = cleanPhone(body.contact ?? "");
+      if (note.length < 5) throw new InputError("اكتب الملاحظة بوضوح (٥ أحرف على الأقل).");
+      if (contact && !validPhone(contact)) throw new InputError("رقم التواصل غير صحيح.");
+      await db.insert(notifications).values({ type: "suggestion", title: `اقتراح تعديل: ${service.name}`, message: `${note}${contact ? ` — للتواصل: ${contact}` : ""}`, entityId: service.id });
+      return Response.json({ ok: true, message: "شكرًا لك! وصل اقتراحك للإدارة وستراجعه قريبًا." }, { status: 201 });
+    }
+
     const phone = cleanPhone(body.phone ?? "");
     const note = cleanText(body.note ?? "", 240);
     if (!validPhone(phone)) throw new InputError("أدخل رقم هاتف صحيحًا.");

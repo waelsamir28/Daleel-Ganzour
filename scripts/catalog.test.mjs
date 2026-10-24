@@ -905,8 +905,9 @@ test("Windows 11 Fluent theme presets are registered and accepted by the design 
 
 test("provider edge tools and tap feedback settings sanitize correctly", () => {
   const { sanitizeDesignSettings, defaultDesignSettings, parseProviderEdgeTools, providerEdgeToolIds } = catalog;
-  assert.deepEqual(providerEdgeToolIds, ["call", "whatsapp", "share", "favorite", "copy"]);
+  assert.deepEqual(providerEdgeToolIds, ["call", "whatsapp", "share", "favorite", "copy", "suggest"]);
   assert.deepEqual(parseProviderEdgeTools("copy,call"), ["copy", "call"], "copy-number tool is optional and off by default");
+  assert.deepEqual(parseProviderEdgeTools("suggest,call"), ["suggest", "call"], "suggest-edit tool is optional and off by default");
   assert.equal(defaultDesignSettings.providerEdgeTools, "call,whatsapp,share,favorite");
   assert.deepEqual(parseProviderEdgeTools("favorite, call,bogus,call"), ["favorite", "call"]);
   assert.deepEqual(parseProviderEdgeTools(""), []);
@@ -930,4 +931,21 @@ test("top professions, power-save and detail preview settings sanitize correctly
   assert.equal(cleaned.showTopProfessions, false);
   assert.equal(cleaned.powerSaveMode, "on");
   assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, powerSaveMode: "sometimes" }).powerSaveMode, "auto");
+});
+
+test("pinned professions, weekly stars and profession art settings sanitize correctly", () => {
+  const { sanitizeDesignSettings, defaultDesignSettings, parsePinnedProfessions, hasProfessionArt, professionArtIds } = catalog;
+  assert.equal(defaultDesignSettings.topProfessionsPinned, "");
+  assert.equal(defaultDesignSettings.showWeeklyStars, true);
+  assert.equal(defaultDesignSettings.specialtyArt3d, true);
+  assert.deepEqual(parsePinnedProfessions(" electricity, Plumbing ,electricity,bad id!,a"), ["electricity", "plumbing"]);
+  assert.equal(parsePinnedProfessions("a1,b1,c1,d1,e1,f1,g1").length, 6, "at most six pinned specialties");
+  assert.deepEqual(parsePinnedProfessions(42), []);
+  const cleaned = sanitizeDesignSettings({ ...defaultDesignSettings, topProfessionsPinned: "barbers,,plumbing", showWeeklyStars: false, specialtyArt3d: false });
+  assert.equal(cleaned.topProfessionsPinned, "barbers,plumbing");
+  assert.equal(cleaned.showWeeklyStars, false);
+  assert.equal(cleaned.specialtyArt3d, false);
+  assert.equal(professionArtIds.length, 12);
+  assert.equal(hasProfessionArt("electricity"), true);
+  assert.equal(hasProfessionArt("nope"), false);
 });
