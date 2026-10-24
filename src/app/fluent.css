@@ -121,3 +121,44 @@ html[data-design-preset^="win11-"] .site-footer {
 
 /* أيقونات الأقسام: مربعات بزوايا 8px بدل الدوائر */
 html[data-design-preset^="win11-"] .category-tile .category-icon { border-radius: var(--win-radius) !important; }
+
+/* ===== الشريط المتحرك في الوضع النهاري: لون ثابت لا يتأثر بأي ثيم =====
+   بعض الثيمات (Vista / Win11) كانت تجعل خلفية الشريط بيضاء شفافة بينما النص أبيض فيختفي.
+   هنا نثبّت خلفية زرقاء داكنة ونصًا أبيض في الوضع النهاري فقط — الوضع الليلي يبقى كما هو. */
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) {
+  background: linear-gradient(135deg, #0b4a93 0%, #0a5fb8 55%, #083a74 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid #6fb3ef !important;
+  box-shadow: 0 8px 22px rgba(8, 74, 147, .26), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item,
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-rotate-text,
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-single-text,
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-rotate-counter,
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+}
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .site-announcement-marquee-item i { color: #ffd84d !important; }
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .ticker-badge-icon { background: rgba(255, 255, 255, .22) !important; color: #ffe066 !important; }
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn {
+  background: rgba(255, 255, 255, .18) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, .45) !important;
+}
+html:not(.dark) .site-announcement-ticker-card:not(.is-soft) .announcement-nav-btn:hover { background: rgba(255, 255, 255, .3) !important; }
+/* النمط «الهادئ» (is-soft): خلفية فاتحة ثابتة مع نص أزرق داكن واضح */
+html:not(.dark) .site-announcement-ticker-card.is-soft {
+  background: #eaf4ff !important;
+  color: #0b3f7a !important;
+  border: 2px solid #8ec2f5 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html:not(.dark) .site-announcement-ticker-card.is-soft .site-announcement-marquee-item,
+html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-rotate-text,
+html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-single-text,
+html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-rotate-counter { color: #0b3f7a !important; }
+html:not(.dark) .site-announcement-ticker-card.is-soft .announcement-nav-btn { background: #0a5fb8 !important; color: #fff !important; border-color: #0a5fb8 !important; }
