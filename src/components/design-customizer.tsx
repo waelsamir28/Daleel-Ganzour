@@ -42,6 +42,7 @@ import {
   type CategoryRecord,
   initialCategories,
   parsePinnedProfessions,
+  readableTextOn,
 } from "@/lib/catalog";
 import { applyDesignSettingsToDocument } from "@/components/design-applicator";
 import EdgeToolsEditor from "@/components/edge-tools-editor";
@@ -412,7 +413,7 @@ export default function DesignCustomizer({
             </small>
           </div>
           {draft.announcementEnabled && (
-            <div className="design-preview-announcement" style={{ background: draft.announcementBgColorLight }} title="معاينة الوضع النهاري">
+            <div className="design-preview-announcement" style={{ background: draft.announcementBgColorLight, color: readableTextOn(draft.announcementBgColorLight) }} title="معاينة الوضع النهاري">
               <Sparkles size={12}/>
               <span>
                 {draft.announcementTickerMode === "single"
@@ -1427,9 +1428,9 @@ export default function DesignCustomizer({
                         onChange={(hex) => updateField("announcementBgColor", hex)}
                       />
                       <ColorPickerField
-                        label="لون خلفية الشريط في الوضع النهاري (ثابت لكل الثيمات — اختر لونًا داكنًا لأن النص أبيض)"
+                        label="لون خلفية الشريط في الوضع النهاري (ثابت لكل الثيمات — لون النص يتحدد تلقائيًا أبيض أو داكن حسب اللون)"
                         value={draft.announcementBgColorLight}
-                        swatches={["#0b4a93", "#0f3d5e", "#065f46", "#5b21b6", "#9f1239", "#92400e", "#1e293b", "#155e75"]}
+                        swatches={["#0b4a93", "#0f3d5e", "#065f46", "#5b21b6", "#9f1239", "#ffd766", "#bfe3ff", "#e8f5e9"]}
                         onChange={(hex) => updateField("announcementBgColorLight", hex)}
                       />
                     </div>

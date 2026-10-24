@@ -3011,3 +3011,13 @@ export function parsePinnedProfessions(value: unknown): string[] {
   }
   return out;
 }
+
+/** يقرر لون نص مقروء (أبيض أو داكن) تلقائيًا حسب إضاءة لون الخلفية (WCAG relative luminance). */
+export function readableTextOn(hex: string, dark = "#0f2340", light = "#ffffff"): string {
+  const clean = String(hex ?? "").trim().replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return light;
+  const channel = (i: number) => { const v = parseInt(full.slice(i, i + 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const luminance = 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+  return luminance > 0.42 ? dark : light;
+}
