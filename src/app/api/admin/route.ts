@@ -83,7 +83,7 @@ export async function POST(request: Request) {
   try {
     const role = await guard(request);
     const body = objectInput(await request.json());
-    if (role === "moderator" && body.type !== "category") denyModerator();
+    if (role === "moderator" && body.type !== "category" && body.type !== "area") denyModerator();
     if (body.type === "whatsapp-test") {
       const result = await sendAdminWhatsappAlert("✅ رسالة اختبار من دليل جنزور", "تنبيهات واتساب للإدارة تعمل بنجاح. ستصلك هنا الطلبات والتقييمات والاقتراحات الجديدة.", "test");
       if (!result.ok) throw new InputError(result.detail, result.skipped ? 400 : 502);
@@ -134,7 +134,7 @@ export async function PATCH(request: Request) {
     const body = objectInput(await request.json());
     const { type, action } = body;
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
-    const moderatorAllowed = type === "category" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link"].includes(String(action)));
+    const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
@@ -158,8 +158,8 @@ export async function PATCH(request: Request) {
       const utilityNumbers = sanitizeUtilityNumbers(body.utilityNumbers);
       await db.insert(directorySettings).values({ key: "utility_numbers", value: JSON.stringify(utilityNumbers) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(utilityNumbers) } });
     } else if (type === "notification") {
-      if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), inArray(notifications.type, ["service", "community"])) : eq(notifications.read, false));
-      else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), inArray(notifications.type, ["service", "community"])) : eq(notifications.id, uuid(body.id)));
+      if (action === "read-all") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.read, false), inArray(notifications.type, ["service", "rating"])) : eq(notifications.read, false));
+      else if (action === "read") await db.update(notifications).set({ read: true }).where(role === "moderator" ? and(eq(notifications.id, uuid(body.id)), inArray(notifications.type, ["service", "rating"])) : eq(notifications.id, uuid(body.id)));
       else throw new InputError("إجراء غير صحيح.");
     } else if (type === "ad") {
       const id = uuid(body.id);
@@ -345,7 +345,7 @@ export async function DELETE(request: Request) {
     const body = objectInput(await request.json());
     const { type, action } = body;
     const bulkNotificationAction = type === "notification" && (action === "delete-all" || action === "delete-selected");
-    if (role === "moderator" && type !== "category" && !bulkNotificationAction) denyModerator();
+    if (role === "moderator" && type !== "category" && type !== "area" && !bulkNotificationAction) denyModerator();
     if (type === "service" && action === "purge-all") {
       if (role !== "admin") denyModerator();
       if (body.confirm !== "تفريغ") throw new InputError("اكتب كلمة «تفريغ» لتأكيد مسح جدول المهنيين.");
@@ -356,13 +356,13 @@ export async function DELETE(request: Request) {
     }
     if (bulkNotificationAction) {
       if (action === "delete-all") {
-        if (role === "moderator") await db.delete(notifications).where(inArray(notifications.type, ["service", "community"]));
+        if (role === "moderator") await db.delete(notifications).where(inArray(notifications.type, ["service", "rating"]));
         else await db.delete(notifications);
       } else {
         if (!Array.isArray(body.ids) || body.ids.length === 0 || body.ids.length > 200) throw new InputError("اختار إشعارًا واحدًا على الأقل للحذف.");
         const ids = [...new Set(body.ids.map(uuid))];
         const condition = inArray(notifications.id, ids);
-        await db.delete(notifications).where(role === "moderator" ? and(condition, inArray(notifications.type, ["service", "community"])) : condition);
+        await db.delete(notifications).where(role === "moderator" ? and(condition, inArray(notifications.type, ["service", "rating"])) : condition);
       }
     } else if (type === "category") {
       const id = cleanText(body.id, 60);
