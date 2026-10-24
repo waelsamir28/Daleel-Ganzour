@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { categoryArtOptions, defaultSettings, iconNames, OTHER_ADDRESS, parseWorkingHours, parseServiceItems, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
+import { normalizeWhatsappNumber } from "@/lib/whatsapp-alert-kinds";
 
 export class InputError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export function objectInput(value: unknown): Record<string, unknown> {
@@ -54,6 +55,10 @@ export function settingsInput(body: Record<string, unknown>): SiteSettings {
   for (const key of textKeys) { const value = cleanText(body[key], key === "contactText" ? 500 : 240); if (!value) throw new InputError("حقول نصوص الموقع مطلوبة."); next[key] = value; }
   next.phone = cleanPhone(body.phone); if (!validPhone(next.phone)) throw new InputError("رقم تواصل المكتب غير صحيح.");
   next.showEmergency = body.showEmergency === true;
+  // تنبيهات واتساب (CallMeBot): الرقم اختياري (يُستخدم رقم المكتب إن تُرك فارغًا) والمفتاح أرقام/حروف فقط.
+  next.whatsappAlertsNumber = normalizeWhatsappNumber(cleanPhone(body.whatsappAlertsNumber ?? ""));
+  if (next.whatsappAlertsNumber && !/^20\d{10}$/.test(next.whatsappAlertsNumber)) throw new InputError("رقم واتساب التنبيهات غير صحيح (مثال: 01222355769).");
+  next.whatsappAlertsApiKey = cleanText(body.whatsappAlertsApiKey ?? "", 64).replace(/[^A-Za-z0-9_-]/g, "");
   return next;
 }
 export function apiError(error: unknown) {

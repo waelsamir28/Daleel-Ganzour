@@ -1,10 +1,11 @@
 "use client";
 
 import { notificationChime, type NotificationChimeKind } from "@/lib/feedback";
+import { extractEgyptPhone, whatsappReplyLink } from "@/lib/whatsapp-alert-kinds";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, BellRing, CheckCheck, ChevronLeft, FileClock, Megaphone, Star, UserRound, Volume2, VolumeX, X, MessageSquareWarning } from "lucide-react";
+import { Bell, BellRing, CheckCheck, ChevronLeft, FileClock, Megaphone, Star, UserRound, Volume2, VolumeX, X, MessageSquareWarning, MessageCircle } from "lucide-react";
 import type { NotificationRecord } from "@/lib/catalog";
 
 const SOUND_KEY = "janzour-admin-alert-sound";
@@ -121,10 +122,15 @@ export default function AdminAlertsFab() {
           {soundOn && !soundReady && <button type="button" className="admin-alerts-sound-hint" onClick={() => void chime("service")}><Volume2 size={15}/> اضغط هنا مرة واحدة لتفعيل صوت التنبيه في هذا المتصفح</button>}
           <div className="admin-alerts-list">
             {feed.notifications.slice(0, 8).map((item) => (
-              <Link key={item.id} href={`/admin?tab=${targetTab(item.type)}`} className={`admin-alerts-item ${item.read ? "" : "is-unread"}`}>
-                <span className="admin-alerts-item-icon">{typeIcon(item.type)}</span>
-                <span className="admin-alerts-item-body"><strong>{item.title}</strong><span>{item.message}</span><small>{new Date(item.createdAt).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "short" })}</small></span>
-              </Link>
+              <div key={item.id} className={`admin-alerts-item ${item.read ? "" : "is-unread"}`}>
+                <Link href={`/admin?tab=${targetTab(item.type)}`} className="admin-alerts-item-link">
+                  <span className="admin-alerts-item-icon">{typeIcon(item.type)}</span>
+                  <span className="admin-alerts-item-body"><strong>{item.title}</strong><span>{item.message}</span><small>{new Date(item.createdAt).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "short" })}</small></span>
+                </Link>
+                {extractEgyptPhone(item.message) && (
+                  <a className="admin-alerts-whatsapp" href={whatsappReplyLink(extractEgyptPhone(item.message), item.title)} target="_blank" rel="noopener noreferrer" title="رد عبر واتساب" aria-label={`رد عبر واتساب على: ${item.title}`}><MessageCircle size={16}/></a>
+                )}
+              </div>
             ))}
             {!feed.notifications.length && <p className="admin-alerts-empty">لا توجد إشعارات حاليًا. أي طلب مهنة جديد سيظهر هنا فورًا مع صوت تنبيه.</p>}
           </div>

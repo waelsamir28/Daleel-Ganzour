@@ -6,6 +6,7 @@ import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 import { parseServiceItems } from "@/lib/catalog";
 import { sameOrigin } from "@/lib/auth";
 import { eq } from "drizzle-orm";
+import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
         message: `أرسل المهني استكمال بياناته (${address}) وبانتظار موافقة أو رفض الإدارة.`,
         entityId: service.id,
       });
+      queueAdminWhatsappAlert("service", `📝 استكمال بيانات من المهني: ${name}`, `${address} • ${phone} — بانتظار موافقة أو رفض الإدارة.`);
       return Response.json({ ok: true, completionStatus: "submitted", completionDraft: draft, message: "تم إرسال استكمال البيانات للإدارة وبانتظار المراجعة." }, { status: 201 });
     }
 
@@ -75,6 +77,7 @@ export async function POST(request: Request) {
       if (note.length < 5) throw new InputError("اكتب الملاحظة بوضوح (٥ أحرف على الأقل).");
       if (contact && !validPhone(contact)) throw new InputError("رقم التواصل غير صحيح.");
       await db.insert(notifications).values({ type: "suggestion", title: `اقتراح تعديل: ${service.name}`, message: `${note}${contact ? ` — للتواصل: ${contact}` : ""}`, entityId: service.id });
+      queueAdminWhatsappAlert("suggestion", `💬 اقتراح تعديل: ${service.name}`, `${note}${contact ? ` — للتواصل: ${contact}` : ""}`);
       return Response.json({ ok: true, message: "شكرًا لك! وصل اقتراحك للإدارة وستراجعه قريبًا." }, { status: 201 });
     }
 
@@ -82,6 +85,7 @@ export async function POST(request: Request) {
     const note = cleanText(body.note ?? "", 240);
     if (!validPhone(phone)) throw new InputError("أدخل رقم هاتف صحيحًا.");
     await db.insert(notifications).values({ type: "service-update", title: `طلب تحديث بيانات: ${service.name}`, message: `الرقم المقترح: ${phone}${note ? ` — ${note}` : ""}`, entityId: service.id });
+    queueAdminWhatsappAlert("suggestion", `✏️ طلب تحديث بيانات: ${service.name}`, `الرقم المقترح: ${phone}${note ? ` — ${note}` : ""}`);
     return Response.json({ ok: true, message: "وصل طلبك للإدارة للمراجعة." }, { status: 201 });
   } catch (error) { return apiError(error); }
 }

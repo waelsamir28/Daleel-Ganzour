@@ -5,6 +5,7 @@ import { createAdminSession, createMemberSession, destroyAdminSession, destroyMe
 import { ensureSeed } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
+import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
 export async function GET() { return Response.json({ viewer: await getViewer() }); }
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
         return created;
       });
       await createMemberSession(member.id, secure);
+      queueAdminWhatsappAlert("member", "👤 عضو جديد في الموقع", `${name} (${username}) • ${phone} — عضوية فقط وليس طلب مهنة.`);
       return Response.json({ ok: true, role: "member", message: "تم إنشاء عضويتك. لم يتم إضافتك إلى دليل المهنيين." }, { status: 201 });
     }
     if (body.action !== "login") throw new InputError("إجراء غير صحيح.");

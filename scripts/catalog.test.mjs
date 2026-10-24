@@ -949,3 +949,25 @@ test("pinned professions, weekly stars and profession art settings sanitize corr
   assert.equal(hasProfessionArt("electricity"), true);
   assert.equal(hasProfessionArt("nope"), false);
 });
+
+test("whatsapp alert helpers normalize Egyptian numbers, extract phones and sanitize kinds", async () => {
+  const helpersSource = readFileSync(new URL("../src/lib/whatsapp-alert-kinds.ts", import.meta.url), "utf8");
+  const helpersJs = ts.transpileModule(helpersSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText;
+  const helpers = await import(`data:text/javascript;base64,${Buffer.from(helpersJs).toString("base64")}`);
+  const { normalizeWhatsappNumber, extractEgyptPhone, sanitizeWhatsappAlertKinds, allWhatsappAlertKinds, whatsappReplyLink } = helpers;
+  assert.equal(normalizeWhatsappNumber("01222355769"), "201222355769");
+  assert.equal(normalizeWhatsappNumber("+20 122 235 5769"), "201222355769");
+  assert.equal(normalizeWhatsappNumber("0020 1222355769"), "201222355769");
+  assert.equal(normalizeWhatsappNumber("1222355769"), "201222355769");
+  assert.equal(normalizeWhatsappNumber(""), "");
+  assert.equal(extractEgyptPhone("أحمد • 01005554433 • باقة ذهبية"), "201005554433");
+  assert.equal(extractEgyptPhone("للتواصل: +201155554444 شكرًا"), "201155554444");
+  assert.equal(extractEgyptPhone("الرقم ٠١٢٢٢٣٥٥٧٦٩"), "201222355769");
+  assert.equal(extractEgyptPhone("بدون رقم هنا 12345"), "");
+  assert.equal(allWhatsappAlertKinds.length, 6);
+  assert.deepEqual(sanitizeWhatsappAlertKinds(undefined), allWhatsappAlertKinds, "missing setting means every event");
+  assert.deepEqual(sanitizeWhatsappAlertKinds(["rating", "bogus", "service", "rating"]), ["service", "rating"]);
+  assert.deepEqual(sanitizeWhatsappAlertKinds("member,ad-request"), ["ad-request", "member"]);
+  assert.deepEqual(sanitizeWhatsappAlertKinds([]), []);
+  assert.match(whatsappReplyLink("201222355769", "طلب مهنة"), /^https:\/\/wa\.me\/201222355769\?text=/);
+});

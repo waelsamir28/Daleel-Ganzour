@@ -6,6 +6,7 @@ import { sameOrigin } from "@/lib/auth";
 import { ensureSeed } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
+import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
       if (!updated.length) throw new InputError("الطلب ليس في انتظار استكمال البيانات.", 409);
       await tx.insert(notifications).values({ type: "service", title: "استكمال بيانات طلب مهنة", message: note, entityId: tracking.serviceId });
     });
+    queueAdminWhatsappAlert("service", "📝 استكمال بيانات طلب مهنة", note);
     return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error); }
 }
