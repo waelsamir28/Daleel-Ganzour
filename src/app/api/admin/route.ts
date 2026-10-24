@@ -8,6 +8,7 @@ import { apiError, categoryInput, InputError, integerInput, objectInput, service
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isHexColor, parseAdImageDataUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
+import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -63,10 +64,11 @@ function adImageInput(value: unknown) {
   catch (error) { throw new InputError(error instanceof Error ? error.message : "صورة الإعلان غير صحيحة."); }
 }
 
-async function guard(request?: Request): Promise<"admin" | "moderator"> {
+async function guard(request?: Request): Promise<"admin" | "moderator"> { return (await guardActor(request)).role; }
+async function guardActor(request?: Request): Promise<ActivityActor> {
   if (request && !sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
   const viewer = await getViewer();
-  if (viewer.role === "admin" || viewer.role === "moderator") { await ensureSeed(); return viewer.role; }
+  if (viewer.role === "admin" || viewer.role === "moderator") { await ensureSeed(); return actorFromViewer(viewer); }
   throw new InputError(viewer.role === "member" ? "صلاحياتك لا تسمح بفتح لوحة الإدارة." : "يرجى تسجيل الدخول إلى لوحة الإدارة.", viewer.role === "member" ? 403 : 401);
 }
 function denyModerator() { throw new InputError("هذا الإجراء متاح للأدمن فقط.", 403); }
@@ -81,8 +83,9 @@ export async function GET() {
 }
 export async function POST(request: Request) {
   try {
-    const role = await guard(request);
+    const actor = await guardActor(request), role = actor.role;
     const body = objectInput(await request.json());
+    const activityLabel = await resolveActivityLabel(body.type, body.id, body.values);
     if (role === "moderator" && body.type !== "category" && body.type !== "area") denyModerator();
     if (body.type === "whatsapp-test") {
       const result = await sendAdminWhatsappAlert("✅ رسالة اختبار من دليل جنزور", "تنبيهات واتساب للإدارة تعمل بنجاح. ستصلك هنا الطلبات والتقييمات والاقتراحات الجديدة.", "test");
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
       if (!existing) throw new InputError("الخدمة غير موجودة.", 404);
       const token = existing.token || randomBytes(20).toString("hex");
       if (!existing.token) await db.update(services).set({ availabilityToken: token }).where(eq(services.id, id));
+      await logActivity(actor, "POST", body, activityLabel);
       return Response.json({ ok: true, link: `/availability/${token}`, ...(await getAdminDirectory(role)) });
     }
     if (body.type === "category") {
@@ -125,14 +129,16 @@ export async function POST(request: Request) {
       const basics = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
       await db.insert(services).values({ ...basics, ...availabilityInput(values.availabilityAction), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false });
     } else throw new InputError("نوع الإضافة غير صحيح.");
+    await logActivity(actor, "POST", body, activityLabel);
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
 export async function PATCH(request: Request) {
   try {
-    const role = await guard(request);
+    const actor = await guardActor(request), role = actor.role;
     const body = objectInput(await request.json());
     const { type, action } = body;
+    const activityLabel = await resolveActivityLabel(type, body.id, body.values);
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
     const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
@@ -336,14 +342,16 @@ export async function PATCH(request: Request) {
     if ((type === "service" || type === "community" || type === "rating") && ["approve", "reject", "sold", "filled"].includes(String(action))) {
       await db.update(notifications).set({ read: true }).where(and(eq(notifications.entityId, uuid(body.id)), eq(notifications.type, type === "community" ? "community" : type)));
     }
+    await logActivity(actor, "PATCH", body, activityLabel);
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
 }
 export async function DELETE(request: Request) {
   try {
-    const role = await guard(request);
+    const actor = await guardActor(request), role = actor.role;
     const body = objectInput(await request.json());
     const { type, action } = body;
+    const activityLabel = await resolveActivityLabel(type, body.id, body.values);
     const bulkNotificationAction = type === "notification" && (action === "delete-all" || action === "delete-selected");
     if (role === "moderator" && type !== "category" && type !== "area" && !bulkNotificationAction) denyModerator();
     if (type === "service" && action === "purge-all") {
@@ -352,6 +360,7 @@ export async function DELETE(request: Request) {
       const [{ total }] = await db.select({ total: count() }).from(services);
       await db.delete(services);
       await db.delete(notifications).where(inArray(notifications.type, ["service", "rating"]));
+      await logActivity(actor, "DELETE", body, activityLabel, `${total} مهنة`);
       return Response.json({ ok: true, removed: total, ...(await getAdminDirectory(role)) });
     }
     if (bulkNotificationAction) {
@@ -393,6 +402,7 @@ export async function DELETE(request: Request) {
       else throw new InputError("نوع الحذف غير صحيح.");
       if (["service", "community", "member"].includes(String(type))) await db.delete(notifications).where(eq(notifications.entityId, id));
     }
+    await logActivity(actor, "DELETE", body, activityLabel);
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
 }
