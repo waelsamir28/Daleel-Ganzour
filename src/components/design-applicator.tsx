@@ -23,6 +23,7 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-footer-bg", design.footerBgColor);
   root.style.setProperty("--design-auth-border", design.authInputBorderColor);
   root.style.setProperty("--design-announcement-bg", design.announcementBgColor);
+  root.style.setProperty("--design-announcement-bg-light", design.announcementBgColorLight);
   root.style.setProperty("--design-whatsapp-color", design.whatsappButtonColor);
   root.style.setProperty("--design-detail-name-bg", design.detailNameBoxColor || "#134595");
   root.style.setProperty("--design-dark-bg", design.darkPageBgColor || "#112b5a");

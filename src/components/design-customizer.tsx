@@ -412,7 +412,7 @@ export default function DesignCustomizer({
             </small>
           </div>
           {draft.announcementEnabled && (
-            <div className="design-preview-announcement" style={{ background: draft.announcementBgColor }}>
+            <div className="design-preview-announcement" style={{ background: draft.announcementBgColorLight }} title="معاينة الوضع النهاري">
               <Sparkles size={12}/>
               <span>
                 {draft.announcementTickerMode === "single"
@@ -1421,10 +1421,16 @@ export default function DesignCustomizer({
                       </label>
 
                       <ColorPickerField
-                        label="لون خلفية الشريط العلوي"
+                        label="لون خلفية الشريط العلوي (الوضع الليلي)"
                         value={draft.announcementBgColor}
                         swatches={QUICK_SWATCHES.button}
                         onChange={(hex) => updateField("announcementBgColor", hex)}
+                      />
+                      <ColorPickerField
+                        label="لون خلفية الشريط في الوضع النهاري (ثابت لكل الثيمات — اختر لونًا داكنًا لأن النص أبيض)"
+                        value={draft.announcementBgColorLight}
+                        swatches={["#0b4a93", "#0f3d5e", "#065f46", "#5b21b6", "#9f1239", "#92400e", "#1e293b", "#155e75"]}
+                        onChange={(hex) => updateField("announcementBgColorLight", hex)}
                       />
                     </div>
 

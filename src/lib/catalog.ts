@@ -1128,6 +1128,7 @@ export type DesignSettings = {
   announcementEnabled: boolean;
   announcementText: string;
   announcementBgColor: string;
+  announcementBgColorLight: string;
   announcementStyle: "static" | "badge" | "soft";
   heroStyle: "sky-banner" | "gradient-card" | "compact-minimal";
   searchBoxStyle: "rounded" | "pill" | "floating-glass";
@@ -1463,6 +1464,7 @@ export const defaultDesignSettings: DesignSettings = {
   announcementEnabled: true,
   announcementText: "أهلاً بكم في دليل جنزور — أضف مهنتك مجاناً وتواصل مع أهل القرية مباشرة",
   announcementBgColor: "#0f4ebe",
+  announcementBgColorLight: "#0b4a93",
   announcementStyle: "badge",
   heroStyle: "sky-banner",
   searchBoxStyle: "rounded",
@@ -1988,6 +1990,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.announcementEnabled = pickBool(record.announcementEnabled, defaultDesignSettings.announcementEnabled);
   next.announcementText = pickText(record.announcementText, defaultDesignSettings.announcementText, 240);
   next.announcementBgColor = hexColor(record.announcementBgColor, defaultDesignSettings.announcementBgColor);
+  next.announcementBgColorLight = hexColor(record.announcementBgColorLight, defaultDesignSettings.announcementBgColorLight);
   next.announcementStyle = pickEnum(record.announcementStyle, ["static", "badge", "soft"] as const, defaultDesignSettings.announcementStyle);
   next.heroStyle = pickEnum(record.heroStyle, ["sky-banner", "gradient-card", "compact-minimal"] as const, defaultDesignSettings.heroStyle);
   next.searchBoxStyle = pickEnum(record.searchBoxStyle, ["rounded", "pill", "floating-glass"] as const, defaultDesignSettings.searchBoxStyle);

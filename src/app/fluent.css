@@ -126,10 +126,12 @@ html[data-design-preset^="win11-"] .category-tile .category-icon { border-radius
    بعض الثيمات (Vista / Win11) كانت تجعل خلفية الشريط بيضاء شفافة بينما النص أبيض فيختفي.
    هنا نثبّت خلفية زرقاء داكنة ونصًا أبيض في الوضع النهاري فقط — الوضع الليلي يبقى كما هو. */
 html:not(.dark) .site-announcement-ticker-card:not(.is-soft) {
-  background: linear-gradient(135deg, #0b4a93 0%, #0a5fb8 55%, #083a74 100%) !important;
+  /* اللون من استوديو التصميم (خانة «لون الشريط في الوضع النهاري»)، مع تدرّج خفيف أفتح/أغمق منه */
+  --ticker-day: var(--design-announcement-bg-light, #0b4a93);
+  background: linear-gradient(135deg, var(--ticker-day) 0%, color-mix(in srgb, var(--ticker-day) 82%, white) 55%, color-mix(in srgb, var(--ticker-day) 78%, black) 100%) !important;
   color: #ffffff !important;
-  border: 2px solid #6fb3ef !important;
-  box-shadow: 0 8px 22px rgba(8, 74, 147, .26), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
+  border: 2px solid color-mix(in srgb, var(--ticker-day) 45%, white) !important;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--ticker-day) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .28) !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
