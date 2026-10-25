@@ -1007,6 +1007,6 @@ test("sticker icons: every built-in sticker id is a real category with a WebP fi
   }
   assert.equal(categoryStickerSrc({ id: "plumbing" }), "/images/specialty-stickers/plumbing.webp");
   assert.equal(categoryStickerSrc({ id: "plumbing", imageVersion: 3 }), "/api/category-icon/plumbing?v=3");
-  assert.equal(categoryStickerSrc({ id: "groceries" }), "");
+  assert.equal(categoryStickerSrc({ id: "no-such-category" }), "");
   assert.equal(hasStickerIcon("crafts"), true);
 });
