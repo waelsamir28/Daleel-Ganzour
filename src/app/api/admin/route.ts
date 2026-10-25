@@ -1,12 +1,12 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, count, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { adBanners, adRequests, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
+import { adBanners, adRequests, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isHexColor, parseAdImageDataUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
 
@@ -58,6 +58,16 @@ function eventInput(values: Record<string, unknown>) {
   const endsAt = typeof values.endsAt === "string" && values.endsAt ? new Date(values.endsAt) : null;
   if (endsAt && (Number.isNaN(endsAt.getTime()) || endsAt.getTime() < startsAt.getTime())) throw new InputError("وقت النهاية لازم يكون بعد البداية.");
   return { title, kind, startsAt, endsAt, location, description, pinned: values.pinned === true };
+}
+/** أيقونة مرفوعة مع نموذج التصنيف: data URL = رفع/استبدال، "__remove__" = حذف، فارغ = بلا تغيير. */
+async function applyCategoryIcon(categoryId: string, value: unknown) {
+  if (typeof value !== "string" || !value) return;
+  if (value === "__remove__") { await db.delete(categoryIcons).where(eq(categoryIcons.categoryId, categoryId)); return; }
+  let image: { mime: string; base64: string };
+  try { image = parseCategoryIconDataUrl(value); }
+  catch (error) { throw new InputError(error instanceof Error ? error.message : "صورة الأيقونة غير صحيحة."); }
+  await db.insert(categoryIcons).values({ categoryId, mime: image.mime, data: image.base64, version: 1, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: categoryIcons.categoryId, set: { mime: image.mime, data: image.base64, version: sql`${categoryIcons.version} + 1`, updatedAt: new Date() } });
 }
 function adImageInput(value: unknown) {
   try { return parseAdImageDataUrl(value); }
@@ -111,6 +121,7 @@ export async function POST(request: Request) {
       // A new category without an explicit order lands at the end of its siblings instead of jumping to the top.
       const inserted = await db.insert(directoryCategories).values({ ...category, id, sortOrder: category.sortOrder || siblings[0].total }).onConflictDoNothing().returning();
       if (!inserted.length) throw new InputError("رابط التصنيف مستخدم بالفعل.", 409);
+      await applyCategoryIcon(id, values.iconImage);
       const removed = await readDeletedCategoryIds();
       if (removed.delete(id)) await writeDeletedCategoryIds(removed);
     } else if (body.type === "area") {
@@ -220,6 +231,7 @@ export async function PATCH(request: Request) {
         if (children[0].total || attached[0].total) throw new InputError("انقل التخصصات والمهن المرتبطة أولًا قبل تغيير نوع التصنيف.");
       }
       await db.update(directoryCategories).set(values).where(eq(directoryCategories.id, id));
+      await applyCategoryIcon(id, objectInput(body.values).iconImage);
     } else if (type === "area") {
       const id = uuid(body.id), values = objectInput(body.values), name = cleanText(values.name, 80);
       const [existing] = await db.select().from(directoryAreas).where(eq(directoryAreas.id, id));
@@ -379,6 +391,7 @@ export async function DELETE(request: Request) {
       const attached = await db.select({ total: count() }).from(services).where(eq(services.category, id));
       if (children[0].total || attached[0].total) throw new InputError("التصنيف مرتبط بتخصصات أو مهن. انقلها أو احذفها أولًا، أو أخفِ التصنيف بدل الحذف.", 409);
       await db.delete(directoryCategories).where(eq(directoryCategories.id, id));
+      await db.delete(categoryIcons).where(eq(categoryIcons.categoryId, id));
       // Remember the deletion so the built-in seed never re-creates this category on the next start.
       const removed = await readDeletedCategoryIds();
       removed.add(id);

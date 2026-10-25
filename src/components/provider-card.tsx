@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
-import { isNewService, serviceWhatsappMessage, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
+import { categoryStickerSrc, isNewService, serviceWhatsappMessage, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, SpecialtyIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 
@@ -22,6 +22,8 @@ export function ProviderRating({ value, reviews }: { value: string; reviews?: nu
 type ProviderCardProps = {
   /** عرض أيقونة التخصص المجسّمة (3D) بدل المسطحة. */
   art3d?: boolean;
+  /** عرض أيقونة الملصق 3D (الجاهزة/المرفوعة) إن وُجدت. */
+  sticker?: boolean;
   service: ServiceRecord;
   category: CategoryRecord;
   favorite: boolean;
@@ -37,7 +39,7 @@ type ProviderCardProps = {
   onToggleFavorite: (id: string) => void;
 };
 // Restored classic provider card with Share & Favorite icons on the left and two action buttons («اتصال» & «واتساب») that both open the provider detail page.
-export default function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, edgeTools, preview, art3d = false, onOpen, onShare, onSuggest, onToggleFavorite }: ProviderCardProps) {
+export default function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, edgeTools, preview, art3d = false, sticker = false, onOpen, onShare, onSuggest, onToggleFavorite }: ProviderCardProps) {
   const [copied, setCopied] = useState(false);
   async function copyPhone() {
     try {
@@ -66,8 +68,8 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
     >
       {isNewService(service, now) && <span className="new-flag">جديد</span>}
       <div className="provider-card-main">
-        <span className={`provider-card-icon ${art3d ? "has-profession-art" : ""}`} aria-hidden="true">
-          {art3d ? <SpecialtyIcon category={category} size={40} art3d/> : <CategoryIcon icon={category.icon} size={26}/>}
+        <span className={`provider-card-icon ${art3d || (sticker && categoryStickerSrc(category)) ? "has-profession-art" : ""}`} aria-hidden="true">
+          {art3d || (sticker && categoryStickerSrc(category)) ? <SpecialtyIcon category={category} size={40} art3d={art3d} sticker={sticker}/> : <CategoryIcon icon={category.icon} size={26}/>}
         </span>
         <div className="provider-card-copy">
           <h3 className="provider-name">{service.name}</h3>

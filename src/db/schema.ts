@@ -160,6 +160,15 @@ export const appointmentRequests = pgTable("directory_appointment_requests", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** أيقونة مرفوعة من الإدارة لقسم أو تخصص (تُخزَّن داخل القاعدة لأن Vercel بلا قرص دائم). */
+export const categoryIcons = pgTable("directory_category_icons", {
+  categoryId: varchar("category_id", { length: 60 }).primaryKey(),
+  mime: varchar("mime", { length: 60 }).notNull().default("image/png"),
+  data: text("data").notNull().default(""),
+  version: integer("version").notNull().default(1),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** Rotating promotional banners shown above the directory; the image itself is stored inline (Vercel has no persistent disk). */
 export const adBanners = pgTable("directory_ad_banners", {
   id: uuid("id").defaultRandom().primaryKey(),

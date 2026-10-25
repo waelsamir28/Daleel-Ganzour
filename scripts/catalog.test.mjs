@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import ts from "typescript";
 
@@ -996,4 +996,17 @@ test("shadeHex lightens and darkens colors (used for the daytime ticker gradient
   assert.equal(shadeHex("#0b4a93", 1), "#ffffff");
   assert.equal(shadeHex("#0b4a93", -1), "#000000");
   assert.match(shadeHex("#0b4a93", 0.18), /^#[0-9a-f]{6}$/);
+});
+
+test("sticker icons: every built-in sticker id is a real category with a WebP file", () => {
+  const { stickerIconIds, initialCategories, categoryStickerSrc, hasStickerIcon } = catalog;
+  const ids = new Set(initialCategories.map((item) => item.id));
+  for (const id of stickerIconIds) {
+    assert.ok(ids.has(id), `${id} is a category`);
+    assert.ok(existsSync(new URL(`../public/images/specialty-stickers/${id}.webp`, import.meta.url)), `${id}.webp exists`);
+  }
+  assert.equal(categoryStickerSrc({ id: "plumbing" }), "/images/specialty-stickers/plumbing.webp");
+  assert.equal(categoryStickerSrc({ id: "plumbing", imageVersion: 3 }), "/api/category-icon/plumbing?v=3");
+  assert.equal(categoryStickerSrc({ id: "dentistry" }), "");
+  assert.equal(hasStickerIcon("crafts"), true);
 });
