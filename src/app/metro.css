@@ -1,0 +1,272 @@
+/* =========================================================================
+   سمات Windows 10 (Metro / Fluent 1.0): واجهة ويندوز 10 الحقيقية على التطبيق كله —
+   زوايا حادة (0–2px)، أسطح مسطحة بلا ظلال، أزرار بإطار رمادي 1px تتلون بالتمييز عند المرور،
+   هيدر كشريط عنوان نافذة بلون التمييز، قائمة «ابدأ» داكنة شبه معتمة، فوتر كشريط المهام،
+   حقول إدخال بخط سفلي يتلون عند التركيز، وخط Segoe UI عند توفره. خمس درجات لونية.
+   ========================================================================= */
+html[data-design-preset^="win10-"] { --w10-a: #0078d7; --w10-a-dark: #005a9e; --w10-a-light: #4cc2ff; --w10-r: 2px; --w10-chrome: #e6e6e6; --w10-menu: rgba(31, 31, 31, .96); }
+html[data-design-preset="win10-dark"] { --w10-a: #0063b1; --w10-a-dark: #004a86; --w10-a-light: #4cc2ff; }
+html[data-design-preset="win10-teal"] { --w10-a: #038387; --w10-a-dark: #026468; --w10-a-light: #00b7c3; }
+html[data-design-preset="win10-purple"] { --w10-a: #744da9; --w10-a-dark: #5c3b8a; --w10-a-light: #b4a0ff; }
+html[data-design-preset="win10-red"] { --w10-a: #e81123; --w10-a-dark: #b50d1b; --w10-a-light: #ff6b6b; }
+
+html[data-design-preset^="win10-"] body { font-family: "Segoe UI", "Segoe UI Variable", Cairo, Tahoma, Arial, sans-serif; }
+
+/* خلفية سطح المكتب: رمادي ويندوز الفاتح / أسود الوضع الداكن مع لمسة لون تمييز خفيفة */
+html[data-design-preset^="win10-"]:not(.dark) body {
+  background: linear-gradient(180deg, #f0f0f0 0%, var(--w10-chrome) 100%) !important;
+}
+html[data-design-preset^="win10-"].dark body {
+  background: linear-gradient(180deg, #000 0%, #121212 100%) !important;
+}
+
+/* كل الأسطح: زوايا حادة بلا ظلال، إطار 1px رمادي */
+html[data-design-preset^="win10-"] .provider-card,
+html[data-design-preset^="win10-"] .category-tile,
+html[data-design-preset^="win10-"] .categories-top-action-frame,
+html[data-design-preset^="win10-"] .duty-card,
+html[data-design-preset^="win10-"] .community-card,
+html[data-design-preset^="win10-"] .guest-gate-card,
+html[data-design-preset^="win10-"] .directory-section-heading,
+html[data-design-preset^="win10-"] .top-professions-card,
+html[data-design-preset^="win10-"] .featured-app-block,
+html[data-design-preset^="win10-"] .modal-panel,
+html[data-design-preset^="win10-"] .ui-select-menu,
+html[data-design-preset^="win10-"] .search-suggestions,
+html[data-design-preset^="win10-"] .public-notification-dropdown,
+html[data-design-preset^="win10-"] .admin-content,
+html[data-design-preset^="win10-"] .admin-sidebar,
+html[data-design-preset^="win10-"] .admin-stat,
+html[data-design-preset^="win10-"] .admin-service-row,
+html[data-design-preset^="win10-"] .admin-rating-row,
+html[data-design-preset^="win10-"] .activity-log-row,
+html[data-design-preset^="win10-"] .address-management-row,
+html[data-design-preset^="win10-"] .category-management-group,
+html[data-design-preset^="win10-"] .settings-section,
+html[data-design-preset^="win10-"] .design-section,
+html[data-design-preset^="win10-"] .login-form-panel {
+  border-radius: var(--w10-r) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-design-preset^="win10-"]:not(.dark) .provider-card,
+html[data-design-preset^="win10-"]:not(.dark) .category-tile,
+html[data-design-preset^="win10-"]:not(.dark) .categories-top-action-frame,
+html[data-design-preset^="win10-"]:not(.dark) .duty-card,
+html[data-design-preset^="win10-"]:not(.dark) .community-card,
+html[data-design-preset^="win10-"]:not(.dark) .guest-gate-card,
+html[data-design-preset^="win10-"]:not(.dark) .directory-section-heading,
+html[data-design-preset^="win10-"]:not(.dark) .modal-panel {
+  background: #fff !important;
+  border: 1px solid #d9d9d9 !important;
+}
+html[data-design-preset^="win10-"].dark .provider-card,
+html[data-design-preset^="win10-"].dark .category-tile,
+html[data-design-preset^="win10-"].dark .categories-top-action-frame,
+html[data-design-preset^="win10-"].dark .duty-card,
+html[data-design-preset^="win10-"].dark .community-card,
+html[data-design-preset^="win10-"].dark .guest-gate-card,
+html[data-design-preset^="win10-"].dark .directory-section-heading,
+html[data-design-preset^="win10-"].dark .modal-panel {
+  background: #1f1f1f !important;
+  border: 1px solid #2f2f2f !important;
+}
+/* تحديد العنصر عند المرور: إطار بلون التمييز 2px مثل مستكشف الملفات */
+html[data-design-preset^="win10-"] .provider-card:hover,
+html[data-design-preset^="win10-"] .category-tile:hover {
+  transform: none !important;
+  border-color: var(--w10-a) !important;
+  box-shadow: inset 0 0 0 1px var(--w10-a) !important;
+}
+html[data-design-preset^="win10-"]:not(.dark) .category-tile:hover { background: #e5f1fb !important; }
+html[data-design-preset^="win10-"].dark .category-tile:hover { background: #2b2b2b !important; }
+
+/* الهيدر = شريط عنوان نافذة ويندوز 10 بلون التمييز ونص أبيض */
+html[data-design-preset^="win10-"] .site-header {
+  border-radius: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--w10-a-dark) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: var(--w10-a) !important;
+  color: #fff !important;
+}
+html[data-design-preset="win10-dark"] .site-header { background: #1f1f1f !important; border-bottom-color: #000 !important; }
+html[data-design-preset^="win10-"] .site-header .brand-copy strong,
+html[data-design-preset^="win10-"] .site-header .brand-copy span,
+html[data-design-preset^="win10-"] .site-header .header-auth-btn,
+html[data-design-preset^="win10-"] .site-header .header-admin-link,
+html[data-design-preset^="win10-"] .site-header .header-admin-link * { color: #fff !important; }
+/* أزرار شريط العنوان (القائمة/الصوت/الوضع): مربعة شفافة تتفتح عند المرور مثل أزرار التصغير/الإغلاق */
+html[data-design-preset^="win10-"] .site-header .header-menu-toggle-btn,
+html[data-design-preset^="win10-"] .site-header .sound-toggle,
+html[data-design-preset^="win10-"] .site-header .theme-toggle,
+html[data-design-preset^="win10-"] .site-header .header-auth-btn,
+html[data-design-preset^="win10-"] .site-header .header-admin-link {
+  border-radius: 0 !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+html[data-design-preset^="win10-"] .site-header .header-menu-toggle-btn:hover,
+html[data-design-preset^="win10-"] .site-header .sound-toggle:hover,
+html[data-design-preset^="win10-"] .site-header .theme-toggle:hover,
+html[data-design-preset^="win10-"] .site-header .header-auth-btn:hover,
+html[data-design-preset^="win10-"] .site-header .header-admin-link:hover { background: rgba(255, 255, 255, .18) !important; }
+html[data-design-preset^="win10-"] .site-header .header-menu-toggle-btn.is-open { background: rgba(255, 255, 255, .28) !important; }
+html[data-design-preset^="win10-"] .theme-toggle-track { border-radius: 999px; }
+
+/* قائمة «ابدأ»: لوح داكن شبه معتم، عناصر مربعة، شريط تمييز يسار العنصر النشط */
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu {
+  border-radius: 0 !important;
+  border: 1px solid #3a3a3a !important;
+  background: var(--w10-menu) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  backdrop-filter: blur(18px) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .45) !important;
+  padding: 6px !important;
+  gap: 1px !important;
+  animation: none !important;
+}
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu::before { display: none; }
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu.nav-open > * { animation: none !important; }
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > a,
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > button {
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #f3f3f3 !important;
+  border: 0 !important;
+  border-inline-start: 3px solid transparent !important;
+  min-height: 42px;
+}
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > a:hover,
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > button:hover { background: rgba(255, 255, 255, .12) !important; }
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > a.active,
+html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > button.active { background: rgba(255, 255, 255, .08) !important; border-inline-start-color: var(--w10-a-light) !important; }
+html[data-design-preset^="win10-"] .header-menu-section-title { color: #bdbdbd !important; font-size: 11.5px; text-transform: none; }
+html[data-design-preset^="win10-"] .header-menu-divider { background: #3a3a3a !important; }
+
+/* الأزرار: زر ويندوز 10 الكلاسيكي (#e1e1e1 بإطار #adadad) والزر الأساسي بلون التمييز المسطح */
+html[data-design-preset^="win10-"] .button,
+html[data-design-preset^="win10-"] .button-soft,
+html[data-design-preset^="win10-"] .icon-button,
+html[data-design-preset^="win10-"] .circle-tool,
+html[data-design-preset^="win10-"] .shops-delivery-toggle-btn,
+html[data-design-preset^="win10-"] .teacher-stage-dropdown-toggle,
+html[data-design-preset^="win10-"] .ticker-nav-btn {
+  border-radius: var(--w10-r) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transform: none !important;
+}
+html[data-design-preset^="win10-"]:not(.dark) .button-soft,
+html[data-design-preset^="win10-"]:not(.dark) .icon-button {
+  background: #e1e1e1 !important;
+  border: 1px solid #adadad !important;
+  color: #000 !important;
+}
+html[data-design-preset^="win10-"]:not(.dark) .button-soft:hover,
+html[data-design-preset^="win10-"]:not(.dark) .icon-button:hover { background: #e5f1fb !important; border-color: var(--w10-a) !important; }
+html[data-design-preset^="win10-"].dark .button-soft,
+html[data-design-preset^="win10-"].dark .icon-button {
+  background: #333 !important;
+  border: 1px solid #4a4a4a !important;
+  color: #fff !important;
+}
+html[data-design-preset^="win10-"].dark .button-soft:hover,
+html[data-design-preset^="win10-"].dark .icon-button:hover { background: #3d3d3d !important; border-color: var(--w10-a-light) !important; }
+html[data-design-preset^="win10-"] .button-primary,
+html[data-design-preset^="win10-"] .site-header .add-service-header,
+html[data-design-preset^="win10-"] .search-button,
+html[data-design-preset^="win10-"] .categories-top-action-frame .button {
+  background: var(--design-button-color, var(--w10-a)) !important;
+  border: 1px solid transparent !important;
+  color: #fff !important;
+  border-radius: var(--w10-r) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  background-image: none !important;
+}
+html[data-design-preset^="win10-"] .button-primary:hover,
+html[data-design-preset^="win10-"] .search-button:hover,
+html[data-design-preset^="win10-"] .categories-top-action-frame .button:hover { filter: brightness(.9); transform: none !important; }
+html[data-design-preset^="win10-"] .button-primary:active,
+html[data-design-preset^="win10-"] .search-button:active { filter: brightness(.8); }
+html[data-design-preset^="win10-"] .button-whatsapp {
+  background: var(--design-whatsapp-color, #107c10) !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--w10-r) !important;
+  box-shadow: none !important;
+}
+html[data-design-preset^="win10-"] button:focus-visible,
+html[data-design-preset^="win10-"] a:focus-visible { outline: 2px dotted currentColor !important; outline-offset: -3px; }
+
+/* حقول الإدخال: إطار رمادي 1px وخط سفلي 2px بلون التمييز عند التركيز */
+html[data-design-preset^="win10-"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+html[data-design-preset^="win10-"] textarea,
+html[data-design-preset^="win10-"] select,
+html[data-design-preset^="win10-"] .ui-select-trigger,
+html[data-design-preset^="win10-"] .search-input-wrap {
+  border-radius: var(--w10-r) !important;
+  box-shadow: none !important;
+}
+html[data-design-preset^="win10-"]:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+html[data-design-preset^="win10-"]:not(.dark) textarea,
+html[data-design-preset^="win10-"]:not(.dark) select,
+html[data-design-preset^="win10-"]:not(.dark) .ui-select-trigger {
+  background: #fff !important;
+  border: 1px solid #8a8a8a !important;
+  border-bottom: 2px solid #8a8a8a !important;
+}
+html[data-design-preset^="win10-"] input:focus,
+html[data-design-preset^="win10-"] textarea:focus,
+html[data-design-preset^="win10-"] select:focus,
+html[data-design-preset^="win10-"] .ui-select-trigger:focus-within { border-color: var(--w10-a) !important; outline: none !important; }
+
+/* العناوين والبراويز: مستطيل مسطح بلون التمييز بدون تدرجات */
+html[data-design-preset^="win10-"] .directory-section-heading h2,
+html[data-design-preset^="win10-"] .section-heading-frame,
+html[data-design-preset^="win10-"] .section-title-frame { border-radius: var(--w10-r) !important; background-image: none !important; background: var(--w10-a) !important; color: #fff !important; box-shadow: none !important; }
+html[data-design-preset^="win10-"] .category-tile .category-icon,
+html[data-design-preset^="win10-"] .top-profession-icon,
+html[data-design-preset^="win10-"] .provider-card-icon,
+html[data-design-preset^="win10-"] .detail-v2-fact-icon,
+html[data-design-preset^="win10-"] .stat-icon { border-radius: var(--w10-r) !important; }
+
+/* الفوتر = شريط المهام (أسود مع خط تمييز رفيع) */
+html[data-design-preset^="win10-"] .site-footer {
+  background: #101010 !important;
+  border-top: 2px solid var(--w10-a) !important;
+  border-radius: 0 !important;
+}
+
+/* النوافذ العائمة: نافذة ويندوز بشريط عنوان بلون التمييز */
+html[data-design-preset^="win10-"] .modal-panel { border: 1px solid var(--w10-a) !important; }
+html[data-design-preset^="win10-"] .modal-panel .modal-heading { background: var(--w10-a) !important; background-image: none !important; color: #fff !important; border-radius: 0 !important; margin: -1px -1px 0; padding: 10px 14px; }
+html[data-design-preset^="win10-"] .modal-panel .modal-heading h2,
+html[data-design-preset^="win10-"] .modal-panel .modal-heading p { color: #fff !important; }
+html[data-design-preset^="win10-"] .modal-panel .icon-button.modal-close { border-radius: 0 !important; background: transparent !important; border: 0 !important; color: #fff !important; width: 44px; height: 32px; }
+html[data-design-preset^="win10-"] .modal-panel .icon-button.modal-close:hover { background: #e81123 !important; color: #fff !important; }
+
+/* لوحة الإدارة: شريط جانبي داكن كقائمة ابدأ وبطاقات مسطحة */
+html[data-design-preset^="win10-"] .admin-sidebar { background: #1f1f1f !important; border: 0 !important; }
+html[data-design-preset^="win10-"] .admin-sidebar nav button { border-radius: 0 !important; border-inline-start: 3px solid transparent !important; }
+html[data-design-preset^="win10-"] .admin-sidebar nav button.active { border-inline-start-color: var(--w10-a-light) !important; background: rgba(255, 255, 255, .1) !important; }
+html[data-design-preset^="win10-"] .admin-stat { border: 1px solid #d9d9d9 !important; }
+html[data-design-preset^="win10-"].dark .admin-stat { border-color: #2f2f2f !important; }
+
+/* شريط التمرير بنمط ويندوز 10 */
+html[data-design-preset^="win10-"] ::-webkit-scrollbar { width: 12px; height: 12px; }
+html[data-design-preset^="win10-"] ::-webkit-scrollbar-track { background: #f0f0f0; }
+html[data-design-preset^="win10-"] ::-webkit-scrollbar-thumb { background: #cdcdcd; border-radius: 0; }
+html[data-design-preset^="win10-"] ::-webkit-scrollbar-thumb:hover { background: #a6a6a6; }
+html[data-design-preset^="win10-"].dark ::-webkit-scrollbar-track { background: #171717; }
+html[data-design-preset^="win10-"].dark ::-webkit-scrollbar-thumb { background: #4d4d4d; }
+
+/* الشريط المتحرك: مستطيل حاد بلون التمييز في الوضعين (نهاري ثابت عبر متغيرات الشريط النهاري) */
+html[data-design-preset^="win10-"] .site-announcement-ticker-card { border-radius: var(--w10-r) !important; box-shadow: none !important; }

@@ -13,7 +13,6 @@ import dynamic from "next/dynamic";
 import AdRotator from "@/components/ad-rotator";
 import DesignApplicator from "@/components/design-applicator";
 import SelectField from "@/components/select-field";
-import { LocationPicker } from "@/components/request-forms";
 import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 
@@ -22,6 +21,7 @@ const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr:
 const AdminAlertsFab = dynamic(() => import("@/components/admin-alerts-fab"), { ssr: false });
 const BusinessCardModal = dynamic(() => import("@/components/business-card-modal"), { ssr: false });
 const ServiceForm = dynamic(() => import("@/components/request-forms").then((m) => m.ServiceForm), { ssr: false, loading: () => <p className="muted" style={{ padding: 16, textAlign: "center" }}>جارٍ تجهيز النموذج…</p> });
+const LocationPicker = dynamic(() => import("@/components/request-forms").then((m) => m.LocationPicker), { ssr: false });
 const ProviderCompletionModalForm = dynamic(() => import("@/components/management-editor").then((m) => m.ProviderCompletionModalForm), { ssr: false });
 
 const ADD_PROFESSION_INVITE = "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية";
@@ -44,6 +44,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [data, setData] = useState(initialData), [modal, setModal] = useState<ModalName>(null), [detail, setDetail] = useState<ServiceRecord | null>(null);
   const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
+  const menuRef = useRef<HTMLElement>(null), menuButtonRef = useRef<HTMLButtonElement>(null);
   const [soundMuted, setSoundMutedState] = useState(false);
   const [topPaused, setTopPaused] = useState(false);
   const topPauseTimer = useRef<number | undefined>(undefined);
@@ -198,8 +199,16 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
     };
+    // الضغط في أي مكان خارج القائمة أو زرها يغلقها (وليس زر القائمة فقط).
+    const onPointer = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (menuRef.current?.contains(target) || menuButtonRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer, true);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onPointer, true); };
   }, [menuOpen]);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrate browser-only favorites and owned services after server rendering.
@@ -318,7 +327,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         && (!isClinicsContext || activeClinicFilter === "all" || matchesClinicFilter(service, activeClinicFilter, now || undefined))
         && (!isTeachersContext || teacherStage === "all" || matchesTeacherStage(service, teacherStage))
         && (!activeSpecialtyId || service.category === activeSpecialtyId)
-        && (!rootFilter || item.parentId === rootFilter)
+        && (!rootFilter || item.parentId === rootFilter || item.id === rootFilter)
         && (!query || matchesServiceQuery(service, item.name, query))
         && (!area || service.area === area)
         && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress)))
@@ -497,6 +506,10 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             src={design.headerLogoUrl || "/images/logo-daleel-transparent.png"}
             alt=""
             className="site-header-brand-img"
+            width={44}
+            height={44}
+            decoding="async"
+            fetchPriority="high"
           />
           <div className="site-header-brand-copy">
             <strong>دليل جنزور</strong>
@@ -554,20 +567,19 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           )}
           <button
             type="button"
-            className={`header-menu-toggle-btn mobile-menu-button ${menuOpen ? "is-open" : ""}`}
+            ref={menuButtonRef} className={`header-menu-toggle-btn mobile-menu-button is-icon-only ${menuOpen ? "is-open" : ""}`}
             onClick={() => { menuFeedback(!menuOpen); setMenuOpen((open) => !open); }} data-no-feedback
             aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
             aria-expanded={menuOpen}
           >
-            {menuOpen ? <X size={19}/> : <Menu size={19}/>}
-            <span className="header-menu-toggle-label">القائمة</span>
+            {menuOpen ? <X size={21}/> : <Menu size={21}/>}
             {!menuOpen && feedUnread > 0 && <span className="header-menu-unread-dot" aria-hidden="true"/>}
           </button>
         </div>
         {menuOpen && (
           <div className="header-menu-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true"/>
         )}
-        <nav className={`main-nav header-dropdown-menu ${menuOpen ? "nav-open" : ""}`} aria-label="القائمة الرئيسية وأدوات الموقع">
+        <nav ref={menuRef} className={`main-nav header-dropdown-menu ${menuOpen ? "nav-open" : ""}`} aria-label="القائمة الرئيسية وأدوات الموقع">
           <div className="header-menu-section-title">التنقل السريع</div>
           <Link href="/" className={isHome && !isFiltering ? "active" : ""} onClick={() => setMenuOpen(false)}>
             <Search size={17}/>
@@ -993,7 +1005,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       ) : (
         <div className="section-heading directory-section-heading"><div><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2>{(isFiltering || activeSpecialtyCategory) && <p>{filteredServices.length} مقدم خدمة متاح في الدليل</p>}</div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={15}/><span>{isFollowed ? "إلغاء المتابعة" : "متابعة التخصص"}</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
-      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className={`provider-grid ${isFeaturedCollapsible ? "featured-strip-panel" : ""}`} id={isFeaturedCollapsible ? "featured-providers-panel" : undefined}>{visibleServices.map((service) => <ProviderCard key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} edgeTools={edgeTools} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onSuggest={openSuggest} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => openAddService()}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}</section>}
+      {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}{isTeachersContext && teacherStage !== "all" && <span className="stage-filter-tag"><GraduationCap size={13}/>{TEACHER_STAGES.find((s) => s.id === teacherStage)?.label}<button onClick={() => setTeacherStage("all")} aria-label="إزالة فلتر المرحلة"><X size={12}/></button></span>}{isTeachersContext && teacherSpecialtyFilter && !specialtyId && <span className="stage-filter-tag"><GraduationCap size={13}/>{getCategory(teacherSpecialtyFilter, categories).name}<button onClick={() => setTeacherSpecialtyFilter("")} aria-label="إزالة فلتر التخصص"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className={`provider-grid ${isFeaturedCollapsible ? "featured-strip-panel" : ""}`} id={isFeaturedCollapsible ? "featured-providers-panel" : undefined}>{visibleServices.map((service) => <ProviderCard art3d={design.specialtyArt3d} key={service.id} service={service} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} edgeTools={edgeTools} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onSuggest={openSuggest} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => openAddService()}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}</section>}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
         <div className="category-grid main-category-grid feature-cards-grid">
           <button
@@ -1331,7 +1343,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
 
       <div className="detail-v2-facts" role="list">
         <div className="detail-v2-fact" role="listitem">
-          <span className="detail-v2-fact-icon is-spec"><CategoryIcon icon={getCategory(detail.category, categories).icon} size={17}/></span>
+          <span className={`detail-v2-fact-icon is-spec ${design.specialtyArt3d ? "has-profession-art" : ""}`}><SpecialtyIcon category={getCategory(detail.category, categories)} size={design.specialtyArt3d ? 34 : 17} art3d={design.specialtyArt3d}/></span>
           <div><small>التخصص</small><strong>{getCategory(detail.category, categories).name}</strong></div>
         </div>
         <div className="detail-v2-fact" role="listitem">

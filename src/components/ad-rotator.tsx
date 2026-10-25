@@ -130,7 +130,7 @@ export default function AdRotator({ ads, services, categories = [], adminPhone, 
             <AdTemplateArt template={current.template} title={current.title} caption={current.caption} siteName={siteName} logoUrl={logoUrl} pricing={pricing} service={autoService} categoryName={autoService ? getCategory(autoService.category, categories).name : ""} backgroundUrl={current.hasImage ? adImageUrl(current) : ""} animated/>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element -- Admin-uploaded animated GIF served from the database.
-            <img src={adImageUrl(current)} alt={current.caption || current.title} className="ad-rotator-image" draggable={false}/>
+            <img src={adImageUrl(current)} alt={current.caption || current.title} className="ad-rotator-image" loading="lazy" decoding="async" draggable={false}/>
           )}
         </div>
         <span className="ad-rotator-shine" aria-hidden="true"/>

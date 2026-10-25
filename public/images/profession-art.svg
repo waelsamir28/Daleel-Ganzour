@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg">
-  <!-- رسومات ثلاثية الأبعاد بأسلوب "مرسوم باليد" لأهم مهن جنزور (28 مهنة). كل رمز 128×128 ويُستدعى عبر <use href="/images/profession-art.svg#id">. -->
+  <!-- رسومات ثلاثية الأبعاد بأسلوب "مرسوم باليد" لأهم مهن جنزور (41 مهنة). كل رمز 128×128 ويُستدعى عبر <use href="/images/profession-art.svg#id">. -->
   <defs>
     <filter id="sketch" x="-12%" y="-12%" width="124%" height="124%">
       <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="9" result="n"/>
@@ -466,6 +466,254 @@
       <path d="M58 68h12l-6 10z" fill="#fff" stroke="#fff" stroke-width="3"/>
       <path d="M58 90h12" stroke="#fff" stroke-width="3"/>
       <path d="M104 72l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fff" stroke-width="3"/>
+    </g>
+  </symbol>
+
+  <!-- ===== الدفعة الثالثة (13 مهنة) ===== -->
+
+  <!-- 29) كوافير: مجفف شعر + مشط + شرارات -->
+  <symbol id="hairdressers" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M26 40h46a16 16 0 0 1 0 32H56l-6 34H38l4-34H26a16 16 0 0 1 0-32z" fill="#9d2c6a" transform="translate(5 5)"/>
+      <path d="M26 40h46a16 16 0 0 1 0 32H56l-6 34H38l4-34H26a16 16 0 0 1 0-32z" fill="#ec4899"/>
+      <path d="M30 48h36" stroke="#fff" stroke-width="4" opacity=".7"/>
+      <circle cx="30" cy="56" r="7" fill="#fbcfe8"/>
+      <circle cx="30" cy="56" r="3" fill="#2b2118" stroke="none"/>
+      <path d="M92 50l14-4M94 58h16M92 66l14 4" stroke="#f59e0b" stroke-width="4"/>
+      <path d="M96 84v26M96 84h20M100 84v10M106 84v10M112 84v10" stroke="#2b2118" stroke-width="4" transform="translate(4 4)" opacity=".5"/>
+      <path d="M96 84v26M96 84h20M100 84v10M106 84v10M112 84v10" fill="none" stroke="#2b2118" stroke-width="4"/>
+      <path d="M96 84h20" stroke="#fde68a" stroke-width="6"/>
+    </g>
+  </symbol>
+
+  <!-- 30) ميكب: أحمر شفاه + فرشاة + مرآة -->
+  <symbol id="makeup" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <circle cx="84" cy="42" r="22" fill="#9d174d" transform="translate(5 5)"/>
+      <circle cx="84" cy="42" r="22" fill="#f472b6"/>
+      <circle cx="84" cy="42" r="14" fill="#fff1f7"/>
+      <path d="M78 36a8 8 0 0 1 10 0" stroke="#f9a8d4" stroke-width="3"/>
+      <path d="M84 64v30" stroke-width="5"/>
+      <rect x="26" y="60" width="20" height="50" rx="5" fill="#6b21a8" transform="translate(5 5)"/>
+      <rect x="26" y="60" width="20" height="50" rx="5" fill="#a855f7"/>
+      <path d="M30 42c0-8 4-12 8-12s8 4 8 12v18H30z" fill="#be123c" transform="translate(4 4)"/>
+      <path d="M30 42c0-8 4-12 8-12s8 4 8 12v18H30z" fill="#ef4444"/>
+      <path d="M33 40c0-4 2-6 5-6" stroke="#fff" stroke-width="3" opacity=".8"/>
+      <path d="M100 76l14 30" stroke="#92400e" stroke-width="7"/>
+      <path d="M100 76l14 30" stroke="#f59e0b" stroke-width="4"/>
+      <path d="M90 68c6-8 14-8 16 0-4 6-10 8-16 0z" fill="#fbbf24"/>
+    </g>
+  </symbol>
+
+  <!-- 31) دي جي: أسطوانة + سماعة + موجات صوت -->
+  <symbol id="dj" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="18" y="46" width="92" height="56" rx="8" fill="#312e81" transform="translate(5 5)"/>
+      <rect x="18" y="46" width="92" height="56" rx="8" fill="#4f46e5"/>
+      <circle cx="44" cy="74" r="18" fill="#1e1b4b"/>
+      <circle cx="44" cy="74" r="11" fill="#312e81" stroke-width="2"/>
+      <circle cx="44" cy="74" r="4" fill="#fbbf24"/>
+      <circle cx="86" cy="74" r="18" fill="#1e1b4b"/>
+      <circle cx="86" cy="74" r="11" fill="#312e81" stroke-width="2"/>
+      <circle cx="86" cy="74" r="4" fill="#f472b6"/>
+      <path d="M60 58h10M60 68h10M60 78h10M60 88h10" stroke="#a5b4fc" stroke-width="3"/>
+      <path d="M28 32q8-10 16 0M20 22q14-18 32 0M84 32q8-10 16 0M76 22q14-18 32 0" fill="none" stroke="#22d3ee"/>
+      <path d="M58 18l6 4-6 4z" fill="#fbbf24"/>
+    </g>
+  </symbol>
+
+  <!-- 32) تجهيز أفراح: كيكة طوابق + قلوب + بالونات -->
+  <symbol id="wedding-planning" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="22" y="82" width="84" height="26" rx="6" fill="#9f1239" transform="translate(5 5)"/>
+      <rect x="22" y="82" width="84" height="26" rx="6" fill="#fb7185"/>
+      <rect x="34" y="56" width="60" height="28" rx="6" fill="#9f1239" transform="translate(5 5)"/>
+      <rect x="34" y="56" width="60" height="28" rx="6" fill="#fda4af"/>
+      <rect x="46" y="34" width="36" height="24" rx="6" fill="#9f1239" transform="translate(5 5)"/>
+      <rect x="46" y="34" width="36" height="24" rx="6" fill="#ffe4e6"/>
+      <path d="M26 88q6 8 12 0t12 0 12 0 12 0 12 0 12 0" fill="none" stroke="#fff" stroke-width="3"/>
+      <path d="M38 62q6 8 12 0t12 0 12 0 12 0" fill="none" stroke="#fff" stroke-width="3"/>
+      <path d="M64 30c-3-6-12-6-12 1 0 5 12 12 12 12s12-7 12-12c0-7-9-7-12-1z" fill="#dc2626" transform="translate(3 3)"/>
+      <path d="M64 30c-3-6-12-6-12 1 0 5 12 12 12 12s12-7 12-12c0-7-9-7-12-1z" fill="#ef4444"/>
+      <circle cx="20" cy="30" r="9" fill="#60a5fa"/><path d="M20 39v14" stroke-width="2"/>
+      <circle cx="108" cy="30" r="9" fill="#facc15"/><path d="M108 39v14" stroke-width="2"/>
+    </g>
+  </symbol>
+
+  <!-- 33) نقل عفش: عربية نقل + كراتين -->
+  <symbol id="moving" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="44" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="10" y="44" width="72" height="50" rx="5" fill="#92400e" transform="translate(5 5)"/>
+      <rect x="10" y="44" width="72" height="50" rx="5" fill="#f59e0b"/>
+      <path d="M82 60h20l14 18v16H82z" fill="#1e3a8a" transform="translate(5 5)"/>
+      <path d="M82 60h20l14 18v16H82z" fill="#3b82f6"/>
+      <path d="M88 66h12l8 11H88z" fill="#bfdbfe"/>
+      <circle cx="30" cy="98" r="11" fill="#2b2118"/><circle cx="30" cy="98" r="5" fill="#d6d3d1"/>
+      <circle cx="98" cy="98" r="11" fill="#2b2118"/><circle cx="98" cy="98" r="5" fill="#d6d3d1"/>
+      <rect x="22" y="54" width="22" height="20" rx="2" fill="#c2410c" transform="translate(3 3)"/>
+      <rect x="22" y="54" width="22" height="20" rx="2" fill="#fed7aa"/>
+      <path d="M33 54v20M22 62h22" stroke-width="2"/>
+      <rect x="48" y="54" width="22" height="20" rx="2" fill="#c2410c" transform="translate(3 3)"/>
+      <rect x="48" y="54" width="22" height="20" rx="2" fill="#fed7aa"/>
+      <path d="M59 54v20M48 62h22" stroke-width="2"/>
+      <rect x="36" y="30" width="22" height="20" rx="2" fill="#c2410c" transform="translate(3 3)"/>
+      <rect x="36" y="30" width="22" height="20" rx="2" fill="#fed7aa"/>
+      <path d="M47 30v20" stroke-width="2"/>
+    </g>
+  </symbol>
+
+  <!-- 34) تنظيف شقق: دلو + مساحة + فقاعات -->
+  <symbol id="apartment-cleaning" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M24 60h44l-6 48H30z" fill="#1d4ed8" transform="translate(5 5)"/>
+      <path d="M24 60h44l-6 48H30z" fill="#60a5fa"/>
+      <path d="M24 60a22 22 0 0 1 44 0" fill="#bfdbfe"/>
+      <path d="M30 60a16 16 0 0 1 32 0" fill="none" stroke="#2b2118" stroke-width="3"/>
+      <path d="M32 70h28" stroke="#fff" stroke-width="3" opacity=".8"/>
+      <path d="M94 22v70" stroke="#92400e" stroke-width="8"/>
+      <path d="M94 22v70" stroke="#f59e0b" stroke-width="4"/>
+      <path d="M76 92h36v12H76z" fill="#047857" transform="translate(4 4)"/>
+      <path d="M76 92h36v12H76z" fill="#34d399"/>
+      <path d="M78 104l2 10M110 104l-2 10M94 104v10" stroke-width="3"/>
+      <circle cx="46" cy="30" r="8" fill="#e0f2fe"/><circle cx="66" cy="20" r="5" fill="#e0f2fe"/><circle cx="26" cy="38" r="5" fill="#e0f2fe"/>
+      <path d="M43 27a4 4 0 0 1 4-2" stroke="#fff" stroke-width="2"/>
+    </g>
+  </symbol>
+
+  <!-- 35) طاقة شمسية: لوح شمسي + شمس -->
+  <symbol id="solar" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="42" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <circle cx="94" cy="34" r="16" fill="#b45309" transform="translate(4 4)"/>
+      <circle cx="94" cy="34" r="16" fill="#fbbf24"/>
+      <path d="M94 8v8M94 52v8M68 34h8M112 34h8M76 16l5 5M112 16l-5 5" stroke="#f59e0b"/>
+      <path d="M30 56h64l12 40H18z" fill="#1e3a8a" transform="translate(5 5)"/>
+      <path d="M30 56h64l12 40H18z" fill="#2563eb"/>
+      <path d="M26 69h72M22 82h80M50 56l-8 40M64 56v40M78 56l8 40" stroke="#93c5fd" stroke-width="2.5"/>
+      <path d="M36 62h10" stroke="#fff" stroke-width="3" opacity=".7"/>
+      <path d="M64 96v14M50 110h28" stroke-width="5"/>
+    </g>
+  </symbol>
+
+  <!-- 36) جيم: دمبل ثقيل + عرق -->
+  <symbol id="gyms" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="44" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="40" y="58" width="48" height="12" rx="4" fill="#374151" transform="translate(5 5)"/>
+      <rect x="40" y="58" width="48" height="12" rx="4" fill="#9ca3af"/>
+      <rect x="14" y="40" width="18" height="48" rx="5" fill="#991b1b" transform="translate(5 5)"/>
+      <rect x="14" y="40" width="18" height="48" rx="5" fill="#ef4444"/>
+      <rect x="30" y="48" width="12" height="32" rx="4" fill="#991b1b" transform="translate(5 5)"/>
+      <rect x="30" y="48" width="12" height="32" rx="4" fill="#f87171"/>
+      <rect x="96" y="40" width="18" height="48" rx="5" fill="#991b1b" transform="translate(5 5)"/>
+      <rect x="96" y="40" width="18" height="48" rx="5" fill="#ef4444"/>
+      <rect x="86" y="48" width="12" height="32" rx="4" fill="#991b1b" transform="translate(5 5)"/>
+      <rect x="86" y="48" width="12" height="32" rx="4" fill="#f87171"/>
+      <path d="M18 46v10M100 46v10" stroke="#fff" stroke-width="3" opacity=".7"/>
+      <path d="M58 30l6-10 6 10M52 24l-4-8M76 24l4-8" stroke="#3b82f6" stroke-width="3"/>
+    </g>
+  </symbol>
+
+  <!-- 37) بيطري: وش كلب + سماعة طبيب -->
+  <symbol id="veterinary" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M30 40l-8 30q0 16 14 16h8" fill="#92400e" transform="translate(4 4)"/>
+      <path d="M98 40l8 30q0 16-14 16h-8" fill="#92400e" transform="translate(4 4)"/>
+      <path d="M30 40l-8 30q0 16 14 16h8" fill="#b45309"/>
+      <path d="M98 40l8 30q0 16-14 16h-8" fill="#b45309"/>
+      <circle cx="64" cy="60" r="32" fill="#92400e" transform="translate(5 5)"/>
+      <circle cx="64" cy="60" r="32" fill="#f59e0b"/>
+      <path d="M64 70c-10 0-16 6-16 14 0 10 8 12 16 12s16-2 16-12c0-8-6-14-16-14z" fill="#fde68a"/>
+      <ellipse cx="64" cy="74" rx="7" ry="5" fill="#2b2118"/>
+      <path d="M64 79v8M58 90q6 4 12 0" stroke-width="3"/>
+      <circle cx="50" cy="52" r="4" fill="#2b2118" stroke="none"/><circle cx="78" cy="52" r="4" fill="#2b2118" stroke="none"/>
+      <path d="M40 40q12-6 24 0" stroke="#fff" stroke-width="3" opacity=".6"/>
+      <path d="M96 84q18 0 18 18" fill="none" stroke="#2563eb" stroke-width="4"/>
+      <circle cx="114" cy="106" r="7" fill="#60a5fa"/>
+      <path d="M20 98v12M14 104h12" stroke="#dc2626" stroke-width="5"/>
+    </g>
+  </symbol>
+
+  <!-- 38) ترزي: ماكينة خياطة + بكرة خيط -->
+  <symbol id="tailors" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="44" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="14" y="88" width="100" height="16" rx="4" fill="#1e3a8a" transform="translate(5 5)"/>
+      <rect x="14" y="88" width="100" height="16" rx="4" fill="#3b82f6"/>
+      <path d="M30 88V40q0-10 10-10h50q10 0 10 10v10H80v38" fill="#1e3a8a" transform="translate(5 5)"/>
+      <path d="M30 88V40q0-10 10-10h50q10 0 10 10v10H80v38" fill="#60a5fa"/>
+      <path d="M40 36h40" stroke="#fff" stroke-width="3" opacity=".7"/>
+      <path d="M40 50v38" stroke="#bfdbfe" stroke-width="3"/>
+      <path d="M86 66v20" stroke="#fff" stroke-width="4"/>
+      <circle cx="56" cy="62" r="9" fill="#fbbf24"/>
+      <circle cx="56" cy="62" r="3" fill="#2b2118" stroke="none"/>
+      <path d="M44 88h40" stroke="#bfdbfe" stroke-width="3"/>
+      <rect x="102" y="52" width="14" height="26" rx="3" fill="#9f1239" transform="translate(3 3)"/>
+      <rect x="102" y="52" width="14" height="26" rx="3" fill="#f43f5e"/>
+      <path d="M102 60h14M102 70h14" stroke="#fecdd3" stroke-width="2"/>
+      <path d="M92 36q6 6 0 12t0 12" fill="none" stroke="#f43f5e" stroke-width="2.5"/>
+    </g>
+  </symbol>
+
+  <!-- 39) دواجن: فرخة + بيضة -->
+  <symbol id="poultry" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="40" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M36 56q0-28 28-28t30 24-4 36H40q-4-16-4-32z" fill="#c2410c" transform="translate(5 5)"/>
+      <path d="M36 56q0-28 28-28t30 24-4 36H40q-4-16-4-32z" fill="#fb923c"/>
+      <path d="M46 44q8-8 20-6" stroke="#fff" stroke-width="3" opacity=".7"/>
+      <path d="M60 28q-2-12 8-12 2 8 8 10-6 4-16 2z" fill="#dc2626"/>
+      <path d="M94 50l14 6-14 6z" fill="#fbbf24"/>
+      <path d="M80 50c-6 8-6 16 0 22" fill="none" stroke="#fde68a" stroke-width="3"/>
+      <circle cx="84" cy="40" r="3.5" fill="#2b2118" stroke="none"/>
+      <path d="M52 88v16M70 88v16M44 104h16M62 104h16" stroke="#f59e0b" stroke-width="4"/>
+      <ellipse cx="22" cy="96" rx="12" ry="15" fill="#d6d3d1" transform="translate(3 3)"/>
+      <ellipse cx="22" cy="96" rx="12" ry="15" fill="#fff7ed"/>
+      <path d="M18 86a6 10 0 0 1 4-4" stroke="#fff" stroke-width="2"/>
+    </g>
+  </symbol>
+
+  <!-- 40) أسماك: سمكة زرقاء + فقاعات -->
+  <symbol id="fish-shops" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="42" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <path d="M100 66l18-18v36z" fill="#1e40af" transform="translate(4 4)"/>
+      <path d="M100 66l18-18v36z" fill="#3b82f6"/>
+      <path d="M20 66q34-32 80 0-46 32-80 0z" fill="#1e40af" transform="translate(5 5)"/>
+      <path d="M20 66q34-32 80 0-46 32-80 0z" fill="#38bdf8"/>
+      <path d="M46 50q12 16 0 32M62 46q12 20 0 40M78 50q10 16 0 32" fill="none" stroke="#0ea5e9" stroke-width="3"/>
+      <path d="M58 40q-6 10 0 20M74 40q-6 10 0 20" fill="none" stroke="#1e40af" stroke-width="2.5"/>
+      <path d="M58 44l12-14 14 14" fill="#0284c7"/>
+      <circle cx="34" cy="62" r="5" fill="#fff"/><circle cx="35" cy="62" r="2.5" fill="#2b2118" stroke="none"/>
+      <path d="M34 54q8-8 20-8" stroke="#fff" stroke-width="3" opacity=".7"/>
+      <circle cx="18" cy="34" r="5" fill="#e0f2fe"/><circle cx="30" cy="22" r="4" fill="#e0f2fe"/><circle cx="12" cy="18" r="3" fill="#e0f2fe"/>
+    </g>
+  </symbol>
+
+  <!-- 41) مكتبة وأدوات مكتبية: كتب + قلم رصاص -->
+  <symbol id="stationery" viewBox="0 0 128 128">
+    <g filter="url(#sketch)" stroke="#2b2118" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="64" cy="118" rx="42" ry="6" fill="#000" opacity=".16" stroke="none"/>
+      <rect x="18" y="80" width="80" height="22" rx="4" fill="#1e40af" transform="translate(5 5)"/>
+      <rect x="18" y="80" width="80" height="22" rx="4" fill="#3b82f6"/>
+      <rect x="24" y="56" width="70" height="22" rx="4" fill="#047857" transform="translate(5 5)"/>
+      <rect x="24" y="56" width="70" height="22" rx="4" fill="#34d399"/>
+      <rect x="20" y="32" width="64" height="22" rx="4" fill="#b91c1c" transform="translate(5 5)"/>
+      <rect x="20" y="32" width="64" height="22" rx="4" fill="#f87171"/>
+      <path d="M26 38h28M30 62h28M26 86h40" stroke="#fff" stroke-width="3" opacity=".7"/>
+      <path d="M84 36h10M94 60h10M98 84h10" stroke="#2b2118" stroke-width="3"/>
+      <path d="M104 20l14 14-36 36-18 4 4-18z" fill="#b45309" transform="translate(3 3)"/>
+      <path d="M104 20l14 14-36 36-18 4 4-18z" fill="#fbbf24"/>
+      <path d="M68 74l4-18 14 14z" fill="#fde68a"/>
+      <path d="M68 74l6-6" stroke="#2b2118" stroke-width="3"/>
+      <path d="M100 24l14 14" stroke="#f472b6" stroke-width="5"/>
     </g>
   </symbol>
 </svg>

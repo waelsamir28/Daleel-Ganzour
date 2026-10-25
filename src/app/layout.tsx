@@ -17,6 +17,7 @@ import "./availability.css";
 import "./theme.css";
 import "./aero.css";
 import "./fluent.css";
+import "./metro.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app";
 const SITE_TITLE = "دليل المهن والخدمات بقرية جنزور";

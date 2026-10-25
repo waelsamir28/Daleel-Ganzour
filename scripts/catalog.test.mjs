@@ -221,7 +221,9 @@ test("keeps sections, specialties and icons coherent", () => {
     assert.equal(category.active, true);
     if (category.parentId === null) {
       assert.equal(category.light, `${category.color}12`, `${category.id} light tint matches its color`);
-      assert.ok(initialCategories.some((item) => item.parentId === category.id), `${category.id} has at least one specialty`);
+      // قسم المدرسين يبدأ بلا تخصصات مدمجة (الإدارة تضيفها من اللوحة) — طلب المهمة 52.
+      if (category.id !== "teachers") assert.ok(initialCategories.some((item) => item.parentId === category.id), `${category.id} has at least one specialty`);
+      else assert.equal(initialCategories.some((item) => item.parentId === "teachers"), false, "teachers ships without built-in specialties");
     } else {
       const parent = getCategory(category.parentId, initialCategories);
       assert.equal(parent.parentId, null, `${category.id} belongs to a root section`);
@@ -945,7 +947,7 @@ test("pinned professions, weekly stars and profession art settings sanitize corr
   assert.equal(cleaned.topProfessionsPinned, "barbers,plumbing");
   assert.equal(cleaned.showWeeklyStars, false);
   assert.equal(cleaned.specialtyArt3d, false);
-  assert.equal(professionArtIds.length, 28);
+  assert.equal(professionArtIds.length, 41);
   // كل معرّف في القائمة له رمز فعلي داخل ملف الرسومات، وكل رمز في الملف مُسجّل في القائمة.
   const artSvg = readFileSync(new URL("../public/images/profession-art.svg", import.meta.url), "utf8");
   const symbolIds = [...artSvg.matchAll(/<symbol id="([^"]+)"/g)].map((m) => m[1]);

@@ -57,11 +57,12 @@ html.dark body {
 
 .theme-toggle-track {
   position: relative;
-  display: inline-flex;
-  align-items: center;
+  display: inline-block;
+  flex: none;
   width: 44px;
   height: 24px;
-  padding: 2px;
+  padding: 0;
+  overflow: hidden;
   border-radius: 999px;
   background: linear-gradient(135deg, #bfdcf7, #95c3ee);
   box-shadow: inset 0 1px 3px rgba(11, 44, 77, .18);
@@ -69,6 +70,9 @@ html.dark body {
 }
 
 .theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  right: 2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -81,6 +85,18 @@ html.dark body {
   transform: translateX(0);
   transition: transform .26s cubic-bezier(.22, 1, .36, 1), background .24s ease, color .24s ease;
 }
+
+/* الأيقونتان ثابتتان داخل المسار، والكرة تتحرك 20px فقط فلا تخرج أبدًا خارج الزر */
+.theme-toggle .icon-moon,
+.theme-toggle .icon-sun {
+  position: absolute;
+  top: 4.5px;
+  width: 15px;
+  height: 15px;
+  pointer-events: none;
+}
+.theme-toggle .icon-sun { left: 5px; }
+.theme-toggle .icon-moon { right: 5px; }
 
 .theme-toggle .icon-moon {
   display: none;

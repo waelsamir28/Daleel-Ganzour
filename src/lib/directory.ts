@@ -17,9 +17,9 @@ export async function readDeletedCategoryIds(client: Queryable = db): Promise<Se
     return new Set(Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : []);
   } catch { return new Set(); }
 }
-export async function writeDeletedCategoryIds(ids: Set<string>) {
+export async function writeDeletedCategoryIds(ids: Set<string>, client: Queryable = db) {
   const value = JSON.stringify([...ids]);
-  await db.insert(directorySettings).values({ key: DELETED_CATEGORIES_KEY, value }).onConflictDoUpdate({ target: directorySettings.key, set: { value } });
+  await client.insert(directorySettings).values({ key: DELETED_CATEGORIES_KEY, value }).onConflictDoUpdate({ target: directorySettings.key, set: { value } });
 }
 function getPreviewDirectory(): PublicDirectory {
   return {
@@ -144,6 +144,17 @@ export async function ensureSeed() {
             }
           }
         }
+      }
+      // One-time (existing databases): the built-in teacher specialties are retired — the admin adds his own
+      // specialties under «المدرسين». Their services move to the section root so nothing disappears.
+      const teacherReset = await tx.insert(directorySettings).values({ key: "teachers_specialties_reset_v1", value: new Date().toISOString() }).onConflictDoNothing().returning();
+      if (teacherReset.length) {
+        const retired = ["arabic", "english", "math", "science", "social-studies", "quran", "kindergarten"];
+        await tx.update(services).set({ category: "teachers" }).where(inArray(services.category, retired));
+        await tx.delete(directoryCategories).where(and(inArray(directoryCategories.id, retired), eq(directoryCategories.parentId, "teachers")));
+        const removed = await readDeletedCategoryIds(tx);
+        for (const id of retired) removed.add(id);
+        await writeDeletedCategoryIds(removed, tx);
       }
       if (!marker.length) return;
       await tx.insert(directoryAreas).values(areas.map((name, sortOrder) => ({ name, sortOrder }))).onConflictDoNothing();
