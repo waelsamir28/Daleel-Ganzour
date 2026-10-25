@@ -752,7 +752,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                                 scrollToProviders();
                               }}
                             >
-                              <span className="category-icon"><CategoryIcon icon={spec.icon} size={32}/></span>
+                              <span className={`category-icon ${design.specialtyArt3d ? "has-profession-art" : ""}`}><SpecialtyIcon category={spec} size={design.specialtyArt3d ? 56 : 32} art3d={design.specialtyArt3d}/></span>
                               <strong>{spec.name}</strong>
                               <span className="category-meta">{teacherStageCount(stage.id, spec.id)} مدرس<ChevronLeft size={12}/></span>
                             </button>
@@ -914,7 +914,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                       onClick={() => sendCategoryHit(category.id, "view", `top:${category.id}`)}
                     >
                       <span className={`top-profession-rank ${item.pinned ? "is-pinned" : ""}`} aria-hidden="true">{item.pinned ? <Pin size={11}/> : index + 1}</span>
-                      <span className="top-profession-icon"><SpecialtyIcon category={category} size={design.specialtyArt3d && hasProfessionArt(category.id) ? 34 : 22} art3d={design.specialtyArt3d}/></span>
+                      <span className="top-profession-icon"><SpecialtyIcon category={category} size={design.specialtyArt3d ? 34 : 22} art3d={design.specialtyArt3d}/></span>
                       <strong>{category.name}</strong>
                       <small>{parent.name} · {item.providers} {item.providers === 1 ? "مقدم خدمة" : "مقدمي خدمة"}</small>
                     </Link>
@@ -940,7 +940,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                   className="category-tile"
                   style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}
                 >
-                  <span className={`category-icon ${design.specialtyArt3d && hasProfessionArt(category.id) ? "has-profession-art" : ""}`}>{design.specialtyArt3d && hasProfessionArt(category.id) ? <SpecialtyIcon category={category} size={category.parentId ? 56 : 76} art3d/> : category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon} art={category.art}/>}</span>
+                  <span className={`category-icon ${design.specialtyArt3d && (category.parentId || hasProfessionArt(category.id)) ? "has-profession-art" : ""}`}>{design.specialtyArt3d && (category.parentId || hasProfessionArt(category.id)) ? <SpecialtyIcon category={category} size={category.parentId ? 56 : 76} art3d/> : category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon} art={category.art}/>}</span>
                   <strong>{category.name}</strong>
                   <span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span>
                 </Link>

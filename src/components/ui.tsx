@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { Accessibility, Activity, AirVent, Ambulance, Antenna, Anvil, Apple, Armchair, Atom, Axe, Baby, Backpack, Bandage, Banknote, Bath, BatteryCharging, Bed, Beef, BellRing, Bike, Bird, Blinds, Bone, Book, BookMarked, BookOpen, Bot, Boxes, Brain, BrickWall, Briefcase, BriefcaseMedical, Brush, Bug, Building2, Bus, Cake, Calculator, Camera, Candy, Car, CarFront, Carrot, Cctv, ChartBar, ChefHat, CircuitBoard, Citrus, Clapperboard, ClipboardList, Code, Coffee, Cog, Coins, Compass, Construction, Cookie, CookingPot, Cpu, CreditCard, Croissant, Cross, Crown, Cuboid, CupSoda, Disc3, Dna, Dog, DoorOpen, Drill, Droplets, Drumstick, Dumbbell, Ear, Egg, Ellipsis, Eye, Factory, Fan, Feather, Fence, FileText, Fish, Flame, Flashlight, FlaskConical, Flower, Footprints, Forklift, Fuel, Gamepad2, Gauge, Gavel, Gem, Gift, GlassWater, Glasses, Globe, GraduationCap, Grid2X2, Guitar, Hammer, Hand, HandCoins, HandHeart, HardDrive, HardHat, Headphones, Heart, HeartHandshake, HeartPulse, Hospital, Hotel, House, IceCreamCone, Key, Keyboard, Lamp, Landmark, Languages, Laptop, Leaf, Library, Lightbulb, Lock, Mail, Map, MapPin, Medal, Megaphone, Mic, Microscope, Microwave, Milk, Monitor, Moon, MoonStar, Music, Navigation, Newspaper, NotebookPen, Nut, PackageOpen, PaintBucket, PaintRoller, Paintbrush, Palette, PanelsTopLeft, PartyPopper, PawPrint, PenTool, Pencil, PersonStanding, Phone, Pickaxe, PiggyBank, Pill, Pizza, Plane, Plug, Presentation, Printer, Puzzle, Rabbit, Radio, Receipt, Recycle, Refrigerator, Ribbon, Route, Router, Ruler, Salad, Sandwich, Satellite, Scale, School, Scissors, ScrollText, Send, Server, Settings, Shield, ShieldCheck, Shirt, ShoppingBasket, Shovel, ShowerHead, Sigma, Signature, Siren, Smartphone, Smile, Snowflake, Sofa, Sparkles, Speaker, SprayCan, Sprout, Stamp, Star, Stethoscope, Store, Sun, Syringe, TabletSmartphone, Tablets, Telescope, Tent, TestTube, Theater, Thermometer, Ticket, Toilet, Tractor, TrafficCone, Trash2, TreePine, Trees, Trophy, Truck, Tv, Type, Umbrella, UserRound, Users, UsersRound, Utensils, UtensilsCrossed, Video, Volleyball, Wallet, WandSparkles, Warehouse, WashingMachine, Watch, Waves, Wheat, Wifi, Wrench, X, Zap, type LucideIcon } from "lucide-react";
-import { categoryArt, categoryArtOptions, defaultSettings, getCategory, type CategoryRecord, hasProfessionArt } from "@/lib/catalog";
+import { categoryArt, categoryArtOptions, defaultSettings, getCategory, type CategoryRecord, hasProfessionArt, isHexColor, shadeHex } from "@/lib/catalog";
 
 // Exactly the icons the catalogue offers (see iconNames), so no unreachable component is bundled.
 const categoryIcons: Record<string, LucideIcon> = { Wrench, Stethoscope, Store, GraduationCap, HandHeart, Grid2X2, Hammer, Droplets, Zap, Anvil, Paintbrush, BrickWall, PanelsTopLeft, Snowflake, Cog, Armchair, Baby, Smile, HeartPulse, Bone, Sparkles, Eye, Activity, ShoppingBasket, Pill, Shirt, BookOpen, Tv, Utensils, Smartphone, Languages, Calculator, FlaskConical, Globe, Heart, UsersRound, Scale, Truck, Cctv, Sun, Ellipsis, Printer, Megaphone, Palette, Camera, Disc3, Scissors, WandSparkles, PartyPopper, Sofa, PackageOpen, Car, SprayCan, WashingMachine, Gavel, ScrollText, Drill, Pickaxe, Shovel, Axe, PaintRoller, PaintBucket, Ruler, HardHat, Construction, Fence, Lightbulb, Plug, BatteryCharging, Fan, AirVent, Thermometer, ShowerHead, Bath, Toilet, Flame, Key, DoorOpen, Blinds, Bed, Lamp, Refrigerator, Microwave, Nut, CircuitBoard, Cuboid, Boxes, Waves, CarFront, Fuel, Gauge, Bus, Bike, Tractor, Forklift, Plane, TrafficCone, Route, Navigation, ChefHat, CookingPot, Beef, Drumstick, Fish, Croissant, Cake, Coffee, CupSoda, Apple, Carrot, Wheat, Egg, Milk, IceCreamCone, Pizza, Sandwich, Candy, Cookie, Salad, Citrus, GlassWater, UtensilsCrossed, Brush, Ribbon, Crown, Gem, Watch, Glasses, Footprints, Hand, Flower, Gift, Puzzle, Gamepad2, Laptop, Monitor, Cpu, Wifi, Satellite, Router, Keyboard, Headphones, Speaker, Radio, Code, Bot, Antenna, TabletSmartphone, Phone, HardDrive, Book, Library, NotebookPen, Backpack, School, Pencil, PenTool, Music, Guitar, Mic, Atom, Sigma, Telescope, Compass, BookMarked, MoonStar, Presentation, Feather, Type, Syringe, Tablets, Brain, Ear, Microscope, TestTube, Dna, Ambulance, Hospital, Cross, Accessibility, Dumbbell, Trophy, Medal, Volleyball, Bandage, BriefcaseMedical, HeartHandshake, PawPrint, Dog, Briefcase, FileText, Banknote, CreditCard, Coins, PiggyBank, Receipt, Wallet, HandCoins, Landmark, Building2, Hotel, House, Warehouse, Factory, Stamp, Signature, ClipboardList, Mail, Send, Ticket, ChartBar, Leaf, Sprout, TreePine, Trees, Bird, Bug, Tent, Umbrella, Rabbit, Shield, ShieldCheck, Siren, BellRing, Lock, Flashlight, Recycle, Trash2, Clapperboard, Video, Newspaper, Theater, Star, MapPin, Map, Moon, Users, UserRound, PersonStanding, Settings, Server };
@@ -11,11 +11,32 @@ export function CategoryIcon({ category = "", icon, size = 32, className = "" }:
   const Icon = categoryIcons[icon ?? getCategory(category).icon] ?? Wrench;
   return <Icon size={size} strokeWidth={2.3} className={className} aria-hidden="true"/>;
 }
-/** رسم ثلاثي الأبعاد مرسوم باليد لمهنة من أهم 12 مهنة؛ يرجع للأيقونة المسطحة إن لم يتوفر رسم أو كانت الخاصية مغلقة. */
-export function SpecialtyIcon({ category, size = 35, art3d = false, className = "" }: { category: { id: string; icon: string }; size?: number; art3d?: boolean; className?: string }) {
+/**
+ * أيقونة مجسّمة تُولَّد تلقائيًا من أي أيقونة مسطحة بنفس أسلوب الرسومات اليدوية (حدود داكنة + بروز + تعبئة فاتحة + لمعة)،
+ * بلون القسم. تعمل مع أي تخصص حالي أو جديد دون رسم يدوي.
+ */
+export function AutoArtIcon({ icon, color = "#0876e1", size = 56, className = "" }: { icon: string; color?: string; size?: number; className?: string }) {
+  const Icon = categoryIcons[icon] ?? Wrench;
+  const base = isHexColor(color) ? color : "#0876e1";
+  const dark = shadeHex(base, -0.45), light = shadeHex(base, 0.4), tint = shadeHex(base, 0.74);
+  const common = { x: 22, y: 18, size: 84, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
+  return (
+    <svg className={`profession-art auto-art ${className}`} viewBox="0 0 128 128" style={{ width: size, height: size }} aria-hidden="true">
+      <ellipse cx="64" cy="118" rx="38" ry="6" fill="#000" opacity=".16"/>
+      <g transform="translate(5 6)"><Icon {...common} stroke={dark} strokeWidth={1.5}/></g>
+      <Icon {...common} stroke="#2b2118" strokeWidth={1.55}/>
+      <Icon {...common} stroke="none" fill={tint} fillRule="evenodd"/>
+      <Icon {...common} stroke={base} strokeWidth={0.95}/>
+      <g transform="translate(-0.6 -0.8)"><Icon {...common} stroke={light} strokeWidth={0.32} opacity={0.9}/></g>
+    </svg>
+  );
+}
+/** رسم ثلاثي الأبعاد للتخصص: مرسوم باليد إن توفر، وإلا يُولَّد تلقائيًا من أيقونته بلون قسمه؛ يرجع للأيقونة المسطحة إن كانت الخاصية مغلقة. */
+export function SpecialtyIcon({ category, size = 35, art3d = false, className = "" }: { category: { id: string; icon: string; color?: string }; size?: number; art3d?: boolean; className?: string }) {
   if (art3d && hasProfessionArt(category.id)) {
     return <svg className={`profession-art ${className}`} viewBox="0 0 128 128" style={{ width: size, height: size }} aria-hidden="true"><use href={`/images/profession-art.svg#${category.id}`}/></svg>;
   }
+  if (art3d) return <AutoArtIcon icon={category.icon} color={category.color} size={size} className={className}/>;
   return <CategoryIcon icon={category.icon} size={size} className={className}/>;
 }
 export function MainCategoryIcon({ icon, art = "", size }: { icon: string; art?: string; size?: number }) {

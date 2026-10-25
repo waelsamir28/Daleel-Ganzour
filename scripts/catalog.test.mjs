@@ -945,7 +945,11 @@ test("pinned professions, weekly stars and profession art settings sanitize corr
   assert.equal(cleaned.topProfessionsPinned, "barbers,plumbing");
   assert.equal(cleaned.showWeeklyStars, false);
   assert.equal(cleaned.specialtyArt3d, false);
-  assert.equal(professionArtIds.length, 12);
+  assert.equal(professionArtIds.length, 28);
+  // كل معرّف في القائمة له رمز فعلي داخل ملف الرسومات، وكل رمز في الملف مُسجّل في القائمة.
+  const artSvg = readFileSync(new URL("../public/images/profession-art.svg", import.meta.url), "utf8");
+  const symbolIds = [...artSvg.matchAll(/<symbol id="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual([...symbolIds].sort(), [...professionArtIds].sort());
   assert.equal(hasProfessionArt("electricity"), true);
   assert.equal(hasProfessionArt("nope"), false);
 });
