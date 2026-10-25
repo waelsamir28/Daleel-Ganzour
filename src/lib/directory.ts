@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
-import { activityLog, adBanners, adRequests, categoryHits, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
+import { activityLog, adBanners, adRequests, categoryHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
 import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type TopCategoryRecord, parsePinnedProfessions } from "@/lib/catalog";
 import { getWhatsappAlertKinds, getWhatsappAlertStatus } from "@/lib/whatsapp-alert";
 
@@ -47,6 +47,7 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS sub_specialties jsonb NOT NULL DEFAULT '[]'::jsonb`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS needed_rank integer NOT NULL DEFAULT 0`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS review_note text NOT NULL DEFAULT ''`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_category_icons (category_id varchar(60) PRIMARY KEY, mime varchar(60) NOT NULL DEFAULT 'image/png', data text NOT NULL DEFAULT '', version integer NOT NULL DEFAULT 1, updated_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_status varchar(20) NOT NULL DEFAULT 'none'`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_note text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_draft jsonb`);
@@ -217,7 +218,7 @@ export function serializeService(item: typeof services.$inferSelect): ServiceRec
   const completionStatus = (["none", "requested", "submitted", "rejected"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
   return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
 }
-export function serializeCategory(item: typeof directoryCategories.$inferSelect): CategoryRecord { return { ...item, light: `${item.color}12` }; }
+export function serializeCategory(item: typeof directoryCategories.$inferSelect, imageVersion = 0): CategoryRecord { return { ...item, light: `${item.color}12`, ...(imageVersion ? { imageVersion } : {}) }; }
 const adColumns = { id: adBanners.id, template: adBanners.template, transition: adBanners.transition, motion: adBanners.motion, accentColor: adBanners.accentColor, title: adBanners.title, caption: adBanners.caption, serviceId: adBanners.serviceId, whatsapp: adBanners.whatsapp, active: adBanners.active, startsAt: adBanners.startsAt, endsAt: adBanners.endsAt, sortOrder: adBanners.sortOrder, durationSeconds: adBanners.durationSeconds, imageMime: adBanners.imageMime, imageVersion: adBanners.imageVersion, hasImage: sql<boolean>`length(${adBanners.imageData}) > 0`, createdAt: adBanners.createdAt };
 export function serializeAd(row: { id: string; template: string; transition: string; motion: string; accentColor: string; title: string; caption: string; serviceId: string | null; whatsapp: string; active: boolean; startsAt: Date | null; endsAt: Date | null; sortOrder: number; durationSeconds: number; imageMime: string; imageVersion: number; hasImage: boolean; createdAt: Date }): AdBannerRecord {
   return { ...row, hasImage: Boolean(row.hasImage), startsAt: row.startsAt?.toISOString() ?? null, endsAt: row.endsAt?.toISOString() ?? null, createdAt: row.createdAt.toISOString() };
@@ -229,12 +230,14 @@ export async function listAds(): Promise<AdBannerRecord[]> {
 }
 async function getCatalog() {
   await ensureSeed();
-  const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal, ads, adPricing, events, greetingSettings] = await Promise.all([
+  const [categoryRows, areaRows, settings, utilityNumbers, designSettings, memberTotal, ads, adPricing, events, greetingSettings, iconVersions] = await Promise.all([
     db.select().from(directoryCategories).orderBy(asc(directoryCategories.sortOrder), asc(directoryCategories.name)),
     db.select().from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
     getSettings(), getUtilityNumbers(), getDesignSettings(), db.select({ total: sql<number>`count(*)::int` }).from(members), listAds(), getAdPricing(), listEvents(), getGreetingSettings(),
+    db.select({ categoryId: categoryIcons.categoryId, version: categoryIcons.version }).from(categoryIcons),
   ]);
-  return { categories: categoryRows.map(serializeCategory), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads, adPricing, events, greetings: activeGreetings(greetingSettings), greetingSettings };
+  const iconVersionMap = new Map(iconVersions.map((row) => [row.categoryId, row.version]));
+  return { categories: categoryRows.map((row) => serializeCategory(row, iconVersionMap.get(row.id) ?? 0)), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads, adPricing, events, greetings: activeGreetings(greetingSettings), greetingSettings };
 }
 // «أهم مهن القرية»: specialties ranked by real usage (opened pages/details count once, calls and
 // WhatsApp taps count double). Until enough real data exists, the list is topped up with the

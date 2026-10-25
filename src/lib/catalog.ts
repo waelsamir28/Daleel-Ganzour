@@ -329,6 +329,8 @@ export type CategoryRecord = {
   color: string; light: string; icon: string; sortOrder: number; active: boolean;
   /** Dimensional (3D) artwork symbol for root sections; empty means "derive from the icon". */
   art: string;
+  /** رقم نسخة الأيقونة المرفوعة من الإدارة (0 أو غير موجود = لا توجد). */
+  imageVersion?: number;
 };
 /** The 3D symbols available in /images/category-3d.svg that a root section can display. */
 export const categoryArtOptions: Array<{ id: string; label: string }> = [
@@ -1147,6 +1149,8 @@ export type DesignSettings = {
   topProfessionsPinned: string;
   showWeeklyStars: boolean;
   specialtyArt3d: boolean;
+  /** أيقونات «الملصقات 3D» (الجاهزة + المرفوعة من الإدارة) بدل الرسم اليدوي حيثما توفرت. */
+  specialtyStickerIcons: boolean;
   powerSaveMode: "auto" | "on" | "off";
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
@@ -1483,6 +1487,7 @@ export const defaultDesignSettings: DesignSettings = {
   topProfessionsPinned: "",
   showWeeklyStars: true,
   specialtyArt3d: true,
+  specialtyStickerIcons: true,
   powerSaveMode: "auto",
   showProviderWhatsappBtn: true,
   whatsappButtonColor: "#1fa855",
@@ -2064,6 +2069,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.providerEdgeToolsPosition = pickEnum(record.providerEdgeToolsPosition, ["left", "right", "bottom"] as const, defaultDesignSettings.providerEdgeToolsPosition);
   next.showTopProfessions = pickBool(record.showTopProfessions, defaultDesignSettings.showTopProfessions);
   next.specialtyArt3d = pickBool(record.specialtyArt3d, defaultDesignSettings.specialtyArt3d);
+  next.specialtyStickerIcons = pickBool(record.specialtyStickerIcons, defaultDesignSettings.specialtyStickerIcons);
   next.topProfessionsPinned = parsePinnedProfessions(record.topProfessionsPinned).join(",");
   next.showWeeklyStars = pickBool(record.showWeeklyStars, defaultDesignSettings.showWeeklyStars);
   next.powerSaveMode = pickEnum(record.powerSaveMode, ["auto", "on", "off"] as const, defaultDesignSettings.powerSaveMode);
@@ -2435,6 +2441,30 @@ export function parseAdImageDataUrl(value: unknown): { mime: string; base64: str
   const bytes = Math.floor((base64.length * 3) / 4) - padding;
   if (bytes < 100) throw new Error("ملف الصورة فارغ أو تالف.");
   if (bytes > AD_IMAGE_MAX_BYTES) throw new Error("حجم الصورة أكبر من ٣ ميجا. صغّر الـ GIF وحاول مرة أخرى.");
+  return { mime: match[1], base64 };
+}
+/** أيقونات «الملصقات 3D» الجاهزة (مولّدة بأسلوب صورة المرجع) — ملف WebP 256px لكل تخصص/قسم في `/images/specialty-stickers/`. */
+export const stickerIconIds = ["crafts", "carpentry", "plumbing", "electricity", "metalwork", "painting", "masonry", "tiles", "aluminum", "glass"] as const;
+export function hasStickerIcon(categoryId: string) { return (stickerIconIds as readonly string[]).includes(categoryId); }
+export function stickerIconUrl(categoryId: string) { return `/images/specialty-stickers/${categoryId}.webp`; }
+/** رابط الأيقونة المرفوعة من الإدارة؛ يحمل رقم النسخة ليُخزَّن في المتصفح بأمان. */
+export function categoryImageUrl(category: Pick<CategoryRecord, "id" | "imageVersion">) { return `/api/category-icon/${category.id}?v=${category.imageVersion ?? 0}`; }
+/** الصورة التي تمثّل التصنيف بالملصقات: المرفوعة أولًا ثم الجاهزة، وإلا فارغ (يرجع للرسم اليدوي/التلقائي). */
+export function categoryStickerSrc(category: Pick<CategoryRecord, "id" | "imageVersion">): string {
+  if (category.imageVersion) return categoryImageUrl(category);
+  return hasStickerIcon(category.id) ? stickerIconUrl(category.id) : "";
+}
+export const CATEGORY_ICON_MAX_BYTES = 800 * 1024;
+/** يتحقق من صورة أيقونة مرفوعة (PNG/JPG/WebP/GIF حتى 800 كيلوبايت). */
+export function parseCategoryIconDataUrl(value: unknown): { mime: string; base64: string } {
+  if (typeof value !== "string") throw new Error("ارفع صورة الأيقونة أولًا.");
+  const match = /^data:(image\/(?:gif|png|jpeg|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(value.trim());
+  if (!match) throw new Error("صيغة الأيقونة غير مدعومة. ارفع PNG أو JPG أو WebP.");
+  const base64 = match[2].replace(/\s+/g, "");
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  const bytes = Math.floor((base64.length * 3) / 4) - padding;
+  if (bytes < 100) throw new Error("ملف الأيقونة فارغ أو تالف.");
+  if (bytes > CATEGORY_ICON_MAX_BYTES) throw new Error("حجم الأيقونة أكبر من 800 كيلوبايت. صغّر الصورة (256×256 يكفي) وحاول مرة أخرى.");
   return { mime: match[1], base64 };
 }
 export type RatingRecord = { id: string; serviceId: string; serviceName: string; memberName: string; stars: number; comment: string; status: string; createdAt: string };

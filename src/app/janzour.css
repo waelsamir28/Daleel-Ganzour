@@ -11691,3 +11691,14 @@ html.dark .icon-live-preview-tile small { color: #cbd5e1; }
 .detail-v2-fact-icon.has-profession-art { background: transparent !important; border-color: transparent !important; box-shadow: none !important; overflow: visible; }
 .specialty-art-picker .art-picker-grid { max-height: 240px; overflow-y: auto; padding: 4px; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
 .specialty-art-picker .art-picker-option { padding: 6px 4px; font-size: 11px; }
+
+/* أيقونات الملصقات 3D (صور WebP جاهزة أو مرفوعة من الإدارة) */
+.specialty-sticker { display: inline-block; object-fit: contain; border-radius: 22%; filter: drop-shadow(0 3px 4px rgba(21, 59, 91, .18)); user-select: none; }
+.category-tile .specialty-sticker { transition: transform .25s ease; }
+.category-tile:hover .specialty-sticker { transform: translateY(-2px) scale(1.04); }
+html.dark .specialty-sticker { filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .45)); }
+.category-icon-upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+.category-icon-upload-preview { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 16px; border: 1px dashed var(--design-border, #c9d9ea); background: rgba(255, 255, 255, .5); font-size: 11px; }
+html.dark .category-icon-upload-preview { background: rgba(255, 255, 255, .05); }
+.category-icon-upload-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.category-icon-upload-actions .button { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
