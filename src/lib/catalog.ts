@@ -2997,8 +2997,8 @@ export function liveTickerItems(greetings: ActiveGreeting[] | undefined, events:
 }
 
 
-/** المهن الاثنتا عشرة التي لها رسم ثلاثي الأبعاد مرسوم باليد في /images/profession-art.svg (معرّف التصنيف = معرّف الرمز). */
-export const professionArtIds = ["electricity", "plumbing", "carpentry", "painting", "ac", "mechanics", "dentistry", "pharmacies", "teachers", "barbers", "groceries", "photography"] as const;
+/** المهن التي لها رسم ثلاثي الأبعاد مرسوم باليد (الباقي يُولَّد تلقائيًا بنفس الأسلوب من أيقونته) في /images/profession-art.svg (معرّف التصنيف = معرّف الرمز). */
+export const professionArtIds = ["electricity", "plumbing", "carpentry", "painting", "ac", "mechanics", "dentistry", "pharmacies", "teachers", "barbers", "groceries", "photography", "metalwork", "masonry", "tiles", "family", "pediatrics", "ophthalmology", "medical-labs", "butchers", "bakeries", "produce", "cafes", "mobile-shops", "cameras", "rides", "lawyers", "clothing"] as const;
 export function hasProfessionArt(categoryId: string) { return (professionArtIds as readonly string[]).includes(categoryId); }
 
 /** معرّفات التخصصات المثبّتة يدويًا في أول صف «أهم مهن القرية» (مفصولة بفواصل، بحد أقصى 6). */

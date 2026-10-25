@@ -1175,7 +1175,7 @@ export default function DesignCustomizer({
                 <InnerDivider title="أهم مهن القرية" subtitle="صف أفقي على الرئيسية لأكثر 8 تخصصات طلبًا حسب فتح الصفحات والاتصالات الفعلية (يُستكمل بعدد مقدمي الخدمة حتى تتجمع بيانات كافية)." />
                 <div className="design-toggles-grid">
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showTopProfessions} onChange={(e) => updateField("showTopProfessions", e.target.checked)}/>إظهار صف «أهم مهن القرية» فوق أقسام القرية في الرئيسية</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>رسومات ثلاثية الأبعاد مرسومة باليد لأهم 12 مهنة (كهربائي، سباك، نجار، نقاش، تكييف، ميكانيكي، أسنان، صيدلية، مدرّس، حلاق، بقالة، مصوّر) في بطاقات التخصصات وصف أهم المهن</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>أيقونات مجسّمة بأسلوب «مرسوم باليد» لكل التخصصات في كل الأقسام (28 مهنة مرسومة يدويًا، والباقي يتولّد تلقائيًا بنفس الأسلوب بلون قسمه — وأي تخصص جديد يحصل على أيقونته فورًا)</label>
                 </div>
                 <div className="design-toggles-grid">
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showWeeklyStars} onChange={(e) => updateField("showWeeklyStars", e.target.checked)}/>شارة «نجم الأسبوع ⭐» تلقائيًا لأفضل 3 مقدمي خدمة حسب تقييمات الأعضاء خلال آخر 7 أيام (متوسط 4 نجوم فأكثر)</label>

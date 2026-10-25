@@ -11668,3 +11668,16 @@ html.dark .activity-log-action strong { color: #93c5fd; }
 html.dark .activity-log-avatar { background: #1e3448; color: #bfdbfe; }
 html.dark .activity-log-detail { color: #cbd5e1 !important; }
 @media (max-width: 700px) { .activity-log-row { flex-wrap: wrap; } .activity-log-row time { width: 100%; padding-inline-start: 50px; } }
+
+/* ===== معاينة حية لأيقونة التخصص في شاشة الإضافة/التعديل ===== */
+.icon-live-preview { grid-column: 1 / -1; display: grid; gap: 8px; padding: 12px 14px; border: 1px dashed #b9d3ee; border-radius: 14px; background: linear-gradient(180deg, #f6faff, #eef5fc); }
+.icon-live-preview-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #0b4a93; }
+.icon-live-preview-tiles { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; }
+.icon-live-preview-tile { flex: 1 1 140px; display: grid; justify-items: center; align-content: center; gap: 8px; min-height: 112px; padding: 10px; border-radius: 14px; background: #fff; border: 1px solid #dbe7f3; text-align: center; }
+.icon-live-preview-tile small { font-size: 11.5px; color: #475569; }
+.icon-live-preview-flat { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 14px; color: var(--category-color, #0876e1); background: color-mix(in srgb, var(--category-color, #0876e1) 14%, #fff); border: 1px solid color-mix(in srgb, var(--category-color, #0876e1) 30%, #fff); }
+.icon-live-preview .input-help { margin: 0; }
+html.dark .icon-live-preview { background: linear-gradient(180deg, #0f1f33, #0b1829); border-color: #28496b; }
+html.dark .icon-live-preview-label { color: #93c5fd; }
+html.dark .icon-live-preview-tile { background: #102034; border-color: #1e3448; }
+html.dark .icon-live-preview-tile small { color: #cbd5e1; }
