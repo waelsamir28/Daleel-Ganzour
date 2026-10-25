@@ -2471,8 +2471,10 @@ export const stickerIconIds = [
   "charities", "community-support", "charitable-associations", "orphan-care",
   // المحاماة والاستشارات (3؛ القسم والقضايا أعلاه)
   "legal-consulting", "contracts",
-  // خدمات أخرى (القسم + 4 من 8؛ الباقي: خدمات متنوعة، البيطري، الجيم، المهندس الزراعي)
-  "other-services", "cameras", "solar", "tailors", "laundry",
+  // خدمات أخرى (القسم + 8)
+  "other-services", "cameras", "solar", "tailors", "laundry", "other", "veterinary", "gyms", "agri-engineering",
+  // المدرسين (القسم؛ تخصصاته يضيفها المدير)
+  "teachers",
 ] as const;
 export function hasStickerIcon(categoryId: string) { return (stickerIconIds as readonly string[]).includes(categoryId); }
 export function stickerIconUrl(categoryId: string) { return `/images/specialty-stickers/${categoryId}.webp`; }
