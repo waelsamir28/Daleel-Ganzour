@@ -13,7 +13,9 @@
 @keyframes splash-dot{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
 @keyframes splash-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 /* شاشة البداية المطوَّرة: الشعار ينبثق، وملصقات الأقسام 3D تتجمع حوله من أطراف الشاشة (تدرّج زمني بسيط لكل ملصق). */
+/* هامش سفلي يساوي امتداد حلقة الملصقات تحت الشعار حتى لا تغطي السطر الدعائي والنقاط. */
 .splash-stage{position:relative;display:grid;place-items:center;--splash-ring:clamp(118px,24vmin,172px);--splash-far:72vmin}
+.splash-screen.has-stickers .splash-stage{margin:clamp(40px,7vmin,64px) 0 clamp(60px,10vmin,84px)}
 .splash-screen.has-stickers .splash-icon{animation:splash-pop .62s cubic-bezier(.2,.9,.3,1.25) both,splash-float 2.4s ease-in-out .62s infinite}
 .splash-sticker{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:14px;filter:drop-shadow(0 8px 16px #0008);opacity:0;animation:splash-gather .68s cubic-bezier(.18,.85,.25,1.08) both;animation-delay:calc(var(--i,0) * 55ms + 80ms);pointer-events:none}
 .splash-sticker:nth-child(1){--sx:1;--sy:0}
