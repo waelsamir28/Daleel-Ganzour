@@ -1010,3 +1010,16 @@ test("sticker icons: every built-in sticker id is a real category with a WebP fi
   assert.equal(categoryStickerSrc({ id: "no-such-category" }), "");
   assert.equal(hasStickerIcon("crafts"), true);
 });
+
+test("share preview (OG) images: every sticker category has a 1200×630 JPG and metadata helper points to it", () => {
+  const { stickerIconIds, categoryOgImage, defaultDesignSettings, sanitizeDesignSettings } = catalog;
+  for (const id of stickerIconIds) assert.ok(existsSync(new URL(`../public/images/og/${id}.jpg`, import.meta.url)), `og/${id}.jpg exists`);
+  const [image] = categoryOgImage("electricity", "الكهرباء");
+  assert.equal(image.width, 1200); assert.equal(image.height, 630); assert.match(image.url, /^\/images\/og\/electricity\.jpg\?v=\d+$/);
+  assert.equal(categoryOgImage("no-such-category", "x"), undefined);
+  // شاشة البداية: للتطبيق المثبّت افتراضيًا مع الملصقات، والقيم الغريبة ترجع للافتراضي.
+  assert.equal(defaultDesignSettings.splashAudience, "installed");
+  assert.equal(defaultDesignSettings.splashStickers, true);
+  assert.equal(sanitizeDesignSettings({ splashAudience: "everyone" }).splashAudience, "installed");
+  assert.equal(sanitizeDesignSettings({ splashAudience: "all", splashStickers: false }).splashStickers, false);
+});

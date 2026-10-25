@@ -12,6 +12,22 @@
 .splash-dots i:nth-child(3){animation-delay:.32s}
 @keyframes splash-dot{0%,100%{opacity:.35;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
 @keyframes splash-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+/* شاشة البداية المطوَّرة: الشعار ينبثق، وملصقات الأقسام 3D تتجمع حوله من أطراف الشاشة (تدرّج زمني بسيط لكل ملصق). */
+.splash-stage{position:relative;display:grid;place-items:center;--splash-ring:clamp(118px,24vmin,172px);--splash-far:72vmin}
+.splash-screen.has-stickers .splash-icon{animation:splash-pop .62s cubic-bezier(.2,.9,.3,1.25) both,splash-float 2.4s ease-in-out .62s infinite}
+.splash-sticker{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:14px;filter:drop-shadow(0 8px 16px #0008);opacity:0;animation:splash-gather .68s cubic-bezier(.18,.85,.25,1.08) both;animation-delay:calc(var(--i,0) * 55ms + 80ms);pointer-events:none}
+.splash-sticker:nth-child(1){--sx:1;--sy:0}
+.splash-sticker:nth-child(2){--sx:.707;--sy:.707}
+.splash-sticker:nth-child(3){--sx:0;--sy:1}
+.splash-sticker:nth-child(4){--sx:-.707;--sy:.707}
+.splash-sticker:nth-child(5){--sx:-1;--sy:0}
+.splash-sticker:nth-child(6){--sx:-.707;--sy:-.707}
+.splash-sticker:nth-child(7){--sx:0;--sy:-1}
+.splash-sticker:nth-child(8){--sx:.707;--sy:-.707}
+@keyframes splash-gather{0%{opacity:0;transform:translate(calc(var(--sx,0) * var(--splash-far)),calc(var(--sy,0) * var(--splash-far))) scale(.25) rotate(-30deg)}70%{opacity:1}100%{opacity:1;transform:translate(calc(var(--sx,0) * var(--splash-ring)),calc(var(--sy,0) * var(--splash-ring))) scale(1) rotate(0)}}
+@keyframes splash-pop{0%{opacity:0;transform:scale(.55)}60%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
+@media (max-width:420px){.splash-sticker{width:46px;height:46px;margin:-23px 0 0 -23px}.splash-stage{--splash-ring:clamp(104px,30vmin,140px)}}
+@media (prefers-reduced-motion:reduce){.splash-sticker{animation:none;opacity:1;transform:translate(calc(var(--sx,0) * var(--splash-ring)),calc(var(--sy,0) * var(--splash-ring)))}.splash-screen.has-stickers .splash-icon{animation:none}}
 @media (max-width:420px){.splash-icon{width:clamp(170px,54vw,220px);height:auto}.splash-title{font-size:25px}.splash-tagline{font-size:12px}}
 @media (prefers-reduced-motion:reduce){.splash-icon,.splash-dots i{animation:none}.splash-screen{transition:opacity .2s linear,visibility .2s linear}}
 .hero-with-banner{background:transparent;color:var(--navy);overflow:visible}

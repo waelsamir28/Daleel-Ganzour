@@ -9,7 +9,7 @@ const actionLabels: Record<string, string> = {
   "POST:": "إضافة", "PATCH:": "تعديل", "DELETE:": "حذف",
   "PATCH:approve": "قبول ونشر", "PATCH:reject": "رفض", "PATCH:request-info": "طلب استكمال بيانات", "PATCH:request-completion": "طلب استكمال", "PATCH:approve-completion": "اعتماد الاستكمال", "PATCH:reject-completion": "رفض الاستكمال",
   "PATCH:notify-provider": "إشعار صاحب المهنة", "PATCH:feature": "تمييز", "PATCH:unfeature": "إلغاء التمييز", "PATCH:verify": "توثيق", "PATCH:unverify": "إلغاء التوثيق", "PATCH:pin": "تثبيت", "PATCH:role": "تغيير الرتبة", "PATCH:active": "تفعيل/إيقاف",
-  "PATCH:read": "تعليم كمقروء", "PATCH:read-all": "تعليم الكل كمقروء", "DELETE:delete-all": "حذف الكل", "DELETE:delete-selected": "حذف المحدد", "DELETE:purge-all": "حذف جميع المهن", "POST:availability-link": "إنشاء رابط الإتاحة",
+  "PATCH:read": "تعليم كمقروء", "PATCH:read-all": "تعليم الكل كمقروء", "DELETE:delete-all": "حذف الكل", "DELETE:delete-selected": "حذف المحدد", "DELETE:purge-all": "حذف جميع المهن", "POST:availability-link": "إنشاء رابط الإتاحة", "POST:account-link": "إنشاء رابط حساب المهني", "POST:account-link-reset": "تجديد رابط حساب المهني",
 };
 export const activityActionLabel = (action: string) => actionLabels[action] ?? action.split(":")[1] ?? action;
 

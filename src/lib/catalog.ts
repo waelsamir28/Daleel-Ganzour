@@ -1122,6 +1122,10 @@ export type DesignSettings = {
   splashEnabled: boolean;
   splashImageUrl: string;
   splashDuration: "900" | "1500" | "2500";
+  /** لمن تظهر شاشة البداية: التطبيق المثبّت على الهاتف فقط، أو كل الزوار (مرة في الجلسة). */
+  splashAudience: "installed" | "all";
+  /** الملصقات 3D تتجمع حول الشعار في شاشة البداية. */
+  splashStickers: boolean;
   // 7. Login & Register Customizer
   authShowBanner: boolean;
   authBannerImage: string;
@@ -1462,6 +1466,8 @@ export const defaultDesignSettings: DesignSettings = {
   splashEnabled: true,
   splashImageUrl: "/images/logo-daleel-transparent.png",
   splashDuration: "900",
+  splashAudience: "installed",
+  splashStickers: true,
   authShowBanner: true,
   authBannerImage: "",
   loginTitle: "دخول الأعضاء وإدارة الموقع",
@@ -2044,6 +2050,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.splashEnabled = pickBool(record.splashEnabled, defaultDesignSettings.splashEnabled);
   next.splashImageUrl = pickText(record.splashImageUrl, defaultDesignSettings.splashImageUrl, 300);
   next.splashDuration = pickEnum(record.splashDuration, ["900", "1500", "2500"] as const, defaultDesignSettings.splashDuration);
+  next.splashAudience = pickEnum(record.splashAudience, ["installed", "all"] as const, defaultDesignSettings.splashAudience);
+  next.splashStickers = pickBool(record.splashStickers, defaultDesignSettings.splashStickers);
 
   next.authShowBanner = pickBool(record.authShowBanner, defaultDesignSettings.authShowBanner);
   next.authBannerImage = pickText(record.authBannerImage, defaultDesignSettings.authBannerImage, 300, true);
@@ -2484,6 +2492,12 @@ export function categoryImageUrl(category: Pick<CategoryRecord, "id" | "imageVer
 export function categoryStickerSrc(category: Pick<CategoryRecord, "id" | "imageVersion">): string {
   if (category.imageVersion) return categoryImageUrl(category);
   return hasStickerIcon(category.id) ? stickerIconUrl(category.id) : "";
+}
+/** صورة معاينة المشاركة (واتساب/فيسبوك) للقسم أو التخصص: ملصقه + اسمه، تُولَّد بـ scripts/og-build.py. فارغ = تُستخدم صورة الدليل العامة. */
+export const OG_IMAGE_VERSION = 1;
+export function categoryOgImage(categoryId: string, name: string) {
+  if (!hasStickerIcon(categoryId)) return undefined;
+  return [{ url: `/images/og/${categoryId}.jpg?v=${OG_IMAGE_VERSION}`, width: 1200, height: 630, type: "image/jpeg", alt: `${name} — دليل المهن والخدمات بقرية جنزور` }];
 }
 export const CATEGORY_ICON_MAX_BYTES = 800 * 1024;
 /** يتحقق من صورة أيقونة مرفوعة (PNG/JPG/WebP/GIF حتى 800 كيلوبايت). */

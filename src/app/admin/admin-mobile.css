@@ -332,3 +332,13 @@
     animation: none;
   }
 }
+
+/* طلب تعديل من صاحب الخدمة (صفحة «حسابي») داخل بطاقة الخدمة في اللوحة */
+.admin-draft-request { display: grid; gap: 8px; margin: 4px 0 10px; padding: 11px 13px; border: 1px solid #ffd98a; border-radius: 12px; background: #fff8e6; color: #5b3f00; font-size: 12.5px; }
+html.dark .admin-draft-request { background: #3a2e10; border-color: #6b531c; color: #ffe7b0; }
+.admin-draft-request > strong { display: inline-flex; align-items: center; gap: 6px; font-weight: 900; }
+.admin-draft-request ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 3px; }
+.admin-draft-request s { opacity: .65; }
+.admin-draft-request mark { padding: 1px 6px; border-radius: 6px; background: #ffe08a; color: #3b2a00; font-weight: 800; }
+html.dark .admin-draft-request mark { background: #b98a1c; color: #1b1300; }
+.admin-draft-request > div { display: flex; flex-wrap: wrap; gap: 8px; }

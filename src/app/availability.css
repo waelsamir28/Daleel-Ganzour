@@ -53,3 +53,49 @@ html.dark .availability-page { background: radial-gradient(ellipse at 20% 0%, #1
 .availability-hint { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--text-muted); font-size: 11.5px; font-weight: 600; }
 .availability-hint svg { flex: none; }
 .availability-contact { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2); color: #0876e1; font-size: 12.5px; font-weight: 800; }
+
+/* ===== صفحة «حسابي» لصاحب الخدمة (/my/[token]) — تعديل ذاتي عبر الرابط السري ===== */
+.my-account-main { width: min(calc(100% - 24px), 640px); }
+.my-hero-head { display: flex; align-items: center; gap: 14px; }
+.my-hero-icon { display: grid; place-items: center; flex: none; width: 72px; height: 72px; border-radius: 20px; background: var(--surface-2, #eef4fb); }
+.my-hero-icon .specialty-sticker { width: 100% !important; height: 100% !important; }
+.my-hero-kicker { display: inline-flex; align-items: center; gap: 5px; color: #0a7f4b; font-size: 11.5px; font-weight: 800; }
+.my-hero h1 { margin: 2px 0 0; font-size: 21px; font-weight: 900; line-height: 1.4; }
+.my-hero-head p { margin: 2px 0 0; color: var(--text-muted); font-size: 12.5px; font-weight: 700; }
+.my-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.my-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2, #f3f7fb); color: var(--text-muted); font-size: 11.5px; font-weight: 800; }
+.my-chip.is-ok { border-color: #bfe9d2; background: #e6f8ee; color: #0a7f4b; }
+.my-chip.is-wait { border-color: #ffe2a8; background: #fff6e0; color: #9a6400; }
+.my-chip.is-star { border-color: #ffe2a8; background: #fff6e0; color: #b4731c; }
+html.dark .my-chip.is-ok { background: #0f3b2a; border-color: #1c6b48; color: #8af0bd; }
+html.dark .my-chip.is-wait, html.dark .my-chip.is-star { background: #3b2d0f; border-color: #6b531c; color: #ffd98a; }
+.my-link { display: inline-flex; align-items: center; gap: 6px; color: #0876e1; font-size: 13px; font-weight: 800; text-decoration: none; }
+.my-link:hover { text-decoration: underline; }
+.my-notice { padding: 11px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.my-actions { display: grid; gap: 9px; }
+.my-stop { min-height: 44px; border: 1px solid #f1b9bf; border-radius: 14px; background: #fff1f2; color: #c0303b; font-size: 13px; font-weight: 800; cursor: pointer; }
+html.dark .my-stop { background: #3a1419; border-color: #7a2a33; color: #ff9aa3; }
+.my-section-head { display: flex; align-items: flex-start; gap: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
+.my-section-head svg { flex: none; margin-top: 3px; color: #0876e1; }
+.my-section-head h2 { margin: 0; font-size: 16px; font-weight: 900; }
+.my-section-head span { display: block; color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+.my-form { gap: 14px; }
+.my-field { display: grid; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--text); }
+.my-field > span { display: inline-flex; align-items: center; gap: 5px; }
+.my-field input, .my-field textarea { width: 100%; min-height: 46px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; box-sizing: border-box; }
+.my-field textarea { min-height: 110px; resize: vertical; line-height: 1.8; }
+.my-field input:focus, .my-field textarea:focus { outline: none; border-color: #0876e1; box-shadow: 0 0 0 3px #0876e126; }
+.my-field small { color: var(--text-muted); font-size: 11px; font-weight: 600; }
+.my-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.my-check { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2, #f8fbfd); font-size: 12.5px; font-weight: 800; cursor: pointer; }
+.my-check input { width: 18px; height: 18px; accent-color: #0876e1; }
+.availability-renew.is-blue { background: linear-gradient(135deg, #1d8cf5, #0b63c7); border-color: #0b63c7; box-shadow: 0 4px 10px #0b63c72b; }
+.availability-renew.is-blue:hover:not(:disabled) { background: linear-gradient(135deg, #1a7fe0, #0954aa); }
+.availability-renew.is-amber { background: linear-gradient(135deg, #f7a823, #d9830b); border-color: #d9830b; box-shadow: 0 4px 10px #d9830b2b; }
+.availability-renew.is-amber:hover:not(:disabled) { background: linear-gradient(135deg, #e89a1c, #bf7208); }
+.my-pending { display: flex; align-items: center; gap: 7px; margin: 0; padding: 10px 12px; border-radius: 12px; background: #fff6e0; border: 1px solid #ffe2a8; color: #9a6400; font-size: 12px; font-weight: 700; }
+.my-pending.is-rejected { background: #fff1f2; border-color: #f1b9bf; color: #c0303b; }
+html.dark .my-pending { background: #3b2d0f; border-color: #6b531c; color: #ffd98a; }
+html.dark .my-pending.is-rejected { background: #3a1419; border-color: #7a2a33; color: #ff9aa3; }
+.my-account-page .working-hours-editor { border-radius: 12px; }
+@media (max-width: 520px) { .my-two { grid-template-columns: 1fr; } .my-hero h1 { font-size: 18px; } }

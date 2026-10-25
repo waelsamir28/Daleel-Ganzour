@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Directory from "@/components/directory";
 import { getViewer } from "@/lib/auth";
+import { categoryOgImage } from "@/lib/catalog";
 import { getPublicDirectory } from "@/lib/directory";
 import { directoryForViewer, guestLocked } from "@/lib/membership-gate";
 
@@ -10,7 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
   const root = data.categories.find((item) => item.id === category && !item.parentId);
   const title = `${root?.name ?? "التصنيفات"} | ${data.settings.siteName}`;
   const description = root?.description || `دليل ${root?.name ?? "الخدمات"} في قرية جنزور: تواصل مباشرة مع مقدمي الخدمة بضغطة واحدة.`;
-  return { title, description, alternates: { canonical: `/categories/${category}` }, openGraph: { title, description, url: `/categories/${category}` }, twitter: { title, description } };
+  const images = root ? categoryOgImage(root.id, root.name) : undefined;
+  return { title, description, alternates: { canonical: `/categories/${category}` }, openGraph: { title, description, url: `/categories/${category}`, ...(images ? { images } : {}) }, twitter: { title, description, ...(images ? { images: images.map((image) => image.url) } : {}) } };
 }
 export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const [data, viewer, { category }] = await Promise.all([getPublicDirectory(), getViewer(), params]);

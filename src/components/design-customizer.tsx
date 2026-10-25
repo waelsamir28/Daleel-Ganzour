@@ -49,6 +49,7 @@ import EdgeToolsEditor from "@/components/edge-tools-editor";
 import DetailPreview from "@/components/detail-preview";
 import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
+import { SPLASH_PREVIEW_EVENT } from "@/components/splash-screen";
 
 type SectionFilter = "all" | "colors" | "typography" | "cards" | "buttons" | "layout" | "providers" | "header" | "auth";
 type SavedCustomPreset = { id: string; name: string; settings: DesignSettings };
@@ -1535,6 +1536,24 @@ export default function DesignCustomizer({
                     placeholder="/images/logo-daleel-transparent.png"
                   />
                 </label>
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    لمن تظهر شاشة البداية؟
+                    <SelectField value={draft.splashAudience} onChange={(e) => updateField("splashAudience", e.target.value as DesignSettings["splashAudience"])}>
+                      <option value="installed">التطبيق المثبّت على الهاتف فقط — مع كل فتح (الافتراضي)</option>
+                      <option value="all">كل الزوار — مرة واحدة في الجلسة (المتصفح والتطبيق)</option>
+                    </SelectField>
+                    <small className="input-help">زوار المتصفح العاديون لا يرونها في الوضع الافتراضي؛ استخدم زر المعاينة لتراها الآن.</small>
+                  </label>
+                  <div className="field">
+                    معاينة فورية
+                    <button type="button" className="button button-soft" onClick={() => { localStorage.setItem("janzour-splash-audience", draft.splashEnabled ? draft.splashAudience : "off"); document.documentElement.setAttribute("data-design-splash-stickers", draft.splashStickers ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-image", draft.splashImageUrl || "/images/logo-daleel-transparent.png"); document.documentElement.setAttribute("data-design-splash-duration", draft.splashDuration); window.dispatchEvent(new CustomEvent(SPLASH_PREVIEW_EVENT)); }}>
+                      <Sparkles size={16}/> معاينة شاشة البداية
+                    </button>
+                    <small className="input-help">تعرض الشاشة بالإعدادات الحالية (قبل الحفظ) لمدة ثانية ونصف على الأقل.</small>
+                  </div>
+                </div>
+                <label className="checkbox-field"><input type="checkbox" checked={draft.splashStickers} onChange={(e) => updateField("splashStickers", e.target.checked)}/>ملصقات الأقسام 3D تتجمع حول الشعار في شاشة البداية</label>
 
                 <InnerDivider title="تخصيص الفوتر وروابط القرية وإحصائيات الزوار" subtitle="عدّل نص وصف الفوتر وأضف رابط صفحة فيسبوك أو جروب واتساب القرية" />
                 <label className="field">
@@ -1582,7 +1601,7 @@ export default function DesignCustomizer({
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterWhatsapp} onChange={(e) => updateField("showFooterWhatsapp", e.target.checked)}/>إظهار زر واتساب الإدارة في الفوتر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterStats} onChange={(e) => updateField("showFooterStats", e.target.checked)}/>إظهار عداد إحصائيات الدليل للزوار في الفوتر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.floatingWhatsappEnabled} onChange={(e) => updateField("floatingWhatsappEnabled", e.target.checked)}/>إظهار زر واتساب عائم سريع على الموبايل</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.splashEnabled} onChange={(e) => updateField("splashEnabled", e.target.checked)}/>تفعيل شاشة البداية الترحيبية عند أول فتح</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.splashEnabled} onChange={(e) => updateField("splashEnabled", e.target.checked)}/>تفعيل شاشة البداية الترحيبية</label>
                 </div>
               </div>
             )}

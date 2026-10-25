@@ -102,7 +102,7 @@ export async function POST(request: Request) {
       if (!result.ok) throw new InputError(result.detail, result.skipped ? 400 : 502);
       return Response.json({ ok: true, detail: result.detail });
     }
-    const values = objectInput(body.values);
+    // إجراءات الروابط لا ترسل values؛ لذا تُفحص قبل تحليل قيم النموذج.
     if (body.type === "service" && body.action === "availability-link") {
       const id = uuid(body.id);
       const [existing] = await db.select({ id: services.id, token: services.availabilityToken }).from(services).where(eq(services.id, id));
@@ -112,6 +112,18 @@ export async function POST(request: Request) {
       await logActivity(actor, "POST", body, activityLabel);
       return Response.json({ ok: true, link: `/availability/${token}`, ...(await getAdminDirectory(role)) });
     }
+    if (body.type === "service" && (body.action === "account-link" || body.action === "account-link-reset")) {
+      // رابط «حسابي» لصاحب الخدمة: يُنشأ مرة ويُعاد استخدامه؛ «reset» يلغي القديم فورًا ويولّد غيره.
+      const id = uuid(body.id);
+      const [existing] = await db.select({ id: services.id, token: services.accountToken }).from(services).where(eq(services.id, id));
+      if (!existing) throw new InputError("الخدمة غير موجودة.", 404);
+      const reset = body.action === "account-link-reset";
+      const token = !reset && existing.token ? existing.token : randomBytes(20).toString("hex");
+      if (token !== existing.token) await db.update(services).set({ accountToken: token }).where(eq(services.id, id));
+      await logActivity(actor, "POST", body, activityLabel);
+      return Response.json({ ok: true, link: `/my/${token}`, ...(await getAdminDirectory(role)) });
+    }
+    const values = objectInput(body.values);
     if (body.type === "category") {
       const category = categoryInput(values);
       await categoryParent(category.parentId);
@@ -151,7 +163,7 @@ export async function PATCH(request: Request) {
     const { type, action } = body;
     const activityLabel = await resolveActivityLabel(type, body.id, body.values);
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
-    const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link"].includes(String(action)));
+    const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link", "account-link", "account-link-reset"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
