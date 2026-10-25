@@ -4,7 +4,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.ver
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/admin", "/api/", "/account", "/availability/", "/track/", "/login"] }],
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/admin", "/api/", "/account", "/availability/", "/my/", "/track/", "/login"] }],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,
   };

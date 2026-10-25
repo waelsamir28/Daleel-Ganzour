@@ -29,6 +29,8 @@ export const services = pgTable("directory_services", {
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),
   demo: boolean("demo").notNull().default(false),
   availabilityToken: varchar("availability_token", { length: 40 }).notNull().default(""),
+  /** رابط «حسابي» السري الذي ترسله الإدارة لصاحب الخدمة على واتسابه ليعدّل بياناته بنفسه. */
+  accountToken: varchar("account_token", { length: 40 }).notNull().default(""),
   rating: varchar("rating", { length: 8 }).notNull().default("0"),
   reviews: integer("reviews").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
