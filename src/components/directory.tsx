@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, Pin, MessageSquareWarning } from "lucide-react";
+import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, GraduationCap, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
 import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, getTeacherStagesForService, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, matchesTeacherStage, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, TEACHER_STAGES, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type TeacherStageId, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
@@ -46,8 +46,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
   const menuRef = useRef<HTMLElement>(null), menuButtonRef = useRef<HTMLButtonElement>(null);
   const [soundMuted, setSoundMutedState] = useState(false);
-  const [topPaused, setTopPaused] = useState(false);
-  const topPauseTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     const sync = () => setSoundMutedState(isSoundMuted());
     sync();
@@ -92,11 +90,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const liveDetail = detail ? data.services.find((service) => service.id === detail.id) ?? detail : null;
   const design = useMemo(() => ({ ...defaultDesignSettings, ...(data.designSettings ?? {}) }), [data.designSettings]);
   const edgeTools = useMemo(() => parseProviderEdgeTools(design.providerEdgeTools), [design.providerEdgeTools]);
-  const topProfessions = useMemo(() => (data.topCategories ?? []).flatMap((item) => {
-    const category = data.categories.find((entry) => entry.id === item.id);
-    const parent = category?.parentId ? data.categories.find((entry) => entry.id === category.parentId) : undefined;
-    return category && parent ? [{ item, category, parent }] : [];
-  }), [data.topCategories, data.categories]);
   useEffect(() => { if (specialtyId && !guestLocked) sendCategoryHit(specialtyId, "view", `page:${specialtyId}`); }, [specialtyId, guestLocked]);
   // صفحات الأقسام والتخصصات تفتح مباشرة على شبكة التخصصات/النتائج بدل أعلى الصفحة.
   useEffect(() => {
@@ -903,39 +896,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               <span>أضف مهنتك</span>
             </button>
           </div>
-          {!scoped && design.showTopProfessions && topProfessions.length >= 3 && (
-            <section className={`top-professions ${topPaused ? "is-paused" : ""}`} aria-labelledby="top-professions-title">
-              <div className="top-professions-head">
-                <h2 id="top-professions-title"><Flame size={18}/> أهم مهن القرية</h2>
-                <small>الأكثر طلبًا حسب استخدام الأهالي الفعلي</small>
-              </div>
-              <div
-                className="top-professions-scroller"
-                style={{ "--top-marquee-duration": `${Math.max(18, topProfessions.length * 4)}s` } as CSSProperties}
-                onPointerDown={() => { setTopPaused(true); window.clearTimeout(topPauseTimer.current); topPauseTimer.current = window.setTimeout(() => setTopPaused(false), 5000); }}
-              >
-                <div className="top-professions-track" role="list">
-                  {[0, 1].map((copy) => topProfessions.map(({ item, category, parent }, index) => (
-                    <Link
-                      key={`${copy}-${item.id}`}
-                      role={copy === 0 ? "listitem" : undefined}
-                      aria-hidden={copy === 1 ? true : undefined}
-                      tabIndex={copy === 1 ? -1 : undefined}
-                      href={`/categories/${parent.id}/${category.id}`}
-                      className="top-profession-chip"
-                      style={categoryTheme(category)}
-                      onClick={() => sendCategoryHit(category.id, "view", `top:${category.id}`)}
-                    >
-                      <span className={`top-profession-rank ${item.pinned ? "is-pinned" : ""}`} aria-hidden="true">{item.pinned ? <Pin size={11}/> : index + 1}</span>
-                      <span className={`top-profession-icon ${hasSticker(category) ? "has-sticker" : ""}`}><SpecialtyIcon category={category} size={design.specialtyArt3d ? 34 : 22} art3d={design.specialtyArt3d} sticker={design.specialtyStickerIcons}/></span>
-                      <strong>{category.name}</strong>
-                      <small>{parent.name} · {item.providers} {item.providers === 1 ? "مقدم خدمة" : "مقدمي خدمة"}</small>
-                    </Link>
-                  )))}
-                </div>
-              </div>
-            </section>
-          )}
           <div className="section-heading directory-section-heading">
             <div>
               <h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2>
