@@ -1489,7 +1489,7 @@ export const defaultDesignSettings: DesignSettings = {
   tapFeedback: "both",
   providerEdgeTools: "call,whatsapp,share,favorite",
   providerEdgeToolsPosition: "left",
-  showTopProfessions: true,
+  showTopProfessions: false,
   topProfessionsPinned: "",
   showWeeklyStars: true,
   specialtyArt3d: true,

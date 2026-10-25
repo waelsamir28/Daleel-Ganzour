@@ -41,7 +41,6 @@ import {
   type ProviderEdgeToolId,
   type CategoryRecord,
   initialCategories,
-  parsePinnedProfessions,
   readableTextOn,
 } from "@/lib/catalog";
 import { applyDesignSettingsToDocument } from "@/components/design-applicator";
@@ -201,15 +200,6 @@ export default function DesignCustomizer({
   // Edge tools: the saved string keeps only visible tools in order; hidden ones keep their last
   // position in a local order list so re-showing them does not jump them to the end.
   const edgeToolsVisible = useMemo(() => parseProviderEdgeTools(draft.providerEdgeTools), [draft.providerEdgeTools]);
-  const pinnedProfessions = useMemo(() => parsePinnedProfessions(draft.topProfessionsPinned), [draft.topProfessionsPinned]);
-  const pinnableSpecialties = useMemo(() => {
-    const roots = categories.filter((category) => !category.parentId && category.active !== false);
-    return roots.map((root) => ({ root, items: categories.filter((category) => category.parentId === root.id && category.active !== false) })).filter((group) => group.items.length);
-  }, [categories]);
-  function togglePinned(id: string) {
-    const next = pinnedProfessions.includes(id) ? pinnedProfessions.filter((entry) => entry !== id) : [...pinnedProfessions, id].slice(0, 6);
-    updateField("topProfessionsPinned", next.join(","));
-  }
   const [edgeToolOrder, setEdgeToolOrder] = useState<ProviderEdgeToolId[]>(() => {
     const visible = parseProviderEdgeTools(draft.providerEdgeTools);
     return [...visible, ...providerEdgeToolIds.filter((id) => !visible.includes(id))];
@@ -1175,40 +1165,12 @@ export default function DesignCustomizer({
                 <InnerDivider title="معاينة حية لصفحة مقدم الخدمة" subtitle="نسخة ثابتة من نافذة التفاصيل (الهيرو الأبيض، صندوق الاسم، الشارات، البلاطات بأيقونة علوية، وأزرار الاتصال والواتساب) تتبع الثيم والألوان المختارة فورًا." />
                 <DetailPreview />
 
-                <InnerDivider title="أهم مهن القرية" subtitle="صف أفقي على الرئيسية لأكثر 8 تخصصات طلبًا حسب فتح الصفحات والاتصالات الفعلية (يُستكمل بعدد مقدمي الخدمة حتى تتجمع بيانات كافية)." />
+                <InnerDivider title="أيقونات التخصصات والنجوم الأسبوعية" />
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showTopProfessions} onChange={(e) => updateField("showTopProfessions", e.target.checked)}/>إظهار صف «أهم مهن القرية» فوق أقسام القرية في الرئيسية</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>أيقونات مجسّمة بأسلوب «مرسوم باليد» لكل التخصصات في كل الأقسام (41 مهنة مرسومة يدويًا، والباقي يتولّد تلقائيًا بنفس الأسلوب بلون قسمه — وأي تخصص جديد يحصل على أيقونته فورًا)</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyStickerIcons} onChange={(e) => updateField("specialtyStickerIcons", e.target.checked)}/>أيقونات «الملصقات 3D» (ستايل صورة المرجع: مربع باستيل + رسمة كرتونية لامعة) — متوفرة لكل الأقسام الـ14 والتخصصات الـ73، وتظهر بدل الرسم اليدوي؛ وأي أيقونة ترفعها من شاشة تعديل التصنيف</label>
-                </div>
-                <div className="design-toggles-grid">
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showWeeklyStars} onChange={(e) => updateField("showWeeklyStars", e.target.checked)}/>شارة «نجم الأسبوع ⭐» تلقائيًا لأفضل 3 مقدمي خدمة حسب تقييمات الأعضاء خلال آخر 7 أيام (متوسط 4 نجوم فأكثر)</label>
                 </div>
-                <details className="pinned-professions">
-                  <summary><strong>تثبيت تخصصات يدويًا في أول الصف</strong><span className="muted"> ({pinnedProfessions.length}/6) — المثبّتة تظهر أولًا بترتيب اختيارها، ثم يكمل الترتيب التلقائي.</span></summary>
-                  {pinnedProfessions.length > 0 && (
-                    <div className="pinned-professions-chips">
-                      {pinnedProfessions.map((id, index) => { const category = categories.find((entry) => entry.id === id); return (
-                        <button key={id} type="button" className="pinned-chip" onClick={() => togglePinned(id)} title="إلغاء التثبيت"><span className="pinned-chip-rank">{index + 1}</span>{category?.name ?? id}<Trash2 size={13}/></button>
-                      ); })}
-                      <button type="button" className="button button-ghost button-small" onClick={() => updateField("topProfessionsPinned", "")}>مسح الكل</button>
-                    </div>
-                  )}
-                  <div className="pinned-professions-groups">
-                    {pinnableSpecialties.map(({ root, items }) => (
-                      <div key={root.id} className="pinned-professions-group">
-                        <span className="pinned-professions-root">{root.name}</span>
-                        <div className="pinned-professions-list">
-                          {items.map((item) => (
-                            <label key={item.id} className={`checkbox-field pinned-option ${pinnedProfessions.includes(item.id) ? "is-on" : ""}`}>
-                              <input type="checkbox" checked={pinnedProfessions.includes(item.id)} disabled={!pinnedProfessions.includes(item.id) && pinnedProfessions.length >= 6} onChange={() => togglePinned(item.id)}/>{item.name}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </details>
 
                 <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
                 <div className="form-row design-two-col">

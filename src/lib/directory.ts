@@ -2,7 +2,7 @@ import "server-only";
 import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { activityLog, adBanners, adRequests, categoryHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type TopCategoryRecord, parsePinnedProfessions } from "@/lib/catalog";
+import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type parsePinnedProfessions } from "@/lib/catalog";
 import { getWhatsappAlertKinds, getWhatsappAlertStatus } from "@/lib/whatsapp-alert";
 
 let seedPromise: Promise<void> | undefined;
@@ -240,29 +240,7 @@ async function getCatalog() {
   const iconVersionMap = new Map(iconVersions.map((row) => [row.categoryId, row.version]));
   return { categories: categoryRows.map((row) => serializeCategory(row, iconVersionMap.get(row.id) ?? 0)), areas: areaRows, settings, utilityNumbers, designSettings, memberCount: Number(memberTotal[0]?.total ?? 0), ads, adPricing, events, greetings: activeGreetings(greetingSettings), greetingSettings };
 }
-// «أهم مهن القرية»: specialties ranked by real usage (opened pages/details count once, calls and
-// WhatsApp taps count double). Until enough real data exists, the list is topped up with the
-// specialties that have the most approved providers so the strip is useful from day one.
-async function getTopCategories(visible: CategoryRecord[], providers: ServiceRecord[], pinned: string[] = []): Promise<TopCategoryRecord[]> {
-  const rows = await db.select().from(categoryHits);
-  const providerCount = new Map<string, number>();
-  for (const service of providers) providerCount.set(service.category, (providerCount.get(service.category) ?? 0) + 1);
-  const specialties = visible.filter((category) => category.parentId && providerCount.get(category.id));
-  const scored = specialties.map((category) => {
-    const hit = rows.find((row) => row.categoryId === category.id);
-    return { id: category.id, score: hit ? hit.views + hit.contacts * 2 : 0, providers: providerCount.get(category.id) ?? 0 };
-  });
-  scored.sort((a, b) => b.score - a.score || b.providers - a.providers || a.id.localeCompare(b.id));
-  // التخصصات المثبّتة من لوحة التحكم تتصدر الصف دائمًا (حتى لو لم يكن لها مقدمو خدمة بعد)، ثم الترتيب الفعلي.
-  const pinnedRecords: TopCategoryRecord[] = pinned.flatMap((id) => {
-    const category = visible.find((entry) => entry.id === id && entry.parentId);
-    if (!category) return [];
-    const scoredEntry = scored.find((entry) => entry.id === id);
-    return [{ id, score: scoredEntry?.score ?? 0, providers: providerCount.get(id) ?? 0, pinned: true }];
-  });
-  const pinnedIds = new Set(pinnedRecords.map((entry) => entry.id));
-  return [...pinnedRecords, ...scored.filter((entry) => !pinnedIds.has(entry.id))].slice(0, Math.max(8, pinnedRecords.length + 4));
-}
+// إحصاء استخدام التخصصات (فتح الصفحة مرة، ضغطة واتساب مرتين) — يُغذّي التحليلات في لوحة الإدارة.
 export async function recordCategoryHit(categoryId: string, kind: "view" | "contact") {
   const column = kind === "contact" ? categoryHits.contacts : categoryHits.views;
   await db.insert(categoryHits).values({ categoryId, views: kind === "view" ? 1 : 0, contacts: kind === "contact" ? 1 : 0 })
@@ -312,8 +290,7 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     return record;
   });
   const { greetingSettings: _adminOnlyGreetings, ...publicCatalog } = catalog;
-  const topCategories = await getTopCategories(visibleCategories, blended, parsePinnedProfessions(catalog.designSettings?.topProfessionsPinned));
-  return { ...publicCatalog, topCategories, ads: catalog.ads.filter((ad) => isAdLive(ad)), categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
+  return { ...publicCatalog, ads: catalog.ads.filter((ad) => isAdLive(ad)), categories: visibleCategories, services: blended, providerNotifications: providerNotificationRows.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })) };
 }
 export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): Promise<AdminDirectory> {
   const catalog = await getCatalog();

@@ -927,7 +927,7 @@ test("provider edge tools and tap feedback settings sanitize correctly", () => {
 
 test("top professions, power-save and detail preview settings sanitize correctly", () => {
   const { sanitizeDesignSettings, defaultDesignSettings } = catalog;
-  assert.equal(defaultDesignSettings.showTopProfessions, true);
+  assert.equal(defaultDesignSettings.showTopProfessions, false, "صف «أهم مهن القرية» المتحرك أُزيل من الرئيسية");
   assert.equal(defaultDesignSettings.powerSaveMode, "auto");
   const cleaned = sanitizeDesignSettings({ ...defaultDesignSettings, showTopProfessions: false, powerSaveMode: "on" });
   assert.equal(cleaned.showTopProfessions, false);
