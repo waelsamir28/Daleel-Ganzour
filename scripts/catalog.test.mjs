@@ -1018,6 +1018,10 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
   assert.equal(image.width, 1200); assert.equal(image.height, 630); assert.match(image.url, /^\/images\/og\/electricity\.jpg\?v=\d+$/);
   assert.equal(categoryOgImage("no-such-category", "x"), undefined);
   // شاشة البداية: للتطبيق المثبّت افتراضيًا مع الملصقات، والقيم الغريبة ترجع للافتراضي.
+  assert.equal(defaultDesignSettings.specialtyIconStyle, "3d");
+  assert.equal(sanitizeDesignSettings({ specialtyIconStyle: "flat" }).specialtyIconStyle, "flat");
+  assert.equal(sanitizeDesignSettings({ specialtyIconStyle: "weird" }).specialtyIconStyle, "3d");
+  assert.equal(defaultDesignSettings.teacherStagesSection, false, "قسم المدرسين يفتح فارغًا افتراضيًا");
   assert.equal(defaultDesignSettings.splashAudience, "installed");
   assert.equal(defaultDesignSettings.splashStickers, true);
   assert.equal(sanitizeDesignSettings({ splashAudience: "everyone" }).splashAudience, "installed");

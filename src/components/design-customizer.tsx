@@ -1165,8 +1165,19 @@ export default function DesignCustomizer({
                 <InnerDivider title="معاينة حية لصفحة مقدم الخدمة" subtitle="نسخة ثابتة من نافذة التفاصيل (الهيرو الأبيض، صندوق الاسم، الشارات، البلاطات بأيقونة علوية، وأزرار الاتصال والواتساب) تتبع الثيم والألوان المختارة فورًا." />
                 <DetailPreview />
 
-                <InnerDivider title="أيقونات التخصصات والنجوم الأسبوعية" />
+                <InnerDivider title="أيقونات التخصصات والنجوم الأسبوعية" subtitle="اختر شكل أيقونات التخصصات فقط؛ أيقونات الأقسام الرئيسية لا تتأثر" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    شكل أيقونات التخصصات
+                    <SelectField value={draft.specialtyIconStyle} onChange={(e) => updateField("specialtyIconStyle", e.target.value as DesignSettings["specialtyIconStyle"])}>
+                      <option value="3d">مجسمة 3D (الملصقات والرسم المجسم) — الافتراضي</option>
+                      <option value="flat">فلات كلاسيكية (الأيقونات المسطحة القديمة)</option>
+                    </SelectField>
+                    <small className="input-help">يسري على بلاطات التخصصات وبطاقات مقدمي الخدمة وصفحة التفاصيل. الأقسام الرئيسية تبقى كما هي.</small>
+                  </label>
+                </div>
                 <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.teacherStagesSection} onChange={(e) => updateField("teacherStagesSection", e.target.checked)}/>إظهار كتلة «المراحل الدراسية» داخل قسم المدرسين (مخفية افتراضيًا — القسم يبدأ فارغًا وتضيف تخصصاته من التصنيفات)</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>أيقونات مجسّمة بأسلوب «مرسوم باليد» لكل التخصصات في كل الأقسام (41 مهنة مرسومة يدويًا، والباقي يتولّد تلقائيًا بنفس الأسلوب بلون قسمه — وأي تخصص جديد يحصل على أيقونته فورًا)</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyStickerIcons} onChange={(e) => updateField("specialtyStickerIcons", e.target.checked)}/>أيقونات «الملصقات 3D» (ستايل صورة المرجع: مربع باستيل + رسمة كرتونية لامعة) — متوفرة لكل الأقسام الـ14 والتخصصات الـ73، وتظهر بدل الرسم اليدوي؛ وأي أيقونة ترفعها من شاشة تعديل التصنيف</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showWeeklyStars} onChange={(e) => updateField("showWeeklyStars", e.target.checked)}/>شارة «نجم الأسبوع ⭐» تلقائيًا لأفضل 3 مقدمي خدمة حسب تقييمات الأعضاء خلال آخر 7 أيام (متوسط 4 نجوم فأكثر)</label>
