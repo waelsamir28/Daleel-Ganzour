@@ -2455,10 +2455,16 @@ export const stickerIconIds = [
   "shops", "groceries", "butchers", "poultry", "fish-shops", "produce", "bakeries", "cafes", "clothing", "mobile-shops", "food", "stationery", "appliances", "hardware", "furniture",
   // الصيدليات (3 تخصصات؛ القسم أعلاه)
   "community-pharmacies", "night-pharmacies", "medical-supplies",
-  // الحلاقة والتجميل (القسم + 2 من 3؛ الباقي: الميكب)
-  "beauty", "barbers", "hairdressers",
+  // الحلاقة والتجميل (القسم + 3)
+  "beauty", "barbers", "hairdressers", "makeup",
   // الطباعة والدعاية: التصميم الجرافيكي (مقصوص من المرجع)
   "graphic-design",
+  // الأفراح والمناسبات (القسم + 3؛ التصوير أعلاه)
+  "events", "dj", "wedding-planning",
+  // النقل والتوصيل (القسم + 3)
+  "transport", "moving", "freight", "rides",
+  // النظافة (القسم + 1 من 2؛ الباقي: غسيل السجاد)
+  "cleaning", "apartment-cleaning",
 ] as const;
 export function hasStickerIcon(categoryId: string) { return (stickerIconIds as readonly string[]).includes(categoryId); }
 export function stickerIconUrl(categoryId: string) { return `/images/specialty-stickers/${categoryId}.webp`; }
