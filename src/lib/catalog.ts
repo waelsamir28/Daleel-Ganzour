@@ -1012,6 +1012,11 @@ export type DesignThemePresetId =
   | "win11-sunset"
   | "win11-graphite"
   | "win11-ocean"
+  | "win10-blue"
+  | "win10-dark"
+  | "win10-teal"
+  | "win10-purple"
+  | "win10-red"
   | "custom";
 
 export type DesignSettings = {
@@ -1539,6 +1544,8 @@ export type GradientThemePresetEntry = {
   label: string;
   description: string;
   badge?: string;
+  /** ثيم قديم مخفي من استوديو التصميم (يبقى صالحًا لمن اختاره سابقًا). */
+  retired?: boolean;
   gradientPreview: string;
   colors: Pick<
     DesignSettings,
@@ -1583,6 +1590,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#041f18", darkCardBgColor: "#06372a", darkBorderColor: "#059669", darkPrimaryColor: "#34d399", announcementBgColor: "#065f46", detailNameBoxColor: "#064e3b" },
   },
   "royal-navy": {
+    retired: true,
     label: "⚡ جريديانت الكوبالت والأزرق الكهربائي",
     badge: "جريديانت",
     description: "تدرج الكحلي الإمبراطوري والأزرق الكهربائي لبراويز عناوين فخمة وعصرية",
@@ -1599,6 +1607,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#181006", darkCardBgColor: "#2b1c0b", darkBorderColor: "#d97706", darkPrimaryColor: "#fbbf24", announcementBgColor: "#92400e", detailNameBoxColor: "#451a03" },
   },
   festive: {
+    retired: true,
     label: "🔮 جريديانت البنفسجي الكوني والأرجواني",
     badge: "جريديانت",
     description: "تدرج الأميثيست البنفسجي والنيون الأرجواني المتناغم مع الوضع الليلي والنهاري",
@@ -1607,6 +1616,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#120924", darkCardBgColor: "#241346", darkBorderColor: "#7c3aed", darkPrimaryColor: "#c084fc", announcementBgColor: "#5b21b6", detailNameBoxColor: "#2e1065" },
   },
   ramadan: {
+    retired: true,
     label: "🌙 جريديانت الهلال الذهبي والياقوت الليلي",
     badge: "جريديانت",
     description: "تدرج الكحلي الليلي مع الذهب المضيء لبراويز عناوين دافئة وفخمة",
@@ -1615,6 +1625,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#0b192c", darkCardBgColor: "#152c4a", darkBorderColor: "#d97706", darkPrimaryColor: "#fbbf24", announcementBgColor: "#0f3d5e", detailNameBoxColor: "#152c4a" },
   },
   eid: {
+    retired: true,
     label: "🌊 جريديانت المحيط الفيروزي واللؤلؤ",
     badge: "جريديانت",
     description: "تدرج الفيروزي المشرق والأكوا المضيء في الوضع الليلي والنهاري",
@@ -1623,6 +1634,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#05201f", darkCardBgColor: "#0b3936", darkBorderColor: "#0d9488", darkPrimaryColor: "#2dd4bf", announcementBgColor: "#115e59", detailNameBoxColor: "#134e4a" },
   },
   schools: {
+    retired: true,
     label: "✨ جريديانت النيلي والذهبي المتألق",
     badge: "جريديانت",
     description: "تدرج مزدوج بين الأزرق النيلي والكهرمان الذهبي لبراويز عناوين بارزة",
@@ -1631,6 +1643,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#0c1636", darkCardBgColor: "#172554", darkBorderColor: "#3b82f6", darkPrimaryColor: "#fbbf24", announcementBgColor: "#1e3a8a", detailNameBoxColor: "#1e3a8a" },
   },
   "winter-emergency": {
+    retired: true,
     label: "❄️ جريديانت الجليد القطبي والياقوت",
     badge: "جريديانت",
     description: "تدرج الأزرق الجليدي العميق مع السماوي القطبي عالي الوضوح",
@@ -1647,6 +1660,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#1f0812", darkCardBgColor: "#3b0d21", darkBorderColor: "#e11d48", darkPrimaryColor: "#fb7185", announcementBgColor: "#9f1239", detailNameBoxColor: "#4c0519" },
   },
   "turquoise-nile": {
+    retired: true,
     label: "🌊 جريديانت سيان النيل والأزرق الفيروزي",
     badge: "جريديانت",
     description: "تدرج السيان المضيء والأزرق النيلي لبراويز العناوين والكروت في الليل والنهار",
@@ -1655,6 +1669,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#06212d", darkCardBgColor: "#0b394c", darkBorderColor: "#0891b2", darkPrimaryColor: "#22d3ee", announcementBgColor: "#155e75", detailNameBoxColor: "#164e63" },
   },
   "lavender-soft": {
+    retired: true,
     label: "🌌 جريديانت السديم البنفسجي والإنديجو",
     badge: "جريديانت",
     description: "تدرج الإنديجو واللافندر المضيء المتناغم مع الوضع الليلي والنهاري",
@@ -1663,6 +1678,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#11102e", darkCardBgColor: "#1e1b4b", darkBorderColor: "#6366f1", darkPrimaryColor: "#a5b4fc", announcementBgColor: "#3730a3", detailNameBoxColor: "#312e81" },
   },
   "graphite-modern": {
+    retired: true,
     label: "🛡️ جريديانت التيتانيوم والفولاذ الأزرق",
     badge: "جريديانت",
     description: "تدرج الفولاذ الكحلي والتيتانيوم العصري لبراويز عناوين فائقة الأناقة",
@@ -1671,6 +1687,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#090d16", darkCardBgColor: "#1e293b", darkBorderColor: "#475569", darkPrimaryColor: "#93c5fd", announcementBgColor: "#1e293b", detailNameBoxColor: "#0f172a" },
   },
   "olive-country": {
+    retired: true,
     label: "🌿 جريديانت اليشم الأخضر والذهب الريفي",
     badge: "جريديانت",
     description: "تدرج اليشم الأخضر والذهبي الهادئ المتناسق مع الليل والنهار",
@@ -1695,6 +1712,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#071e26", darkCardBgColor: "#0d3340", darkBorderColor: "#0e7490", darkPrimaryColor: "#67e8f9", announcementBgColor: "#155e75", detailNameBoxColor: "#0d3340" },
   },
   "vista-ultimate": {
+    retired: true,
     label: "🖤 سمة Vista Ultimate السوداء الزجاجية",
     badge: "Vista",
     description: "زجاج Aero داكن فوق شفق Ultimate الأخضر والأزرق، الأنسب للوضع الليلي مع كروت ونوافذ شبه شفافة",
@@ -1719,6 +1737,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#2a0f14", darkCardBgColor: "#44191f", darkBorderColor: "#c2410c", darkPrimaryColor: "#fdba74", announcementBgColor: "#9a3412", detailNameBoxColor: "#44191f" },
   },
   "vista-violet": {
+    retired: true,
     label: "💜 سمة Vista Violet البنفسجية الزجاجية",
     badge: "Vista",
     description: "زجاج Aero بنفسجي ملكي مع شفق أرجواني وأزرار لامعة بخط المنتصف",
@@ -1727,6 +1746,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#180b33", darkCardBgColor: "#2a1558", darkBorderColor: "#6d28d9", darkPrimaryColor: "#c4b5fd", announcementBgColor: "#4c1d95", detailNameBoxColor: "#2a1558" },
   },
   "vista-ruby": {
+    retired: true,
     label: "❤️ سمة Vista Ruby الياقوتية الزجاجية",
     badge: "Vista",
     description: "زجاج Aero أحمر ياقوتي فاخر مع شفق وردي، مناسب للمناسبات والعروض",
@@ -1735,6 +1755,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#2b0711", darkCardBgColor: "#4a0e1f", darkBorderColor: "#be123c", darkPrimaryColor: "#fda4af", announcementBgColor: "#9f1239", detailNameBoxColor: "#4a0e1f" },
   },
   "vista-gold": {
+    retired: true,
     label: "👑 سمة Vista Gold الذهبية الزجاجية",
     badge: "Vista",
     description: "زجاج Aero ذهبي كهرماني مع شفق بني دافئ وأزرار ذهبية لامعة",
@@ -1743,6 +1764,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     darkColors: { darkPageBgColor: "#1f1204", darkCardBgColor: "#3a2408", darkBorderColor: "#b45309", darkPrimaryColor: "#fcd34d", announcementBgColor: "#92400e", detailNameBoxColor: "#3a2408" },
   },
   "vista-pearl": {
+    retired: true,
     label: "🤍 سمة Vista Pearl اللؤلؤية الفضية",
     badge: "Vista",
     description: "زجاج Aero فاتح لؤلؤي فضي بأقل قدر من الألوان، أنيق وهادئ للنهار",
@@ -1838,6 +1860,46 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
     colors: { primaryColor: "#0c4a6e", pageBgColor: "#eff8fe", modalHeaderBg: "#def0fb", buttonColor: "#0369a1", borderColor: "#bcdcf0", cardBgColor: "#ffffff", headerBgColor: "#ffffff", footerBgColor: "#082f49" },
     darkColors: { darkPageBgColor: "#0b1a26", darkCardBgColor: "#12283a", darkBorderColor: "#1f405a", darkPrimaryColor: "#7dd3fc", announcementBgColor: "#0c3a55", detailNameBoxColor: "#12283a" },
   },
+  "win10-blue": {
+    label: "🟦 سمة Windows 10 الزرقاء الكلاسيكية",
+    badge: "Win 10",
+    description: "واجهة Windows 10 الحقيقية: زوايا حادة، أزرار مسطحة بإطار رمادي، هيدر كشريط عنوان بلون التمييز الأزرق، قائمة ابدأ داكنة، وفوتر كشريط المهام",
+    gradientPreview: "linear-gradient(135deg, #003e92 0%, #0078d7 55%, #e6e6e6 100%)",
+    colors: { primaryColor: "#0078d7", pageBgColor: "#e6e6e6", modalHeaderBg: "#f2f2f2", buttonColor: "#0078d7", borderColor: "#adadad", cardBgColor: "#ffffff", headerBgColor: "#0078d7", footerBgColor: "#101010" },
+    darkColors: { darkPageBgColor: "#000000", darkCardBgColor: "#1f1f1f", darkBorderColor: "#2b2b2b", darkPrimaryColor: "#4cc2ff", announcementBgColor: "#0063b1", detailNameBoxColor: "#1f1f1f" },
+  },
+  "win10-dark": {
+    label: "⬛ سمة Windows 10 الداكنة (Dark Mode)",
+    badge: "Win 10",
+    description: "الوضع الداكن الأصلي لويندوز 10: خلفيات سوداء ورمادي فحمي، تمييز أزرق فاتح، أزرار وقوائم مسطحة حادة الزوايا",
+    gradientPreview: "linear-gradient(135deg, #000000 0%, #1f1f1f 55%, #4cc2ff 100%)",
+    colors: { primaryColor: "#0063b1", pageBgColor: "#ebebeb", modalHeaderBg: "#f2f2f2", buttonColor: "#0063b1", borderColor: "#adadad", cardBgColor: "#ffffff", headerBgColor: "#1f1f1f", footerBgColor: "#000000" },
+    darkColors: { darkPageBgColor: "#000000", darkCardBgColor: "#1f1f1f", darkBorderColor: "#333333", darkPrimaryColor: "#4cc2ff", announcementBgColor: "#0063b1", detailNameBoxColor: "#1f1f1f" },
+  },
+  "win10-teal": {
+    label: "🟩 سمة Windows 10 التركواز",
+    badge: "Win 10",
+    description: "لون تمييز Teal الشهير في ويندوز 10 مع نفس الواجهة الحادة المسطحة وشريط العنوان الملوّن",
+    gradientPreview: "linear-gradient(135deg, #004b50 0%, #038387 55%, #e6e6e6 100%)",
+    colors: { primaryColor: "#038387", pageBgColor: "#e6e6e6", modalHeaderBg: "#f2f2f2", buttonColor: "#038387", borderColor: "#adadad", cardBgColor: "#ffffff", headerBgColor: "#038387", footerBgColor: "#101010" },
+    darkColors: { darkPageBgColor: "#000000", darkCardBgColor: "#1f1f1f", darkBorderColor: "#2b2b2b", darkPrimaryColor: "#00b7c3", announcementBgColor: "#005f63", detailNameBoxColor: "#1f1f1f" },
+  },
+  "win10-purple": {
+    label: "🟪 سمة Windows 10 البنفسجية",
+    badge: "Win 10",
+    description: "لون تمييز Iris Purple من لوحة ألوان ويندوز 10 مع الواجهة المسطحة حادة الزوايا",
+    gradientPreview: "linear-gradient(135deg, #3b2a6e 0%, #744da9 55%, #e6e6e6 100%)",
+    colors: { primaryColor: "#744da9", pageBgColor: "#e6e6e6", modalHeaderBg: "#f2f2f2", buttonColor: "#744da9", borderColor: "#adadad", cardBgColor: "#ffffff", headerBgColor: "#744da9", footerBgColor: "#101010" },
+    darkColors: { darkPageBgColor: "#000000", darkCardBgColor: "#1f1f1f", darkBorderColor: "#2b2b2b", darkPrimaryColor: "#b4a0ff", announcementBgColor: "#5c2e91", detailNameBoxColor: "#1f1f1f" },
+  },
+  "win10-red": {
+    label: "🟥 سمة Windows 10 الحمراء",
+    badge: "Win 10",
+    description: "لون تمييز Red الأصلي في ويندوز 10 مع شريط عنوان أحمر وأزرار مسطحة حادة",
+    gradientPreview: "linear-gradient(135deg, #7a0b16 0%, #e81123 55%, #e6e6e6 100%)",
+    colors: { primaryColor: "#e81123", pageBgColor: "#e6e6e6", modalHeaderBg: "#f2f2f2", buttonColor: "#e81123", borderColor: "#adadad", cardBgColor: "#ffffff", headerBgColor: "#e81123", footerBgColor: "#101010" },
+    darkColors: { darkPageBgColor: "#000000", darkCardBgColor: "#1f1f1f", darkBorderColor: "#2b2b2b", darkPrimaryColor: "#ff6b6b", announcementBgColor: "#a4262c", detailNameBoxColor: "#1f1f1f" },
+  },
 };
 
 // Quick circular tools on the provider card: order = display order, missing ids = hidden.
@@ -1873,7 +1935,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.themePreset = pickEnum(
     record.themePreset,
-    ["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "vista-aero", "vista-frost", "vista-ultimate", "vista-emerald", "vista-sunset", "vista-violet", "vista-ruby", "vista-gold", "vista-pearl", "vista-midnight", "win11-bloom", "win11-dark", "win11-mica", "win11-sunrise", "win11-glow", "win11-flow", "win11-motion", "win11-sunset", "win11-graphite", "win11-ocean", "custom"] as const,
+    ["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country", "vista-aero", "vista-frost", "vista-ultimate", "vista-emerald", "vista-sunset", "vista-violet", "vista-ruby", "vista-gold", "vista-pearl", "vista-midnight", "win11-bloom", "win11-dark", "win11-mica", "win11-sunrise", "win11-glow", "win11-flow", "win11-motion", "win11-sunset", "win11-graphite", "win11-ocean", "win10-blue", "win10-dark", "win10-teal", "win10-purple", "win10-red", "custom"] as const,
     defaultDesignSettings.themePreset,
   );
   next.primaryColor = hexColor(record.primaryColor, defaultDesignSettings.primaryColor);
@@ -2531,7 +2593,8 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   labs: [["medical-labs", "معامل التحاليل", "FlaskConical"]],
   pharmacies: [["community-pharmacies", "صيدليات عامة", "Pill"], ["night-pharmacies", "صيدليات ٢٤ ساعة", "HeartPulse"], ["medical-supplies", "مستلزمات طبية وأجهزة", "Activity"]],
   shops: [["groceries", "البقالة والسوبر ماركت", "ShoppingBasket"], ["clothing", "الملابس", "Shirt"], ["stationery", "المكتبات والأدوات المدرسية", "BookOpen"], ["appliances", "الأجهزة الكهربائية", "Tv"], ["food", "المطاعم والمأكولات", "Utensils"], ["mobile-shops", "الموبايلات والكمبيوتر", "Smartphone"], ["butchers", "الجزارة واللحوم", "Beef"], ["poultry", "الدواجن والبيض", "Drumstick"], ["fish-shops", "الأسماك", "Fish"], ["bakeries", "المخابز والحلواني", "Croissant"], ["produce", "الخضار والفاكهة", "Carrot"], ["cafes", "الكافيهات والعصائر", "Coffee"], ["hardware", "الأدوات الصحية والكهربائية", "Plug"], ["furniture", "الموبيليا والمفروشات", "Bed"]],
-  teachers: [["arabic", "اللغة العربية", "BookOpen"], ["english", "اللغة الإنجليزية", "Languages"], ["math", "الرياضيات", "Calculator"], ["science", "العلوم والكيمياء والفيزياء", "FlaskConical"], ["social-studies", "الدراسات والتاريخ والجغرافيا", "Globe"], ["quran", "تحفيظ القرآن الكريم", "BookMarked"], ["kindergarten", "الحضانات ورياض الأطفال", "School"]],
+  // تخصصات المدرسين تُدار من لوحة الإدارة بالكامل (القسم يبدأ فارغًا ويضيف الأدمن تخصصاته).
+  teachers: [],
   charities: [["charitable-associations", "الجمعيات الأهلية", "HandHeart"], ["orphan-care", "رعاية الأيتام", "Heart"], ["community-support", "التكافل والمساعدات", "UsersRound"]],
   printing: [["print-shops", "الطباعة وتصوير المستندات", "Printer"], ["advertising", "الدعاية والإعلان واللافتات", "Megaphone"], ["graphic-design", "التصميم الجرافيكي", "Palette"]],
   events: [["photography", "التصوير", "Camera"], ["dj", "الدي جي", "Disc3"], ["wedding-planning", "تجهيز الأفراح", "PartyPopper"]],
@@ -2998,8 +3061,14 @@ export function liveTickerItems(greetings: ActiveGreeting[] | undefined, events:
 
 
 /** المهن التي لها رسم ثلاثي الأبعاد مرسوم باليد (الباقي يُولَّد تلقائيًا بنفس الأسلوب من أيقونته) في /images/profession-art.svg (معرّف التصنيف = معرّف الرمز). */
-export const professionArtIds = ["electricity", "plumbing", "carpentry", "painting", "ac", "mechanics", "dentistry", "pharmacies", "teachers", "barbers", "groceries", "photography", "metalwork", "masonry", "tiles", "family", "pediatrics", "ophthalmology", "medical-labs", "butchers", "bakeries", "produce", "cafes", "mobile-shops", "cameras", "rides", "lawyers", "clothing"] as const;
+export const professionArtIds = ["electricity", "plumbing", "carpentry", "painting", "ac", "mechanics", "dentistry", "pharmacies", "teachers", "barbers", "groceries", "photography", "metalwork", "masonry", "tiles", "family", "pediatrics", "ophthalmology", "medical-labs", "butchers", "bakeries", "produce", "cafes", "mobile-shops", "cameras", "rides", "lawyers", "clothing", "hairdressers", "makeup", "dj", "wedding-planning", "moving", "apartment-cleaning", "solar", "gyms", "veterinary", "tailors", "poultry", "fish-shops", "stationery"] as const;
 export function hasProfessionArt(categoryId: string) { return (professionArtIds as readonly string[]).includes(categoryId); }
+/** أسماء عربية لرسومات المهن اليدوية (لاختيار رسمة لتخصص جديد من لوحة الإدارة). */
+export const professionArtLabels: Record<(typeof professionArtIds)[number], string> = {
+  electricity: "كهربائي", plumbing: "سباك", carpentry: "نجار", painting: "نقاش", ac: "تكييف", mechanics: "ميكانيكي", dentistry: "أسنان", pharmacies: "صيدلية", teachers: "مدرّس", barbers: "حلاق", groceries: "بقالة", photography: "مصوّر",
+  metalwork: "حدادة", masonry: "بناء ومحارة", tiles: "سيراميك", family: "طبيب", pediatrics: "أطفال", ophthalmology: "عيون", "medical-labs": "معمل تحاليل", butchers: "جزارة", bakeries: "مخبز", produce: "خضار وفاكهة", cafes: "كافيه", "mobile-shops": "موبايلات", cameras: "كاميرات", rides: "سيارة ومشاوير", lawyers: "محاماة", clothing: "ملابس",
+  hairdressers: "كوافير", makeup: "ميكب", dj: "دي جي", "wedding-planning": "أفراح", moving: "نقل عفش", "apartment-cleaning": "تنظيف", solar: "طاقة شمسية", gyms: "جيم", veterinary: "بيطري", tailors: "ترزي", poultry: "دواجن", "fish-shops": "أسماك", stationery: "مكتبة",
+};
 
 /** معرّفات التخصصات المثبّتة يدويًا في أول صف «أهم مهن القرية» (مفصولة بفواصل، بحد أقصى 6). */
 export function parsePinnedProfessions(value: unknown): string[] {

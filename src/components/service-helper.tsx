@@ -28,10 +28,7 @@ const SERVICE_GROUPS: ServiceGroup[] = [
     { label: "تحاليل طبية", categoryIds: ["medical-labs"], keywords: ["معمل", "تحاليل", "أشعة"], icon: Search },
   ] },
   { id: "education", label: "التعليم", icon: GraduationCap, issues: [
-    { label: "لغة عربية", categoryIds: ["arabic"], keywords: ["عربي", "لغة عربية"], icon: GraduationCap },
-    { label: "لغة إنجليزية", categoryIds: ["english"], keywords: ["إنجليزي", "لغة إنجليزية"], icon: GraduationCap },
-    { label: "رياضيات", categoryIds: ["math"], keywords: ["رياضيات", "حساب"], icon: GraduationCap },
-    { label: "علوم ومواد أخرى", categoryIds: ["science", "social-studies"], keywords: ["علوم", "كيمياء", "فيزياء", "دراسات"], icon: GraduationCap },
+    { label: "مدرس خصوصي (كل المواد)", categoryIds: ["teachers"], keywords: ["مدرس", "درس خصوصي", "عربي", "إنجليزي", "رياضيات", "علوم"], icon: GraduationCap },
   ] },
   { id: "devices", label: "الموبايل والكمبيوتر", icon: Smartphone, issues: [
     { label: "موبايل أو كمبيوتر", categoryIds: ["mobile-shops"], keywords: ["موبايل", "كمبيوتر", "لابتوب", "تليفون"], icon: Smartphone },

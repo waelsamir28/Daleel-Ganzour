@@ -32,9 +32,10 @@ export function AutoArtIcon({ icon, color = "#0876e1", size = 56, className = ""
   );
 }
 /** رسم ثلاثي الأبعاد للتخصص: مرسوم باليد إن توفر، وإلا يُولَّد تلقائيًا من أيقونته بلون قسمه؛ يرجع للأيقونة المسطحة إن كانت الخاصية مغلقة. */
-export function SpecialtyIcon({ category, size = 35, art3d = false, className = "" }: { category: { id: string; icon: string; color?: string }; size?: number; art3d?: boolean; className?: string }) {
-  if (art3d && hasProfessionArt(category.id)) {
-    return <svg className={`profession-art ${className}`} viewBox="0 0 128 128" style={{ width: size, height: size }} aria-hidden="true"><use href={`/images/profession-art.svg#${category.id}`}/></svg>;
+export function SpecialtyIcon({ category, size = 35, art3d = false, className = "" }: { category: { id: string; icon: string; color?: string; art?: string }; size?: number; art3d?: boolean; className?: string }) {
+  const handDrawn = category.art && hasProfessionArt(category.art) ? category.art : hasProfessionArt(category.id) ? category.id : "";
+  if (art3d && handDrawn) {
+    return <svg className={`profession-art ${className}`} viewBox="0 0 128 128" style={{ width: size, height: size }} aria-hidden="true"><use href={`/images/profession-art.svg#${handDrawn}`}/></svg>;
   }
   if (art3d) return <AutoArtIcon icon={category.icon} color={category.color} size={size} className={className}/>;
   return <CategoryIcon icon={category.icon} size={size} className={className}/>;

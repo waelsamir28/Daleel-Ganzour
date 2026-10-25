@@ -164,13 +164,15 @@ export default function DesignCustomizer({
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [openThemeFamilies, setOpenThemeFamilies] = useState<Record<string, boolean>>({});
   const themeFamilies = useMemo(() => {
-    const keys = Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>;
+    // الثيمات المتقاعدة (retired) تبقى صالحة لمن اختارها سابقًا لكنها لا تظهر في القوائم.
+    const keys = (Object.keys(designThemePresets) as Array<Exclude<DesignSettings["themePreset"], "custom">>).filter((key) => !designThemePresets[key].retired || key === initialDesign?.themePreset);
     return [
-      { id: "gradient", title: "ثيمات الجريديانت", subtitle: "الثيمات المتدرجة الأساسية والمواسم", preview: "linear-gradient(135deg, #0b3d91, #1079ff 50%, #ffb703)", keys: keys.filter((key) => !key.startsWith("vista-") && !key.startsWith("win11-")) },
-      { id: "vista", title: "ثيمات Windows Vista Aero", subtitle: "زجاج Aero الشفاف وخلفيات Aurora", preview: "linear-gradient(135deg, #062a55, #1b74d0 45%, #9fdcff)", keys: keys.filter((key) => key.startsWith("vista-")) },
+      { id: "gradient", title: "ثيمات الجريديانت", subtitle: "5 ثيمات متدرجة أساسية", preview: "linear-gradient(135deg, #0b3d91, #1079ff 50%, #ffb703)", keys: keys.filter((key) => !key.startsWith("vista-") && !key.startsWith("win11-") && !key.startsWith("win10-")) },
+      { id: "vista", title: "ثيمات Windows Vista Aero", subtitle: "5 ثيمات زجاج Aero الشفاف", preview: "linear-gradient(135deg, #062a55, #1b74d0 45%, #9fdcff)", keys: keys.filter((key) => key.startsWith("vista-")) },
+      { id: "win10", title: "ثيمات Windows 10", subtitle: "واجهة ويندوز 10 الحقيقية: زوايا حادة وأزرار مسطحة وقائمة ابدأ", preview: "linear-gradient(135deg, #003e92, #0078d7 55%, #e6e6e6)", keys: keys.filter((key) => key.startsWith("win10-")) },
       { id: "win11", title: "ثيمات Windows 11 Fluent", subtitle: "أسطح Mica وزوايا ناعمة وخلفيات Bloom", preview: "linear-gradient(135deg, #0067c0, #4cc2ff 55%, #dbeafe)", keys: keys.filter((key) => key.startsWith("win11-")) },
     ];
-  }, []);
+  }, [initialDesign?.themePreset]);
   const [saving, setSaving] = useState(false);
   const [savedPresets, setSavedPresets] = useState<SavedCustomPreset[]>(() => {
     if (typeof window === "undefined") return [];
