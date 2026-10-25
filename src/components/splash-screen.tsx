@@ -81,7 +81,6 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
         <img className="splash-icon" src={splashImage} alt="" width={250} height={250}/>
       )}
     </div>
-    <strong className="splash-title">دليل جنزور</strong>
     <span className="splash-tagline">{tagline}</span>
     <span className="splash-dots"><i/><i/><i/></span>
   </div>;
