@@ -68,7 +68,7 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
     >
       {isNewService(service, now) && <span className="new-flag">جديد</span>}
       <div className="provider-card-main">
-        <span className={`provider-card-icon ${art3d || (sticker && categoryStickerSrc(category)) ? "has-profession-art" : ""}`} aria-hidden="true">
+        <span className={`provider-card-icon ${sticker && categoryStickerSrc(category) ? "has-profession-art has-sticker" : art3d ? "has-profession-art" : ""}`} aria-hidden="true">
           {art3d || (sticker && categoryStickerSrc(category)) ? <SpecialtyIcon category={category} size={40} art3d={art3d} sticker={sticker}/> : <CategoryIcon icon={category.icon} size={26}/>}
         </span>
         <div className="provider-card-copy">

@@ -7,7 +7,7 @@ SRC = sys.argv[1]
 OUT = os.path.join(os.path.dirname(__file__), "..", "public", "images", "specialty-stickers")
 def tile_bbox_collage(im):
     w, h = im.size; best = None
-    points = [(dx * r, dy * r) for r in (0.08, 0.12, 0.16, 0.2) for dx, dy in [(-1, -1), (1, -1), (-1, 1), (1, 1), (-1.3, 0), (1.3, 0), (0, -1.3), (0, 1.3)]]
+    points = [(dx * r, dy * r) for r in (0.08, 0.12, 0.16, 0.2, 0.24, 0.28) for dx, dy in [(-1, -1), (1, -1), (-1, 1), (1, 1), (-1.3, 0), (1.3, 0), (0, -1.3), (0, 1.3)]]
     for dx, dy in points:
         x, y = int(w / 2 + dx * min(w, h)), int(h / 2 + dy * min(w, h))
         if min(im.getpixel((x, y))[:3]) < 150: continue

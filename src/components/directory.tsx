@@ -341,6 +341,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const visibleServices = isFiltering || activeSpecialtyId ? filteredServices : (featured.length ? featured : filteredServices);
   const activeSpecialtyCategory = activeSpecialtyId ? getCategory(activeSpecialtyId, categories) : specialty;
   const providerTitle = view === "favorites" ? "خدماتك المفضلة" : emergency ? "خدمات الطوارئ" : activeDeliveryOnly && !specialty ? "محلات توفر التوصيل للمنازل بجنزور" : activeSpecialtyCategory ? `${rootId === "clinics" ? "أطباء" : "مقدمو خدمات"} ${activeSpecialtyCategory.name}` : isFiltering ? "نتائج البحث" : root ? `خدمات ${root.name} المميزة في جنزور` : "مقدمو الخدمات المميزين";
+  const hasSticker = (category: { id: string; imageVersion?: number }) => Boolean(design.specialtyStickerIcons && categoryStickerSrc(category));
   const displayedCategories = root ? categories.filter((category) => category.parentId === root.id) : isTeachersContext ? teacherSpecialties : roots;
   const title = specialty ? `${specialty.name} بقرية جنزور` : root ? `${root.name} بقرية جنزور` : settings.siteName;
   function categoryCount(category: CategoryRecord) {
@@ -764,7 +765,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                                 scrollToProviders();
                               }}
                             >
-                              <span className={`category-icon ${design.specialtyArt3d ? "has-profession-art" : ""}`}><SpecialtyIcon category={spec} size={design.specialtyArt3d ? 56 : 32} art3d={design.specialtyArt3d} sticker={design.specialtyStickerIcons}/></span>
+                              <span className={`category-icon ${hasSticker(spec) ? "has-profession-art has-sticker" : design.specialtyArt3d ? "has-profession-art" : ""}`}><SpecialtyIcon category={spec} size={design.specialtyArt3d ? 56 : 32} art3d={design.specialtyArt3d} sticker={design.specialtyStickerIcons}/></span>
                               <strong>{spec.name}</strong>
                               <span className="category-meta">{teacherStageCount(stage.id, spec.id)} مدرس<ChevronLeft size={12}/></span>
                             </button>
@@ -926,7 +927,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                       onClick={() => sendCategoryHit(category.id, "view", `top:${category.id}`)}
                     >
                       <span className={`top-profession-rank ${item.pinned ? "is-pinned" : ""}`} aria-hidden="true">{item.pinned ? <Pin size={11}/> : index + 1}</span>
-                      <span className="top-profession-icon"><SpecialtyIcon category={category} size={design.specialtyArt3d ? 34 : 22} art3d={design.specialtyArt3d} sticker={design.specialtyStickerIcons}/></span>
+                      <span className={`top-profession-icon ${hasSticker(category) ? "has-sticker" : ""}`}><SpecialtyIcon category={category} size={design.specialtyArt3d ? 34 : 22} art3d={design.specialtyArt3d} sticker={design.specialtyStickerIcons}/></span>
                       <strong>{category.name}</strong>
                       <small>{parent.name} · {item.providers} {item.providers === 1 ? "مقدم خدمة" : "مقدمي خدمة"}</small>
                     </Link>
@@ -952,7 +953,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
                   className="category-tile"
                   style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}
                 >
-                  <span className={`category-icon ${(design.specialtyStickerIcons && categoryStickerSrc(category)) || (design.specialtyArt3d && (category.parentId || hasProfessionArt(category.id))) ? "has-profession-art" : ""}`}>{design.specialtyStickerIcons && categoryStickerSrc(category) ? <StickerIcon src={categoryStickerSrc(category)} size={category.parentId ? 58 : 76}/> : design.specialtyArt3d && (category.parentId || hasProfessionArt(category.id)) ? <SpecialtyIcon category={category} size={category.parentId ? 56 : 76} art3d/> : category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon} art={category.art}/>}</span>
+                  <span className={`category-icon ${hasSticker(category) ? "has-profession-art has-sticker" : design.specialtyArt3d && (category.parentId || hasProfessionArt(category.id)) ? "has-profession-art" : ""}`}>{hasSticker(category) ? <StickerIcon src={categoryStickerSrc(category)} size={category.parentId ? 78 : 76}/> : design.specialtyArt3d && (category.parentId || hasProfessionArt(category.id)) ? <SpecialtyIcon category={category} size={category.parentId ? 56 : 76} art3d/> : category.parentId ? <CategoryIcon icon={category.icon} size={35}/> : <MainCategoryIcon icon={category.icon} art={category.art}/>}</span>
                   <strong>{category.name}</strong>
                   <span className="category-meta">{categoryCount(category)} {category.parentId ? "مقدم خدمة" : "تخصص"}<ChevronLeft size={12}/></span>
                 </Link>
@@ -1343,7 +1344,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
 
       <div className="detail-v2-facts" role="list">
         <div className="detail-v2-fact" role="listitem">
-          <span className={`detail-v2-fact-icon is-spec ${design.specialtyArt3d ? "has-profession-art" : ""}`}><SpecialtyIcon category={getCategory(detail.category, categories)} size={design.specialtyArt3d ? 34 : 17} art3d={design.specialtyArt3d} sticker={design.specialtyStickerIcons}/></span>
+          <span className={`detail-v2-fact-icon is-spec ${hasSticker(getCategory(detail.category, categories)) ? "has-profession-art has-sticker" : design.specialtyArt3d ? "has-profession-art" : ""}`}><SpecialtyIcon category={getCategory(detail.category, categories)} size={design.specialtyArt3d ? 34 : 17} art3d={design.specialtyArt3d} sticker={design.specialtyStickerIcons}/></span>
           <div><small>التخصص</small><strong>{getCategory(detail.category, categories).name}</strong></div>
         </div>
         <div className="detail-v2-fact" role="listitem">

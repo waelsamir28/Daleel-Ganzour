@@ -11702,3 +11702,13 @@ html.dark .specialty-sticker { filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .45))
 html.dark .category-icon-upload-preview { background: rgba(255, 255, 255, .05); }
 .category-icon-upload-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .category-icon-upload-actions .button { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+
+/* الملصق يملأ مربع الأيقونة بالكامل (المربع نفسه يصبح شفافًا لأن للملصق خلفيته الباستيل الخاصة) */
+.has-sticker { background: transparent !important; border-color: transparent !important; box-shadow: none !important; overflow: visible; }
+.has-sticker .specialty-sticker { width: 100% !important; height: 100% !important; }
+.category-tile .category-icon.has-sticker { width: 78px; height: 78px; }
+.main-category-grid .category-icon.has-sticker { width: 82px; height: 82px; }
+.top-profession-icon.has-sticker .specialty-sticker { border-radius: 14px; }
+.provider-card-icon.has-sticker { width: 52px; height: 52px; }
+.detail-v2-fact-icon.has-sticker .specialty-sticker { border-radius: 12px; }
+@media (max-width: 480px) { .category-tile .category-icon.has-sticker { width: 70px; height: 70px; } .main-category-grid .category-icon.has-sticker { width: 74px; height: 74px; } }
