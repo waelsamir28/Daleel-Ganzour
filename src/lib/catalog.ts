@@ -2444,7 +2444,14 @@ export function parseAdImageDataUrl(value: unknown): { mime: string; base64: str
   return { mime: match[1], base64 };
 }
 /** أيقونات «الملصقات 3D» الجاهزة (مولّدة بأسلوب صورة المرجع) — ملف WebP 256px لكل تخصص/قسم في `/images/specialty-stickers/`. */
-export const stickerIconIds = ["crafts", "carpentry", "plumbing", "electricity", "metalwork", "painting", "masonry", "tiles", "aluminum", "glass"] as const;
+export const stickerIconIds = [
+  // الحرفيين (القسم + 16 تخصصًا)
+  "crafts", "carpentry", "plumbing", "electricity", "metalwork", "painting", "masonry", "tiles", "aluminum", "glass", "ac", "mechanics", "upholstery", "satellite-dish", "locksmith", "gypsum-decor", "appliance-repair",
+  // العيادات (القسم + 11 تخصصًا)
+  "clinics", "family", "pediatrics", "dentistry", "gynecology", "orthopedics", "dermatology", "ophthalmology", "ent", "physiotherapy", "home-nursing", "psychiatry",
+  // مقصوصة من صورة المرجع مباشرة
+  "labs", "medical-labs", "pharmacies", "photography", "lawyers", "law",
+] as const;
 export function hasStickerIcon(categoryId: string) { return (stickerIconIds as readonly string[]).includes(categoryId); }
 export function stickerIconUrl(categoryId: string) { return `/images/specialty-stickers/${categoryId}.webp`; }
 /** رابط الأيقونة المرفوعة من الإدارة؛ يحمل رقم النسخة ليُخزَّن في المتصفح بأمان. */
