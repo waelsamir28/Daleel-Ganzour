@@ -1155,6 +1155,10 @@ export type DesignSettings = {
   specialtyArt3d: boolean;
   /** أيقونات «الملصقات 3D» (الجاهزة + المرفوعة من الإدارة) بدل الرسم اليدوي حيثما توفرت. */
   specialtyStickerIcons: boolean;
+  /** شكل أيقونات التخصصات فقط (الأقسام الرئيسية لا تتأثر): مجسمة 3D (ملصقات/رسم) أو فلات كلاسيكية. */
+  specialtyIconStyle: "3d" | "flat";
+  /** إظهار كتلة «المراحل الدراسية» داخل قسم المدرسين (افتراضيًا مخفية؛ القسم يبدأ فارغًا ويملؤه المدير). */
+  teacherStagesSection: boolean;
   powerSaveMode: "auto" | "on" | "off";
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
@@ -1494,6 +1498,8 @@ export const defaultDesignSettings: DesignSettings = {
   showWeeklyStars: true,
   specialtyArt3d: true,
   specialtyStickerIcons: true,
+  specialtyIconStyle: "3d",
+  teacherStagesSection: false,
   powerSaveMode: "auto",
   showProviderWhatsappBtn: true,
   whatsappButtonColor: "#1fa855",
@@ -2078,6 +2084,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.showTopProfessions = pickBool(record.showTopProfessions, defaultDesignSettings.showTopProfessions);
   next.specialtyArt3d = pickBool(record.specialtyArt3d, defaultDesignSettings.specialtyArt3d);
   next.specialtyStickerIcons = pickBool(record.specialtyStickerIcons, defaultDesignSettings.specialtyStickerIcons);
+  next.specialtyIconStyle = pickEnum(record.specialtyIconStyle, ["3d", "flat"] as const, defaultDesignSettings.specialtyIconStyle);
+  next.teacherStagesSection = pickBool(record.teacherStagesSection, defaultDesignSettings.teacherStagesSection);
   next.topProfessionsPinned = parsePinnedProfessions(record.topProfessionsPinned).join(",");
   next.showWeeklyStars = pickBool(record.showWeeklyStars, defaultDesignSettings.showWeeklyStars);
   next.powerSaveMode = pickEnum(record.powerSaveMode, ["auto", "on", "off"] as const, defaultDesignSettings.powerSaveMode);
