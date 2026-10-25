@@ -2451,8 +2451,14 @@ export const stickerIconIds = [
   "clinics", "family", "pediatrics", "dentistry", "gynecology", "orthopedics", "dermatology", "ophthalmology", "ent", "physiotherapy", "home-nursing", "psychiatry",
   // مقصوصة من صورة المرجع مباشرة
   "labs", "medical-labs", "pharmacies", "photography", "lawyers", "law",
-  // المحلات (القسم + 10 من 14 تخصصًا؛ الباقي: المكتبات، الأجهزة، الأدوات الصحية، الموبيليا)
-  "shops", "groceries", "butchers", "poultry", "fish-shops", "produce", "bakeries", "cafes", "clothing", "mobile-shops", "food",
+  // المحلات (القسم + 14 تخصصًا)
+  "shops", "groceries", "butchers", "poultry", "fish-shops", "produce", "bakeries", "cafes", "clothing", "mobile-shops", "food", "stationery", "appliances", "hardware", "furniture",
+  // الصيدليات (3 تخصصات؛ القسم أعلاه)
+  "community-pharmacies", "night-pharmacies", "medical-supplies",
+  // الحلاقة والتجميل (القسم + 2 من 3؛ الباقي: الميكب)
+  "beauty", "barbers", "hairdressers",
+  // الطباعة والدعاية: التصميم الجرافيكي (مقصوص من المرجع)
+  "graphic-design",
 ] as const;
 export function hasStickerIcon(categoryId: string) { return (stickerIconIds as readonly string[]).includes(categoryId); }
 export function stickerIconUrl(categoryId: string) { return `/images/specialty-stickers/${categoryId}.webp`; }
