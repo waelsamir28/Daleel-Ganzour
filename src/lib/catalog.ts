@@ -2463,8 +2463,12 @@ export const stickerIconIds = [
   "events", "dj", "wedding-planning",
   // النقل والتوصيل (القسم + 3)
   "transport", "moving", "freight", "rides",
-  // النظافة (القسم + 1 من 2؛ الباقي: غسيل السجاد)
-  "cleaning", "apartment-cleaning",
+  // النظافة (القسم + 2)
+  "cleaning", "apartment-cleaning", "carpet-cleaning",
+  // الطباعة والدعاية (القسم + الطباعة؛ الباقي: الدعاية واللافتات)
+  "printing", "print-shops",
+  // الجمعيات الخيرية (القسم + التكافل؛ الباقي: الجمعيات الأهلية، رعاية الأيتام)
+  "charities", "community-support",
 ] as const;
 export function hasStickerIcon(categoryId: string) { return (stickerIconIds as readonly string[]).includes(categoryId); }
 export function stickerIconUrl(categoryId: string) { return `/images/specialty-stickers/${categoryId}.webp`; }
