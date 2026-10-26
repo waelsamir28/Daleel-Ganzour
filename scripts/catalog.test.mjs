@@ -1036,8 +1036,12 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
 });
 
 test("design images: upload keys, centimetre size guide and data-URL validation", () => {
-  const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
-  assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner"]);
+  const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, HERO_BANNER_DEFAULTS, resolveHeroBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
+  assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark"]);
+  assert.equal(resolveHeroBanner(d, false), HERO_BANNER_DEFAULTS.light);
+  assert.equal(resolveHeroBanner(d, true), HERO_BANNER_DEFAULTS.dark);
+  assert.equal(resolveHeroBanner({ ...d, heroBannerImage: "/x" }, true), "/x", "المخصص الفاتح يُستخدم ليلًا إن لم تُرفع نسخة داكنة");
+  assert.equal(resolveHeroBanner({ ...d, heroBannerImage: "/x", heroBannerImageDark: "/y" }, true), "/y");
   // بانرات الدخول/العضوية: الافتراضي حسب الصفحة والوضع، والمخصص يسبق، والعضوية ترث بانر الدخول المخصص
   assert.equal(resolveAuthBanner(d, "login", false), AUTH_BANNER_DEFAULTS.login.light);
   assert.equal(resolveAuthBanner(d, "login", true), AUTH_BANNER_DEFAULTS.login.dark);

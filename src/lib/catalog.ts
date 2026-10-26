@@ -1099,6 +1099,8 @@ export type DesignSettings = {
   registerBannerImageDark: string;
   /** صورة البانر الترحيبي أعلى الرئيسية (فارغ = صورة سماء جنزور الافتراضية). */
   heroBannerImage: string;
+  /** نسخة الوضع الداكن من البانر الترحيبي (فارغ = المخصص الفاتح إن وُجد، وإلا النسخة الليلية الافتراضية). */
+  heroBannerImageDark: string;
   /** درجة تعتيم طبقة فوق صورة البانر الترحيبي (0 = بلا تعتيم … 80%). */
   heroBannerOverlay: number;
   /** إظهار اسم الدليل وسطر ترحيبي أبيض فوق صورة البانر. */
@@ -1455,6 +1457,7 @@ export const defaultDesignSettings: DesignSettings = {
   registerBannerImage: "",
   registerBannerImageDark: "",
   heroBannerImage: "",
+  heroBannerImageDark: "",
   heroBannerOverlay: 0,
   heroBannerText: false,
   heroBannerHeight: "auto",
@@ -2050,6 +2053,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.registerBannerImage = pickText(record.registerBannerImage, defaultDesignSettings.registerBannerImage, 300, true);
   next.registerBannerImageDark = pickText(record.registerBannerImageDark, defaultDesignSettings.registerBannerImageDark, 300, true);
   next.heroBannerImage = pickText(record.heroBannerImage, defaultDesignSettings.heroBannerImage, 300, true);
+  next.heroBannerImageDark = pickText(record.heroBannerImageDark, defaultDesignSettings.heroBannerImageDark, 300, true);
   const rawOverlay = typeof record.heroBannerOverlay === "number" ? record.heroBannerOverlay : Number(record.heroBannerOverlay);
   next.heroBannerOverlay = Number.isFinite(rawOverlay) && rawOverlay >= 0 && rawOverlay <= 80 ? Math.round(rawOverlay / 10) * 10 : defaultDesignSettings.heroBannerOverlay;
   next.heroBannerText = pickBool(record.heroBannerText, defaultDesignSettings.heroBannerText);
@@ -2515,7 +2519,7 @@ export function parseCategoryIconDataUrl(value: unknown): { mime: string; base64
   return { mime: match[1], base64 };
 }
 /** صور المظهر القابلة للرفع من استوديو التصميم. */
-export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner"] as const;
+export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark"] as const;
 export type DesignImageKey = (typeof DESIGN_IMAGE_KEYS)[number];
 export function isDesignImageKey(value: unknown): value is DesignImageKey { return typeof value === "string" && (DESIGN_IMAGE_KEYS as readonly string[]).includes(value); }
 export const DESIGN_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
@@ -2534,12 +2538,19 @@ export const DESIGN_IMAGE_GUIDE: Record<DesignImageKey, { label: string; width: 
   "register-banner": { label: "بانر العضوية (الوضع الفاتح)", width: 1200, height: 500, hint: "عريض؛ يظهر في شاشة إنشاء العضوية" },
   "register-banner-dark": { label: "بانر العضوية (الوضع الداكن)", width: 1200, height: 500, hint: "نفس المقاس؛ يظهر بدل الفاتح عند تفعيل الوضع الليلي" },
   "hero-banner": { label: "البانر الترحيبي الرئيسي", width: 2048, height: 768, hint: "عريض 8:3 مثل صورة سماء جنزور الافتراضية؛ يظهر أعلى الصفحة الرئيسية فوق مربع البحث" },
+  "hero-banner-dark": { label: "البانر الترحيبي الرئيسي (الوضع الداكن)", width: 2048, height: 768, hint: "نفس المقاس 8:3؛ يظهر بدل الفاتح عند تفعيل الوضع الليلي (فارغ = النسخة الليلية الافتراضية)" },
 };
 /** البانرات الافتراضية المصممة للتطبيق (WebP خفيفة ≈ 100 ك.ب). */
 export const AUTH_BANNER_DEFAULTS = {
   login: { light: "/images/auth-banner-default.webp", dark: "/images/auth-banner-default-dark.webp" },
   register: { light: "/images/register-banner-default.webp", dark: "/images/register-banner-default-dark.webp" },
 } as const;
+/** البانر الترحيبي الافتراضي أعلى الرئيسية: سماء جنزور نهارًا، ونسخة ليلية منها للوضع الداكن (نفس النصوص حرفيًا). */
+export const HERO_BANNER_DEFAULTS = { light: "/images/home-banner-sky.png", dark: "/images/home-banner-sky-dark.webp" } as const;
+export function resolveHeroBanner(design: Pick<DesignSettings, "heroBannerImage" | "heroBannerImageDark">, dark: boolean) {
+  if (dark) return design.heroBannerImageDark || design.heroBannerImage || HERO_BANNER_DEFAULTS.dark;
+  return design.heroBannerImage || HERO_BANNER_DEFAULTS.light;
+}
 /**
  * اختيار بانر شاشة الدخول/العضوية: المخصص المطابق للصفحة والوضع أولًا، ثم المخصص الأقرب، ثم الافتراضي.
  * العضوية ترث بانر الدخول المخصص حتى لا يتغير سلوك من رفع بانرًا واحدًا قبل إضافة الخانات الجديدة.

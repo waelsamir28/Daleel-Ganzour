@@ -1,21 +1,12 @@
 "use client";
 
-import { useState, useSyncExternalStore, type CSSProperties, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
+import { useIsDark } from "@/lib/use-is-dark";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, CirclePlus, Eye, EyeOff, Info, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { Logo } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import { defaultDesignSettings, parseAnnouncementItems, resolveAuthBanner, type DesignSettings, type SiteSettings } from "@/lib/catalog";
-
-/** يتابع كلاس html.dark (الذي يضبطه مبدّل الوضع الليلي) حتى يتبدّل البانر بين نسختيه الفاتحة والداكنة فورًا. */
-function subscribeDark(callback: () => void) {
-  const observer = new MutationObserver(callback);
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-  return () => observer.disconnect();
-}
-function useIsDark() {
-  return useSyncExternalStore(subscribeDark, () => document.documentElement.classList.contains("dark"), () => false);
-}
 
 export function LogoutButton({ className = "button button-soft" }: { className?: string }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
