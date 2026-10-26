@@ -11,6 +11,7 @@ import { defaultDesignSettings, parseAnnouncementItems } from "@/lib/catalog";
 import DesignApplicator from "@/components/design-applicator";
 import { Logo } from "@/components/ui";
 import { LogoutButton } from "@/components/auth-form";
+import { TickerText } from "@/components/ticker-text";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "حسابي | دليل جنزور", robots: { index: false, follow: false } };
@@ -36,10 +37,9 @@ export default async function AccountPage() {
           <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"}`} aria-label="شريط الأخبار والتنبيهات">
             <div className="site-announcement-marquee-track">
               {[...announcementList, ...announcementList].map((item, idx) => (
-                <span key={`${idx}-${item}`} className="site-announcement-marquee-item">
-                  {item}
+                <TickerText key={`${idx}-${item}`} text={item} className="site-announcement-marquee-item">
                   <i aria-hidden="true">•</i>
-                </span>
+                </TickerText>
               ))}
             </div>
           </div>

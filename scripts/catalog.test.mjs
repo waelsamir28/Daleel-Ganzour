@@ -1036,9 +1036,16 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
 });
 
 test("design images: upload keys, centimetre size guide and data-URL validation", () => {
-  const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, announcementTextLight, HERO_BANNER_DEFAULTS, resolveHeroBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
+  const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, parseTickerItem, TICKER_COLOR_NAMES, announcementTextLight, HERO_BANNER_DEFAULTS, resolveHeroBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
   assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark"]);
   assert.equal(resolveHeroBanner(d, false), HERO_BANNER_DEFAULTS.light);
+  // تلوين الشريط: [لون] في البداية و**كلمة** للإبراز
+  assert.deepEqual(parseTickerItem("[أحمر] عاجل: **صيدلية** مناوبة"), { color: "#ff6b6b", plain: "عاجل: صيدلية مناوبة", segments: [{ text: "عاجل: ", highlight: false }, { text: "صيدلية", highlight: true }, { text: " مناوبة", highlight: false }] });
+  assert.equal(parseTickerItem("[#ff8800] خبر").color, "#ff8800");
+  assert.equal(parseTickerItem("[الأخضر] خبر").color, TICKER_COLOR_NAMES["أخضر"]);
+  assert.deepEqual(parseTickerItem("[مش لون] خبر"), { color: "", plain: "[مش لون] خبر", segments: [{ text: "[مش لون] خبر", highlight: false }] });
+  assert.equal(parseTickerItem("").plain, "");
+  assert.equal(d.announcementHighlightColor, "");
   // لون كلام الشريط: فارغ = تلقائي، ويُقبل هيكس صحيح فقط
   assert.equal(d.announcementTextColor, ""); assert.equal(d.announcementTextColorLight, "");
   assert.equal(sanitize({ announcementTextColor: "#ffe066", announcementTextColorLight: "red" }).announcementTextColor, "#ffe066");

@@ -16,6 +16,7 @@ import SelectField from "@/components/select-field";
 import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 import { useIsDark } from "@/lib/use-is-dark";
+import { TickerText } from "@/components/ticker-text";
 
 // تحميل كسول للمكوّنات التي لا تظهر إلا عند فتحها (نوافذ وأدوات الإدارة) لتخفيف الحزمة الأولى للصفحة الرئيسية.
 const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr: false });
@@ -632,10 +633,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"} ${design.announcementTickerMode === "marquee-reverse" ? "is-reverse" : ""}`} aria-label="شريط الأخبار والتنبيهات">
             <div className="site-announcement-marquee-track">
               {[...announcementList, ...announcementList].map((item, idx) => (
-                <span key={`${idx}-${item}`} className="site-announcement-marquee-item">
-                  {item}
+                <TickerText key={`${idx}-${item}`} text={item} className="site-announcement-marquee-item">
                   <i aria-hidden="true">•</i>
-                </span>
+                </TickerText>
               ))}
             </div>
           </div>
@@ -649,9 +649,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             >
               <ChevronRight size={14}/>
             </button>
-            <span className={`announcement-rotate-text is-anim-${design.announcementTickerMode}`} key={tickerIndex % announcementList.length}>
-              {announcementList[tickerIndex % announcementList.length]}
-            </span>
+            <TickerText className={`announcement-rotate-text is-anim-${design.announcementTickerMode}`} key={tickerIndex % announcementList.length} text={announcementList[tickerIndex % announcementList.length]}/>
             <span className="announcement-rotate-counter">
               {(tickerIndex % announcementList.length) + 1}/{announcementList.length}
             </span>
@@ -665,7 +663,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
             </button>
           </div>
         ) : (
-          <span className="announcement-single-text">{design.announcementText || announcementList[0]}</span>
+          <TickerText className="announcement-single-text" text={design.announcementText || announcementList[0] || ""}/>
         )}
         <button type="button" className="ticker-add-cta" onClick={() => openAddService()}>
           <CirclePlus size={14}/><span>أضف مهنتك</span>

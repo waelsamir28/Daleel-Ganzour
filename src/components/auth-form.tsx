@@ -7,6 +7,7 @@ import { ArrowLeft, CheckCircle2, CirclePlus, Eye, EyeOff, Info, LoaderCircle, L
 import { Logo } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import { defaultDesignSettings, parseAnnouncementItems, resolveAuthBanner, type DesignSettings, type SiteSettings } from "@/lib/catalog";
+import { TickerText } from "@/components/ticker-text";
 
 export function LogoutButton({ className = "button button-soft" }: { className?: string }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
@@ -50,10 +51,9 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
           <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"}`} aria-label="شريط الأخبار والتنبيهات">
             <div className="site-announcement-marquee-track">
               {[...announcementList, ...announcementList].map((item, idx) => (
-                <span key={`${idx}-${item}`} className="site-announcement-marquee-item">
-                  {item}
+                <TickerText key={`${idx}-${item}`} text={item} className="site-announcement-marquee-item">
                   <i aria-hidden="true">•</i>
-                </span>
+                </TickerText>
               ))}
             </div>
           </div>
