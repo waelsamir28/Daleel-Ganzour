@@ -7,6 +7,8 @@ import { Logo } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
 import { defaultDesignSettings, parseAnnouncementItems, type DesignSettings, type SiteSettings } from "@/lib/catalog";
 
+const AUTH_BANNER_DEFAULT = "/images/auth-banner-default.webp";
+
 export function LogoutButton({ className = "button button-soft" }: { className?: string }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   async function logout() { setBusy(true); setError(""); try { const response = await fetch("/api/auth", { method: "DELETE" }); if (!response.ok) throw new Error(); window.location.assign("/"); } catch { setBusy(false); setError("تعذر الخروج، حاول مرة أخرى."); } }
@@ -60,11 +62,10 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
     )}
     <main className={`login-layout ${registering ? "registration-layout" : ""} ${!design.authShowBanner ? "no-auth-banner" : ""}`}>
       {design.authShowBanner && (
-        <div className="login-art">
-          {design.authBannerImage && (
-            /* eslint-disable-next-line @next/next/no-img-element -- Custom admin-configured auth banner image */
-            <img src={design.authBannerImage} alt="" className="login-custom-banner-img"/>
-          )}
+        <div className="login-art has-banner-image">
+          {/* بانر الدخول والعضوية: صورة الأدمن المرفوعة، وإلا البانر الافتراضي المصمم للتطبيق */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- Custom admin-configured auth banner image */}
+          <img src={design.authBannerImage || AUTH_BANNER_DEFAULT} alt="" className="login-custom-banner-img" width={1200} height={500} fetchPriority="high"/>
           <div className="login-art-caption"><CheckCircle2 size={17}/> العضوية شيء.. وإضافة المهنة شيء تاني</div>
         </div>
       )}
