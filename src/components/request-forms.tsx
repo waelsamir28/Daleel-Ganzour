@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Check, CheckCircle2, CirclePlus, Clock3, LoaderCircle, MapPin, ShieldCheck } from "lucide-react";
-import { areas, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, TEACHER_STAGES, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
+import { areas, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 
 const CLINIC_SCHEDULE_CHIPS = [
@@ -25,16 +25,12 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   const selected = catalog.find((category) => category.id === initialCategory);
   const [root, setRoot] = useState(selected?.parentId ?? (selected && !selected.parentId ? selected.id : ""));
   const [specialty, setSpecialty] = useState(selected?.parentId ? selected.id : "");
-  const [selectedStages, setSelectedStages] = useState<string[]>([]);
   const [clinicTags, setClinicTags] = useState<string[]>([]);
   const [shopItems, setShopItems] = useState<string[]>([]);
   const [customShopItem, setCustomShopItem] = useState("");
   const [homeDelivery, setHomeDelivery] = useState(false);
   const knownArea = areaOptions.some((item) => item.name === initialArea);
   const [area, setArea] = useState(initialArea ? (knownArea ? initialArea : OTHER_ADDRESS) : "");
-  function toggleStage(stageLabel: string) {
-    setSelectedStages((curr) => curr.includes(stageLabel) ? curr.filter((item) => item !== stageLabel) : [...curr, stageLabel]);
-  }
   function toggleClinicTag(tag: string) {
     setClinicTags((curr) => curr.includes(tag) ? curr.filter((item) => item !== tag) : [...curr, tag]);
   }
@@ -52,7 +48,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
-    const subSpecialties = root === "teachers" ? selectedStages : root === "clinics" ? clinicTags : [];
+    const subSpecialties = root === "clinics" ? clinicTags : [];
     const baseServiceItems = root === "shops" ? shopItems : [];
     const serviceItems = homeDelivery ? [...baseServiceItems, HOME_DELIVERY_TAG] : baseServiceItems;
     try {
@@ -95,24 +91,6 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
       <label className="field">رقم هاتف إضافي<input name="phoneSecondary" type="tel" inputMode="tel" dir="ltr" placeholder="اختياري" maxLength={16}/></label>
     </div>
     <label className="field">وصف الخدمة <span className="required">*</span><textarea name="description" placeholder="عرّف أهل جنزور بالخدمة اللي بتقدمها وخبرتك..." required minLength={10} maxLength={1000} rows={2}/></label>
-    {root === "teachers" && (
-      <div className="field teacher-stages-picker">
-        <span>🎓 المراحل الدراسية التي تدرّسها (اختر مرحلة أو أكثر):</span>
-        <div className="field-suggestions" aria-label="المراحل الدراسية">
-          {TEACHER_STAGES.map((stage) => (
-            <button
-              key={stage.id}
-              type="button"
-              className={`suggestion-chip ${selectedStages.includes(stage.label) ? "is-selected" : ""}`}
-              onClick={() => toggleStage(stage.label)}
-            >
-              {selectedStages.includes(stage.label) ? <Check size={12}/> : <CirclePlus size={12}/>}
-              {stage.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    )}
     {root === "clinics" && (
       <div className="field clinic-schedule-picker">
         <span>🩺 نظام الكشف وأيام التواجد في العيادة بجنزور (اختر ما يناسبك):</span>

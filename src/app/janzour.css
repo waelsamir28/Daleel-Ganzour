@@ -938,7 +938,6 @@
 
 .login-logo-slot{display:block;aspect-ratio:1055/1491;height:auto}
 
-
 /* ---- Admin mobile polish (option C), bulk actions on new requests, share buttons ---- */
 .category-group-toggle{display:none}
 .admin-select-check{position:absolute;inset-inline-start:0;top:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -3719,7 +3718,7 @@ html.dark .mobile-bottom-app-nav > button { color: #b8d2ec; }
 
 /* ==========================================================================
    إضافات المرحلة الجديدة:
-   1. فلتر المراحل الدراسية في قسم المدرسين
+   1. (أُزيل فلتر المراحل الدراسية نهائيًا)
    2. مؤشر وفلتر «يوجد توصيل للمنازل»
    3. مولّد منشورات فيسبوك وواتساب جاهزة
    4. شريط إعلانات متحرك متعدد الأخبار + نقشات خلفية للهيدر والبانر
@@ -3776,79 +3775,13 @@ html.dark .mobile-bottom-app-nav > button { color: #b8d2ec; }
   font-size: .78rem;
   font-weight: 800;
 }
-.detail-stage-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: #dbeafe;
-  color: #1e40af;
-  border: 1px solid #93c5fd;
-  font-size: .78rem;
-  font-weight: 800;
-}
-.delivery-filter-tag,
-.stage-filter-tag {
+
+.delivery-filter-tag {
   background: #e0f2fe !important;
   color: #0369a1 !important;
   border-color: #7dd3fc !important;
 }
 
-/* 2. فلتر المراحل الدراسية في قسم المدرسين */
-.teacher-stage-filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 14px;
-  margin: 12px 0 16px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f0f7ff, #e6f2ff);
-  border: 1.5px solid #bcd8f6;
-  box-shadow: 0 6px 16px rgba(8, 120, 201, .06);
-}
-.teacher-stage-filter-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #0b4f8a;
-  font-size: .9rem;
-}
-.teacher-stage-chips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 7px;
-}
-.teacher-stage-chip {
-  padding: 6px 13px;
-  border-radius: 999px;
-  border: 1.5px solid #bdd7f2;
-  background: #ffffff;
-  color: #164675;
-  font-weight: 800;
-  font-size: .82rem;
-  cursor: pointer;
-  transition: all .16s ease;
-}
-.teacher-stage-chip:hover {
-  border-color: #0878c9;
-  color: #0878c9;
-}
-.teacher-stage-chip.is-active {
-  background: var(--design-primary, #0878c9);
-  border-color: var(--design-primary, #0878c9);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(8, 120, 201, .26);
-}
-.teacher-stages-picker {
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: #f4f9ff;
-  border: 1px dashed #b6d4f2;
-}
 
 /* 3. شريط الإعلانات العلوي المتعدد (Rotate & Marquee) */
 .site-announcement-rotator {
@@ -4113,29 +4046,22 @@ html[data-design-hero-pattern]:not([data-design-hero-pattern="none"]) .hero::aft
   .social-post-filters {
     grid-template-columns: 1fr;
   }
-  .teacher-stage-filter-bar {
-    padding: 10px 12px;
-  }
 }
 
-html.dark .teacher-stage-filter-bar,
 html.dark .social-post-generator-card,
 html.dark .social-post-filters {
   background: #11243a;
   border-color: #244568;
 }
-html.dark .teacher-stage-filter-label,
 html.dark .social-post-title-wrap h3 {
   color: #eaf4ff;
 }
-html.dark .teacher-stage-chip,
 html.dark .social-post-tab,
 html.dark .social-post-textarea {
   background: #0d1d30;
   border-color: #284b70;
   color: #d8ebff;
 }
-html.dark .teacher-stage-chip.is-active,
 html.dark .social-post-tab.is-active {
   background: #0878c9;
   border-color: #38bdf8;
@@ -5005,103 +4931,6 @@ html[data-design-mobile-nav="true"] .site-footer {
   box-shadow: 0 6px 16px rgba(8, 120, 201, .24);
 }
 
-.teacher-stages-section {
-  margin-bottom: 24px;
-}
-.teacher-stages-accordion {
-  display: grid;
-  gap: 12px;
-}
-.teacher-stage-dropdown-card {
-  border-radius: 18px;
-  border: 1.5px solid #dfd3f8;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(109, 40, 217, .06);
-  overflow: hidden;
-  transition: border-color .18s ease, box-shadow .18s ease;
-}
-.teacher-stage-dropdown-card.is-selected,
-.teacher-stage-dropdown-card.is-open {
-  border-color: #8b5cf6;
-  box-shadow: 0 12px 28px rgba(124, 58, 237, .14);
-}
-.teacher-stage-dropdown-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 15px 18px;
-  border: 0;
-  background: linear-gradient(135deg, #faf7ff 0%, #f3ecff 100%);
-  color: #2e1065;
-  text-align: right;
-  cursor: pointer;
-  transition: background .18s ease;
-}
-.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-header {
-  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-  color: #ffffff;
-}
-.teacher-stage-dropdown-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-  display: grid;
-  place-items: center;
-  background: rgba(124, 58, 237, .14);
-  color: #6d28d9;
-  flex-shrink: 0;
-}
-.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-icon {
-  background: rgba(255, 255, 255, .2);
-  color: #ffffff;
-}
-.teacher-stage-dropdown-copy {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-.teacher-stage-dropdown-copy strong {
-  font-size: 16px;
-  font-weight: 900;
-  color: inherit;
-}
-.teacher-stage-dropdown-copy span {
-  font-size: 12px;
-  font-weight: 700;
-  color: #6b5396;
-}
-.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-copy span {
-  color: #ede9fe;
-}
-.teacher-stage-dropdown-count {
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: #ede9fe;
-  color: #5b21b6;
-  font-size: 12px;
-  font-weight: 900;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-count {
-  background: rgba(255, 255, 255, .2);
-  color: #ffffff;
-}
-.teacher-stage-dropdown-chevron {
-  transition: transform .22s ease;
-  flex-shrink: 0;
-}
-.teacher-stage-dropdown-chevron.is-rotated {
-  transform: rotate(180deg);
-}
-.teacher-stage-dropdown-body {
-  padding: 16px;
-  background: #fcfaff;
-  border-top: 1px solid #e9d5ff;
-}
 .teacher-specialty-choice {
   cursor: pointer;
 }
@@ -5359,25 +5188,7 @@ html.dark .featured-banner-main-btn h2 {
 html.dark .featured-banner-subtitle {
   color: #a9c7e4 !important;
 }
-html.dark .teacher-stage-dropdown-card {
-  background: #102338;
-  border-color: #2b4566;
-}
-html.dark .teacher-stage-dropdown-header {
-  background: linear-gradient(135deg, #152b44 0%, #102237 100%);
-  color: #eaf4ff;
-}
-html.dark .teacher-stage-dropdown-card.is-open .teacher-stage-dropdown-header {
-  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
-  color: #ffffff;
-}
-html.dark .teacher-stage-dropdown-copy span {
-  color: #b4cde6;
-}
-html.dark .teacher-stage-dropdown-body {
-  background: #0c1b2c;
-  border-top-color: #253f5e;
-}
+
 html.dark .shops-delivery-filter-copy strong {
   color: #eaf4ff;
 }
@@ -9012,22 +8823,6 @@ html[data-design-hover="shine-glint"] .provider-card:hover {
   animation-duration: 5.5s !important;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* =========================================================================
    22. شريط التواصل الجديد أسفل كارت مقدم الخدمة (اتصال + واتساب يفتحان صفحة المهني)
    ========================================================================= */
@@ -10910,7 +10705,6 @@ html.dark .service-helper-footer{border-color:#29465e}
 @media(max-width:620px){.service-helper-entry{gap:11px;padding:13px;border-radius:16px}.service-helper-entry-icon{width:40px;height:40px;border-radius:12px}.service-helper-entry-copy h2{font-size:13px}.service-helper-entry-copy p{font-size:10px;line-height:1.55}.service-helper-start{min-height:40px;padding:0 10px;gap:5px;font-size:10px}.service-helper-start svg{width:15px}.service-helper-choices{grid-template-columns:1fr}.service-helper-choice{min-height:56px}.service-helper-result{align-items:flex-start;flex-direction:column}.service-helper-result button{align-self:stretch}.service-helper-results{max-height:45vh}}
 @media(max-width:390px){.service-helper-entry{align-items:flex-start;flex-wrap:wrap}.service-helper-entry-copy{padding-top:2px}.service-helper-start{width:100%}}
 @media(prefers-reduced-motion:reduce){.service-helper-start,.service-helper-choice,.service-helper-progress>span{transition:none}.service-helper-start:hover,.service-helper-choice:hover{transform:none}}
-
 
 /* One-screen, instant service search and shortcuts */
 .service-helper-search{position:relative;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;border:1px solid #cfe3f2;border-radius:14px;background:#fff;color:#0878c4;box-shadow:0 5px 16px #064b7110}

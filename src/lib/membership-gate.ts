@@ -1,4 +1,4 @@
-import type { DesignSettings, PublicDirectory, ServiceRecord, Viewer } from "@/lib/catalog";
+import { isServiceOwner, type DesignSettings, type PublicDirectory, type ServiceRecord, type Viewer } from "@/lib/catalog";
 
 /** Only same-site paths are accepted as a post-login destination (prevents open redirects). */
 export function safeNextPath(value: unknown, fallback = "/") {
@@ -38,6 +38,17 @@ export function maskServiceForGuest<T extends Pick<ServiceRecord, "phone" | "pho
 export function maskDirectoryForGuest<T extends Pick<PublicDirectory, "services">>(data: T): T {
   return { ...data, services: data.services.map(maskServiceForGuest) };
 }
-export function directoryForViewer<T extends Pick<PublicDirectory, "services" | "designSettings">>(data: T, viewer: Pick<Viewer, "role">): T {
-  return guestLocked(viewer, data.designSettings) ? maskDirectoryForGuest(data) : data;
+/**
+ * إشعارات المهنيين (رسائل الإدارة عن استكمال/اعتماد البيانات) شخصية: لا يصل للمتصفح إلا ما يخص خدمات
+ * هذا العضو نفسه (مطابقة هاتفه/اسمه)، ولا شيء للزائر — فلا يرى عضو رسائل موجهة لمهني آخر.
+ */
+export function personalNotificationsFor<T extends Pick<PublicDirectory, "services" | "providerNotifications">>(data: T, viewer: Viewer): T {
+  if (!data.providerNotifications?.length) return data;
+  if (viewer.role === "guest") return { ...data, providerNotifications: [] };
+  const owned = new Set(data.services.filter((service) => isServiceOwner(service, viewer)).map((service) => service.id));
+  return { ...data, providerNotifications: data.providerNotifications.filter((item) => item.entityId && owned.has(item.entityId)) };
+}
+export function directoryForViewer<T extends Pick<PublicDirectory, "services" | "designSettings" | "providerNotifications">>(data: T, viewer: Viewer): T {
+  const personal = personalNotificationsFor(data, viewer);
+  return guestLocked(viewer, data.designSettings) ? maskDirectoryForGuest(personal) : personal;
 }
