@@ -1034,3 +1034,24 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
   assert.equal(sanitizeDesignSettings({ splashAudience: "everyone" }).splashAudience, "installed");
   assert.equal(sanitizeDesignSettings({ splashAudience: "all", splashStickers: false }).splashStickers, false);
 });
+
+test("design images: upload keys, centimetre size guide and data-URL validation", () => {
+  const { DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
+  assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "hero-banner"]);
+  for (const key of DESIGN_IMAGE_KEYS) assert.ok(DESIGN_IMAGE_GUIDE[key].width > 0 && DESIGN_IMAGE_GUIDE[key].height > 0);
+  assert.equal(isDesignImageKey("hero-banner"), true);
+  assert.equal(isDesignImageKey("../etc"), false);
+  assert.equal(pxToCm(96), "2.5", "96 بكسل = بوصة = 2.54 سم");
+  assert.equal(pxToCm(2048), "54.2");
+  assert.match(designImageSizeText("hero-banner"), /سم/);
+  assert.match(designImageSizeText("hero-banner"), /2048 × 768 بكسل/);
+  assert.equal(designImageUrl("splash", 3), "/api/design-image/splash?v=3");
+  assert.equal(DESIGN_IMAGE_MAX_BYTES, 2 * 1024 * 1024);
+  const png = parseDesignImageDataUrl(`data:image/png;base64,${Buffer.from("x".repeat(300)).toString("base64")}`);
+  assert.equal(png.mime, "image/png");
+  assert.throws(() => parseDesignImageDataUrl("https://example.com/a.png"), /غير مدعومة/);
+  assert.throws(() => parseDesignImageDataUrl(`data:image/png;base64,${Buffer.from("x".repeat(DESIGN_IMAGE_MAX_BYTES + 10)).toString("base64")}`), /2 ميجابايت/);
+  assert.equal(d.heroBannerImage, "", "البانر الترحيبي الافتراضي هو صورة سماء جنزور");
+  assert.equal(sanitize({ heroBannerImage: "/api/design-image/hero-banner?v=2" }).heroBannerImage, "/api/design-image/hero-banner?v=2");
+  assert.equal(sanitize({ heroBannerImage: 123 }).heroBannerImage, "");
+});

@@ -2,14 +2,14 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { members, notifications } from "@/db/schema";
 import { createAdminSession, createMemberSession, destroyAdminSession, destroyMemberSession, getViewer, hashPassword, reservedUsername, sameOrigin, usesSecureCookies, validCredentials, verifyPassword } from "@/lib/auth";
-import { ensureSeed } from "@/lib/directory";
+import { ensureSeed, withDirectoryInvalidation } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
 export async function GET() { return Response.json({ viewer: await getViewer() }); }
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
   if (rateLimit(request, "account", 20)) return Response.json({ error: "محاولات كثيرة. حاول مرة أخرى بعد ١٥ دقيقة." }, { status: 429 });
   try {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     await createMemberSession(member.id, secure);
     return Response.json({ ok: true, role: member.role === "moderator" ? "moderator" : "member" });
   } catch (error) { return apiError(error); }
-}
+});
 export async function DELETE(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
   try {

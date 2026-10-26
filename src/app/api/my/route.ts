@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db, databaseConfigured } from "@/db";
 import { directoryAreas, directoryCategories, notifications, services } from "@/db/schema";
-import { ensureSeed, serializeService } from "@/lib/directory";
+import { ensureSeed, serializeService, withDirectoryInvalidation } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { sameOrigin } from "@/lib/auth";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * - request: البيانات الحساسة (الاسم، الهاتف، التخصص، العنوان) تُرسل كمسودة تعتمدها الإدارة بضغطة من «طلبات المهن».
  * - availability: تشغيل/إيقاف «متاح الآن» مثل رابط التجديد تمامًا.
  */
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   try {
     if (!sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
     if (!databaseConfigured) return Response.json({ error: "الحساب غير متاح في وضع المعاينة." }, { status: 503 });
@@ -84,4 +84,4 @@ export async function POST(request: Request) {
 
     throw new InputError("إجراء غير معروف.");
   } catch (error) { return apiError(error); }
-}
+});

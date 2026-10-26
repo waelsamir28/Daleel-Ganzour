@@ -11524,3 +11524,46 @@ html.dark .category-icon-upload-preview { background: rgba(255, 255, 255, .05); 
 .provider-card-icon.has-sticker { width: 52px; height: 52px; }
 .detail-v2-fact-icon.has-sticker .specialty-sticker { border-radius: 12px; }
 @media (max-width: 480px) { .category-tile .category-icon.has-sticker { width: 70px; height: 70px; } .main-category-grid .category-icon.has-sticker { width: 74px; height: 74px; } }
+
+/* ==========================================================================
+   هيكل التحميل الفوري (loading.tsx) — يظهر لحظة الضغط على قسم/تخصص
+   ========================================================================== */
+.page-skeleton { min-height: 100vh; padding-bottom: 40px; }
+.page-skeleton-header { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 16px; margin-bottom: 14px; background: var(--card-bg, #fff); border-bottom: 1px solid var(--border, #dce6ef); }
+.page-skeleton-pill, .page-skeleton-line, .page-skeleton-search, .page-skeleton-icon, .page-skeleton-hero {
+  display: block; position: relative; overflow: hidden; border-radius: 12px;
+  background: #e3ebf3;
+}
+.page-skeleton-pill::after, .page-skeleton-line::after, .page-skeleton-search::after, .page-skeleton-icon::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
+  animation: page-skeleton-shimmer 1.1s infinite;
+}
+.page-skeleton-pill { height: 30px; border-radius: 999px; }
+.page-skeleton-line { height: 12px; margin-block: 6px; border-radius: 6px; }
+.page-skeleton-title { width: 180px; height: 18px; margin: 20px auto 14px; }
+.page-skeleton-hero { padding: 22px 18px; margin-bottom: 8px; border-radius: 22px; min-height: 150px; }
+.page-skeleton-search { height: 54px; margin-top: 16px; border-radius: 16px; background: rgba(255, 255, 255, .55); }
+.page-skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.page-skeleton-tile { display: flex; flex-direction: column; align-items: center; padding: 18px 12px; border-radius: 18px; border: 1px solid var(--border, #dce6ef); background: var(--card-bg, #fff); }
+.page-skeleton-icon { width: 58px; height: 58px; margin-bottom: 10px; border-radius: 16px; }
+html.dark .page-skeleton-header, html.dark .page-skeleton-tile { background: #0f1f33; border-color: #1f3a57; }
+html.dark .page-skeleton-pill, html.dark .page-skeleton-line, html.dark .page-skeleton-icon, html.dark .page-skeleton-hero { background: #1b3350; }
+html.dark .page-skeleton-search { background: #24405f; }
+html.dark .page-skeleton-pill::after, html.dark .page-skeleton-line::after, html.dark .page-skeleton-search::after, html.dark .page-skeleton-icon::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .12), transparent); }
+@keyframes page-skeleton-shimmer { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .page-skeleton-pill::after, .page-skeleton-line::after, .page-skeleton-search::after, .page-skeleton-icon::after { animation: none; } }
+
+/* حقل رفع صور المظهر (لوجو / سبلاش / بانرات) في الاستوديو وإعدادات الموقع */
+.image-upload-field { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px dashed var(--border, #b8d4ee); border-radius: 14px; background: rgba(8, 120, 201, .04); }
+.image-upload-label { font-weight: 800; font-size: .92rem; }
+.image-upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.image-upload-preview { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 14px; border: 1px solid var(--border, #dce6ef); background: repeating-conic-gradient(#e9eef3 0 25%, #fff 0 50%) 0 0 / 16px 16px; overflow: hidden; color: #64748b; flex: none; }
+.image-upload-field.is-wide .image-upload-preview { width: min(100%, 260px); height: 96px; }
+.image-upload-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.image-upload-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.image-upload-hint { color: #475569; line-height: 1.7; font-size: .8rem; }
+.image-upload-error { color: #b91c1c; font-weight: 700; }
+html.dark .image-upload-field { background: rgba(56, 189, 248, .06); border-color: #2b4a6b; }
+html.dark .image-upload-preview { background: repeating-conic-gradient(#1b3350 0 25%, #11243a 0 50%) 0 0 / 16px 16px; border-color: #2b4a6b; color: #93c5fd; }
+html.dark .image-upload-hint { color: #b6cbe3; }

@@ -48,9 +48,10 @@ import EdgeToolsEditor from "@/components/edge-tools-editor";
 import DetailPreview from "@/components/detail-preview";
 import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
+import ImageUploadField from "@/components/image-upload-field";
 import { SPLASH_PREVIEW_EVENT } from "@/components/splash-screen";
 
-type SectionFilter = "all" | "colors" | "typography" | "cards" | "buttons" | "layout" | "providers" | "header" | "auth";
+type SectionFilter = "all" | "general" | "top" | "categories" | "providers" | "footer" | "splash";
 type SavedCustomPreset = { id: string; name: string; settings: DesignSettings };
 const CUSTOM_PRESETS_KEY = "janzour-custom-design-presets";
 
@@ -473,32 +474,30 @@ export default function DesignCustomizer({
 
       {/* Horizontal Swipeable Section Filter Tabs on Mobile */}
       <div className="design-section-tabs" role="tablist" aria-label="أقسام تخصيص المظهر">
-        <button type="button" className={activeFilter === "all" ? "is-active" : ""} onClick={() => setActiveFilter("all")}><Sparkles size={15}/>الكل (٨ أقسام)</button>
-        <button type="button" className={activeFilter === "colors" ? "is-active" : ""} onClick={() => setActiveFilter("colors")}><Palette size={15}/>1. الألوان والثيمات</button>
-        <button type="button" className={activeFilter === "typography" ? "is-active" : ""} onClick={() => setActiveFilter("typography")}><Type size={15}/>2. العناوين والمحاذاة</button>
-        <button type="button" className={activeFilter === "cards" ? "is-active" : ""} onClick={() => setActiveFilter("cards")}><Square size={15}/>3. البراويز والفواصل</button>
-        <button type="button" className={activeFilter === "buttons" ? "is-active" : ""} onClick={() => setActiveFilter("buttons")}><PhoneCall size={15}/>4. الأزرار</button>
-        <button type="button" className={activeFilter === "layout" ? "is-active" : ""} onClick={() => setActiveFilter("layout")}><Grid2X2 size={15}/>5. الأيقونات والهيكل</button>
-        <button type="button" className={activeFilter === "providers" ? "is-active" : ""} onClick={() => setActiveFilter("providers")}><UsersRound size={15}/>6. كروت المهنيين والبحث</button>
-        <button type="button" className={activeFilter === "header" ? "is-active" : ""} onClick={() => setActiveFilter("header")}><LayoutTemplate size={15}/>7. الهيدر والإعلانات</button>
-        <button type="button" className={activeFilter === "auth" ? "is-active" : ""} onClick={() => setActiveFilter("auth")}><LockKeyhole size={15}/>8. الدخول والعضوية</button>
+        <button type="button" className={activeFilter === "all" ? "is-active" : ""} onClick={() => setActiveFilter("all")}><Sparkles size={15}/>الكل (٦ أقسام)</button>
+        <button type="button" className={activeFilter === "general" ? "is-active" : ""} onClick={() => setActiveFilter("general")}><Palette size={15}/>1. الستايل العام</button>
+        <button type="button" className={activeFilter === "top" ? "is-active" : ""} onClick={() => setActiveFilter("top")}><LayoutTemplate size={15}/>2. أعلى الصفحة (الهيدر والبانر والشريط)</button>
+        <button type="button" className={activeFilter === "categories" ? "is-active" : ""} onClick={() => setActiveFilter("categories")}><Grid2X2 size={15}/>3. أقسام القرية والتخصصات</button>
+        <button type="button" className={activeFilter === "providers" ? "is-active" : ""} onClick={() => setActiveFilter("providers")}><UsersRound size={15}/>4. المميزون وكروت المهنيين</button>
+        <button type="button" className={activeFilter === "footer" ? "is-active" : ""} onClick={() => setActiveFilter("footer")}><Square size={15}/>5. الفوتر</button>
+        <button type="button" className={activeFilter === "splash" ? "is-active" : ""} onClick={() => setActiveFilter("splash")}><LockKeyhole size={15}/>6. شاشة البداية والدخول</button>
       </div>
 
-      {/* 1. Themes & Colors */}
-      {(activeFilter === "all" || activeFilter === "colors") && (
+      {/* 1. general */}
+      {(activeFilter === "all" || activeFilter === "general") && (
         <>
-          <SectionDivider step="١" label="الألوان والثيمات الجاهزة" />
-          <section className={`design-group-card ${collapsedGroups.colors ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("colors")} aria-expanded={!collapsedGroups.colors}>
+          <SectionDivider step="١" label="الستايل العام للتطبيق" />
+          <section className={`design-group-card ${collapsedGroups.general ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("general")} aria-expanded={!collapsedGroups.general}>
               <span className="design-group-icon"><Palette size={20}/></span>
               <div className="design-group-title">
-                <h3>1. الألوان والثيمات الجاهزة</h3>
-                <p>ثيمات جاهزة بضغطة واحدة أو تخصيص يدوي بالألوان السريعة</p>
+                <h3>1. الستايل العام (ألوان، خطوط، براويز، أزرار، صوت)</h3>
+                <p>كل ما يؤثر على شكل التطبيق كله في أي صفحة: الثيمات والألوان، الخطوط والمحاذاة، البراويز والفواصل، شكل الأزرار، وصوت النقرات</p>
               </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.colors ? "is-collapsed" : ""}`}/>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.general ? "is-collapsed" : ""}`}/>
             </button>
 
-            {!collapsedGroups.colors && (
+            {!collapsedGroups.general && (
               <div className="design-group-content">
                 <InnerDivider title="ثيمات الجريديانت المتكاملة (تعمل في الليل والنهار وتناسب البراويز الرئيسية)" subtitle="اختر أي ثيم جريديانت ليضبط ألوان الوضع الليلي والنهاري وبراويز العناوين تلقائياً بضغطة واحدة" />
                 {themeFamilies.map((family) => {
@@ -717,28 +716,7 @@ export default function DesignCustomizer({
                   />
                   <span>✨ تفعيل أنيميشن اللمعة المتحركة (Shimmer Glow) على الأزرار الذهبية وبرواز الرعاة</span>
                 </label>
-              </div>
-            )}
-          </section>
-        </>
-      )}
 
-      {/* 2. Typography & Alignment */}
-      {(activeFilter === "all" || activeFilter === "typography") && (
-        <>
-          <SectionDivider step="٢" label="تنسيق العناوين والنصوص والمحاذاة" />
-          <section className={`design-group-card ${collapsedGroups.typography ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("typography")} aria-expanded={!collapsedGroups.typography}>
-              <span className="design-group-icon"><Type size={20}/></span>
-              <div className="design-group-title">
-                <h3>2. تنسيق العناوين والنصوص والمحاذاة</h3>
-                <p>تحكم في محاذاة الكلام (متوسطن / يمين / شمال) وحجم ونوع الخط</p>
-              </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.typography ? "is-collapsed" : ""}`}/>
-            </button>
-
-            {!collapsedGroups.typography && (
-              <div className="design-group-content">
                 <InnerDivider title="محاذاة العناوين والكروت والملحوظات" subtitle="اختر هل الكلام يكون على اليمين أو متوسطن في المنتصف أو على الشمال" />
                 <div className="form-row design-two-col">
                   <div className="field">
@@ -820,28 +798,7 @@ export default function DesignCustomizer({
                     <option value="readex">خط ريدكس (Readex Pro)</option>
                   </SelectField>
                 </label>
-              </div>
-            )}
-          </section>
-        </>
-      )}
 
-      {/* 3. Cards, Frames, Borders & Dividers */}
-      {(activeFilter === "all" || activeFilter === "cards") && (
-        <>
-          <SectionDivider step="٣" label="البراويز والحدود والفواصل" />
-          <section className={`design-group-card ${collapsedGroups.cards ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("cards")} aria-expanded={!collapsedGroups.cards}>
-              <span className="design-group-icon"><Square size={20}/></span>
-              <div className="design-group-title">
-                <h3>3. البراويز والكروت والحدود والفواصل</h3>
-                <p>ألوان وسمك بوردر البراويز، استدارة الحواف، الظلال، والفواصل بين الأقسام</p>
-              </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.cards ? "is-collapsed" : ""}`}/>
-            </button>
-
-            {!collapsedGroups.cards && (
-              <div className="design-group-content">
                 <InnerDivider title="ألوان البراويز وخلفية الكروت" />
                 <div className="form-row design-two-col">
                   <ColorPickerField
@@ -951,28 +908,7 @@ export default function DesignCustomizer({
                     </SelectField>
                   </label>
                 </div>
-              </div>
-            )}
-          </section>
-        </>
-      )}
 
-      {/* 4. Buttons Style */}
-      {(activeFilter === "all" || activeFilter === "buttons") && (
-        <>
-          <SectionDivider step="٤" label="شكل وتصميم الأزرار" />
-          <section className={`design-group-card ${collapsedGroups.buttons ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("buttons")} aria-expanded={!collapsedGroups.buttons}>
-              <span className="design-group-icon"><PhoneCall size={20}/></span>
-              <div className="design-group-title">
-                <h3>4. شكل وتصميم الأزرار</h3>
-                <p>تحكم في استدارة الأزرار وتأثيرها اللوني وموضع أزرار الإرسال</p>
-              </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.buttons ? "is-collapsed" : ""}`}/>
-            </button>
-
-            {!collapsedGroups.buttons && (
-              <div className="design-group-content">
                 <InnerDivider title="أشكال واستدارة وتأثيرات الأزرار المتنوعة" />
                 <div className="form-row design-two-col">
                   <label className="field">
@@ -1012,120 +948,26 @@ export default function DesignCustomizer({
                     <option value="full">بعرض كامل الشاشة (ممتاز للموبايل)</option>
                   </SelectField>
                 </label>
-              </div>
-            )}
-          </section>
-        </>
-      )}
 
-      {/* 5. Icons & Layout Structure */}
-      {(activeFilter === "all" || activeFilter === "layout") && (
-        <>
-          <SectionDivider step="٥" label="الأيقونات وهيكل الصفحة الرئيسية" />
-          <section className={`design-group-card ${collapsedGroups.layout ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("layout")} aria-expanded={!collapsedGroups.layout}>
-              <span className="design-group-icon"><Grid2X2 size={20}/></span>
-              <div className="design-group-title">
-                <h3>5. شكل الأيقونات وهيكل وترتيب الصفحة الرئيسية</h3>
-                <p>شكل وحجم وموضع الأيقونات، عدد الأعمدة، وترتيب أقسام الصفحة الرئيسية</p>
-              </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.layout ? "is-collapsed" : ""}`}/>
-            </button>
-
-            {!collapsedGroups.layout && (
-              <div className="design-group-content">
-                <InnerDivider title="ستايل وحجم وموضع الأيقونات" />
+                <InnerDivider title="صوت النقرات والاهتزاز" subtitle="نقرة ناعمة + اهتزاز خفيف عند الضغط على أي زر أو كارت في التطبيق (الاهتزاز على أندرويد فقط). يظهر للزوار زر مكبر صوت في الهيدر لكتم الصوت وتشغيله." />
                 <div className="form-row design-two-col">
                   <label className="field">
-                    ستايل وشكل الأيقونات
-                    <SelectField value={draft.iconStyle} onChange={(e) => updateField("iconStyle", e.target.value as DesignSettings["iconStyle"])}>
-                      <option value="3d">أيقونات 3D ملونة بارزة (الافتراضي)</option>
-                      <option value="flat">أيقونات مسطحة هادئة بدون إطار ثقيل (Flat)</option>
-                      <option value="glow">أيقونات دائرية متوهجة (Glow Circle)</option>
+                    عند الضغط على أي زر
+                    <SelectField value={draft.tapFeedback} onChange={(e) => updateField("tapFeedback", e.target.value as DesignSettings["tapFeedback"])}>
+                      <option value="both">اهتزاز خفيف + صوت نقرة ناعمة (الافتراضي)</option>
+                      <option value="haptic">اهتزاز خفيف فقط</option>
+                      <option value="sound">صوت نقرة فقط</option>
+                      <option value="off">بدون</option>
                     </SelectField>
                   </label>
-
                   <label className="field">
-                    حجم الأيقونات داخل الكروت
-                    <SelectField value={draft.iconSize} onChange={(e) => updateField("iconSize", e.target.value as DesignSettings["iconSize"])}>
-                      <option value="small">صغير مدمج</option>
-                      <option value="medium">متوسط متوازن (الافتراضي)</option>
-                      <option value="large">كبير وواضح</option>
+                    وضع توفير البطارية
+                    <SelectField value={draft.powerSaveMode} onChange={(e) => updateField("powerSaveMode", e.target.value as DesignSettings["powerSaveMode"])}>
+                      <option value="auto">تلقائي — عند انخفاض البطارية أو طلب تقليل الحركة (الافتراضي)</option>
+                      <option value="on">مفعّل دائمًا (بدون ضبابية ولا اهتزاز)</option>
+                      <option value="off">معطّل دائمًا</option>
                     </SelectField>
                   </label>
-                </div>
-
-                <div className="form-row design-two-col">
-                  <label className="field">
-                    موضع الأيقونة داخل كروت الأقسام
-                    <SelectField value={draft.iconPosition} onChange={(e) => updateField("iconPosition", e.target.value as DesignSettings["iconPosition"])}>
-                      <option value="top-center">فوق العنوان في المنتصف (الافتراضي)</option>
-                      <option value="left">على الشمال بجانب العنوان</option>
-                      <option value="right">على اليمين بجانب العنوان</option>
-                    </SelectField>
-                  </label>
-
-                  <label className="field">
-                    حالة قسم «مقدمو الخدمات المميزين» عند فتح الموقع
-                    <SelectField value={draft.featuredDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("featuredDefaultOpen", e.target.value === "open")}>
-                      <option value="closed">مطوي ويفتح عند الضغط على الزر (الافتراضي)</option>
-                      <option value="open">مفتوح ومفرود تلقائياً عند فتح الصفحة</option>
-                    </SelectField>
-                  </label>
-                </div>
-
-                <InnerDivider title="عدد الكروت في الصف على الموبايل والكمبيوتر" />
-                <div className="form-row design-two-col">
-                  <label className="field">
-                    عدد كروت الأقسام في الصف على الموبايل
-                    <SelectField value={draft.mobileColumns} onChange={(e) => updateField("mobileColumns", e.target.value as DesignSettings["mobileColumns"])}>
-                      <option value="2">كارتين في الصف (٢ أعمدة - الافتراضي)</option>
-                      <option value="3">٣ كروت في الصف (٣ أعمدة مدمجة)</option>
-                    </SelectField>
-                  </label>
-
-                  <label className="field">
-                    عدد كروت الأقسام في الصف على الكمبيوتر
-                    <SelectField value={draft.desktopColumns} onChange={(e) => updateField("desktopColumns", e.target.value as DesignSettings["desktopColumns"])}>
-                      <option value="4">٤ كروت في الصف (الافتراضي)</option>
-                      <option value="3">٣ كروت عريضة في الصف</option>
-                    </SelectField>
-                  </label>
-                </div>
-
-                <InnerDivider title="ترتيب وإظهار أقسام الصفحة الرئيسية" subtitle="حرك أي قسم لأعلى أو لأسفل أو أخفِه بضغطة واحدة" />
-                <div className="design-order-box">
-                  <div className="design-order-list">
-                    {orderedSections.map((sectionKey, idx) => {
-                      const meta = homeSectionsMeta[sectionKey];
-                      if (!meta) return null;
-                      const enabled = Boolean(draft[meta.toggleKey]);
-                      return (
-                        <div key={sectionKey} className={`design-order-item ${enabled ? "" : "is-hidden"}`}>
-                          <label className="design-order-check">
-                            <input
-                              type="checkbox"
-                              checked={enabled}
-                              onChange={(e) => updateField(meta.toggleKey, e.target.checked as never)}
-                            />
-                            <strong>{idx + 1}. {meta.label}</strong>
-                          </label>
-                          <div className="design-order-arrows">
-                            <button type="button" className="icon-button" disabled={idx === 0} onClick={() => moveSection(idx, -1)} aria-label="تحريك لأعلى" title="تحريك لأعلى">
-                              <ArrowUp size={15}/>
-                            </button>
-                            <button type="button" className="icon-button" disabled={idx === orderedSections.length - 1} onClick={() => moveSection(idx, 1)} aria-label="تحريك لأسفل" title="تحريك لأسفل">
-                              <ArrowDown size={15}/>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showAdminQuickEdit} onChange={(e) => updateField("showAdminQuickEdit", e.target.checked)}/>إظهار زر «تعديل سريع كأدمن» على كروت الصفحة الرئيسية</label>
                 </div>
               </div>
             )}
@@ -1133,56 +975,48 @@ export default function DesignCustomizer({
         </>
       )}
 
-      {/* 6. Provider Cards, Hero & Search Customizer (NEW) */}
-      {(activeFilter === "all" || activeFilter === "providers") && (
+      {/* 2. top */}
+      {(activeFilter === "all" || activeFilter === "top") && (
         <>
-          <SectionDivider step="٦" label="كروت المهنيين والبانر والبحث" />
-          <section className={`design-group-card ${collapsedGroups.providers ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("providers")} aria-expanded={!collapsedGroups.providers}>
-              <span className="design-group-icon"><UsersRound size={20}/></span>
+          <SectionDivider step="٢" label="أعلى الصفحة قبل أقسام القرية" />
+          <section className={`design-group-card ${collapsedGroups.top ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("top")} aria-expanded={!collapsedGroups.top}>
+              <span className="design-group-icon"><LayoutTemplate size={20}/></span>
               <div className="design-group-title">
-                <h3>6. تخصيص كروت المهنيين والبانر الرئيسي ومربع البحث</h3>
-                <p>تحكم في شكل كارت مقدم الخدمة، الأزرار والشارات الظاهرة عليه، وشكل البانر ومربع البحث</p>
+                <h3>2. أعلى الصفحة: الهيدر، البانر الترحيبي، البحث و«أضف مهنتك»، الشريط المتحرك</h3>
+                <p>كل العناصر التي تظهر قبل «تصفح أقسام القرية» بترتيب ظهورها من أعلى لأسفل</p>
               </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.providers ? "is-collapsed" : ""}`}/>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.top ? "is-collapsed" : ""}`}/>
             </button>
 
-            {!collapsedGroups.providers && (
+            {!collapsedGroups.top && (
               <div className="design-group-content">
-                <InnerDivider title="الأدوات الدائرية على كارت مقدم الخدمة" subtitle="دوائر شفافة تظهر عند المرور على الكارت: اتصال وواتساب مباشرة، مشاركة، والمفضلة. رتّبها أو أخفِها أو غيّر مكانها، ويظهر تلميح عربي بجانب كل دائرة." />
-                <EdgeToolsEditor order={edgeToolOrder} visible={edgeToolsVisible} onChange={commitEdgeTools} />
+                <InnerDivider title="لون خلفية الهيدر وشعاره" />
                 <div className="form-row design-two-col">
-                  <label className="field">
-                    مكان الدوائر على الكارت
-                    <SelectField value={draft.providerEdgeToolsPosition} onChange={(e) => updateField("providerEdgeToolsPosition", e.target.value as DesignSettings["providerEdgeToolsPosition"])}>
-                      <option value="left">على الحافة اليسرى (الافتراضي)</option>
-                      <option value="right">على الحافة اليمنى</option>
-                      <option value="bottom">صف أفقي أسفل الكارت</option>
-                    </SelectField>
-                  </label>
+                  <ColorPickerField
+                    label="لون خلفية الهيدر العلوي"
+                    value={draft.headerBgColor}
+                    swatches={QUICK_SWATCHES.headerBg}
+                    onChange={(hex) => updateField("headerBgColor", hex)}
+                  />
                 </div>
 
-                <InnerDivider title="معاينة حية لصفحة مقدم الخدمة" subtitle="نسخة ثابتة من نافذة التفاصيل (الهيرو الأبيض، صندوق الاسم، الشارات، البلاطات بأيقونة علوية، وأزرار الاتصال والواتساب) تتبع الثيم والألوان المختارة فورًا." />
-                <DetailPreview />
-
-                <InnerDivider title="أيقونات التخصصات والنجوم الأسبوعية" subtitle="اختر شكل أيقونات التخصصات فقط؛ أيقونات الأقسام الرئيسية لا تتأثر" />
                 <div className="form-row design-two-col">
-                  <label className="field">
-                    شكل أيقونات التخصصات
-                    <SelectField value={draft.specialtyIconStyle} onChange={(e) => updateField("specialtyIconStyle", e.target.value as DesignSettings["specialtyIconStyle"])}>
-                      <option value="3d">مجسمة 3D (الملصقات والرسم المجسم) — الافتراضي</option>
-                      <option value="flat">فلات كلاسيكية (الأيقونات المسطحة القديمة)</option>
-                    </SelectField>
-                    <small className="input-help">يسري على بلاطات التخصصات وبطاقات مقدمي الخدمة وصفحة التفاصيل. الأقسام الرئيسية تبقى كما هي.</small>
-                  </label>
+                  <ImageUploadField imageKey="header-logo" label="لوجو الهيدر (اختياري — رفع من الجهاز)" value={draft.headerLogoUrl} onChange={(url) => updateField("headerLogoUrl", url)} fallbackSrc="/images/logo-daleel-transparent.png"/>
+
                 </div>
+
+                <InnerDivider title="إظهار وإخفاء عناصر الهيدر" />
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>أيقونات مجسّمة بأسلوب «مرسوم باليد» لكل التخصصات في كل الأقسام (41 مهنة مرسومة يدويًا، والباقي يتولّد تلقائيًا بنفس الأسلوب بلون قسمه — وأي تخصص جديد يحصل على أيقونته فورًا)</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyStickerIcons} onChange={(e) => updateField("specialtyStickerIcons", e.target.checked)}/>أيقونات «الملصقات 3D» (ستايل صورة المرجع: مربع باستيل + رسمة كرتونية لامعة) — متوفرة لكل الأقسام الـ14 والتخصصات الـ73، وتظهر بدل الرسم اليدوي؛ وأي أيقونة ترفعها من شاشة تعديل التصنيف</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showWeeklyStars} onChange={(e) => updateField("showWeeklyStars", e.target.checked)}/>شارة «نجم الأسبوع ⭐» تلقائيًا لأفضل 3 مقدمي خدمة حسب تقييمات الأعضاء خلال آخر 7 أيام (متوسط 4 نجوم فأكثر)</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.headerSticky} onChange={(e) => updateField("headerSticky", e.target.checked)}/>تثبيت الهيدر أعلى الشاشة عند التمرير</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderBell} onChange={(e) => updateField("showHeaderBell", e.target.checked)}/>إظهار «إشعاراتي» في قائمة الهيدر للأعضاء (إشعارات شخصية لكل عضو؛ لا تظهر للزوار)</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderFavorites} onChange={(e) => updateField("showHeaderFavorites", e.target.checked)}/>إظهار زر المفضلة في الهيدر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderDarkToggle} onChange={(e) => updateField("showHeaderDarkToggle", e.target.checked)}/>إظهار زر الوضع الليلي في الهيدر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderLoginBtn} onChange={(e) => updateField("showHeaderLoginBtn", e.target.checked)}/>إظهار زر دخول الأعضاء في الهيدر</label>
                 </div>
 
                 <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
+                <ImageUploadField imageKey="hero-banner" label="صورة البانر الترحيبي أعلى الرئيسية (اختياري — رفع من الجهاز)" value={draft.heroBannerImage} onChange={(url) => updateField("heroBannerImage", url)} fallbackSrc="/images/home-banner-sky.png" wide/>
                 <div className="form-row design-two-col">
                   <label className="field">
                     شكل البانر الترحيبي أعلى الرئيسية
@@ -1212,15 +1046,17 @@ export default function DesignCustomizer({
                     </SelectField>
                   </label>
 
-                  <label className="field">
-                    ستايل شريط أزرار الاتصال السريع داخل كارت المهني
-                    <SelectField value={draft.providerCallStripStyle} onChange={(e) => updateField("providerCallStripStyle", e.target.value as DesignSettings["providerCallStripStyle"])}>
-                      <option value="sky">سماوي كلاسيكي هادئ (الافتراضي)</option>
-                      <option value="emerald">أخضر زمردي بارز</option>
-                      <option value="solid-blue">أزرق ملكي عالي التباين</option>
-                    </SelectField>
-                  </label>
                 </div>
+
+                <InnerDivider title="زر البحث المتمركز" />
+                <label className="field">
+                  تصميم زر البحث المتمركز في الصفحة الرئيسية والأقسام
+                  <SelectField value={draft.searchTriggerStyle} onChange={(e) => updateField("searchTriggerStyle", e.target.value as DesignSettings["searchTriggerStyle"])}>
+                    <option value="pill-gradient">كبسولة زرقاء متدرجة بارزة (الافتراضي)</option>
+                    <option value="glass-outline">إطار زجاجي مضيء وعصري</option>
+                    <option value="gold-accent">كبسولة ملكية بإطار ذهبي</option>
+                  </SelectField>
+                </label>
 
                 <InnerDivider title="نقشات وزخارف خلفية الهيدر والبانر الرئيسي (Subtle Patterns)" subtitle="أضف نقشة هندسية أو إسلامية أو نجوم خلف الهيدر والبانر الترحيبي" />
                 <div className="form-row design-two-col">
@@ -1257,100 +1093,6 @@ export default function DesignCustomizer({
                   </SelectField>
                 </label>
 
-                <InnerDivider title="تخصيص كروت المهنيين وصفحة مقدم الخدمة والبحث المتمركز" />
-                <div className="form-row design-two-col">
-                  <label className="field">
-                    تخطيط كارت مقدم الخدمة (Provider Card)
-                    <SelectField value={draft.providerCardLayout} onChange={(e) => updateField("providerCardLayout", e.target.value as DesignSettings["providerCardLayout"])}>
-                      <option value="classic">كلاسيكي متوازن (الافتراضي)</option>
-                      <option value="compact">مدمج ومختصر لشاشات الموبايل</option>
-                      <option value="centered">متوسطن بالكامل (الأيقونة والاسم والنجوم في المنتصف)</option>
-                    </SelectField>
-                  </label>
-
-                  <label className="field">
-                    ستايل إطار كارت مقدم الخدمة من الخارج
-                    <SelectField value={draft.outerCardStyle} onChange={(e) => updateField("outerCardStyle", e.target.value as DesignSettings["outerCardStyle"])}>
-                      <option value="modern">كارت حديث بإطار واضح (الافتراضي)</option>
-                      <option value="bordered">برواز ملون مزدوج وبارز</option>
-                      <option value="soft-gradient">خلفية متدرجة ناعمة</option>
-                    </SelectField>
-                  </label>
-                </div>
-
-                <div className="form-row design-two-col">
-                  <ColorPickerField
-                    label="لون المستطيل المميز لاسم المهني والنجوم (داخل صفحته)"
-                    value={draft.detailNameBoxColor}
-                    swatches={QUICK_SWATCHES.button}
-                    onChange={(hex) => updateField("detailNameBoxColor", hex)}
-                  />
-
-                  <label className="field">
-                    حالة أوسمة المهني تحت برواز الاسم (داخل صفحته)
-                    <SelectField value={draft.badgesDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("badgesDefaultOpen", e.target.value === "open")}>
-                      <option value="closed">مطوية وتفتح بالسهم الصغير تحت الاسم (الافتراضي)</option>
-                      <option value="open">مفرودة تلقائياً عند فتح صفحة المهني</option>
-                    </SelectField>
-                  </label>
-                </div>
-
-                <label className="field">
-                  تصميم زر البحث المتمركز في الصفحة الرئيسية والأقسام
-                  <SelectField value={draft.searchTriggerStyle} onChange={(e) => updateField("searchTriggerStyle", e.target.value as DesignSettings["searchTriggerStyle"])}>
-                    <option value="pill-gradient">كبسولة زرقاء متدرجة بارزة (الافتراضي)</option>
-                    <option value="glass-outline">إطار زجاجي مضيء وعصري</option>
-                    <option value="gold-accent">كبسولة ملكية بإطار ذهبي</option>
-                  </SelectField>
-                </label>
-
-                <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderBadges} onChange={(e) => updateField("showProviderBadges", e.target.checked)}/>إظهار شارات التوثيق والتميز داخل صفحة المهني</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderWhatsappBtn} onChange={(e) => updateField("showProviderWhatsappBtn", e.target.checked)}/>إظهار زر واتساب المباشر داخل صفحة المهني</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderShareBtn} onChange={(e) => updateField("showProviderShareBtn", e.target.checked)}/>إظهار أيقونة المشاركة بجانب اسم المهني</label>
-                </div>
-              </div>
-            )}
-          </section>
-        </>
-      )}
-
-      {/* 7. Header, Footer, Top Announcement & Splash */}
-      {(activeFilter === "all" || activeFilter === "header") && (
-        <>
-          <SectionDivider step="٧" label="الهيدر والفوتر وشريط الإعلانات" />
-          <section className={`design-group-card ${collapsedGroups.header ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("header")} aria-expanded={!collapsedGroups.header}>
-              <span className="design-group-icon"><LayoutTemplate size={20}/></span>
-              <div className="design-group-title">
-                <h3>7. تعديل الهيدر والفوتر وشريط الإعلان العلوي وشاشة البداية</h3>
-                <p>تخصيص الهيدر العلوي، الفوتر السفلي، شريط التنبيهات والتهنئة، وشاشة الترحيب</p>
-              </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.header ? "is-collapsed" : ""}`}/>
-            </button>
-
-            {!collapsedGroups.header && (
-              <div className="design-group-content">
-                <InnerDivider title="صوت النقرات والاهتزاز" subtitle="نقرة ناعمة + اهتزاز خفيف عند الضغط على أي زر أو كارت في التطبيق (الاهتزاز على أندرويد فقط). يظهر للزوار زر مكبر صوت في الهيدر لكتم الصوت وتشغيله." />
-                <div className="form-row design-two-col">
-                  <label className="field">
-                    عند الضغط على أي زر
-                    <SelectField value={draft.tapFeedback} onChange={(e) => updateField("tapFeedback", e.target.value as DesignSettings["tapFeedback"])}>
-                      <option value="both">اهتزاز خفيف + صوت نقرة ناعمة (الافتراضي)</option>
-                      <option value="haptic">اهتزاز خفيف فقط</option>
-                      <option value="sound">صوت نقرة فقط</option>
-                      <option value="off">بدون</option>
-                    </SelectField>
-                  </label>
-                  <label className="field">
-                    وضع توفير البطارية
-                    <SelectField value={draft.powerSaveMode} onChange={(e) => updateField("powerSaveMode", e.target.value as DesignSettings["powerSaveMode"])}>
-                      <option value="auto">تلقائي — عند انخفاض البطارية أو طلب تقليل الحركة (الافتراضي)</option>
-                      <option value="on">مفعّل دائمًا (بدون ضبابية ولا اهتزاز)</option>
-                      <option value="off">معطّل دائمًا</option>
-                    </SelectField>
-                  </label>
-                </div>
                 <InnerDivider title="الشريط الإخباري المتحرك (أسفل البانر الترحيبي)" subtitle="أضف خبراً واحداً أو عدة أخبار وتنبيهات متتالية لأهل القرية مع تحكم في الحركة والسرعة" />
                 <div className="design-toggles-grid">
                   <label className="checkbox-field"><input type="checkbox" checked={draft.announcementEnabled} onChange={(e) => updateField("announcementEnabled", e.target.checked)}/>تفعيل وإظهار الشريط الإخباري المتحرك أسفل البانر الترحيبي</label>
@@ -1459,73 +1201,261 @@ export default function DesignCustomizer({
                     )}
                   </>
                 )}
+              </div>
+            )}
+          </section>
+        </>
+      )}
 
-                <InnerDivider title="ألوان وشعار الهيدر والفوتر" />
+      {/* 3. categories */}
+      {(activeFilter === "all" || activeFilter === "categories") && (
+        <>
+          <SectionDivider step="٣" label="أقسام القرية والتخصصات" />
+          <section className={`design-group-card ${collapsedGroups.categories ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("categories")} aria-expanded={!collapsedGroups.categories}>
+              <span className="design-group-icon"><Grid2X2 size={20}/></span>
+              <div className="design-group-title">
+                <h3>3. أقسام القرية والتخصصات وهيكل الصفحة الرئيسية</h3>
+                <p>شكل وحجم الأيقونات، عدد الكروت في الصف، أيقونات التخصصات، وترتيب أقسام الصفحة الرئيسية</p>
+              </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.categories ? "is-collapsed" : ""}`}/>
+            </button>
+
+            {!collapsedGroups.categories && (
+              <div className="design-group-content">
+                <InnerDivider title="ستايل وحجم وموضع الأيقونات" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    ستايل وشكل الأيقونات
+                    <SelectField value={draft.iconStyle} onChange={(e) => updateField("iconStyle", e.target.value as DesignSettings["iconStyle"])}>
+                      <option value="3d">أيقونات 3D ملونة بارزة (الافتراضي)</option>
+                      <option value="flat">أيقونات مسطحة هادئة بدون إطار ثقيل (Flat)</option>
+                      <option value="glow">أيقونات دائرية متوهجة (Glow Circle)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    حجم الأيقونات داخل الكروت
+                    <SelectField value={draft.iconSize} onChange={(e) => updateField("iconSize", e.target.value as DesignSettings["iconSize"])}>
+                      <option value="small">صغير مدمج</option>
+                      <option value="medium">متوسط متوازن (الافتراضي)</option>
+                      <option value="large">كبير وواضح</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    موضع الأيقونة داخل كروت الأقسام
+                    <SelectField value={draft.iconPosition} onChange={(e) => updateField("iconPosition", e.target.value as DesignSettings["iconPosition"])}>
+                      <option value="top-center">فوق العنوان في المنتصف (الافتراضي)</option>
+                      <option value="left">على الشمال بجانب العنوان</option>
+                      <option value="right">على اليمين بجانب العنوان</option>
+                    </SelectField>
+                  </label>
+
+                </div>
+
+                <InnerDivider title="عدد الكروت في الصف على الموبايل والكمبيوتر" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    عدد كروت الأقسام في الصف على الموبايل
+                    <SelectField value={draft.mobileColumns} onChange={(e) => updateField("mobileColumns", e.target.value as DesignSettings["mobileColumns"])}>
+                      <option value="2">كارتين في الصف (٢ أعمدة - الافتراضي)</option>
+                      <option value="3">٣ كروت في الصف (٣ أعمدة مدمجة)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    عدد كروت الأقسام في الصف على الكمبيوتر
+                    <SelectField value={draft.desktopColumns} onChange={(e) => updateField("desktopColumns", e.target.value as DesignSettings["desktopColumns"])}>
+                      <option value="4">٤ كروت في الصف (الافتراضي)</option>
+                      <option value="3">٣ كروت عريضة في الصف</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <InnerDivider title="ترتيب وإظهار أقسام الصفحة الرئيسية" subtitle="حرك أي قسم لأعلى أو لأسفل أو أخفِه بضغطة واحدة" />
+                <div className="design-order-box">
+                  <div className="design-order-list">
+                    {orderedSections.map((sectionKey, idx) => {
+                      const meta = homeSectionsMeta[sectionKey];
+                      if (!meta) return null;
+                      const enabled = Boolean(draft[meta.toggleKey]);
+                      return (
+                        <div key={sectionKey} className={`design-order-item ${enabled ? "" : "is-hidden"}`}>
+                          <label className="design-order-check">
+                            <input
+                              type="checkbox"
+                              checked={enabled}
+                              onChange={(e) => updateField(meta.toggleKey, e.target.checked as never)}
+                            />
+                            <strong>{idx + 1}. {meta.label}</strong>
+                          </label>
+                          <div className="design-order-arrows">
+                            <button type="button" className="icon-button" disabled={idx === 0} onClick={() => moveSection(idx, -1)} aria-label="تحريك لأعلى" title="تحريك لأعلى">
+                              <ArrowUp size={15}/>
+                            </button>
+                            <button type="button" className="icon-button" disabled={idx === orderedSections.length - 1} onClick={() => moveSection(idx, 1)} aria-label="تحريك لأسفل" title="تحريك لأسفل">
+                              <ArrowDown size={15}/>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showAdminQuickEdit} onChange={(e) => updateField("showAdminQuickEdit", e.target.checked)}/>إظهار زر «تعديل سريع كأدمن» على كروت الصفحة الرئيسية</label>
+                </div>
+
+                <InnerDivider title="أيقونات التخصصات والنجوم الأسبوعية" subtitle="اختر شكل أيقونات التخصصات فقط؛ أيقونات الأقسام الرئيسية لا تتأثر" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    شكل أيقونات التخصصات
+                    <SelectField value={draft.specialtyIconStyle} onChange={(e) => updateField("specialtyIconStyle", e.target.value as DesignSettings["specialtyIconStyle"])}>
+                      <option value="3d">مجسمة 3D (الملصقات والرسم المجسم) — الافتراضي</option>
+                      <option value="flat">فلات كلاسيكية (الأيقونات المسطحة القديمة)</option>
+                    </SelectField>
+                    <small className="input-help">يسري على بلاطات التخصصات وبطاقات مقدمي الخدمة وصفحة التفاصيل. الأقسام الرئيسية تبقى كما هي.</small>
+                  </label>
+                </div>
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>أيقونات مجسّمة بأسلوب «مرسوم باليد» لكل التخصصات في كل الأقسام (41 مهنة مرسومة يدويًا، والباقي يتولّد تلقائيًا بنفس الأسلوب بلون قسمه — وأي تخصص جديد يحصل على أيقونته فورًا)</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyStickerIcons} onChange={(e) => updateField("specialtyStickerIcons", e.target.checked)}/>أيقونات «الملصقات 3D» (ستايل صورة المرجع: مربع باستيل + رسمة كرتونية لامعة) — متوفرة لكل الأقسام الـ14 والتخصصات الـ73، وتظهر بدل الرسم اليدوي؛ وأي أيقونة ترفعها من شاشة تعديل التصنيف</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showWeeklyStars} onChange={(e) => updateField("showWeeklyStars", e.target.checked)}/>شارة «نجم الأسبوع ⭐» تلقائيًا لأفضل 3 مقدمي خدمة حسب تقييمات الأعضاء خلال آخر 7 أيام (متوسط 4 نجوم فأكثر)</label>
+                </div>
+              </div>
+            )}
+          </section>
+        </>
+      )}
+
+      {/* 4. providers */}
+      {(activeFilter === "all" || activeFilter === "providers") && (
+        <>
+          <SectionDivider step="٤" label="المميزون وكروت المهنيين" />
+          <section className={`design-group-card ${collapsedGroups.providers ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("providers")} aria-expanded={!collapsedGroups.providers}>
+              <span className="design-group-icon"><UsersRound size={20}/></span>
+              <div className="design-group-title">
+                <h3>4. قسم المميزين وكروت المهنيين وصفحة مقدم الخدمة</h3>
+                <p>حالة قسم المميزين عند الفتح، الأدوات الدائرية على الكارت، تخطيط الكارت، وصفحة تفاصيل المهني</p>
+              </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.providers ? "is-collapsed" : ""}`}/>
+            </button>
+
+            {!collapsedGroups.providers && (
+              <div className="design-group-content">
+                <InnerDivider title="قسم «مقدمو الخدمات المميزين»" />
+                  <label className="field">
+                    حالة قسم «مقدمو الخدمات المميزين» عند فتح الموقع
+                    <SelectField value={draft.featuredDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("featuredDefaultOpen", e.target.value === "open")}>
+                      <option value="closed">مطوي ويفتح عند الضغط على الزر (الافتراضي)</option>
+                      <option value="open">مفتوح ومفرود تلقائياً عند فتح الصفحة</option>
+                    </SelectField>
+                  </label>
+
+                <InnerDivider title="الأدوات الدائرية على كارت مقدم الخدمة" subtitle="دوائر شفافة تظهر عند المرور على الكارت: اتصال وواتساب مباشرة، مشاركة، والمفضلة. رتّبها أو أخفِها أو غيّر مكانها، ويظهر تلميح عربي بجانب كل دائرة." />
+                <EdgeToolsEditor order={edgeToolOrder} visible={edgeToolsVisible} onChange={commitEdgeTools} />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    مكان الدوائر على الكارت
+                    <SelectField value={draft.providerEdgeToolsPosition} onChange={(e) => updateField("providerEdgeToolsPosition", e.target.value as DesignSettings["providerEdgeToolsPosition"])}>
+                      <option value="left">على الحافة اليسرى (الافتراضي)</option>
+                      <option value="right">على الحافة اليمنى</option>
+                      <option value="bottom">صف أفقي أسفل الكارت</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+                <InnerDivider title="تخصيص كروت المهنيين وصفحة مقدم الخدمة والبحث المتمركز" />
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    تخطيط كارت مقدم الخدمة (Provider Card)
+                    <SelectField value={draft.providerCardLayout} onChange={(e) => updateField("providerCardLayout", e.target.value as DesignSettings["providerCardLayout"])}>
+                      <option value="classic">كلاسيكي متوازن (الافتراضي)</option>
+                      <option value="compact">مدمج ومختصر لشاشات الموبايل</option>
+                      <option value="centered">متوسطن بالكامل (الأيقونة والاسم والنجوم في المنتصف)</option>
+                    </SelectField>
+                  </label>
+
+                  <label className="field">
+                    ستايل إطار كارت مقدم الخدمة من الخارج
+                    <SelectField value={draft.outerCardStyle} onChange={(e) => updateField("outerCardStyle", e.target.value as DesignSettings["outerCardStyle"])}>
+                      <option value="modern">كارت حديث بإطار واضح (الافتراضي)</option>
+                      <option value="bordered">برواز ملون مزدوج وبارز</option>
+                      <option value="soft-gradient">خلفية متدرجة ناعمة</option>
+                    </SelectField>
+                  </label>
+                </div>
+
                 <div className="form-row design-two-col">
                   <ColorPickerField
-                    label="لون خلفية الهيدر العلوي"
-                    value={draft.headerBgColor}
-                    swatches={QUICK_SWATCHES.headerBg}
-                    onChange={(hex) => updateField("headerBgColor", hex)}
+                    label="لون المستطيل المميز لاسم المهني والنجوم (داخل صفحته)"
+                    value={draft.detailNameBoxColor}
+                    swatches={QUICK_SWATCHES.button}
+                    onChange={(hex) => updateField("detailNameBoxColor", hex)}
                   />
+
+                  <label className="field">
+                    حالة أوسمة المهني تحت برواز الاسم (داخل صفحته)
+                    <SelectField value={draft.badgesDefaultOpen ? "open" : "closed"} onChange={(e) => updateField("badgesDefaultOpen", e.target.value === "open")}>
+                      <option value="closed">مطوية وتفتح بالسهم الصغير تحت الاسم (الافتراضي)</option>
+                      <option value="open">مفرودة تلقائياً عند فتح صفحة المهني</option>
+                    </SelectField>
+                  </label>
+                </div>
+
+
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderBadges} onChange={(e) => updateField("showProviderBadges", e.target.checked)}/>إظهار شارات التوثيق والتميز داخل صفحة المهني</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderWhatsappBtn} onChange={(e) => updateField("showProviderWhatsappBtn", e.target.checked)}/>إظهار زر واتساب المباشر داخل صفحة المهني</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showProviderShareBtn} onChange={(e) => updateField("showProviderShareBtn", e.target.checked)}/>إظهار أيقونة المشاركة بجانب اسم المهني</label>
+                </div>
+
+                <InnerDivider title="شريط الاتصال السريع داخل الكارت" />
+                  <label className="field">
+                    ستايل شريط أزرار الاتصال السريع داخل كارت المهني
+                    <SelectField value={draft.providerCallStripStyle} onChange={(e) => updateField("providerCallStripStyle", e.target.value as DesignSettings["providerCallStripStyle"])}>
+                      <option value="sky">سماوي كلاسيكي هادئ (الافتراضي)</option>
+                      <option value="emerald">أخضر زمردي بارز</option>
+                      <option value="solid-blue">أزرق ملكي عالي التباين</option>
+                    </SelectField>
+                  </label>
+
+                <InnerDivider title="معاينة حية لصفحة مقدم الخدمة" subtitle="نسخة ثابتة من نافذة التفاصيل (الهيرو الأبيض، صندوق الاسم، الشارات، البلاطات بأيقونة علوية، وأزرار الاتصال والواتساب) تتبع الثيم والألوان المختارة فورًا." />
+                <DetailPreview />
+              </div>
+            )}
+          </section>
+        </>
+      )}
+
+      {/* 5. footer */}
+      {(activeFilter === "all" || activeFilter === "footer") && (
+        <>
+          <SectionDivider step="٥" label="الفوتر أسفل الصفحة" />
+          <section className={`design-group-card ${collapsedGroups.footer ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("footer")} aria-expanded={!collapsedGroups.footer}>
+              <span className="design-group-icon"><Square size={20}/></span>
+              <div className="design-group-title">
+                <h3>5. الفوتر: اللون والنصوص والروابط والعناصر الظاهرة</h3>
+                <p>كل ما يخص الجزء السفلي من الصفحة</p>
+              </div>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.footer ? "is-collapsed" : ""}`}/>
+            </button>
+
+            {!collapsedGroups.footer && (
+              <div className="design-group-content">
+                <InnerDivider title="لون خلفية الفوتر" />
                   <ColorPickerField
                     label="لون خلفية الفوتر السفلي"
                     value={draft.footerBgColor}
                     swatches={QUICK_SWATCHES.footerBg}
                     onChange={(hex) => updateField("footerBgColor", hex)}
                   />
-                </div>
-
-                <div className="form-row design-two-col">
-                  <label className="field">
-                    رابط صورة لوجو مخصص في الهيدر (اختياري)
-                    <input
-                      type="text"
-                      dir="ltr"
-                      value={draft.headerLogoUrl}
-                      onChange={(e) => updateField("headerLogoUrl", e.target.value)}
-                      placeholder="اتركه فارغاً للنص الافتراضي أو ضع رابط صورة"
-                    />
-                  </label>
-
-                  <label className="field">
-                    مدة ظهور شاشة البداية (Splash Screen)
-                    <SelectField value={draft.splashDuration} onChange={(e) => updateField("splashDuration", e.target.value as DesignSettings["splashDuration"])}>
-                      <option value="900">سريعة (0.9 ثانية - الافتراضي)</option>
-                      <option value="1500">متوسطة (1.5 ثانية)</option>
-                      <option value="2500">طويلة (2.5 ثانية)</option>
-                    </SelectField>
-                  </label>
-                </div>
-
-                <label className="field">
-                  رابط صورة شاشة البداية (Splash Screen)
-                  <input
-                    type="text"
-                    dir="ltr"
-                    value={draft.splashImageUrl}
-                    onChange={(e) => updateField("splashImageUrl", e.target.value)}
-                    placeholder="/images/logo-daleel-transparent.png"
-                  />
-                </label>
-                <div className="form-row design-two-col">
-                  <label className="field">
-                    لمن تظهر شاشة البداية؟
-                    <SelectField value={draft.splashAudience} onChange={(e) => updateField("splashAudience", e.target.value as DesignSettings["splashAudience"])}>
-                      <option value="installed">التطبيق المثبّت على الهاتف فقط — مع كل فتح (الافتراضي)</option>
-                      <option value="all">كل الزوار — مرة واحدة في الجلسة (المتصفح والتطبيق)</option>
-                    </SelectField>
-                    <small className="input-help">زوار المتصفح العاديون لا يرونها في الوضع الافتراضي؛ استخدم زر المعاينة لتراها الآن.</small>
-                  </label>
-                  <div className="field">
-                    معاينة فورية
-                    <button type="button" className="button button-soft" onClick={() => { localStorage.setItem("janzour-splash-audience", draft.splashEnabled ? draft.splashAudience : "off"); document.documentElement.setAttribute("data-design-splash-stickers", draft.splashStickers ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-image", draft.splashImageUrl || "/images/logo-daleel-transparent.png"); document.documentElement.setAttribute("data-design-splash-duration", draft.splashDuration); window.dispatchEvent(new CustomEvent(SPLASH_PREVIEW_EVENT)); }}>
-                      <Sparkles size={16}/> معاينة شاشة البداية
-                    </button>
-                    <small className="input-help">تعرض الشاشة بالإعدادات الحالية (قبل الحفظ) لمدة ثانية ونصف على الأقل.</small>
-                  </div>
-                </div>
-                <label className="checkbox-field"><input type="checkbox" checked={draft.splashStickers} onChange={(e) => updateField("splashStickers", e.target.checked)}/>ملصقات الأقسام 3D تتجمع حول الشعار في شاشة البداية</label>
 
                 <InnerDivider title="تخصيص الفوتر وروابط القرية وإحصائيات الزوار" subtitle="عدّل نص وصف الفوتر وأضف رابط صفحة فيسبوك أو جروب واتساب القرية" />
                 <label className="field">
@@ -1563,17 +1493,11 @@ export default function DesignCustomizer({
                   </label>
                 </div>
 
-                <InnerDivider title="إظهار وإخفاء عناصر الهيدر والفوتر" />
+                <InnerDivider title="إظهار وإخفاء عناصر الفوتر والزر العائم" />
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.headerSticky} onChange={(e) => updateField("headerSticky", e.target.checked)}/>تثبيت الهيدر أعلى الشاشة عند التمرير</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderBell} onChange={(e) => updateField("showHeaderBell", e.target.checked)}/>إظهار «إشعاراتي» في قائمة الهيدر للأعضاء (إشعارات شخصية لكل عضو؛ لا تظهر للزوار)</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderFavorites} onChange={(e) => updateField("showHeaderFavorites", e.target.checked)}/>إظهار زر المفضلة في الهيدر</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderDarkToggle} onChange={(e) => updateField("showHeaderDarkToggle", e.target.checked)}/>إظهار زر الوضع الليلي في الهيدر</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderLoginBtn} onChange={(e) => updateField("showHeaderLoginBtn", e.target.checked)}/>إظهار زر دخول الأعضاء في الهيدر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterWhatsapp} onChange={(e) => updateField("showFooterWhatsapp", e.target.checked)}/>إظهار زر واتساب الإدارة في الفوتر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showFooterStats} onChange={(e) => updateField("showFooterStats", e.target.checked)}/>إظهار عداد إحصائيات الدليل للزوار في الفوتر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.floatingWhatsappEnabled} onChange={(e) => updateField("floatingWhatsappEnabled", e.target.checked)}/>إظهار زر واتساب عائم سريع على الموبايل</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.splashEnabled} onChange={(e) => updateField("splashEnabled", e.target.checked)}/>تفعيل شاشة البداية الترحيبية</label>
                 </div>
               </div>
             )}
@@ -1581,22 +1505,56 @@ export default function DesignCustomizer({
         </>
       )}
 
-      {/* 8. Login & Register Customizer */}
-      {(activeFilter === "all" || activeFilter === "auth") && (
+      {/* 6. splash */}
+      {(activeFilter === "all" || activeFilter === "splash") && (
         <>
-          <SectionDivider step="٨" label="تسجيل الدخول والعضوية" />
-          <section className={`design-group-card ${collapsedGroups.auth ? "is-collapsed" : ""}`}>
-            <button type="button" className="design-group-head" onClick={() => toggleGroup("auth")} aria-expanded={!collapsedGroups.auth}>
+          <SectionDivider step="٦" label="شاشة البداية والدخول والعضوية" />
+          <section className={`design-group-card ${collapsedGroups.splash ? "is-collapsed" : ""}`}>
+            <button type="button" className="design-group-head" onClick={() => toggleGroup("splash")} aria-expanded={!collapsedGroups.splash}>
               <span className="design-group-icon"><LockKeyhole size={20}/></span>
               <div className="design-group-title">
-                <h3>8. تعديل شكل وصورة ونصوص تسجيل الدخول والعضوية</h3>
-                <p>تحكم في صورة البانر الترحيبي وعناوين وشكل خانات شاشة الدخول وإنشاء العضوية</p>
+                <h3>6. شاشة البداية (Splash) وشاشات تسجيل الدخول والعضوية</h3>
+                <p>الشاشة التي تظهر عند فتح التطبيق، ثم صفحتا الدخول والتسجيل</p>
               </div>
-              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.auth ? "is-collapsed" : ""}`}/>
+              <ChevronDown size={18} className={`design-group-chevron ${collapsedGroups.splash ? "is-collapsed" : ""}`}/>
             </button>
 
-            {!collapsedGroups.auth && (
+            {!collapsedGroups.splash && (
               <div className="design-group-content">
+                <InnerDivider title="شاشة البداية (Splash Screen)" />
+                <div className="design-toggles-grid">
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.splashEnabled} onChange={(e) => updateField("splashEnabled", e.target.checked)}/>تفعيل شاشة البداية الترحيبية</label>
+                </div>
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    مدة ظهور شاشة البداية (Splash Screen)
+                    <SelectField value={draft.splashDuration} onChange={(e) => updateField("splashDuration", e.target.value as DesignSettings["splashDuration"])}>
+                      <option value="900">سريعة (0.9 ثانية - الافتراضي)</option>
+                      <option value="1500">متوسطة (1.5 ثانية)</option>
+                      <option value="2500">طويلة (2.5 ثانية)</option>
+                    </SelectField>
+                  </label>
+                  <ImageUploadField imageKey="splash" label="صورة شاشة البداية (رفع من الجهاز)" value={draft.splashImageUrl === defaultDesignSettings.splashImageUrl ? "" : draft.splashImageUrl} onChange={(url) => updateField("splashImageUrl", url || defaultDesignSettings.splashImageUrl)} fallbackSrc={defaultDesignSettings.splashImageUrl}/>
+                </div>
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    لمن تظهر شاشة البداية؟
+                    <SelectField value={draft.splashAudience} onChange={(e) => updateField("splashAudience", e.target.value as DesignSettings["splashAudience"])}>
+                      <option value="installed">التطبيق المثبّت على الهاتف فقط — مع كل فتح (الافتراضي)</option>
+                      <option value="all">كل الزوار — مرة واحدة في الجلسة (المتصفح والتطبيق)</option>
+                    </SelectField>
+                    <small className="input-help">زوار المتصفح العاديون لا يرونها في الوضع الافتراضي؛ استخدم زر المعاينة لتراها الآن.</small>
+                  </label>
+                  <div className="field">
+                    معاينة فورية
+                    <button type="button" className="button button-soft" onClick={() => { localStorage.setItem("janzour-splash-audience", draft.splashEnabled ? draft.splashAudience : "off"); document.documentElement.setAttribute("data-design-splash-stickers", draft.splashStickers ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-image", draft.splashImageUrl || "/images/logo-daleel-transparent.png"); document.documentElement.setAttribute("data-design-splash-duration", draft.splashDuration); window.dispatchEvent(new CustomEvent(SPLASH_PREVIEW_EVENT)); }}>
+                      <Sparkles size={16}/> معاينة شاشة البداية
+                    </button>
+                    <small className="input-help">تعرض الشاشة بالإعدادات الحالية (قبل الحفظ) لمدة ثانية ونصف على الأقل.</small>
+                  </div>
+                </div>
+                <label className="checkbox-field"><input type="checkbox" checked={draft.splashStickers} onChange={(e) => updateField("splashStickers", e.target.checked)}/>ملصقات الأقسام 3D تتجمع حول الشعار في شاشة البداية</label>
+
                 <InnerDivider title="عناوين ونصوص شاشة تسجيل الدخول والعضوية" />
                 <div className="form-row design-two-col">
                   <label className="field">
@@ -1622,16 +1580,7 @@ export default function DesignCustomizer({
 
                 <InnerDivider title="صورة البانر وترتيب ولون الخانات" />
                 <div className="form-row design-two-col">
-                  <label className="field">
-                    رابط صورة مخصصة لبانر الدخول والعضوية (اختياري)
-                    <input
-                      type="text"
-                      dir="ltr"
-                      value={draft.authBannerImage}
-                      onChange={(e) => updateField("authBannerImage", e.target.value)}
-                      placeholder="مثال: /images/hero-category-transparent.webp"
-                    />
-                  </label>
+                  <ImageUploadField imageKey="auth-banner" label="بانر الدخول والعضوية (اختياري — رفع من الجهاز)" value={draft.authBannerImage} onChange={(url) => updateField("authBannerImage", url)} wide/>
 
                   <label className="field">
                     ترتيب خانات تسجيل العضوية
@@ -1662,6 +1611,7 @@ export default function DesignCustomizer({
           </section>
         </>
       )}
+
 
       {/* Sticky / Floating Bottom Save Bar for Mobile & Desktop */}
       <div className="design-mobile-sticky-bar">

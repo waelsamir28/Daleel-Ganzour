@@ -1090,6 +1090,8 @@ export type DesignSettings = {
   // 7. Login & Register Customizer
   authShowBanner: boolean;
   authBannerImage: string;
+  /** صورة البانر الترحيبي أعلى الرئيسية (فارغ = صورة سماء جنزور الافتراضية). */
+  heroBannerImage: string;
   loginTitle: string;
   loginSubtitle: string;
   registerTitle: string;
@@ -1433,6 +1435,7 @@ export const defaultDesignSettings: DesignSettings = {
   splashStickers: true,
   authShowBanner: true,
   authBannerImage: "",
+  heroBannerImage: "",
   loginTitle: "دخول الأعضاء وإدارة الموقع",
   loginSubtitle: "للأعضاء المسجلين أو إدارة الموقع",
   registerTitle: "أنشئ حساب عضو جديد",
@@ -2019,6 +2022,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.authShowBanner = pickBool(record.authShowBanner, defaultDesignSettings.authShowBanner);
   next.authBannerImage = pickText(record.authBannerImage, defaultDesignSettings.authBannerImage, 300, true);
+  next.heroBannerImage = pickText(record.heroBannerImage, defaultDesignSettings.heroBannerImage, 300, true);
   next.loginTitle = pickText(record.loginTitle, defaultDesignSettings.loginTitle, 120);
   next.loginSubtitle = pickText(record.loginSubtitle, defaultDesignSettings.loginSubtitle, 180);
   next.registerTitle = pickText(record.registerTitle, defaultDesignSettings.registerTitle, 120);
@@ -2475,6 +2479,41 @@ export function parseCategoryIconDataUrl(value: unknown): { mime: string; base64
   const bytes = Math.floor((base64.length * 3) / 4) - padding;
   if (bytes < 100) throw new Error("ملف الأيقونة فارغ أو تالف.");
   if (bytes > CATEGORY_ICON_MAX_BYTES) throw new Error("حجم الأيقونة أكبر من 800 كيلوبايت. صغّر الصورة (256×256 يكفي) وحاول مرة أخرى.");
+  return { mime: match[1], base64 };
+}
+/** صور المظهر القابلة للرفع من استوديو التصميم. */
+export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "hero-banner"] as const;
+export type DesignImageKey = (typeof DESIGN_IMAGE_KEYS)[number];
+export function isDesignImageKey(value: unknown): value is DesignImageKey { return typeof value === "string" && (DESIGN_IMAGE_KEYS as readonly string[]).includes(value); }
+export const DESIGN_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
+/** 1 سم على الشاشة ≈ 37.8 بكسل (96 نقطة/بوصة) — يُستخدم لكتابة مقاسات البانرات بالسنتيمتر كما طلب المدير. */
+export const PX_PER_CM = 96 / 2.54;
+export function pxToCm(px: number, digits = 1): string {
+  const cm = px / PX_PER_CM;
+  return cm.toFixed(digits).replace(/\.0$/, "");
+}
+/** المقاس المقترح لكل صورة مظهر: بالبكسل الفعلي وبالسنتيمتر. */
+export const DESIGN_IMAGE_GUIDE: Record<DesignImageKey, { label: string; width: number; height: number; hint: string }> = {
+  "header-logo": { label: "لوجو الهيدر", width: 300, height: 300, hint: "مربع بخلفية شفافة (PNG) يظهر صغيرًا بجانب اسم الدليل" },
+  "splash": { label: "صورة شاشة البداية", width: 600, height: 600, hint: "مربع بخلفية شفافة؛ تتجمع حوله الملصقات 3D" },
+  "auth-banner": { label: "بانر الدخول والعضوية", width: 1200, height: 500, hint: "عريض؛ يظهر أعلى شاشتي تسجيل الدخول والعضوية" },
+  "hero-banner": { label: "البانر الترحيبي الرئيسي", width: 2048, height: 768, hint: "عريض 8:3 مثل صورة سماء جنزور الافتراضية؛ يظهر أعلى الصفحة الرئيسية فوق مربع البحث" },
+};
+export function designImageSizeText(key: DesignImageKey) {
+  const guide = DESIGN_IMAGE_GUIDE[key];
+  return `${pxToCm(guide.width)} × ${pxToCm(guide.height)} سم (≈ ${guide.width} × ${guide.height} بكسل)`;
+}
+export function designImageUrl(key: DesignImageKey, version: number) { return `/api/design-image/${key}?v=${version}`; }
+/** يتحقق من صورة مظهر مرفوعة (PNG/JPG/WebP/GIF حتى 2 ميجابايت). */
+export function parseDesignImageDataUrl(value: unknown): { mime: string; base64: string } {
+  if (typeof value !== "string") throw new Error("اختر صورة من جهازك أولًا.");
+  const match = /^data:(image\/(?:gif|png|jpeg|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(value.trim());
+  if (!match) throw new Error("صيغة الصورة غير مدعومة. ارفع PNG أو JPG أو WebP أو GIF.");
+  const base64 = match[2].replace(/\s+/g, "");
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  const bytes = Math.floor((base64.length * 3) / 4) - padding;
+  if (bytes < 100) throw new Error("ملف الصورة فارغ أو تالف.");
+  if (bytes > DESIGN_IMAGE_MAX_BYTES) throw new Error("حجم الصورة أكبر من 2 ميجابايت. صغّر الصورة وحاول مرة أخرى.");
   return { mime: match[1], base64 };
 }
 export type RatingRecord = { id: string; serviceId: string; serviceName: string; memberName: string; stars: number; comment: string; status: string; createdAt: string };

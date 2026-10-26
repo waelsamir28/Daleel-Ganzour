@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { notifications, services } from "@/db/schema";
-import { ensureSeed } from "@/lib/directory";
+import { ensureSeed, withDirectoryInvalidation } from "@/lib/directory";
 import { apiError, objectInput, InputError } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 import { parseServiceItems } from "@/lib/catalog";
@@ -10,7 +10,7 @@ import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   try {
     if (!sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
     await ensureSeed();
@@ -88,4 +88,4 @@ export async function POST(request: Request) {
     queueAdminWhatsappAlert("suggestion", `✏️ طلب تحديث بيانات: ${service.name}`, `الرقم المقترح: ${phone}${note ? ` — ${note}` : ""}`);
     return Response.json({ ok: true, message: "وصل طلبك للإدارة للمراجعة." }, { status: 201 });
   } catch (error) { return apiError(error); }
-}
+});

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { activityLog, adBanners, adRequests, categoryHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
@@ -35,10 +36,23 @@ function getPreviewDirectory(): PublicDirectory {
     previewMode: true,
   };
 }
+/**
+ * رقم إصدار مخطط القاعدة. عند كل تشغيل بارد للخادم نقرأ هذا الرقم من `directory_settings` بسؤال واحد؛
+ * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
+ * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
+ */
+export const SCHEMA_VERSION = "2026-10-26.1";
+const SCHEMA_VERSION_KEY = "schema_version";
+async function schemaUpToDate(): Promise<boolean> {
+  try {
+    const [row] = await db.select({ value: directorySettings.value }).from(directorySettings).where(eq(directorySettings.key, SCHEMA_VERSION_KEY)).limit(1);
+    return row?.value === SCHEMA_VERSION;
+  } catch { return false; }
+}
 export async function ensureSeed() {
   if (!databaseConfigured) throw new Error("Database operations are unavailable in preview mode.");
   if (!seedPromise) {
-    seedPromise = db.transaction(async (tx) => {
+    seedPromise = schemaUpToDate().then((ready) => ready ? undefined : db.transaction(async (tx) => {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS phone_secondary varchar(24) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS available_now boolean NOT NULL DEFAULT false`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS available_until timestamptz`);
@@ -48,6 +62,7 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS needed_rank integer NOT NULL DEFAULT 0`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS review_note text NOT NULL DEFAULT ''`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_category_icons (category_id varchar(60) PRIMARY KEY, mime varchar(60) NOT NULL DEFAULT 'image/png', data text NOT NULL DEFAULT '', version integer NOT NULL DEFAULT 1, updated_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_design_images (key varchar(40) PRIMARY KEY, mime varchar(60) NOT NULL DEFAULT 'image/png', data text NOT NULL DEFAULT '', version integer NOT NULL DEFAULT 1, updated_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_status varchar(20) NOT NULL DEFAULT 'none'`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_note text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_draft jsonb`);
@@ -166,7 +181,9 @@ export async function ensureSeed() {
       await tx.insert(directorySettings).values({ key: "sample_data_v1", value: "disabled" }).onConflictDoNothing();
       await tx.update(services).set({ category: "family" }).where(eq(services.category, "doctors"));
       await tx.update(services).set({ category: "lawyers" }).where(eq(services.category, "law"));
-    }).catch((error) => { seedPromise = undefined; throw error; });
+      await tx.insert(directorySettings).values({ key: SCHEMA_VERSION_KEY, value: SCHEMA_VERSION })
+        .onConflictDoUpdate({ target: directorySettings.key, set: { value: SCHEMA_VERSION } });
+    })).catch((error) => { seedPromise = undefined; throw error; });
   }
   await seedPromise;
 }
@@ -246,17 +263,75 @@ export async function recordCategoryHit(categoryId: string, kind: "view" | "cont
   await db.insert(categoryHits).values({ categoryId, views: kind === "view" ? 1 : 0, contacts: kind === "contact" ? 1 : 0 })
     .onConflictDoUpdate({ target: categoryHits.categoryId, set: { [kind === "contact" ? "contacts" : "views"]: sql`${column} + 1`, updatedAt: new Date() } });
 }
-export async function getPublicDirectory(): Promise<PublicDirectory> {
+/**
+ * كاش الدليل العام في ذاكرة الخادم:
+ * - كل كتابة (من الإدارة أو الأعضاء) ترفع «رقم نسخة» صغيرًا في `directory_settings` عبر `invalidateDirectoryCache()`.
+ * - عند كل طلب نقرأ هذا الرقم بسؤال واحد خفيف؛ إن لم يتغير نعيد النسخة المخزّنة بدل ~8 استعلامات ثقيلة.
+ *   هذا يعمل عبر كل نسخ الخادم على Vercel (ليس مجرد ذاكرة محلية)، فأي حفظ يظهر فورًا للجميع.
+ * - حد زمني أقصى (60 ثانية) لإعادة التحميل حتى تتحدث الأمور المرتبطة بالوقت (مثل جدولة الإعلانات).
+ * الدليل لا يعتمد على الزائر (الإخفاء للزوار والإشعارات الشخصية تُطبَّق لاحقًا في membership-gate).
+ */
+const DIRECTORY_CACHE_TTL_MS = 60_000;
+const DIRECTORY_VERSION_KEY = "directory_version";
+let directoryCache: { data: PublicDirectory; version: string; expires: number } | undefined;
+let directoryInFlight: Promise<PublicDirectory> | undefined;
+async function readDirectoryVersion(): Promise<string> {
+  try {
+    const [row] = await db.select({ value: directorySettings.value }).from(directorySettings).where(eq(directorySettings.key, DIRECTORY_VERSION_KEY)).limit(1);
+    return row?.value ?? "";
+  } catch { return String(Date.now()); }
+}
+/** يُستدعى بعد أي كتابة تؤثر على الدليل العام: يفرّغ الذاكرة المحلية ويرفع رقم النسخة المشترك في القاعدة. */
+export async function invalidateDirectoryCache(): Promise<void> {
+  directoryCache = undefined; directoryInFlight = undefined;
+  if (!databaseConfigured) return;
+  const version = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  try {
+    await db.insert(directorySettings).values({ key: DIRECTORY_VERSION_KEY, value: version })
+      .onConflictDoUpdate({ target: directorySettings.key, set: { value: version } });
+  } catch (error) { console.error("directory-version", error); }
+}
+/** يلفّ معالج API يكتب في القاعدة بحيث يُفرَّغ كاش الدليل بعد انتهائه (نجح أو فشل). */
+export function withDirectoryInvalidation<A extends unknown[]>(handler: (...args: A) => Promise<Response>) {
+  return async (...args: A): Promise<Response> => {
+    try { return await handler(...args); }
+    finally { await invalidateDirectoryCache(); }
+  };
+}
+async function cachedPublicDirectory(): Promise<PublicDirectory> {
+  const version = await readDirectoryVersion();
+  if (directoryCache && directoryCache.version === version && directoryCache.expires > Date.now()) return directoryCache.data;
+  if (!directoryInFlight) {
+    directoryInFlight = loadPublicDirectory().then((data) => {
+      directoryCache = { data, version, expires: Date.now() + DIRECTORY_CACHE_TTL_MS };
+      return data;
+    }).finally(() => { directoryInFlight = undefined; });
+  }
+  return directoryInFlight;
+}
+/** نسخة مستقلة لكل طلب حتى لا يعدّل أي مستهلك البيانات المخزّنة في الكاش. */
+export const getPublicDirectory = cache(async (): Promise<PublicDirectory> => {
   if (!databaseConfigured) return getPreviewDirectory();
+  return structuredClone(await cachedPublicDirectory());
+});
+async function loadPublicDirectory(): Promise<PublicDirectory> {
   const catalog = await getCatalog();
   const visibleRoots = catalog.categories.filter((category) => !category.parentId && category.active).map((category) => category.id);
   const visibleCategories = catalog.categories.filter((category) => category.active && (!category.parentId || visibleRoots.includes(category.parentId)));
   const ids = visibleCategories.filter((category) => category.parentId).map((category) => category.id);
   const providers = ids.length ? await db.select().from(services).where(and(eq(services.status, "approved"), inArray(services.category, ids))).orderBy(desc(services.featured), asc(services.id)) : [];
   const providerIds = providers.map((row) => row.id);
-  const ratingRows = providerIds.length ? await db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings).where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, providerIds))).groupBy(serviceRatings.serviceId) : [];
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [ratingRows, commentRows, weeklyRows, providerNotificationRows] = await Promise.all([
+    providerIds.length ? db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings).where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, providerIds))).groupBy(serviceRatings.serviceId) : [],
+    providerIds.length ? db.select({ serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, createdAt: serviceRatings.createdAt, memberName: members.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).where(and(eq(serviceRatings.status, "approved"), ne(serviceRatings.comment, ""), inArray(serviceRatings.serviceId, providerIds))).orderBy(desc(serviceRatings.createdAt)).limit(150) : [],
+    providerIds.length && catalog.designSettings?.showWeeklyStars !== false
+    ? db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings)
+        .where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, providerIds), gte(serviceRatings.createdAt, weekAgo))).groupBy(serviceRatings.serviceId)
+    : [],
+    db.select().from(notifications).where(eq(notifications.type, "provider")).orderBy(desc(notifications.createdAt)).limit(60),
+  ]);
   const ratingByService = new Map(ratingRows.map((row) => [row.serviceId, row]));
-  const commentRows = providerIds.length ? await db.select({ serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, createdAt: serviceRatings.createdAt, memberName: members.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).where(and(eq(serviceRatings.status, "approved"), ne(serviceRatings.comment, ""), inArray(serviceRatings.serviceId, providerIds))).orderBy(desc(serviceRatings.createdAt)).limit(150) : [];
   const commentsByService = new Map<string, ServiceComment[]>();
   for (const row of commentRows) {
     const list = commentsByService.get(row.serviceId) ?? [];
@@ -264,17 +339,11 @@ export async function getPublicDirectory(): Promise<PublicDirectory> {
     commentsByService.set(row.serviceId, list);
   }
   // «نجم الأسبوع»: أفضل 3 مقدمي خدمة حسب تقييمات الأعضاء المعتمدة خلال آخر 7 أيام (متوسط 4 نجوم فأكثر).
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const weeklyRows = providerIds.length && catalog.designSettings?.showWeeklyStars !== false
-    ? await db.select({ serviceId: serviceRatings.serviceId, total: count(), avgStars: avg(serviceRatings.stars) }).from(serviceRatings)
-        .where(and(eq(serviceRatings.status, "approved"), inArray(serviceRatings.serviceId, providerIds), gte(serviceRatings.createdAt, weekAgo))).groupBy(serviceRatings.serviceId)
-    : [];
   const weeklyStars = new Set(
     weeklyRows.filter((row) => Number(row.avgStars ?? 0) >= 4)
       .sort((a, b) => Number(b.total) - Number(a.total) || Number(b.avgStars ?? 0) - Number(a.avgStars ?? 0) || a.serviceId.localeCompare(b.serviceId))
       .slice(0, 3).map((row) => row.serviceId),
   );
-  const providerNotificationRows = await db.select().from(notifications).where(eq(notifications.type, "provider")).orderBy(desc(notifications.createdAt)).limit(60);
   // Approved member ratings blend into the seeded score, weighted by the existing review count.
   const blended = providers.map((row) => {
     const record = serializeService(row);
