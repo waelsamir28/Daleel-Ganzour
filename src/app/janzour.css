@@ -2611,12 +2611,24 @@ html.dark .member-notif-item.is-completion.is-rejected { background: rgba(220, 5
 }
 .header-custom-logo-link { display: inline-flex; align-items: center; margin-inline-end: 8px; }
 .login-custom-banner-img {
-  max-height: 110px;
-  width: auto;
-  object-fit: contain;
-  margin-inline: auto;
-  margin-bottom: 8px;
   display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  aspect-ratio: 12 / 5;
+  object-fit: cover;
+  margin-inline: auto;
+  border-radius: 18px;
+  border: 1px solid #ffffff3d;
+  box-shadow: 0 18px 40px -18px #00000080, 0 0 0 6px #ffffff12;
+  position: relative;
+  z-index: 1;
+}
+.login-art.has-banner-image { gap: 14px; }
+@media (max-width: 700px) {
+  .login-art.has-banner-image { flex-direction: column; gap: 9px; padding: 12px 12px 11px; min-height: 0; }
+  .login-custom-banner-img { border-radius: 14px; box-shadow: 0 10px 24px -14px #00000080; }
+  .login-art.has-banner-image .login-art-caption { max-width: none; }
 }
 .login-layout.no-auth-banner { grid-template-columns: 1fr !important; max-width: 580px !important; }
 .directory-ordered-main { display: flex; flex-direction: column; }

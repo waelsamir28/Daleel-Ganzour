@@ -1614,7 +1614,7 @@ export default function DesignCustomizer({
 
                 <InnerDivider title="صورة البانر وترتيب ولون الخانات" />
                 <div className="form-row design-two-col">
-                  <ImageUploadField imageKey="auth-banner" label="بانر الدخول والعضوية (اختياري — رفع من الجهاز)" value={draft.authBannerImage} onChange={(url) => updateField("authBannerImage", url)} wide/>
+                  <ImageUploadField imageKey="auth-banner" label="بانر الدخول والعضوية (رفع من الجهاز — وإلا يظهر البانر الافتراضي)" value={draft.authBannerImage} fallbackSrc="/images/auth-banner-default.webp" onChange={(url) => updateField("authBannerImage", url)} wide/>
 
                   <label className="field">
                     ترتيب خانات تسجيل العضوية
