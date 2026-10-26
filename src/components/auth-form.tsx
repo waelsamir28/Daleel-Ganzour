@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useIsDark } from "@/lib/use-is-dark";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, CirclePlus, Eye, EyeOff, Info, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, Info, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 import { Logo } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
-import { defaultDesignSettings, parseAnnouncementItems, resolveAuthBanner, type DesignSettings, type SiteSettings } from "@/lib/catalog";
-import { TickerText } from "@/components/ticker-text";
+import { defaultDesignSettings, resolveAuthBanner, type DesignSettings, type SiteSettings } from "@/lib/catalog";
 
 export function LogoutButton({ className = "button button-soft" }: { className?: string }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
@@ -20,10 +19,6 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
   const design = { ...defaultDesignSettings, ...(designSettings ?? {}) };
   const isDark = useIsDark();
   const bannerSrc = resolveAuthBanner(design, registering ? "register" : "login", isDark);
-  const parsedAnnouncements = parseAnnouncementItems(design);
-  const announcementList = parsedAnnouncements.some((item) => item.includes("مهنتك") || item.includes("نشاطك"))
-    ? parsedAnnouncements
-    : [...parsedAnnouncements, "📣 لكل أعضاء الدليل: التطبيق لسه في بدايته — أضف مهنتك أو محلك أو عيادتك الآن مجاناً وكن أول من يظهر لأهل القرية"];
   // Registration fields are always stacked vertically (one field per row) for a clean, mobile-friendly form.
   const rowLayoutClass = "form-row form-row-stacked";
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [showPassword, setShowPassword] = useState(false);
@@ -41,26 +36,6 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
   return <div className="admin-login-page">
     <DesignApplicator design={design}/>
     <header className="admin-public-header container"><Logo name={settings.siteName} logoUrl={design.headerLogoUrl}/><div className="auth-header-links"><Link href="/#about-app" className="header-info-btn" aria-label="عن التطبيق" title="شرح التطبيق"><Info size={18}/></Link><Link href="/">العودة للدليل <ArrowLeft size={17}/></Link></div></header>
-    {design.announcementEnabled && announcementList.length > 0 && (
-      <div className="container" style={{ marginTop: "0.75rem" }}>
-        <div
-          className={`site-announcement-ticker-card is-${design.announcementStyle} is-mode-marquee`}
-          style={{ "--ticker-bg": design.announcementBgColor } as CSSProperties}
-        >
-          <span className="ticker-badge-icon"><Sparkles size={15}/></span>
-          <div className={`site-announcement-marquee is-speed-${design.announcementSpeed || "normal"}`} aria-label="شريط الأخبار والتنبيهات">
-            <div className="site-announcement-marquee-track">
-              {[...announcementList, ...announcementList].map((item, idx) => (
-                <TickerText key={`${idx}-${item}`} text={item} className="site-announcement-marquee-item">
-                  <i aria-hidden="true">•</i>
-                </TickerText>
-              ))}
-            </div>
-          </div>
-          <Link href={registering ? "#membership-form" : "/register?next=%2F%23add-service"} className="ticker-add-cta"><CirclePlus size={14}/><span>أضف مهنتك</span></Link>
-        </div>
-      </div>
-    )}
     <main className={`login-layout ${registering ? "registration-layout" : ""} ${!design.authShowBanner ? "no-auth-banner" : ""}`}>
       {design.authShowBanner && (
         <div className="login-art has-banner-image">

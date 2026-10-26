@@ -11605,3 +11605,9 @@ html.dark .image-upload-hint { color: #b6cbe3; }
 .design-optional-color-btn { padding: 5px 10px !important; font-size: 12px !important; min-height: 0 !important; align-self: flex-start; }
 .ticker-syntax-help { display: block; margin-top: 6px; line-height: 1.7; }
 .ticker-syntax-help code { background: rgba(127, 127, 127, .14); border-radius: 6px; padding: 1px 6px; font-family: inherit; font-weight: 800; }
+/* أزرار تلوين الأخبار السريعة فوق خانة الأخبار في الاستوديو */
+.ticker-quick-tools { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.ticker-quick-btn { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--design-border-color, #93c5fd); background: var(--design-card-bg, #fff); color: inherit; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; line-height: 1.4; }
+.ticker-quick-btn i { width: 11px; height: 11px; border-radius: 50%; background: var(--chip, #999); border: 1px solid rgba(0, 0, 0, .25); }
+.ticker-quick-btn.is-hl { background: #ffe066; color: #3b2f00; border-color: #e6c54a; }
+.ticker-quick-btn:hover { filter: brightness(1.06); }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import {
   AlignCenter,
   AlignLeft,
@@ -218,6 +218,29 @@ export default function DesignCustomizer({
 
   function updateField<K extends keyof DesignSettings>(key: K, value: DesignSettings[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+  const tickerTextareaRef = useRef<HTMLTextAreaElement>(null);
+  /** يلفّ النص المحدد في خانة الأخبار بعلامات (مثل **…**) أو يُدرج كلمة نموذجية إن لم يكن هناك تحديد. */
+  function wrapTickerSelection(before: string, after: string, placeholder: string) {
+    const el = tickerTextareaRef.current;
+    const value = draft.announcementItems || "";
+    const start = el?.selectionStart ?? value.length, end = el?.selectionEnd ?? value.length;
+    const selected = value.slice(start, end) || placeholder;
+    const next = value.slice(0, start) + before + selected + after + value.slice(end);
+    updateField("announcementItems", next);
+    requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(start + before.length, start + before.length + selected.length); });
+  }
+  /** يضع رمز اللون في بداية السطر الذي يقف عليه المؤشر (ويستبدل أي رمز لون سابق). */
+  function prefixTickerLine(prefix: string) {
+    const el = tickerTextareaRef.current;
+    const value = draft.announcementItems || "";
+    const caret = el?.selectionStart ?? value.length;
+    const lineStart = value.lastIndexOf("\n", caret - 1) + 1;
+    const lineEnd = value.indexOf("\n", caret) === -1 ? value.length : value.indexOf("\n", caret);
+    const line = value.slice(lineStart, lineEnd).replace(/^\s*\[[^\]]{1,24}\]\s*/, "");
+    const next = value.slice(0, lineStart) + prefix + line + value.slice(lineEnd);
+    updateField("announcementItems", next);
+    requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(lineStart + prefix.length, lineStart + prefix.length); });
   }
 
   // Edge tools: the saved string keeps only visible tools in order; hidden ones keep their last
@@ -1245,7 +1268,16 @@ export default function DesignCustomizer({
                     ) : (
                       <div className="field">
                         <span>قائمة الأخبار والتنبيهات المتعددة (اكتب كل خبر في سطر مستقل)</span>
+                        <div className="ticker-quick-tools" role="group" aria-label="أدوات تلوين الأخبار">
+                          <button type="button" className="ticker-quick-btn is-hl" onClick={() => wrapTickerSelection("**", "**", "كلمة")} title="إبراز الكلمة المحددة بلون الإبراز">★ إبراز</button>
+                          {Object.entries(TICKER_COLOR_NAMES).map(([name, hex]) => (
+                            <button type="button" key={name} className="ticker-quick-btn" style={{ "--chip": hex } as React.CSSProperties} onClick={() => prefixTickerLine(`[${name}] `)} title={`تلوين الخبر الحالي بـ${name}`}>
+                              <i aria-hidden="true"/>{name}
+                            </button>
+                          ))}
+                        </div>
                         <textarea
+                          ref={tickerTextareaRef}
                           rows={4}
                           value={draft.announcementItems}
                           onChange={(e) => updateField("announcementItems", e.target.value)}
