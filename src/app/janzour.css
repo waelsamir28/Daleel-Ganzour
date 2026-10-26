@@ -11597,3 +11597,9 @@ html.dark .image-upload-hint { color: #b6cbe3; }
   .hero-banner-overlay { border-radius: 12px; }
 }
 .design-group-content .field input[type="range"] { width: 100%; accent-color: var(--primary, #0878c9); margin-top: 6px; }
+
+/* خانة اللون الاختيارية في الاستوديو (تلقائي / تخصيص) */
+.design-optional-color-auto { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 10px; border: 1px dashed var(--design-border-color, #93c5fd); border-radius: 10px; }
+.design-optional-color-auto small { font-size: 11.5px; opacity: .8; }
+.design-optional-color-wrap { display: flex; flex-direction: column; gap: 6px; }
+.design-optional-color-btn { padding: 5px 10px !important; font-size: 12px !important; min-height: 0 !important; align-self: flex-start; }

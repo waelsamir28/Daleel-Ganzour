@@ -29,10 +29,22 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-announcement-bg-light-mid", shadeHex(tickerDay, 0.18));
   root.style.setProperty("--design-announcement-bg-light-deep", shadeHex(tickerDay, -0.22));
   root.style.setProperty("--design-announcement-border-light", shadeHex(tickerDay, 0.55));
-  const tickerFg = readableTextOn(design.announcementBgColorLight);
+  const autoFg = readableTextOn(design.announcementBgColorLight);
+  const tickerFg = design.announcementTextColorLight || autoFg;
   root.style.setProperty("--design-announcement-fg-light", tickerFg);
-  root.style.setProperty("--design-announcement-fg-light-soft", tickerFg === "#ffffff" ? "rgba(255,255,255,.22)" : "rgba(15,35,64,.12)");
-  root.style.setProperty("--design-announcement-accent-light", tickerFg === "#ffffff" ? "#ffe066" : "#b45309");
+  root.style.setProperty("--design-announcement-fg-light-soft", autoFg === "#ffffff" ? "rgba(255,255,255,.22)" : "rgba(15,35,64,.12)");
+  // مع لون نص مخصص تأخذ النقاط الفاصلة وأيقونة الشريط نفس اللون حتى يبدو الشريط متناسقًا.
+  root.style.setProperty("--design-announcement-accent-light", design.announcementTextColorLight || (autoFg === "#ffffff" ? "#ffe066" : "#b45309"));
+  if (design.announcementTextColorLight) root.setAttribute("data-design-ticker-fg-light", "custom");
+  else root.removeAttribute("data-design-ticker-fg-light");
+  // لون نص الشريط في الوضع الليلي: فارغ = نترك الثيم على حاله.
+  if (design.announcementTextColor) {
+    root.style.setProperty("--design-announcement-fg-dark", design.announcementTextColor);
+    root.setAttribute("data-design-ticker-fg-dark", "custom");
+  } else {
+    root.style.removeProperty("--design-announcement-fg-dark");
+    root.removeAttribute("data-design-ticker-fg-dark");
+  }
   root.style.setProperty("--design-whatsapp-color", design.whatsappButtonColor);
   root.style.setProperty("--design-detail-name-bg", design.detailNameBoxColor || "#134595");
   root.style.setProperty("--design-dark-bg", design.darkPageBgColor || "#112b5a");
