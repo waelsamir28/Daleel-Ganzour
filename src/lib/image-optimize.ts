@@ -13,7 +13,7 @@ export function designImageLimits(key: string): Limits {
   switch (key) {
     case "header-logo": return { maxWidth: 400, maxHeight: 400, quality: 86 };
     case "splash": return { maxWidth: 700, maxHeight: 700, quality: 86 };
-    case "auth-banner": return { maxWidth: 1400, maxHeight: 900, quality: 82 };
+    case "auth-banner": case "auth-banner-dark": case "register-banner": case "register-banner-dark": return { maxWidth: 1400, maxHeight: 900, quality: 82 };
     default: return { maxWidth: 1600, maxHeight: 900, quality: 82 };
   }
 }

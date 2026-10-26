@@ -1089,7 +1089,14 @@ export type DesignSettings = {
   splashStickers: boolean;
   // 7. Login & Register Customizer
   authShowBanner: boolean;
+  /** بانر شاشة الدخول (فارغ = البانر الافتراضي المصمم للتطبيق). */
   authBannerImage: string;
+  /** نسخة الوضع الداكن من بانر الدخول (فارغ = يُشتق تلقائيًا: المخصص الفاتح أو الافتراضي الليلي). */
+  authBannerImageDark: string;
+  /** بانر شاشة العضوية (فارغ = بانر الدخول المخصص إن وُجد، وإلا الافتراضي الخاص بالعضوية). */
+  registerBannerImage: string;
+  /** نسخة الوضع الداكن من بانر العضوية. */
+  registerBannerImageDark: string;
   /** صورة البانر الترحيبي أعلى الرئيسية (فارغ = صورة سماء جنزور الافتراضية). */
   heroBannerImage: string;
   /** درجة تعتيم طبقة فوق صورة البانر الترحيبي (0 = بلا تعتيم … 80%). */
@@ -1444,6 +1451,9 @@ export const defaultDesignSettings: DesignSettings = {
   splashStickers: true,
   authShowBanner: true,
   authBannerImage: "",
+  authBannerImageDark: "",
+  registerBannerImage: "",
+  registerBannerImageDark: "",
   heroBannerImage: "",
   heroBannerOverlay: 0,
   heroBannerText: false,
@@ -2036,6 +2046,9 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.authShowBanner = pickBool(record.authShowBanner, defaultDesignSettings.authShowBanner);
   next.authBannerImage = pickText(record.authBannerImage, defaultDesignSettings.authBannerImage, 300, true);
+  next.authBannerImageDark = pickText(record.authBannerImageDark, defaultDesignSettings.authBannerImageDark, 300, true);
+  next.registerBannerImage = pickText(record.registerBannerImage, defaultDesignSettings.registerBannerImage, 300, true);
+  next.registerBannerImageDark = pickText(record.registerBannerImageDark, defaultDesignSettings.registerBannerImageDark, 300, true);
   next.heroBannerImage = pickText(record.heroBannerImage, defaultDesignSettings.heroBannerImage, 300, true);
   const rawOverlay = typeof record.heroBannerOverlay === "number" ? record.heroBannerOverlay : Number(record.heroBannerOverlay);
   next.heroBannerOverlay = Number.isFinite(rawOverlay) && rawOverlay >= 0 && rawOverlay <= 80 ? Math.round(rawOverlay / 10) * 10 : defaultDesignSettings.heroBannerOverlay;
@@ -2502,7 +2515,7 @@ export function parseCategoryIconDataUrl(value: unknown): { mime: string; base64
   return { mime: match[1], base64 };
 }
 /** صور المظهر القابلة للرفع من استوديو التصميم. */
-export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "hero-banner"] as const;
+export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner"] as const;
 export type DesignImageKey = (typeof DESIGN_IMAGE_KEYS)[number];
 export function isDesignImageKey(value: unknown): value is DesignImageKey { return typeof value === "string" && (DESIGN_IMAGE_KEYS as readonly string[]).includes(value); }
 export const DESIGN_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
@@ -2516,9 +2529,30 @@ export function pxToCm(px: number, digits = 1): string {
 export const DESIGN_IMAGE_GUIDE: Record<DesignImageKey, { label: string; width: number; height: number; hint: string }> = {
   "header-logo": { label: "لوجو الهيدر", width: 300, height: 300, hint: "مربع بخلفية شفافة (PNG) يظهر صغيرًا بجانب اسم الدليل" },
   "splash": { label: "صورة شاشة البداية", width: 600, height: 600, hint: "مربع بخلفية شفافة؛ تتجمع حوله الملصقات 3D" },
-  "auth-banner": { label: "بانر الدخول والعضوية", width: 1200, height: 500, hint: "عريض؛ يظهر أعلى شاشتي تسجيل الدخول والعضوية" },
+  "auth-banner": { label: "بانر تسجيل الدخول (الوضع الفاتح)", width: 1200, height: 500, hint: "عريض؛ يظهر في لوحة الصورة بشاشة تسجيل الدخول" },
+  "auth-banner-dark": { label: "بانر تسجيل الدخول (الوضع الداكن)", width: 1200, height: 500, hint: "نفس المقاس؛ يظهر بدل الفاتح عند تفعيل الوضع الليلي" },
+  "register-banner": { label: "بانر العضوية (الوضع الفاتح)", width: 1200, height: 500, hint: "عريض؛ يظهر في شاشة إنشاء العضوية" },
+  "register-banner-dark": { label: "بانر العضوية (الوضع الداكن)", width: 1200, height: 500, hint: "نفس المقاس؛ يظهر بدل الفاتح عند تفعيل الوضع الليلي" },
   "hero-banner": { label: "البانر الترحيبي الرئيسي", width: 2048, height: 768, hint: "عريض 8:3 مثل صورة سماء جنزور الافتراضية؛ يظهر أعلى الصفحة الرئيسية فوق مربع البحث" },
 };
+/** البانرات الافتراضية المصممة للتطبيق (WebP خفيفة ≈ 100 ك.ب). */
+export const AUTH_BANNER_DEFAULTS = {
+  login: { light: "/images/auth-banner-default.webp", dark: "/images/auth-banner-default-dark.webp" },
+  register: { light: "/images/register-banner-default.webp", dark: "/images/register-banner-default-dark.webp" },
+} as const;
+/**
+ * اختيار بانر شاشة الدخول/العضوية: المخصص المطابق للصفحة والوضع أولًا، ثم المخصص الأقرب، ثم الافتراضي.
+ * العضوية ترث بانر الدخول المخصص حتى لا يتغير سلوك من رفع بانرًا واحدًا قبل إضافة الخانات الجديدة.
+ */
+export function resolveAuthBanner(design: Pick<DesignSettings, "authBannerImage" | "authBannerImageDark" | "registerBannerImage" | "registerBannerImageDark">, page: "login" | "register", dark: boolean) {
+  const defaults = AUTH_BANNER_DEFAULTS[page];
+  if (page === "register") {
+    if (dark) return design.registerBannerImageDark || design.registerBannerImage || design.authBannerImageDark || design.authBannerImage || defaults.dark;
+    return design.registerBannerImage || design.authBannerImage || defaults.light;
+  }
+  if (dark) return design.authBannerImageDark || design.authBannerImage || defaults.dark;
+  return design.authBannerImage || defaults.light;
+}
 export function designImageSizeText(key: DesignImageKey) {
   const guide = DESIGN_IMAGE_GUIDE[key];
   return `${pxToCm(guide.width)} × ${pxToCm(guide.height)} سم (≈ ${guide.width} × ${guide.height} بكسل)`;

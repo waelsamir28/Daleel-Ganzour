@@ -1,13 +1,21 @@
 "use client";
 
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type CSSProperties, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, CirclePlus, Eye, EyeOff, Info, LoaderCircle, LockKeyhole, LogOut, Phone, ShieldCheck, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { Logo } from "@/components/ui";
 import DesignApplicator from "@/components/design-applicator";
-import { defaultDesignSettings, parseAnnouncementItems, type DesignSettings, type SiteSettings } from "@/lib/catalog";
+import { defaultDesignSettings, parseAnnouncementItems, resolveAuthBanner, type DesignSettings, type SiteSettings } from "@/lib/catalog";
 
-const AUTH_BANNER_DEFAULT = "/images/auth-banner-default.webp";
+/** يتابع كلاس html.dark (الذي يضبطه مبدّل الوضع الليلي) حتى يتبدّل البانر بين نسختيه الفاتحة والداكنة فورًا. */
+function subscribeDark(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  return () => observer.disconnect();
+}
+function useIsDark() {
+  return useSyncExternalStore(subscribeDark, () => document.documentElement.classList.contains("dark"), () => false);
+}
 
 export function LogoutButton({ className = "button button-soft" }: { className?: string }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
@@ -18,6 +26,8 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
   const registering = mode === "register";
   const switchHref = `${registering ? "/login" : "/register"}?next=${encodeURIComponent(next)}`;
   const design = { ...defaultDesignSettings, ...(designSettings ?? {}) };
+  const isDark = useIsDark();
+  const bannerSrc = resolveAuthBanner(design, registering ? "register" : "login", isDark);
   const parsedAnnouncements = parseAnnouncementItems(design);
   const announcementList = parsedAnnouncements.some((item) => item.includes("مهنتك") || item.includes("نشاطك"))
     ? parsedAnnouncements
@@ -65,7 +75,7 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
         <div className="login-art has-banner-image">
           {/* بانر الدخول والعضوية: صورة الأدمن المرفوعة، وإلا البانر الافتراضي المصمم للتطبيق */}
           {/* eslint-disable-next-line @next/next/no-img-element -- Custom admin-configured auth banner image */}
-          <img src={design.authBannerImage || AUTH_BANNER_DEFAULT} alt="" className="login-custom-banner-img" width={1200} height={500} fetchPriority="high"/>
+          <img src={bannerSrc} alt="" className="login-custom-banner-img" width={1200} height={500} fetchPriority="high"/>
           <div className="login-art-caption"><CheckCircle2 size={17}/> العضوية شيء.. وإضافة المهنة شيء تاني</div>
         </div>
       )}
