@@ -5,8 +5,9 @@ import ts from "typescript";
 
 const source = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
 const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
-const catalog = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
-const { categoryArt, categoryArtOptions, isPharmacyCategory, NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, TEACHER_STAGES, getTeacherStagesForService, matchesTeacherStage, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, getClinicBookingMode, getClinicBookingLabel, getClinicScheduleSummary, matchesClinicFilter, parseShopItemString, getShopCatalogItems, buildShopWhatsappOrderMessage } = catalog;
+const catalogModuleUrl = `data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`;
+const catalog = await import(catalogModuleUrl);
+const { categoryArt, categoryArtOptions, isPharmacyCategory, NEW_SERVICE_DAYS, isNewService, normalizeSearch, isOutsideLaborScope, whatsappUrl, getCategory, initialCategories, categories, iconNames, iconArabicLabels, areas, sampleServices, defaultSettings, settingsTextKeys, sanitizeSettings, defaultDesignSettings, sanitizeDesignSettings, designThemePresets, matchesServiceQuery, suggestSpecialties, getServiceTrustBadges, getDutyShiftInfo, getOnDutyServices, publicUtilityNumbers, sanitizeUtilityNumbers, getCompletionFieldSuggestions, isServiceOwner, isOpenByWorkingHours, isServiceOpenOrAvailableNow, getGanzourPrayerAndWeather, HOME_DELIVERY_TAG, supportsHomeDelivery, parseAnnouncementItems, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, getClinicBookingMode, getClinicBookingLabel, getClinicScheduleSummary, matchesClinicFilter, parseShopItemString, getShopCatalogItems, buildShopWhatsappOrderMessage } = catalog;
 
 const DAY = 24 * 60 * 60 * 1000;
 const now = Date.parse("2026-06-01T12:00:00Z");
@@ -500,20 +501,7 @@ test("community helpers compute prayer times and open-now status accurately", ()
   );
 });
 
-test("teacher stage filter, home delivery detector, and group 4 design settings work accurately", () => {
-  assert.equal(TEACHER_STAGES.length, 5);
-  const teacherService = {
-    name: "أ. محمد حسن — مدرس رياضيات",
-    description: "تدريس الرياضيات للمرحلة الإعدادية والمرحلة الثانوية",
-    subSpecialties: ["المرحلة الإعدادية", "المرحلة الثانوية"],
-    serviceItems: [],
-  };
-  assert.equal(matchesTeacherStage(teacherService, "all"), true);
-  assert.equal(matchesTeacherStage(teacherService, "prep"), true);
-  assert.equal(matchesTeacherStage(teacherService, "secondary"), true);
-  assert.equal(matchesTeacherStage(teacherService, "foundation"), false);
-  assert.equal(getTeacherStagesForService(teacherService).length, 2);
-
+test("home delivery detector and group 4 design settings work accurately", () => {
   const deliveryService = {
     name: "صيدلية الشفاء بجنزور",
     description: "خدمة على مدار الساعة",
@@ -738,7 +726,7 @@ test("extended design & site studio settings sanitize cleanly", () => {
 
 
 test("guest gate: visitors browse without contact numbers; members and the admin toggle unlock them", async () => {
-  const gateSource = readFileSync(new URL("../src/lib/membership-gate.ts", import.meta.url), "utf8");
+  const gateSource = readFileSync(new URL("../src/lib/membership-gate.ts", import.meta.url), "utf8").replace(/"@\/lib\/catalog"/g, JSON.stringify(catalogModuleUrl));
   const gate = await import(`data:text/javascript;base64,${Buffer.from(ts.transpileModule(gateSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText).toString("base64")}`);
   const design = { ...defaultDesignSettings };
   assert.equal(design.membershipRequired, true);
@@ -755,6 +743,26 @@ test("guest gate: visitors browse without contact numbers; members and the admin
   assert.equal(gate.safeNextPath("/categories/clinics"), "/categories/clinics");
   assert.equal(gate.postAuthDestination("admin", "/categories/clinics"), "/admin");
   assert.equal(gate.postAuthDestination("member", "/categories/clinics"), "/categories/clinics");
+
+  // الإشعارات شخصية: كل عضو يرى إشعارات خدماته هو فقط (مطابقة الهاتف/الاسم)، والزائر لا يرى شيئًا.
+  const notifData = {
+    designSettings: design,
+    services: [
+      { id: "s1", name: "أحمد النجار", phone: "01000000000", phoneSecondary: "", menuWhatsapp: "", area: "جنزور" },
+      { id: "s2", name: "محمد الكهربائي", phone: "01111111111", phoneSecondary: "", menuWhatsapp: "", area: "جنزور" },
+    ],
+    providerNotifications: [
+      { id: "n1", entityId: "s1", title: "تم اعتماد بياناتك", type: "provider" },
+      { id: "n2", entityId: "s2", title: "راجع بياناتك", type: "provider" },
+      { id: "n3", entityId: null, title: "عام", type: "provider" },
+    ],
+  };
+  assert.deepEqual(gate.directoryForViewer(notifData, { role: "guest" }).providerNotifications, []);
+  const ahmed = gate.directoryForViewer(notifData, { role: "member", name: "أحمد النجار", phone: "+2001000000000" });
+  assert.deepEqual(ahmed.providerNotifications.map((n) => n.id), ["n1"], "عضو يرى إشعارات خدمته فقط");
+  const stranger = gate.directoryForViewer(notifData, { role: "member", name: "سعيد", phone: "01299999999" });
+  assert.deepEqual(stranger.providerNotifications, [], "عضو بلا خدمات لا يرى إشعارات الآخرين");
+  assert.equal(notifData.providerNotifications.length, 3, "source data must stay untouched");
 });
 
 test("ad banners: live filter, image URL versioning and data-URL parsing limits", () => {
@@ -1021,7 +1029,6 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
   assert.equal(defaultDesignSettings.specialtyIconStyle, "3d");
   assert.equal(sanitizeDesignSettings({ specialtyIconStyle: "flat" }).specialtyIconStyle, "flat");
   assert.equal(sanitizeDesignSettings({ specialtyIconStyle: "weird" }).specialtyIconStyle, "3d");
-  assert.equal(defaultDesignSettings.teacherStagesSection, false, "قسم المدرسين يفتح فارغًا افتراضيًا");
   assert.equal(defaultDesignSettings.splashAudience, "installed");
   assert.equal(defaultDesignSettings.splashStickers, true);
   assert.equal(sanitizeDesignSettings({ splashAudience: "everyone" }).splashAudience, "installed");

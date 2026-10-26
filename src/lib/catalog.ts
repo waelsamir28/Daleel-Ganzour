@@ -575,45 +575,6 @@ const specialtyServiceItemSuggestions: Record<string, string[]> = {
   cleaning: ["تنظيف شامل للمنازل والشقق", "غسيل السجاد والانتريهات بالبخار", "مكافحة ورش الحشرات بمواد آمنة"],
 };
 
-export type TeacherStageId = "all" | "foundation" | "primary" | "prep" | "secondary" | "azhar";
-export type TeacherStageOption = {
-  id: Exclude<TeacherStageId, "all">;
-  label: string;
-  shortLabel: string;
-  keywords: string[];
-};
-
-export const TEACHER_STAGES: TeacherStageOption[] = [
-  { id: "foundation", label: "تأسيس ورياض أطفال", shortLabel: "تأسيس", keywords: ["تاسيس", "رياض اطفال", "كي جي", "حضانه", "قراءه وكتابه", "فونكس"] },
-  { id: "primary", label: "المرحلة الابتدائية", shortLabel: "ابتدائي", keywords: ["ابتدائي", "الابتدائيه", "ابتدائيه", "رابعه ابتدائي", "خامسه ابتدائي", "سته ابتدائي"] },
-  { id: "prep", label: "المرحلة الإعدادية", shortLabel: "إعدادي", keywords: ["اعدادي", "الاعداديه", "اعداديه", "تالته اعدادي", "الشهاده الاعداديه"] },
-  { id: "secondary", label: "المرحلة الثانوية", shortLabel: "ثانوي", keywords: ["ثانوي", "الثانويه", "ثانويه عامه", "اولي ثانوي", "تانيه ثانوي", "تالته ثانوي"] },
-  { id: "azhar", label: "التعليم الأزهري", shortLabel: "أزهري", keywords: ["ازهر", "ازهري", "الازهريه", "معهد ازهري", "قران", "تجويد", "شرعي"] },
-];
-
-export function getTeacherStagesForService(
-  service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties">,
-): TeacherStageOption[] {
-  const haystack = normalizeSearch(
-    `${service.name} ${service.description} ${(service.subSpecialties ?? []).join(" ")} ${(service.serviceItems ?? []).join(" ")}`,
-  );
-  const allStages = /كل المراحل|جميع المراحل|لكل المراحل/.test(haystack);
-  return TEACHER_STAGES.filter((stage) => {
-    if (stage.keywords.some((kw) => haystack.includes(normalizeSearch(kw)))) return true;
-    if (allStages && (stage.id === "primary" || stage.id === "prep" || stage.id === "secondary")) return true;
-    return false;
-  });
-}
-
-export function matchesTeacherStage(
-  service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties">,
-  stageId: TeacherStageId,
-): boolean {
-  if (!stageId || stageId === "all") return true;
-  const matched = getTeacherStagesForService(service);
-  return matched.some((item) => item.id === stageId);
-}
-
 export const HOME_DELIVERY_TAG = "خدمة التوصيل للمنازل بجنزور";
 const homeDeliveryRegex = /توصيل|دليفري|للمنازل|من المنازل|من المنزل|بالمنزل|منزلي|منزليه|زياره منزليه|كشف منزلي|سحب عينات من المنزل|لباب البيت/;
 
@@ -904,7 +865,7 @@ export function getCompletionFieldSuggestions(
   const isClinic = category.parentId === "clinics" || category.id === "clinics";
   const isShop = category.parentId === "shops" || category.id === "shops";
   const subSpecialties = isTeacher
-    ? [...TEACHER_STAGES.map((stage) => stage.label), ...rawKeywords.slice(0, 4)]
+    ? rawKeywords.slice(0, 7)
     : isClinic
       ? [CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, "يومياً عدا الجمعة", "السبت والاثنين والأربعاء", "الأحد والثلاثاء والخميس", ...rawKeywords.slice(0, 4)]
       : rawKeywords.length > 0
@@ -1157,8 +1118,6 @@ export type DesignSettings = {
   specialtyStickerIcons: boolean;
   /** شكل أيقونات التخصصات فقط (الأقسام الرئيسية لا تتأثر): مجسمة 3D (ملصقات/رسم) أو فلات كلاسيكية. */
   specialtyIconStyle: "3d" | "flat";
-  /** إظهار كتلة «المراحل الدراسية» داخل قسم المدرسين (افتراضيًا مخفية؛ القسم يبدأ فارغًا ويملؤه المدير). */
-  teacherStagesSection: boolean;
   powerSaveMode: "auto" | "on" | "off";
   showProviderWhatsappBtn: boolean;
   whatsappButtonColor: string;
@@ -1499,7 +1458,6 @@ export const defaultDesignSettings: DesignSettings = {
   specialtyArt3d: true,
   specialtyStickerIcons: true,
   specialtyIconStyle: "3d",
-  teacherStagesSection: false,
   powerSaveMode: "auto",
   showProviderWhatsappBtn: true,
   whatsappButtonColor: "#1fa855",
@@ -2085,7 +2043,6 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.specialtyArt3d = pickBool(record.specialtyArt3d, defaultDesignSettings.specialtyArt3d);
   next.specialtyStickerIcons = pickBool(record.specialtyStickerIcons, defaultDesignSettings.specialtyStickerIcons);
   next.specialtyIconStyle = pickEnum(record.specialtyIconStyle, ["3d", "flat"] as const, defaultDesignSettings.specialtyIconStyle);
-  next.teacherStagesSection = pickBool(record.teacherStagesSection, defaultDesignSettings.teacherStagesSection);
   next.topProfessionsPinned = parsePinnedProfessions(record.topProfessionsPinned).join(",");
   next.showWeeklyStars = pickBool(record.showWeeklyStars, defaultDesignSettings.showWeeklyStars);
   next.powerSaveMode = pickEnum(record.powerSaveMode, ["auto", "on", "off"] as const, defaultDesignSettings.powerSaveMode);

@@ -1177,7 +1177,6 @@ export default function DesignCustomizer({
                   </label>
                 </div>
                 <div className="design-toggles-grid">
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.teacherStagesSection} onChange={(e) => updateField("teacherStagesSection", e.target.checked)}/>إظهار كتلة «المراحل الدراسية» داخل قسم المدرسين (مخفية افتراضيًا — القسم يبدأ فارغًا وتضيف تخصصاته من التصنيفات)</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyArt3d} onChange={(e) => updateField("specialtyArt3d", e.target.checked)}/>أيقونات مجسّمة بأسلوب «مرسوم باليد» لكل التخصصات في كل الأقسام (41 مهنة مرسومة يدويًا، والباقي يتولّد تلقائيًا بنفس الأسلوب بلون قسمه — وأي تخصص جديد يحصل على أيقونته فورًا)</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.specialtyStickerIcons} onChange={(e) => updateField("specialtyStickerIcons", e.target.checked)}/>أيقونات «الملصقات 3D» (ستايل صورة المرجع: مربع باستيل + رسمة كرتونية لامعة) — متوفرة لكل الأقسام الـ14 والتخصصات الـ73، وتظهر بدل الرسم اليدوي؛ وأي أيقونة ترفعها من شاشة تعديل التصنيف</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showWeeklyStars} onChange={(e) => updateField("showWeeklyStars", e.target.checked)}/>شارة «نجم الأسبوع ⭐» تلقائيًا لأفضل 3 مقدمي خدمة حسب تقييمات الأعضاء خلال آخر 7 أيام (متوسط 4 نجوم فأكثر)</label>
@@ -1437,7 +1436,7 @@ export default function DesignCustomizer({
                           <div className="suggestion-chips-list">
                             {[
                               "🌙 صيدليات المناوبة الليلية وأرقام الطوارئ متاحة الآن بقسم المناوبات",
-                              "🎓 تصفح قسم المدرسين مع فلتر المراحل الدراسية (تأسيس • ابتدائي • إعدادي • ثانوي • أزهري)",
+                              "🎓 تصفح قسم المدرسين واعثر على مدرس المادة اللي محتاجها بسهولة",
                               "🛵 استخدم فلتر «يوجد توصيل للمنازل» للوصول السريع للصيدليات والمحلات والمعامل",
                               "📢 أضف مهنتك أو نشاطك التجاري في دليل جنزور مجاناً وتواصل مع الأهالي مباشرة",
                             ].map((sample) => (
@@ -1567,7 +1566,7 @@ export default function DesignCustomizer({
                 <InnerDivider title="إظهار وإخفاء عناصر الهيدر والفوتر" />
                 <div className="design-toggles-grid">
                   <label className="checkbox-field"><input type="checkbox" checked={draft.headerSticky} onChange={(e) => updateField("headerSticky", e.target.checked)}/>تثبيت الهيدر أعلى الشاشة عند التمرير</label>
-                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderBell} onChange={(e) => updateField("showHeaderBell", e.target.checked)}/>إظهار جرس الإشعارات في الهيدر</label>
+                  <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderBell} onChange={(e) => updateField("showHeaderBell", e.target.checked)}/>إظهار «إشعاراتي» في قائمة الهيدر للأعضاء (إشعارات شخصية لكل عضو؛ لا تظهر للزوار)</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderFavorites} onChange={(e) => updateField("showHeaderFavorites", e.target.checked)}/>إظهار زر المفضلة في الهيدر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderDarkToggle} onChange={(e) => updateField("showHeaderDarkToggle", e.target.checked)}/>إظهار زر الوضع الليلي في الهيدر</label>
                   <label className="checkbox-field"><input type="checkbox" checked={draft.showHeaderLoginBtn} onChange={(e) => updateField("showHeaderLoginBtn", e.target.checked)}/>إظهار زر دخول الأعضاء في الهيدر</label>

@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { AlertCircle, Check, CirclePlus, ImageUp, LoaderCircle, Save, Sparkles, Trash2 } from "lucide-react";
-import { categoryArt, categoryArtOptions, categoryStickerSrc, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, TEACHER_STAGES, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
+import { categoryArt, categoryArtOptions, categoryStickerSrc, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import { CategoryIcon, MainCategoryIcon, SpecialtyIcon, StickerIcon } from "@/components/ui";
 
@@ -124,25 +124,7 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
         </label>
         <label className="checkbox-field"><input type="checkbox" name="demo" defaultChecked={record.demo}/> بطاقة توضيحية</label>
       </div>
-      {root === "teachers" && (
-        <div className="field teacher-stages-picker">
-          <span>🎓 المراحل الدراسية التي يدرّسها (اضغط لتحديد مرحلة أو أكثر):</span>
-          <div className="field-suggestions" aria-label="المراحل الدراسية">
-            {TEACHER_STAGES.map((stage) => (
-              <button
-                key={stage.id}
-                type="button"
-                className={`suggestion-chip ${hasLineItem(subSpecVal, stage.label) ? "is-selected" : ""}`}
-                onClick={() => setSubSpecVal((curr) => toggleLineItem(curr, stage.label))}
-              >
-                {hasLineItem(subSpecVal, stage.label) ? <Check size={12}/> : <CirclePlus size={12}/>}
-                {stage.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </>}
+          </>}
     {editing.kind === "service" && <>
       <label className="field">متاح الآن<SelectField name="availabilityAction" defaultValue="keep"><option value="keep">بدون تغيير</option><option value="activate">تفعيل أو تجديد لمدة ٤ ساعات</option><option value="stop">إيقاف الآن</option></SelectField><small className="input-help">تنتهي الحالة تلقائيًا. حفظ بيانات أخرى لا يجددها.</small>{record.availableUntil && <small>موعد الانتهاء: {new Date(record.availableUntil).toLocaleString("ar-EG", { timeZone: "Africa/Cairo" })} (بتوقيت جنزور)</small>}</label>
       <label className="field">سبب الرفض / البيانات المطلوب استكمالها<textarea name="reviewNote" maxLength={1000} placeholder="يظهر لصاحب رابط المتابعة الخاص فقط. اتركه فارغًا للحفاظ على السبب المسجل."/></label>
@@ -328,25 +310,7 @@ export function ProviderCompletionModalForm({
           {suggestions.descriptions.map((item) => <button key={item} type="button" className={`suggestion-chip ${descriptionVal === item ? "is-selected" : ""}`} onClick={() => setDescriptionVal(item)}><CirclePlus size={12}/>{item}</button>)}
         </div>
       </label>
-      {root === "teachers" && (
-        <div className="field teacher-stages-picker">
-          <span>🎓 المراحل الدراسية التي يدرّسها (اضغط لتحديد مرحلة أو أكثر):</span>
-          <div className="field-suggestions" aria-label="المراحل الدراسية">
-            {TEACHER_STAGES.map((stage) => (
-              <button
-                key={stage.id}
-                type="button"
-                className={`suggestion-chip ${hasLineItem(subSpecVal, stage.label) ? "is-selected" : ""}`}
-                onClick={() => setSubSpecVal((curr) => toggleLineItem(curr, stage.label))}
-              >
-                {hasLineItem(subSpecVal, stage.label) ? <Check size={12}/> : <CirclePlus size={12}/>}
-                {stage.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      <label className="field">التخصصات الفرعية للمهنة
+            <label className="field">التخصصات الفرعية للمهنة
         <textarea name="subSpecialties" value={subSpecVal} onChange={(event) => setSubSpecVal(event.target.value)} rows={3} maxLength={2020} placeholder="تخصص فرعي في كل سطر"/>
         <small>اضغط على الاقتراحات التالية لإضافتها أو إزالتها مباشرة:</small>
         <div className="field-suggestions" aria-label="اقتراحات التخصصات الفرعية">
