@@ -1092,6 +1092,15 @@ export type DesignSettings = {
   authBannerImage: string;
   /** صورة البانر الترحيبي أعلى الرئيسية (فارغ = صورة سماء جنزور الافتراضية). */
   heroBannerImage: string;
+  /** درجة تعتيم طبقة فوق صورة البانر الترحيبي (0 = بلا تعتيم … 80%). */
+  heroBannerOverlay: number;
+  /** إظهار اسم الدليل وسطر ترحيبي أبيض فوق صورة البانر. */
+  heroBannerText: boolean;
+  /** ارتفاع البانر: auto = النسبة الطبيعية للصورة؛ غير ذلك ارتفاع ثابت مع قصّ/احتواء. */
+  heroBannerHeight: "auto" | "small" | "medium" | "large";
+  heroBannerFit: "cover" | "contain";
+  /** استدارة زوايا عناصر ثيمات Windows 10 بالبكسل. */
+  win10Radius: "0" | "2" | "6" | "12";
   loginTitle: string;
   loginSubtitle: string;
   registerTitle: string;
@@ -1391,7 +1400,7 @@ export const defaultDesignSettings: DesignSettings = {
   pageBgColor: "#edf7ff",
   modalHeaderBg: "#d7edff",
   buttonColor: "#1079ff",
-  themeMode: "dark",
+  themeMode: "auto",
   headingAlign: "right",
   cardTextAlign: "center",
   noticeAlign: "center",
@@ -1436,6 +1445,11 @@ export const defaultDesignSettings: DesignSettings = {
   authShowBanner: true,
   authBannerImage: "",
   heroBannerImage: "",
+  heroBannerOverlay: 0,
+  heroBannerText: false,
+  heroBannerHeight: "auto",
+  heroBannerFit: "cover",
+  win10Radius: "2",
   loginTitle: "دخول الأعضاء وإدارة الموقع",
   loginSubtitle: "للأعضاء المسجلين أو إدارة الموقع",
   registerTitle: "أنشئ حساب عضو جديد",
@@ -2023,6 +2037,12 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.authShowBanner = pickBool(record.authShowBanner, defaultDesignSettings.authShowBanner);
   next.authBannerImage = pickText(record.authBannerImage, defaultDesignSettings.authBannerImage, 300, true);
   next.heroBannerImage = pickText(record.heroBannerImage, defaultDesignSettings.heroBannerImage, 300, true);
+  const rawOverlay = typeof record.heroBannerOverlay === "number" ? record.heroBannerOverlay : Number(record.heroBannerOverlay);
+  next.heroBannerOverlay = Number.isFinite(rawOverlay) && rawOverlay >= 0 && rawOverlay <= 80 ? Math.round(rawOverlay / 10) * 10 : defaultDesignSettings.heroBannerOverlay;
+  next.heroBannerText = pickBool(record.heroBannerText, defaultDesignSettings.heroBannerText);
+  next.heroBannerHeight = pickEnum(record.heroBannerHeight, ["auto", "small", "medium", "large"] as const, defaultDesignSettings.heroBannerHeight);
+  next.heroBannerFit = pickEnum(record.heroBannerFit, ["cover", "contain"] as const, defaultDesignSettings.heroBannerFit);
+  next.win10Radius = pickEnum(record.win10Radius, ["0", "2", "6", "12"] as const, defaultDesignSettings.win10Radius);
   next.loginTitle = pickText(record.loginTitle, defaultDesignSettings.loginTitle, 120);
   next.loginSubtitle = pickText(record.loginSubtitle, defaultDesignSettings.loginSubtitle, 180);
   next.registerTitle = pickText(record.registerTitle, defaultDesignSettings.registerTitle, 120);

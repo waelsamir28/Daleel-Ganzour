@@ -5,6 +5,10 @@
    حقول إدخال بخط سفلي يتلون عند التركيز، وخط Segoe UI عند توفره. خمس درجات لونية.
    ========================================================================= */
 html[data-design-preset^="win10-"] { --w10-a: #0078d7; --w10-a-dark: #005a9e; --w10-a-light: #4cc2ff; --w10-r: 2px; --w10-chrome: #e6e6e6; --w10-menu: rgba(31, 31, 31, .96); }
+/* استدارة الزوايا تُختار من الاستوديو (0 حادة تمامًا / 2 الافتراضي / 6 ناعمة / 12 مستديرة) */
+html[data-design-preset^="win10-"][data-design-win10-radius="0"] { --w10-r: 0px; }
+html[data-design-preset^="win10-"][data-design-win10-radius="6"] { --w10-r: 6px; }
+html[data-design-preset^="win10-"][data-design-win10-radius="12"] { --w10-r: 12px; }
 html[data-design-preset="win10-dark"] { --w10-a: #0063b1; --w10-a-dark: #004a86; --w10-a-light: #4cc2ff; }
 html[data-design-preset="win10-teal"] { --w10-a: #038387; --w10-a-dark: #026468; --w10-a-light: #00b7c3; }
 html[data-design-preset="win10-purple"] { --w10-a: #744da9; --w10-a-dark: #5c3b8a; --w10-a-light: #b4a0ff; }
@@ -84,7 +88,7 @@ html[data-design-preset^="win10-"].dark .category-tile:hover { background: #2b2b
 
 /* الهيدر = شريط عنوان نافذة ويندوز 10 بلون التمييز ونص أبيض */
 html[data-design-preset^="win10-"] .site-header {
-  border-radius: 0 !important;
+  border-radius: var(--w10-r) !important;
   border: 0 !important;
   border-bottom: 1px solid var(--w10-a-dark) !important;
   box-shadow: none !important;
@@ -105,7 +109,7 @@ html[data-design-preset^="win10-"] .site-header .sound-toggle,
 html[data-design-preset^="win10-"] .site-header .theme-toggle,
 html[data-design-preset^="win10-"] .site-header .header-auth-btn,
 html[data-design-preset^="win10-"] .site-header .header-admin-link {
-  border-radius: 0 !important;
+  border-radius: var(--w10-r) !important;
   border: 1px solid transparent !important;
   background: transparent !important;
   color: #fff !important;
@@ -122,7 +126,7 @@ html[data-design-preset^="win10-"] .theme-toggle-track { border-radius: 999px; }
 
 /* قائمة «ابدأ»: لوح داكن شبه معتم، عناصر مربعة، شريط تمييز يسار العنصر النشط */
 html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu {
-  border-radius: 0 !important;
+  border-radius: var(--w10-r) !important;
   border: 1px solid #3a3a3a !important;
   background: var(--w10-menu) !important;
   -webkit-backdrop-filter: blur(18px) !important;
@@ -136,7 +140,7 @@ html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu::
 html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu.nav-open > * { animation: none !important; }
 html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > a,
 html[data-design-preset^="win10-"] .site-header .main-nav.header-dropdown-menu > button {
-  border-radius: 0 !important;
+  border-radius: var(--w10-r) !important;
   background: transparent !important;
   color: #f3f3f3 !important;
   border: 0 !important;
@@ -242,20 +246,20 @@ html[data-design-preset^="win10-"] .stat-icon { border-radius: var(--w10-r) !imp
 html[data-design-preset^="win10-"] .site-footer {
   background: #101010 !important;
   border-top: 2px solid var(--w10-a) !important;
-  border-radius: 0 !important;
+  border-radius: var(--w10-r) !important;
 }
 
 /* النوافذ العائمة: نافذة ويندوز بشريط عنوان بلون التمييز */
 html[data-design-preset^="win10-"] .modal-panel { border: 1px solid var(--w10-a) !important; }
-html[data-design-preset^="win10-"] .modal-panel .modal-heading { background: var(--w10-a) !important; background-image: none !important; color: #fff !important; border-radius: 0 !important; margin: -1px -1px 0; padding: 10px 14px; }
+html[data-design-preset^="win10-"] .modal-panel .modal-heading { background: var(--w10-a) !important; background-image: none !important; color: #fff !important; border-radius: var(--w10-r) !important; margin: -1px -1px 0; padding: 10px 14px; }
 html[data-design-preset^="win10-"] .modal-panel .modal-heading h2,
 html[data-design-preset^="win10-"] .modal-panel .modal-heading p { color: #fff !important; }
-html[data-design-preset^="win10-"] .modal-panel .icon-button.modal-close { border-radius: 0 !important; background: transparent !important; border: 0 !important; color: #fff !important; width: 44px; height: 32px; }
+html[data-design-preset^="win10-"] .modal-panel .icon-button.modal-close { border-radius: var(--w10-r) !important; background: transparent !important; border: 0 !important; color: #fff !important; width: 44px; height: 32px; }
 html[data-design-preset^="win10-"] .modal-panel .icon-button.modal-close:hover { background: #e81123 !important; color: #fff !important; }
 
 /* لوحة الإدارة: شريط جانبي داكن كقائمة ابدأ وبطاقات مسطحة */
 html[data-design-preset^="win10-"] .admin-sidebar { background: #1f1f1f !important; border: 0 !important; }
-html[data-design-preset^="win10-"] .admin-sidebar nav button { border-radius: 0 !important; border-inline-start: 3px solid transparent !important; }
+html[data-design-preset^="win10-"] .admin-sidebar nav button { border-radius: var(--w10-r) !important; border-inline-start: 3px solid transparent !important; }
 html[data-design-preset^="win10-"] .admin-sidebar nav button.active { border-inline-start-color: var(--w10-a-light) !important; background: rgba(255, 255, 255, .1) !important; }
 html[data-design-preset^="win10-"] .admin-stat { border: 1px solid #d9d9d9 !important; }
 html[data-design-preset^="win10-"].dark .admin-stat { border-color: #2f2f2f !important; }

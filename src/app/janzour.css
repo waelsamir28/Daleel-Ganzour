@@ -11567,3 +11567,21 @@ html.dark .page-skeleton-pill::after, html.dark .page-skeleton-line::after, html
 html.dark .image-upload-field { background: rgba(56, 189, 248, .06); border-color: #2b4a6b; }
 html.dark .image-upload-preview { background: repeating-conic-gradient(#1b3350 0 25%, #11243a 0 50%) 0 0 / 16px 16px; border-color: #2b4a6b; color: #93c5fd; }
 html.dark .image-upload-hint { color: #b6cbe3; }
+
+/* البانر الترحيبي المرفوع: ارتفاع ثابت/قصّ، طبقة تعتيم، ونص أبيض اختياري فوق الصورة */
+.hero-banner-wrap.is-h-small img { height: 150px; }
+.hero-banner-wrap.is-h-medium img { height: 220px; }
+.hero-banner-wrap.is-h-large img { height: 320px; }
+.hero-banner-wrap.is-fit-cover:not(.is-h-auto) img { object-fit: cover; }
+.hero-banner-wrap.is-fit-contain:not(.is-h-auto) img { object-fit: contain; background: #0b2238; }
+.hero-banner-overlay { position: absolute; inset: 0; border-radius: 22px; background: rgba(5, 20, 40, var(--hero-overlay, 0)); pointer-events: none; }
+.hero-banner-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 14px 18px; color: #fff; text-align: center; line-height: 1.35; text-shadow: 0 2px 12px rgba(0, 0, 0, .6), 0 0 2px rgba(0, 0, 0, .5); pointer-events: none; }
+.hero-banner-text strong { font-size: clamp(1.3rem, 4vw, 2.3rem); font-weight: 900; letter-spacing: .01em; }
+.hero-banner-text span { font-size: clamp(.9rem, 2.4vw, 1.15rem); font-weight: 700; opacity: .95; max-width: 46ch; }
+@media (max-width: 700px) {
+  .hero-banner-wrap.is-h-small img { height: 110px; }
+  .hero-banner-wrap.is-h-medium img { height: 150px; }
+  .hero-banner-wrap.is-h-large img { height: 200px; }
+  .hero-banner-overlay { border-radius: 12px; }
+}
+.design-group-content .field input[type="range"] { width: 100%; accent-color: var(--primary, #0878c9); margin-top: 6px; }

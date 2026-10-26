@@ -45,6 +45,7 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-active", "true");
   root.setAttribute("data-design-shimmer", design.shimmerEffectEnabled !== false ? "true" : "false");
   root.setAttribute("data-design-preset", design.themePreset);
+  root.setAttribute("data-design-win10-radius", design.win10Radius || "2");
   root.setAttribute("data-design-heading-align", design.headingAlign);
   root.setAttribute("data-design-card-align", design.cardTextAlign);
   root.setAttribute("data-design-notice-align", design.noticeAlign);
@@ -107,23 +108,41 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   }
 
   try {
+    // يُحفظ وضع المدير محليًا كي يقرأه السكربت الحاجب في <head> قبل أول رسم (بلا وميض).
+    localStorage.setItem("janzour-theme-mode", design.themeMode || "auto");
     const userPref = localStorage.getItem("janzour-theme");
     if (userPref === "light") {
       root.classList.remove("dark");
     } else if (userPref === "dark") {
       root.classList.add("dark");
     } else {
-      if (design.themeMode === "light") root.classList.remove("dark");
-      else root.classList.add("dark");
+      root.classList.toggle("dark", resolveAutoDark(design.themeMode));
     }
   } catch {
     root.classList.add("dark");
   }
 }
+/** «تلقائي» = يتبع إعداد جهاز الزائر (prefers-color-scheme)؛ وإلا وضع المدير الصريح. */
+function resolveAutoDark(mode: DesignSettings["themeMode"]): boolean {
+  if (mode === "light") return false;
+  if (mode === "dark") return true;
+  return typeof window === "undefined" || !window.matchMedia ? true : window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
 
 export default function DesignApplicator({ design }: { design?: DesignSettings }) {
   useEffect(() => {
     applyDesignSettingsToDocument(design ?? defaultDesignSettings);
+  }, [design]);
+  // في الوضع «تلقائي»: لو غيّر الزائر وضع جهازه أثناء التصفح (ولم يختر يدويًا) يتبعه التطبيق فورًا.
+  useEffect(() => {
+    if ((design ?? defaultDesignSettings).themeMode !== "auto" || typeof window === "undefined" || !window.matchMedia) return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => {
+      try { if (localStorage.getItem("janzour-theme")) return; } catch { /* ignore */ }
+      document.documentElement.classList.toggle("dark", media.matches);
+    };
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
   }, [design]);
   return null;
 }

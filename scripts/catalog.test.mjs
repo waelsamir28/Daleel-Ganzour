@@ -644,7 +644,7 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.sponsorModalDelaySeconds, 10);
   assert.equal(custom.showDailyOffersSection, false);
   assert.equal(custom.showSponsorsRibbon, false);
-  assert.equal(defaultDesignSettings.themeMode, "dark");
+  assert.equal(defaultDesignSettings.themeMode, "auto", "الوضع الافتراضي للزوار يتبع إعداد الجهاز");
   assert.equal(defaultDesignSettings.sectionHeadingStyle, "clean");
 
   const extendedVisuals = sanitizeDesignSettings({
@@ -1054,4 +1054,23 @@ test("design images: upload keys, centimetre size guide and data-URL validation"
   assert.equal(d.heroBannerImage, "", "البانر الترحيبي الافتراضي هو صورة سماء جنزور");
   assert.equal(sanitize({ heroBannerImage: "/api/design-image/hero-banner?v=2" }).heroBannerImage, "/api/design-image/hero-banner?v=2");
   assert.equal(sanitize({ heroBannerImage: 123 }).heroBannerImage, "");
+});
+
+test("hero banner overlay/height controls and Windows 10 corner radius sanitize safely", () => {
+  const { defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
+  assert.equal(d.heroBannerOverlay, 0);
+  assert.equal(d.heroBannerText, false);
+  assert.equal(d.heroBannerHeight, "auto");
+  assert.equal(d.heroBannerFit, "cover");
+  assert.equal(d.win10Radius, "2");
+  const custom = sanitize({ heroBannerOverlay: 44, heroBannerText: true, heroBannerHeight: "large", heroBannerFit: "contain", win10Radius: "12" });
+  assert.equal(custom.heroBannerOverlay, 40, "التعتيم يُقرَّب لأقرب 10%");
+  assert.equal(custom.heroBannerText, true);
+  assert.equal(custom.heroBannerHeight, "large");
+  assert.equal(custom.heroBannerFit, "contain");
+  assert.equal(custom.win10Radius, "12");
+  const bad = sanitize({ heroBannerOverlay: 95, heroBannerHeight: "huge", win10Radius: "3" });
+  assert.equal(bad.heroBannerOverlay, 0);
+  assert.equal(bad.heroBannerHeight, "auto");
+  assert.equal(bad.win10Radius, "2");
 });
