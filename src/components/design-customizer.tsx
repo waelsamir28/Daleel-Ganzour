@@ -29,7 +29,7 @@ import {
   Upload,
   UsersRound,
 } from "lucide-react";
-import { HERO_BANNER_DEFAULTS, AUTH_BANNER_DEFAULTS,
+import { announcementTextLight, HERO_BANNER_DEFAULTS, AUTH_BANNER_DEFAULTS,
   defaultDesignSettings,
   designThemePresets,
   parseAnnouncementItems,
@@ -143,6 +143,27 @@ function ColorPickerField({
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+/** خانة لون اختيارية: «تلقائي» افتراضيًا، وزر لتخصيص اللون ثم زر للرجوع للتلقائي. */
+function OptionalColorField({ label, value, swatches, autoHint, onChange, startWith = "#ffffff" }: { label: string; value: string; swatches: string[]; autoHint: string; onChange: (color: string) => void; startWith?: string }) {
+  if (!value) {
+    return (
+      <div className="field design-color-control">
+        <span>{label}</span>
+        <div className="design-optional-color-auto">
+          <small>{autoHint}</small>
+          <button type="button" className="button button-soft design-optional-color-btn" onClick={() => onChange(startWith)}>تخصيص اللون</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="design-optional-color-wrap">
+      <ColorPickerField label={label} value={value} swatches={swatches} onChange={onChange}/>
+      <button type="button" className="button button-soft design-optional-color-btn" onClick={() => onChange("")}>رجوع للتلقائي</button>
     </div>
   );
 }
@@ -407,7 +428,7 @@ export default function DesignCustomizer({
             </small>
           </div>
           {draft.announcementEnabled && (
-            <div className="design-preview-announcement" style={{ background: draft.announcementBgColorLight, color: readableTextOn(draft.announcementBgColorLight) }} title="معاينة الوضع النهاري">
+            <div className="design-preview-announcement" style={{ background: draft.announcementBgColorLight, color: announcementTextLight(draft) }} title="معاينة الوضع النهاري">
               <Sparkles size={12}/>
               <span>
                 {draft.announcementTickerMode === "single"
@@ -1179,6 +1200,20 @@ export default function DesignCustomizer({
                         value={draft.announcementBgColor}
                         swatches={QUICK_SWATCHES.button}
                         onChange={(hex) => updateField("announcementBgColor", hex)}
+                      />
+                      <OptionalColorField
+                        label="لون كلام الشريط المتحرك (الوضع الليلي)"
+                        autoHint="تلقائي: أبيض حسب الثيم"
+                        value={draft.announcementTextColor}
+                        swatches={["#ffffff", "#ffe066", "#fde68a", "#bbf7d0", "#bae6fd", "#fbcfe8", "#c4b5fd", "#0f2340"]}
+                        onChange={(hex) => updateField("announcementTextColor", hex)}
+                      />
+                      <OptionalColorField
+                        label="لون كلام الشريط المتحرك (الوضع النهاري)"
+                        autoHint="تلقائي: أبيض على خلفية داكنة أو كحلي على خلفية فاتحة"
+                        value={draft.announcementTextColorLight}
+                        swatches={["#ffffff", "#ffe066", "#0f2340", "#0b4a93", "#065f46", "#7c2d12", "#5b21b6", "#9f1239"]}
+                        onChange={(hex) => updateField("announcementTextColorLight", hex)}
                       />
                       <ColorPickerField
                         label="لون خلفية الشريط في الوضع النهاري (ثابت لكل الثيمات — لون النص يتحدد تلقائيًا أبيض أو داكن حسب اللون)"

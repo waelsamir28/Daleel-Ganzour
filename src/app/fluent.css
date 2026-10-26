@@ -174,3 +174,26 @@ html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-rotate
 html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-single-text,
 html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-rotate-counter { color: #0b3f7a !important; }
 html:not(.dark) body .site-announcement-ticker-card.is-soft .announcement-nav-btn { background: #0a5fb8 !important; color: #fff !important; border-color: #0a5fb8 !important; }
+
+/* ===== لون نص الشريط المتحرك في الوضع الليلي (مخصص من الاستوديو) =====
+   يُفعَّل فقط عندما يختار المدير لونًا؛ وإلا يبقى لون الثيم كما هو. */
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card,
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card .site-announcement-marquee-item,
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card .announcement-rotate-text,
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card .announcement-single-text,
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card .announcement-rotate-counter,
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card .announcement-nav-btn,
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card .site-announcement-marquee-item i,
+html.dark[data-design-ticker-fg-dark="custom"] body .site-announcement-ticker-card .ticker-badge-icon {
+  color: var(--design-announcement-fg-dark, #ffffff) !important;
+}
+/* نفس الشيء للنمط «الهادئ» نهارًا عندما يختار المدير لون نص مخصص */
+html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft,
+html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft .site-announcement-marquee-item,
+html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft .announcement-rotate-text,
+html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft .announcement-single-text,
+html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft .announcement-rotate-counter,
+html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft .site-announcement-marquee-item i,
+html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft .ticker-badge-icon {
+  color: var(--design-announcement-fg-light, #0b3f7a) !important;
+}

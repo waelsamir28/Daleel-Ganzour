@@ -1121,6 +1121,10 @@ export type DesignSettings = {
   announcementText: string;
   announcementBgColor: string;
   announcementBgColorLight: string;
+  /** لون نص الشريط المتحرك في الوضع الليلي (فارغ = تلقائي أبيض). */
+  announcementTextColor: string;
+  /** لون نص الشريط المتحرك في الوضع النهاري (فارغ = تلقائي: أبيض على خلفية داكنة أو كحلي على فاتحة). */
+  announcementTextColorLight: string;
   announcementStyle: "static" | "badge" | "soft";
   heroStyle: "sky-banner" | "gradient-card" | "compact-minimal";
   searchBoxStyle: "rounded" | "pill" | "floating-glass";
@@ -1473,6 +1477,8 @@ export const defaultDesignSettings: DesignSettings = {
   announcementText: "أهلاً بكم في دليل جنزور — أضف مهنتك مجاناً وتواصل مع أهل القرية مباشرة",
   announcementBgColor: "#0f4ebe",
   announcementBgColorLight: "#0b4a93",
+  announcementTextColor: "",
+  announcementTextColorLight: "",
   announcementStyle: "badge",
   heroStyle: "sky-banner",
   searchBoxStyle: "rounded",
@@ -2071,6 +2077,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.announcementText = pickText(record.announcementText, defaultDesignSettings.announcementText, 240);
   next.announcementBgColor = hexColor(record.announcementBgColor, defaultDesignSettings.announcementBgColor);
   next.announcementBgColorLight = hexColor(record.announcementBgColorLight, defaultDesignSettings.announcementBgColorLight);
+  next.announcementTextColor = hexColor(record.announcementTextColor, "");
+  next.announcementTextColorLight = hexColor(record.announcementTextColorLight, "");
   next.announcementStyle = pickEnum(record.announcementStyle, ["static", "badge", "soft"] as const, defaultDesignSettings.announcementStyle);
   next.heroStyle = pickEnum(record.heroStyle, ["sky-banner", "gradient-card", "compact-minimal"] as const, defaultDesignSettings.heroStyle);
   next.searchBoxStyle = pickEnum(record.searchBoxStyle, ["rounded", "pill", "floating-glass"] as const, defaultDesignSettings.searchBoxStyle);
@@ -3227,6 +3235,10 @@ export function parsePinnedProfessions(value: unknown): string[] {
 }
 
 /** يقرر لون نص مقروء (أبيض أو داكن) تلقائيًا حسب إضاءة لون الخلفية (WCAG relative luminance). */
+/** لون نص الشريط النهاري: المخصص من الاستوديو إن وُجد، وإلا تلقائي حسب الخلفية. */
+export function announcementTextLight(design: Pick<DesignSettings, "announcementBgColorLight" | "announcementTextColorLight">): string {
+  return design.announcementTextColorLight || readableTextOn(design.announcementBgColorLight);
+}
 export function readableTextOn(hex: string, dark = "#0f2340", light = "#ffffff"): string {
   const clean = String(hex ?? "").trim().replace("#", "");
   const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;

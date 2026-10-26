@@ -1036,9 +1036,15 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
 });
 
 test("design images: upload keys, centimetre size guide and data-URL validation", () => {
-  const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, HERO_BANNER_DEFAULTS, resolveHeroBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
+  const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, announcementTextLight, HERO_BANNER_DEFAULTS, resolveHeroBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
   assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark"]);
   assert.equal(resolveHeroBanner(d, false), HERO_BANNER_DEFAULTS.light);
+  // لون كلام الشريط: فارغ = تلقائي، ويُقبل هيكس صحيح فقط
+  assert.equal(d.announcementTextColor, ""); assert.equal(d.announcementTextColorLight, "");
+  assert.equal(sanitize({ announcementTextColor: "#ffe066", announcementTextColorLight: "red" }).announcementTextColor, "#ffe066");
+  assert.equal(sanitize({ announcementTextColorLight: "red" }).announcementTextColorLight, "");
+  assert.equal(announcementTextLight({ announcementBgColorLight: "#0b4a93", announcementTextColorLight: "" }), "#ffffff");
+  assert.equal(announcementTextLight({ announcementBgColorLight: "#0b4a93", announcementTextColorLight: "#ffe066" }), "#ffe066");
   assert.equal(resolveHeroBanner(d, true), HERO_BANNER_DEFAULTS.dark);
   assert.equal(resolveHeroBanner({ ...d, heroBannerImage: "/x" }, true), "/x", "المخصص الفاتح يُستخدم ليلًا إن لم تُرفع نسخة داكنة");
   assert.equal(resolveHeroBanner({ ...d, heroBannerImage: "/x", heroBannerImageDark: "/y" }, true), "/y");
