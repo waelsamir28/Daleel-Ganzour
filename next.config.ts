@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    // صور المظهر المرفوعة تُخدم من /api/design-image/<key>?v=N ويُحسّنها next/image (مقاسات متعددة + WebP/AVIF).
+    localPatterns: [{ pathname: "/api/design-image/**" }, { pathname: "/**", search: "" }],
+  },
   async headers() {
     return [
       {

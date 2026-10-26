@@ -5,6 +5,7 @@ import { AlertCircle, Check, CirclePlus, ImageUp, LoaderCircle, Save, Sparkles, 
 import { categoryArt, categoryArtOptions, categoryStickerSrc, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import { CategoryIcon, MainCategoryIcon, SpecialtyIcon, StickerIcon } from "@/components/ui";
+import { shrinkImageFile } from "@/lib/client-image";
 
 export type EntityKind = "service" | "category" | "area" | "member";
 export type EditorState = { kind: EntityKind; item?: ServiceRecord | CategoryRecord | AreaRecord | MemberRecord; parentId?: string };
@@ -36,10 +37,13 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
   async function pickIconFile(file: File | null) {
     setIconError("");
     if (!file) return;
-    if (file.size > CATEGORY_ICON_MAX_BYTES) { setIconError("حجم الصورة أكبر من 800 كيلوبايت — صغّرها (256×256 بكسل يكفي)."); return; }
     if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) { setIconError("ارفع PNG أو JPG أو WebP."); return; }
-    const dataUrl = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result ?? "")); reader.onerror = () => reject(new Error("تعذر قراءة الملف.")); reader.readAsDataURL(file); });
-    setIconImage(dataUrl);
+    try {
+      // تصغير داخل المتصفح إلى 320 بكسل قبل الرفع — لا حاجة لتصغير الصورة يدويًا.
+      const shrunk = await shrinkImageFile(file, { maxWidth: 320, maxHeight: 320, quality: 86, preferAlpha: true });
+      if (shrunk.bytes > CATEGORY_ICON_MAX_BYTES) { setIconError("حجم الأيقونة أكبر من 800 كيلوبايت حتى بعد التصغير — جرّب PNG/JPG بدل GIF."); return; }
+      setIconImage(shrunk.dataUrl);
+    } catch (error) { setIconError(error instanceof Error ? error.message : "تعذر قراءة الملف."); }
   }
   const initialAreaVal = draft?.area ?? record.area ?? "";
   const knownArea = data.areas.some((a) => a.name === initialAreaVal);
