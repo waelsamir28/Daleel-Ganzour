@@ -197,3 +197,10 @@ html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ti
 html:not(.dark)[data-design-ticker-fg-light="custom"] body .site-announcement-ticker-card.is-soft .ticker-badge-icon {
   color: var(--design-announcement-fg-light, #0b3f7a) !important;
 }
+
+/* ===== تلوين داخل الشريط المتحرك: **كلمة** مميزة، و[لون] لخبر كامل ===== */
+.ticker-hl { font-weight: 900; color: var(--design-announcement-hl, #ffe066); }
+html.dark body .site-announcement-ticker-card .ticker-hl { color: var(--design-announcement-hl, #ffe066) !important; }
+html:not(.dark) body .site-announcement-ticker-card .ticker-hl { color: var(--design-announcement-hl, var(--design-announcement-accent-light, #ffe066)) !important; }
+/* لون الخبر الكامل يسبق كل قواعد الثيمات ولون النص المخصص (خصوصية مرفوعة عمدًا) */
+html body .site-announcement-ticker-card .has-item-color.has-item-color.has-item-color.has-item-color.has-item-color { color: var(--item-fg) !important; }

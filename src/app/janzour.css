@@ -11603,3 +11603,5 @@ html.dark .image-upload-hint { color: #b6cbe3; }
 .design-optional-color-auto small { font-size: 11.5px; opacity: .8; }
 .design-optional-color-wrap { display: flex; flex-direction: column; gap: 6px; }
 .design-optional-color-btn { padding: 5px 10px !important; font-size: 12px !important; min-height: 0 !important; align-self: flex-start; }
+.ticker-syntax-help { display: block; margin-top: 6px; line-height: 1.7; }
+.ticker-syntax-help code { background: rgba(127, 127, 127, .14); border-radius: 6px; padding: 1px 6px; font-family: inherit; font-weight: 800; }

@@ -820,6 +820,41 @@ export function parseAnnouncementItems(
   return design.announcementText?.trim() ? [design.announcementText.trim()] : [];
 }
 
+/** أسماء الألوان المسموح بها في بداية خبر الشريط: `[أحمر] عاجل: …` — قيم مقروءة على الخلفيات الداكنة والفاتحة. */
+export const TICKER_COLOR_NAMES: Record<string, string> = {
+  "أحمر": "#ff6b6b", "أصفر": "#ffe066", "ذهبي": "#fbbf24", "برتقالي": "#fb923c", "أخضر": "#4ade80", "أزرق": "#60a5fa",
+  "سماوي": "#67e8f9", "بنفسجي": "#c084fc", "وردي": "#f9a8d4", "أبيض": "#ffffff", "رمادي": "#cbd5e1", "كحلي": "#0f2340", "أسود": "#111111",
+};
+export type TickerSegment = { text: string; highlight: boolean };
+export type TickerItem = { color: string; segments: TickerSegment[]; plain: string };
+/**
+ * يحلّل نص خبر واحد في الشريط المتحرك:
+ * - `[أحمر] …` أو `[#ff0000] …` في البداية = لون الخبر كله (يُحذف الرمز من النص).
+ * - `**كلمة**` = كلمة مميزة بلون الإبراز.
+ */
+export function parseTickerItem(raw: string): TickerItem {
+  let text = String(raw ?? "").trim();
+  let color = "";
+  const token = /^\[\s*([^\]]{1,24}?)\s*\]\s*/.exec(text);
+  if (token) {
+    const name = token[1].trim();
+    const hex = /^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$/.test(name) ? name : "";
+    const named = TICKER_COLOR_NAMES[name] || TICKER_COLOR_NAMES[name.replace(/^ال/, "")] || "";
+    if (hex || named) { color = hex || named; text = text.slice(token[0].length); }
+  }
+  const segments: TickerSegment[] = [];
+  const pattern = /\*\*(.+?)\*\*/g;
+  let last = 0; let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text))) {
+    if (match.index > last) segments.push({ text: text.slice(last, match.index), highlight: false });
+    segments.push({ text: match[1], highlight: true });
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) segments.push({ text: text.slice(last), highlight: false });
+  if (segments.length === 0) segments.push({ text, highlight: false });
+  return { color, segments, plain: segments.map((segment) => segment.text).join("") };
+}
+
 export function getCompletionFieldSuggestions(
   categoryId: string,
   catalog: CategoryRecord[] = initialCategories,
@@ -1125,6 +1160,8 @@ export type DesignSettings = {
   announcementTextColor: string;
   /** لون نص الشريط المتحرك في الوضع النهاري (فارغ = تلقائي: أبيض على خلفية داكنة أو كحلي على فاتحة). */
   announcementTextColorLight: string;
+  /** لون إبراز الكلمات المكتوبة بين **نجمتين** داخل الشريط (فارغ = تلقائي أصفر ذهبي). */
+  announcementHighlightColor: string;
   announcementStyle: "static" | "badge" | "soft";
   heroStyle: "sky-banner" | "gradient-card" | "compact-minimal";
   searchBoxStyle: "rounded" | "pill" | "floating-glass";
@@ -1479,6 +1516,7 @@ export const defaultDesignSettings: DesignSettings = {
   announcementBgColorLight: "#0b4a93",
   announcementTextColor: "",
   announcementTextColorLight: "",
+  announcementHighlightColor: "",
   announcementStyle: "badge",
   heroStyle: "sky-banner",
   searchBoxStyle: "rounded",
@@ -2079,6 +2117,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.announcementBgColorLight = hexColor(record.announcementBgColorLight, defaultDesignSettings.announcementBgColorLight);
   next.announcementTextColor = hexColor(record.announcementTextColor, "");
   next.announcementTextColorLight = hexColor(record.announcementTextColorLight, "");
+  next.announcementHighlightColor = hexColor(record.announcementHighlightColor, "");
   next.announcementStyle = pickEnum(record.announcementStyle, ["static", "badge", "soft"] as const, defaultDesignSettings.announcementStyle);
   next.heroStyle = pickEnum(record.heroStyle, ["sky-banner", "gradient-card", "compact-minimal"] as const, defaultDesignSettings.heroStyle);
   next.searchBoxStyle = pickEnum(record.searchBoxStyle, ["rounded", "pill", "floating-glass"] as const, defaultDesignSettings.searchBoxStyle);

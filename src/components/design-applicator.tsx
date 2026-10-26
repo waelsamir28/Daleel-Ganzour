@@ -35,6 +35,8 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-announcement-fg-light-soft", autoFg === "#ffffff" ? "rgba(255,255,255,.22)" : "rgba(15,35,64,.12)");
   // مع لون نص مخصص تأخذ النقاط الفاصلة وأيقونة الشريط نفس اللون حتى يبدو الشريط متناسقًا.
   root.style.setProperty("--design-announcement-accent-light", design.announcementTextColorLight || (autoFg === "#ffffff" ? "#ffe066" : "#b45309"));
+  if (design.announcementHighlightColor) root.style.setProperty("--design-announcement-hl", design.announcementHighlightColor);
+  else root.style.removeProperty("--design-announcement-hl");
   if (design.announcementTextColorLight) root.setAttribute("data-design-ticker-fg-light", "custom");
   else root.removeAttribute("data-design-ticker-fg-light");
   // لون نص الشريط في الوضع الليلي: فارغ = نترك الثيم على حاله.

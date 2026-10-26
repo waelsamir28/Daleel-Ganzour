@@ -29,7 +29,7 @@ import {
   Upload,
   UsersRound,
 } from "lucide-react";
-import { announcementTextLight, HERO_BANNER_DEFAULTS, AUTH_BANNER_DEFAULTS,
+import { TICKER_COLOR_NAMES, announcementTextLight, HERO_BANNER_DEFAULTS, AUTH_BANNER_DEFAULTS,
   defaultDesignSettings,
   designThemePresets,
   parseAnnouncementItems,
@@ -50,6 +50,7 @@ import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
 import ImageUploadField from "@/components/image-upload-field";
 import { SPLASH_PREVIEW_EVENT } from "@/components/splash-screen";
+import { TickerText } from "@/components/ticker-text";
 
 type SectionFilter = "all" | "general" | "top" | "categories" | "providers" | "footer" | "splash";
 type SavedCustomPreset = { id: string; name: string; settings: DesignSettings };
@@ -430,10 +431,10 @@ export default function DesignCustomizer({
           {draft.announcementEnabled && (
             <div className="design-preview-announcement" style={{ background: draft.announcementBgColorLight, color: announcementTextLight(draft) }} title="معاينة الوضع النهاري">
               <Sparkles size={12}/>
-              <span>
-                {draft.announcementTickerMode === "single"
-                  ? draft.announcementText
-                  : parseAnnouncementItems(draft).join("  •  ") || draft.announcementText}
+              <span style={{ "--design-announcement-hl": draft.announcementHighlightColor || undefined } as React.CSSProperties}>
+                {(draft.announcementTickerMode === "single" ? [draft.announcementText] : parseAnnouncementItems(draft)).map((item, index) => (
+                  <TickerText key={`${index}-${item}`} text={item}>{draft.announcementTickerMode === "single" ? null : "  •  "}</TickerText>
+                ))}
               </span>
             </div>
           )}
@@ -1215,6 +1216,14 @@ export default function DesignCustomizer({
                         swatches={["#ffffff", "#ffe066", "#0f2340", "#0b4a93", "#065f46", "#7c2d12", "#5b21b6", "#9f1239"]}
                         onChange={(hex) => updateField("announcementTextColorLight", hex)}
                       />
+                      <OptionalColorField
+                        label="لون إبراز الكلمات المكتوبة بين **نجمتين** في الشريط"
+                        autoHint="تلقائي: أصفر ذهبي"
+                        value={draft.announcementHighlightColor}
+                        startWith="#ffe066"
+                        swatches={["#ffe066", "#fbbf24", "#4ade80", "#67e8f9", "#f9a8d4", "#c084fc", "#ff6b6b", "#ffffff"]}
+                        onChange={(hex) => updateField("announcementHighlightColor", hex)}
+                      />
                       <ColorPickerField
                         label="لون خلفية الشريط في الوضع النهاري (ثابت لكل الثيمات — لون النص يتحدد تلقائيًا أبيض أو داكن حسب اللون)"
                         value={draft.announcementBgColorLight}
@@ -1243,6 +1252,10 @@ export default function DesignCustomizer({
                           maxLength={1200}
                           placeholder={"أهلاً بكم في دليل جنزور — كل خدمات القرية في مكان واحد\nأضف مهنتك مجاناً وتواصل مع الأهالي مباشرة\nالصيدليات المناوبة وأرقام الطوارئ متاحة على مدار الساعة"}
                         />
+                        <small className="input-help ticker-syntax-help">
+                          تلوين الأخبار: اكتب الكلمة بين نجمتين <code dir="ltr">**هكذا**</code> لإبرازها بلون الإبراز، وابدأ السطر بلون بين قوسين مربعين مثل <code dir="rtl">[أحمر] عاجل: …</code> لتلوين الخبر كله.
+                          الألوان المتاحة: {Object.keys(TICKER_COLOR_NAMES).join("، ")} — أو كود مثل <code dir="ltr">[#ff8800]</code>.
+                        </small>
                         <div className="suggestion-chips-wrap" style={{ marginTop: 6 }}>
                           <span className="suggestion-chips-label">إضافة خبر جاهز بضغطة واحدة:</span>
                           <div className="suggestion-chips-list">
