@@ -701,12 +701,22 @@ export default function DesignCustomizer({
                   <label className="field">
                     الوضع الافتراضي للموقع (النهاري / الليلي)
                     <SelectField value={draft.themeMode} onChange={(e) => updateField("themeMode", e.target.value as DesignSettings["themeMode"])}>
-                      <option value="auto">تلقائي حسب جهاز الزائر أو اختياره</option>
-                      <option value="light">الوضع النهاري الفاتح افتراضياً</option>
-                      <option value="dark">الوضع الليلي الداكن افتراضياً</option>
+                      <option value="auto">تلقائي — يتبع إعداد جهاز الزائر (ليلي/نهاري) — الافتراضي</option>
+                      <option value="light">الوضع النهاري الفاتح لكل الزوار</option>
+                      <option value="dark">الوضع الليلي الداكن لكل الزوار</option>
                     </SelectField>
+                    <small className="input-help">في كل الأحوال لو بدّل الزائر الوضع بنفسه من زر الشمس/القمر يُحفظ اختياره على جهازه.</small>
                   </label>
                 </div>
+                <label className="field">
+                  استدارة زوايا ثيمات Windows 10 (تظهر عند اختيار أي ثيم Win10)
+                  <SelectField value={draft.win10Radius} onChange={(e) => updateField("win10Radius", e.target.value as DesignSettings["win10Radius"])}>
+                    <option value="0">حادة تمامًا 0 بكسل (ويندوز 10 الأصلي)</option>
+                    <option value="2">خفيفة 2 بكسل (الافتراضي)</option>
+                    <option value="6">ناعمة 6 بكسل</option>
+                    <option value="12">مستديرة 12 بكسل</option>
+                  </SelectField>
+                </label>
 
                 <label className="checkbox-field">
                   <input
@@ -1017,6 +1027,30 @@ export default function DesignCustomizer({
 
                 <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
                 <ImageUploadField imageKey="hero-banner" label="صورة البانر الترحيبي أعلى الرئيسية (اختياري — رفع من الجهاز)" value={draft.heroBannerImage} onChange={(url) => updateField("heroBannerImage", url)} fallbackSrc="/images/home-banner-sky.png" wide/>
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    ارتفاع البانر الترحيبي
+                    <SelectField value={draft.heroBannerHeight} onChange={(e) => updateField("heroBannerHeight", e.target.value as DesignSettings["heroBannerHeight"])}>
+                      <option value="auto">النسبة الطبيعية للصورة (الافتراضي)</option>
+                      <option value="small">صغير (150 بكسل ≈ 4 سم)</option>
+                      <option value="medium">متوسط (220 بكسل ≈ 6 سم)</option>
+                      <option value="large">كبير (320 بكسل ≈ 8.5 سم)</option>
+                    </SelectField>
+                  </label>
+                  <label className="field">
+                    طريقة ملء الصورة للإطار (عند الارتفاع الثابت)
+                    <SelectField value={draft.heroBannerFit} onChange={(e) => updateField("heroBannerFit", e.target.value as DesignSettings["heroBannerFit"])}>
+                      <option value="cover">قصّ الصورة لتملأ الإطار بالكامل (الافتراضي)</option>
+                      <option value="contain">إظهار الصورة كاملة داخل الإطار</option>
+                    </SelectField>
+                  </label>
+                </div>
+                <label className="field">
+                  درجة تعتيم طبقة فوق صورة البانر: <b>{draft.heroBannerOverlay}%</b>
+                  <input type="range" min={0} max={80} step={10} value={draft.heroBannerOverlay} onChange={(e) => updateField("heroBannerOverlay", Number(e.target.value))} aria-label="درجة تعتيم البانر الترحيبي"/>
+                  <small className="input-help">0 = الصورة كما هي. ارفع التعتيم لو هتعرض نصًا فوق الصورة أو كانت الصورة فاتحة جدًا.</small>
+                </label>
+                <label className="checkbox-field"><input type="checkbox" checked={draft.heroBannerText} onChange={(e) => updateField("heroBannerText", e.target.checked)}/>إظهار اسم الدليل والسطر الترحيبي بالأبيض فوق صورة البانر</label>
                 <div className="form-row design-two-col">
                   <label className="field">
                     شكل البانر الترحيبي أعلى الرئيسية
