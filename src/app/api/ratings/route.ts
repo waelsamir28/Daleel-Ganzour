@@ -1,6 +1,6 @@
 import { db, databaseConfigured } from "@/db";
 import { notifications, serviceRatings, services } from "@/db/schema";
-import { ensureSeed } from "@/lib/directory";
+import { ensureSeed, withDirectoryInvalidation } from "@/lib/directory";
 import { apiError, InputError, integerInput, objectInput } from "@/lib/inputs";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { cleanText, validId } from "@/lib/validation";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 // A member submits one rating per service; resubmitting replaces the previous one
 // and returns it to the review queue. Ratings reach the public score only after approval.
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   try {
     if (!sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
     if (!databaseConfigured) return Response.json({ error: "التقييمات غير متاحة في وضع المعاينة." }, { status: 503 });
@@ -30,4 +30,4 @@ export async function POST(request: Request) {
     queueAdminWhatsappAlert("rating", "⭐ تقييم جديد", `${service.name}: ${stars} من 5 من ${viewer.name}${comment ? ` — ${comment}` : ""}`);
     return Response.json({ ok: true, message: "شكرًا لتقييمك.. هيظهر بعد مراجعة الإدارة." }, { status: 201 });
   } catch (error) { return apiError(error); }
-}
+});

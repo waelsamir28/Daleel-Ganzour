@@ -1,12 +1,12 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { adBanners, adRequests, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
+import { adBanners, adRequests, categoryIcons, communityListings, designImages, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
-import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, writeDeletedCategoryIds } from "@/lib/directory";
+import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isDesignImageKey, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, parseDesignImageDataUrl, designImageUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
 
@@ -91,7 +91,7 @@ export async function GET() {
   try { const role = await guard(); return Response.json(await getAdminDirectory(role)); }
   catch (error) { return apiError(error); }
 }
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   try {
     const actor = await guardActor(request), role = actor.role;
     const body = objectInput(await request.json());
@@ -101,6 +101,23 @@ export async function POST(request: Request) {
       const result = await sendAdminWhatsappAlert("✅ رسالة اختبار من دليل جنزور", "تنبيهات واتساب للإدارة تعمل بنجاح. ستصلك هنا الطلبات والتقييمات والاقتراحات الجديدة.", "test");
       if (!result.ok) throw new InputError(result.detail, result.skipped ? 400 : 502);
       return Response.json({ ok: true, detail: result.detail });
+    }
+    // صور المظهر (لوجو/سبلاش/بانرات): رفع من الجهاز بدل اللينك. data URL = رفع/استبدال، "__remove__" = حذف.
+    if (body.type === "design-image") {
+      if (!isDesignImageKey(body.key)) throw new InputError("نوع الصورة غير معروف.");
+      if (body.image === "__remove__") {
+        await db.delete(designImages).where(eq(designImages.key, body.key));
+        await logActivity(actor, "POST", body, `حذف صورة المظهر (${body.key})`);
+        return Response.json({ ok: true, url: "" });
+      }
+      let image: { mime: string; base64: string };
+      try { image = parseDesignImageDataUrl(body.image); }
+      catch (error) { throw new InputError(error instanceof Error ? error.message : "الصورة غير صحيحة."); }
+      const [row] = await db.insert(designImages).values({ key: body.key, mime: image.mime, data: image.base64, version: 1, updatedAt: new Date() })
+        .onConflictDoUpdate({ target: designImages.key, set: { mime: image.mime, data: image.base64, version: sql`${designImages.version} + 1`, updatedAt: new Date() } })
+        .returning({ version: designImages.version });
+      await logActivity(actor, "POST", body, `رفع صورة المظهر (${body.key})`);
+      return Response.json({ ok: true, url: designImageUrl(body.key, row?.version ?? 1) });
     }
     // إجراءات الروابط لا ترسل values؛ لذا تُفحص قبل تحليل قيم النموذج.
     if (body.type === "service" && body.action === "availability-link") {
@@ -155,8 +172,8 @@ export async function POST(request: Request) {
     await logActivity(actor, "POST", body, activityLabel);
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) }, { status: 201 });
   } catch (error) { return apiError(error); }
-}
-export async function PATCH(request: Request) {
+});
+export const PATCH = withDirectoryInvalidation(async (request: Request) => {
   try {
     const actor = await guardActor(request), role = actor.role;
     const body = objectInput(await request.json());
@@ -369,8 +386,8 @@ export async function PATCH(request: Request) {
     await logActivity(actor, "PATCH", body, activityLabel);
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
-}
-export async function DELETE(request: Request) {
+});
+export const DELETE = withDirectoryInvalidation(async (request: Request) => {
   try {
     const actor = await guardActor(request), role = actor.role;
     const body = objectInput(await request.json());
@@ -430,4 +447,4 @@ export async function DELETE(request: Request) {
     await logActivity(actor, "DELETE", body, activityLabel);
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) });
   } catch (error) { return apiError(error); }
-}
+});

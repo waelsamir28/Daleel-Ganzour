@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { notifications } from "@/db/schema";
 import { isAdmin, sameOrigin } from "@/lib/auth";
 import { apiError } from "@/lib/inputs";
+import { withDirectoryInvalidation } from "@/lib/directory";
 
 export const dynamic = "force-dynamic";
 export async function GET() {
@@ -12,9 +13,9 @@ export async function GET() {
     return Response.json({ notifications: items.map((item) => ({ ...item, createdAt: item.createdAt.toISOString() })), unread: totals[0]?.total ?? 0 });
   } catch (error) { return apiError(error); }
 }
-export async function PATCH(request: Request) {
+export const PATCH = withDirectoryInvalidation(async (request: Request) => {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
   if (!(await isAdmin())) return Response.json({ error: "غير مصرح." }, { status: 401 });
   try { await db.update(notifications).set({ read: true }).where(eq(notifications.read, false)); return Response.json({ ok: true }); }
   catch (error) { return apiError(error); }
-}
+});

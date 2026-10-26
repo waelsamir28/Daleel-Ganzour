@@ -171,6 +171,15 @@ export const categoryIcons = pgTable("directory_category_icons", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** صور المظهر المرفوعة من استوديو التصميم (لوجو الهيدر، شاشة البداية، بانر الدخول، البانر الترحيبي) — داخل القاعدة لأن Vercel بلا قرص دائم. */
+export const designImages = pgTable("directory_design_images", {
+  key: varchar("key", { length: 40 }).primaryKey(),
+  mime: varchar("mime", { length: 60 }).notNull().default("image/png"),
+  data: text("data").notNull().default(""),
+  version: integer("version").notNull().default(1),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** Rotating promotional banners shown above the directory; the image itself is stored inline (Vercel has no persistent disk). */
 export const adBanners = pgTable("directory_ad_banners", {
   id: uuid("id").defaultRandom().primaryKey(),

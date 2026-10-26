@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { notifications, services, submissionTracking } from "@/db/schema";
 import { createHash, randomBytes } from "node:crypto";
-import { getPublicDirectory } from "@/lib/directory";
+import { getPublicDirectory, withDirectoryInvalidation } from "@/lib/directory";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { apiError, InputError, objectInput, serviceInput } from "@/lib/inputs";
 import { rateLimit } from "@/lib/validation";
@@ -16,7 +16,7 @@ export async function GET() {
   }
   catch (error) { return apiError(error); }
 }
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
   if (rateLimit(request, "service", 10)) return Response.json({ error: "طلبات كثيرة. يرجى المحاولة بعد ١٥ دقيقة." }, { status: 429 });
   try {
@@ -34,4 +34,4 @@ export async function POST(request: Request) {
     queueAdminWhatsappAlert("service", "🔔 طلب مهنة جديد بانتظارك", `${values.name} أرسل طلب إضافة مهنة (${values.category}) • ${values.phone}. راجع البيانات قبل النشر.`);
     return Response.json({ ...service, trackingUrl: `/track/${token}`, message: "وصل طلبك للإدارة ومعاه إشعار. خدمتك مش هتظهر في الدليل إلا بعد الموافقة." }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error); }
-}
+});

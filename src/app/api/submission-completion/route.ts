@@ -3,12 +3,12 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { notifications, services, submissionTracking } from "@/db/schema";
 import { sameOrigin } from "@/lib/auth";
-import { ensureSeed } from "@/lib/directory";
+import { ensureSeed, withDirectoryInvalidation } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   if (!sameOrigin(request)) return Response.json({ error: "طلب غير مسموح." }, { status: 403 });
   if (rateLimit(request, "submission-completion", 5)) return Response.json({ error: "حاول بعد ١٥ دقيقة." }, { status: 429 });
   try {
@@ -30,4 +30,4 @@ export async function POST(request: Request) {
     queueAdminWhatsappAlert("service", "📝 استكمال بيانات طلب مهنة", note);
     return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error); }
-}
+});

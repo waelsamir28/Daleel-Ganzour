@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { BellRing, Building2, Check, Globe, LoaderCircle, MessageCircle, Send, Settings2, Share2, Sliders } from "lucide-react";
 import { defaultDesignSettings, OFFICE_PHONE, type DesignSettings, type SiteSettings } from "@/lib/catalog";
 import { allWhatsappAlertKinds, sanitizeWhatsappAlertKinds, whatsappAlertKinds, type WhatsappAlertKind } from "@/lib/whatsapp-alert-kinds";
+import ImageUploadField from "@/components/image-upload-field";
 
 export default function SettingsEditor({
   settings,
@@ -332,16 +333,9 @@ export default function SettingsEditor({
           </div>
 
           <div className="settings-item-box">
-            <label className="settings-item-label" htmlFor="setting-headerLogo">٥. رابط صورة لوجو الهيدر (اختياري)</label>
-            <small className="settings-item-hint">اتركه فارغاً لاستخدام شعار دليل جنزور الافتراضي</small>
-            <input
-              id="setting-headerLogo"
-              dir="ltr"
-              className="studio-textbox"
-              placeholder="/images/logo-daleel-transparent.png"
-              value={designValues.headerLogoUrl}
-              onChange={(e) => updateDesign("headerLogoUrl", e.target.value)}
-            />
+            <label className="settings-item-label">٥. لوجو الهيدر (اختياري)</label>
+            <small className="settings-item-hint">ارفع الصورة من جهازك؛ اتركها فارغة لاستخدام شعار دليل جنزور الافتراضي</small>
+            <ImageUploadField imageKey="header-logo" label="" value={designValues.headerLogoUrl} onChange={(url) => updateDesign("headerLogoUrl", url)} fallbackSrc="/images/logo-daleel-transparent.png"/>
           </div>
 
           <div className="settings-item-box">

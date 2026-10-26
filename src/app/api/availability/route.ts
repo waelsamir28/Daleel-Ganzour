@@ -1,6 +1,6 @@
 import { db, databaseConfigured } from "@/db";
 import { services } from "@/db/schema";
-import { ensureSeed } from "@/lib/directory";
+import { ensureSeed, withDirectoryInvalidation } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { sameOrigin } from "@/lib/auth";
 import { availabilityUpdate, AVAILABILITY_HOURS } from "@/lib/catalog";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 // The provider's private renewal link lands here: one untappable tap extends the
 // availability window by AVAILABILITY_HOURS, exactly like the admin activation does.
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   try {
     if (!sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
     if (!databaseConfigured) return Response.json({ error: "التجديد غير متاح في وضع المعاينة." }, { status: 503 });
@@ -24,4 +24,4 @@ export async function POST(request: Request) {
     await db.update(services).set(next).where(eq(services.id, service.id));
     return Response.json({ ok: true, name: service.name, hours: AVAILABILITY_HOURS, until: next.availableUntil?.toISOString() ?? null });
   } catch (error) { return apiError(error); }
-}
+});

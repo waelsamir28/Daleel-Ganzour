@@ -4,7 +4,7 @@ import { eq, inArray, or } from "drizzle-orm";
 import { db } from "@/db";
 import { directoryAreas, directoryCategories, notifications, services } from "@/db/schema";
 import { isAdmin, sameOrigin } from "@/lib/auth";
-import { ensureSeed } from "@/lib/directory";
+import { ensureSeed, withDirectoryInvalidation } from "@/lib/directory";
 import { InputError, apiError } from "@/lib/inputs";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { normalizeSearch, type CategoryRecord } from "@/lib/catalog";
@@ -277,7 +277,7 @@ async function markExistingDuplicates(rows: ParsedRow[]) {
   }
 }
 
-export async function POST(request: Request) {
+export const POST = withDirectoryInvalidation(async (request: Request) => {
   try {
     if (!sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
     if (!(await isAdmin())) throw new InputError("الاستيراد متاح للأدمن فقط. يرجى تسجيل الدخول.", 401);
@@ -390,4 +390,4 @@ export async function POST(request: Request) {
   } catch (error) {
     return apiError(error);
   }
-}
+});
