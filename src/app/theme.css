@@ -185,7 +185,8 @@ html.dark .mobile-menu-button { border-color: #284766 !important; background: #1
 
 /* ===== الهيرو والبحث ===== */
 html.dark .hero-floating-tag { background: #102338f2; color: #d4eaff; border-color: #284766; }
-html.dark .hero-with-banner .hero-banner-wrap img { filter: brightness(.45) saturate(.88); }
+/* البانر الترحيبي ليلًا يُعرض بألوانه الكاملة (له نسخة ليلية خاصة) — بلا تعتيم بالفلتر. */
+html.dark .hero-with-banner .hero-banner-wrap img { filter: none; }
 html.dark .hero-with-banner .hero-search,
 html.dark .hero-search { background: rgba(15, 33, 53, .88); border-color: #284766; }
 html.dark .search-input-wrap { background: #0c1a2b; border-color: #284766; }
