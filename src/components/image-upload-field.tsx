@@ -3,6 +3,7 @@
 import { ImagePlus, LoaderCircle, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, designImageSizeText, pxToCm, type DesignImageKey } from "@/lib/catalog";
+import { shrinkImageFile } from "@/lib/client-image";
 
 type Props = {
   imageKey: DesignImageKey;
@@ -15,23 +16,6 @@ type Props = {
   /** شكل المعاينة: مربع صغير للوجو أو شريط عريض للبانرات. */
   wide?: boolean;
 };
-
-function readFile(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("تعذّر قراءة الملف."));
-    reader.readAsDataURL(file);
-  });
-}
-function measure(dataUrl: string) {
-  return new Promise<{ width: number; height: number }>((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    img.onerror = () => resolve({ width: 0, height: 0 });
-    img.src = dataUrl;
-  });
-}
 
 /** زر «رفع صورة من الجهاز» لصور المظهر (لوجو/سبلاش/بانرات) — بدل كتابة لينك. المقاس يُكتب بالسنتيمتر وبجانبه البكسل. */
 export default function ImageUploadField({ imageKey, value, onChange, fallbackSrc = "", label, wide = false }: Props) {
@@ -47,11 +31,13 @@ export default function ImageUploadField({ imageKey, value, onChange, fallbackSr
     event.target.value = "";
     if (!file) return;
     setError("");
-    if (file.size > DESIGN_IMAGE_MAX_BYTES) { setError("حجم الصورة أكبر من 2 ميجابايت — صغّرها وحاول مرة أخرى."); return; }
     setBusy(true);
     try {
-      const dataUrl = await readFile(file);
-      const dims = await measure(dataUrl);
+      // تصغير داخل المتصفح أولًا: صور الهاتف الكبيرة تصبح بضع مئات من الكيلوبايت قبل الرفع.
+      const shrunk = await shrinkImageFile(file, { maxWidth: Math.min(guide.width, 1600), maxHeight: Math.min(guide.height, 900), quality: 86, preferAlpha: imageKey === "header-logo" || imageKey === "splash" });
+      if (shrunk.bytes > DESIGN_IMAGE_MAX_BYTES) throw new Error("الصورة ما زالت أكبر من 2 ميجابايت بعد التصغير — جرّب صورة أبسط أو PNG/JPG بدل GIF.");
+      const dataUrl = shrunk.dataUrl;
+      const dims = { width: shrunk.width, height: shrunk.height };
       const response = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "design-image", key: imageKey, image: dataUrl }) });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload?.url) throw new Error(payload?.error || "تعذّر رفع الصورة.");

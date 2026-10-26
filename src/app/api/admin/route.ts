@@ -3,6 +3,7 @@ import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { adBanners, adRequests, categoryIcons, communityListings, designImages, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
+import { ICON_LIMITS, designImageLimits, optimizeStoredImage } from "@/lib/image-optimize";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
@@ -66,6 +67,7 @@ async function applyCategoryIcon(categoryId: string, value: unknown) {
   let image: { mime: string; base64: string };
   try { image = parseCategoryIconDataUrl(value); }
   catch (error) { throw new InputError(error instanceof Error ? error.message : "صورة الأيقونة غير صحيحة."); }
+  image = await optimizeStoredImage(image, ICON_LIMITS);
   await db.insert(categoryIcons).values({ categoryId, mime: image.mime, data: image.base64, version: 1, updatedAt: new Date() })
     .onConflictDoUpdate({ target: categoryIcons.categoryId, set: { mime: image.mime, data: image.base64, version: sql`${categoryIcons.version} + 1`, updatedAt: new Date() } });
 }
@@ -113,6 +115,7 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       let image: { mime: string; base64: string };
       try { image = parseDesignImageDataUrl(body.image); }
       catch (error) { throw new InputError(error instanceof Error ? error.message : "الصورة غير صحيحة."); }
+      image = await optimizeStoredImage(image, designImageLimits(body.key));
       const [row] = await db.insert(designImages).values({ key: body.key, mime: image.mime, data: image.base64, version: 1, updatedAt: new Date() })
         .onConflictDoUpdate({ target: designImages.key, set: { mime: image.mime, data: image.base64, version: sql`${designImages.version} + 1`, updatedAt: new Date() } })
         .returning({ version: designImages.version });
