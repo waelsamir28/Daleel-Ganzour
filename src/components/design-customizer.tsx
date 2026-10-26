@@ -29,7 +29,7 @@ import {
   Upload,
   UsersRound,
 } from "lucide-react";
-import { AUTH_BANNER_DEFAULTS,
+import { HERO_BANNER_DEFAULTS, AUTH_BANNER_DEFAULTS,
   defaultDesignSettings,
   designThemePresets,
   parseAnnouncementItems,
@@ -1027,6 +1027,7 @@ export default function DesignCustomizer({
 
                 <InnerDivider title="تصميم البانر الترحيبي ومربع البحث" />
                 <ImageUploadField imageKey="hero-banner" label="صورة البانر الترحيبي أعلى الرئيسية (اختياري — رفع من الجهاز)" value={draft.heroBannerImage} onChange={(url) => updateField("heroBannerImage", url)} fallbackSrc="/images/home-banner-sky.png" wide/>
+                <ImageUploadField imageKey="hero-banner-dark" label="نسخة الوضع الداكن من البانر الترحيبي (اختياري؛ فارغ = النسخة الليلية الافتراضية)" value={draft.heroBannerImageDark} onChange={(url) => updateField("heroBannerImageDark", url)} fallbackSrc={HERO_BANNER_DEFAULTS.dark} wide/>
                 <div className="form-row design-two-col">
                   <label className="field">
                     ارتفاع البانر الترحيبي
