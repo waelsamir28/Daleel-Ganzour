@@ -1036,8 +1036,15 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
 });
 
 test("design images: upload keys, centimetre size guide and data-URL validation", () => {
-  const { DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
-  assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "hero-banner"]);
+  const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
+  assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner"]);
+  // بانرات الدخول/العضوية: الافتراضي حسب الصفحة والوضع، والمخصص يسبق، والعضوية ترث بانر الدخول المخصص
+  assert.equal(resolveAuthBanner(d, "login", false), AUTH_BANNER_DEFAULTS.login.light);
+  assert.equal(resolveAuthBanner(d, "login", true), AUTH_BANNER_DEFAULTS.login.dark);
+  assert.equal(resolveAuthBanner(d, "register", true), AUTH_BANNER_DEFAULTS.register.dark);
+  assert.equal(resolveAuthBanner({ ...d, authBannerImage: "/api/design-image/auth-banner?v=1" }, "register", true), "/api/design-image/auth-banner?v=1");
+  assert.equal(resolveAuthBanner({ ...d, authBannerImage: "/x", registerBannerImageDark: "/y" }, "register", true), "/y");
+  assert.equal(sanitizeDesignSettings({ registerBannerImage: "/api/design-image/register-banner?v=2" }).registerBannerImage, "/api/design-image/register-banner?v=2");
   for (const key of DESIGN_IMAGE_KEYS) assert.ok(DESIGN_IMAGE_GUIDE[key].width > 0 && DESIGN_IMAGE_GUIDE[key].height > 0);
   assert.equal(isDesignImageKey("hero-banner"), true);
   assert.equal(isDesignImageKey("../etc"), false);
