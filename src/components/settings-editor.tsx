@@ -335,7 +335,7 @@ export default function SettingsEditor({
           <div className="settings-item-box">
             <label className="settings-item-label">٥. لوجو الهيدر (اختياري)</label>
             <small className="settings-item-hint">ارفع الصورة من جهازك؛ اتركها فارغة لاستخدام شعار دليل جنزور الافتراضي</small>
-            <ImageUploadField imageKey="header-logo" label="" value={designValues.headerLogoUrl} onChange={(url) => updateDesign("headerLogoUrl", url)} fallbackSrc="/images/logo-daleel-transparent.png"/>
+            <ImageUploadField imageKey="header-logo" transparentTool label="" value={designValues.headerLogoUrl} onChange={(url) => updateDesign("headerLogoUrl", url)} fallbackSrc="/images/logo-daleel-transparent.png"/>
           </div>
 
           <div className="settings-item-box">

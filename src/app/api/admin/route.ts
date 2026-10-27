@@ -3,7 +3,7 @@ import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { adBanners, adRequests, categoryIcons, communityListings, designImages, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
-import { ICON_LIMITS, designImageLimits, optimizeStoredImage } from "@/lib/image-optimize";
+import { ICON_LIMITS, autoTransparentKey, designImageLimits, optimizeStoredImage, removeFlatBackground } from "@/lib/image-optimize";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
@@ -112,9 +112,23 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
         await logActivity(actor, "POST", body, `حذف صورة المظهر (${body.key})`);
         return Response.json({ ok: true, url: "" });
       }
+      // «__remove_bg__» = جعل خلفية الصورة المخزّنة شفافة (زر في الاستوديو) دون رفع جديد.
+      if (body.image === "__remove_bg__") {
+        const [stored] = await db.select({ mime: designImages.mime, data: designImages.data }).from(designImages).where(eq(designImages.key, body.key));
+        if (!stored) throw new InputError("لا توجد صورة مرفوعة لهذا المكان.", 404);
+        const result = await removeFlatBackground({ mime: stored.mime, base64: stored.data });
+        if (!result.changed) throw new InputError(`تعذّر جعل الخلفية شفافة: ${result.reason || "لم تُكتشف خلفية صلبة"}. ارفع نسخة PNG شفافة بدلًا منها.`);
+        const optimized = await optimizeStoredImage(result, designImageLimits(body.key));
+        const [row] = await db.update(designImages).set({ mime: optimized.mime, data: optimized.base64, version: sql`${designImages.version} + 1`, updatedAt: new Date() })
+          .where(eq(designImages.key, body.key)).returning({ version: designImages.version });
+        await logActivity(actor, "POST", body, `إزالة خلفية صورة المظهر (${body.key})`);
+        return Response.json({ ok: true, url: designImageUrl(body.key, row?.version ?? 1) });
+      }
       let image: { mime: string; base64: string };
       try { image = parseDesignImageDataUrl(body.image); }
       catch (error) { throw new InputError(error instanceof Error ? error.message : "الصورة غير صحيحة."); }
+      // الشعار وصورة شاشة البداية: إزالة الخلفية الصلبة تلقائيًا (إن وُجدت) لتظهر شفافة فوق خلفية التطبيق.
+      if (autoTransparentKey(body.key) && body.keepBackground !== true) image = await removeFlatBackground(image);
       image = await optimizeStoredImage(image, designImageLimits(body.key));
       const [row] = await db.insert(designImages).values({ key: body.key, mime: image.mime, data: image.base64, version: 1, updatedAt: new Date() })
         .onConflictDoUpdate({ target: designImages.key, set: { mime: image.mime, data: image.base64, version: sql`${designImages.version} + 1`, updatedAt: new Date() } })
