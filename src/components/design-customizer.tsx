@@ -1057,7 +1057,7 @@ export default function DesignCustomizer({
                 </div>
 
                 <div className="form-row design-two-col">
-                  <ImageUploadField imageKey="header-logo" label="لوجو الهيدر (اختياري — رفع من الجهاز)" value={draft.headerLogoUrl} onChange={(url) => updateField("headerLogoUrl", url)} fallbackSrc="/images/logo-daleel-transparent.png"/>
+                  <ImageUploadField imageKey="header-logo" transparentTool label="لوجو الهيدر (اختياري — رفع من الجهاز)" value={draft.headerLogoUrl} onChange={(url) => updateField("headerLogoUrl", url)} fallbackSrc="/images/logo-daleel-transparent.png"/>
 
                 </div>
 
@@ -1649,7 +1649,7 @@ export default function DesignCustomizer({
                       <option value="2500">طويلة (2.5 ثانية)</option>
                     </SelectField>
                   </label>
-                  <ImageUploadField imageKey="splash" label="صورة شاشة البداية (رفع من الجهاز)" value={draft.splashImageUrl === defaultDesignSettings.splashImageUrl ? "" : draft.splashImageUrl} onChange={(url) => updateField("splashImageUrl", url || defaultDesignSettings.splashImageUrl)} fallbackSrc={defaultDesignSettings.splashImageUrl}/>
+                  <ImageUploadField imageKey="splash" transparentTool label="صورة شاشة البداية (رفع من الجهاز — بخلفية شفافة)" value={draft.splashImageUrl === defaultDesignSettings.splashImageUrl ? "" : draft.splashImageUrl} onChange={(url) => updateField("splashImageUrl", url || defaultDesignSettings.splashImageUrl)} fallbackSrc={defaultDesignSettings.splashImageUrl}/>
                 </div>
                 <div className="form-row design-two-col">
                   <label className="field">
