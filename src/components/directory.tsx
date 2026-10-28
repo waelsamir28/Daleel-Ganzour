@@ -19,6 +19,7 @@ import { useIsDark } from "@/lib/use-is-dark";
 import { TickerText } from "@/components/ticker-text";
 import TeacherStageModal from "@/components/teacher-stage-modal";
 import CenterScheduleView from "@/components/center-schedule-view";
+import QrSvg from "@/components/qr-svg";
 
 // تحميل كسول للمكوّنات التي لا تظهر إلا عند فتحها (نوافذ وأدوات الإدارة) لتخفيف الحزمة الأولى للصفحة الرئيسية.
 const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr: false });
@@ -67,7 +68,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerNow] = useState(() => Date.now());
   const [aboutFabHidden, setAboutFabHidden] = useState(false);
-  const [dutyFilter, setDutyFilter] = useState<DutyFilter>("all"), [copiedUtilityId, setCopiedUtilityId] = useState("");
+  const [dutyFilter, setDutyFilter] = useState<DutyFilter>("pharmacies"), [copiedUtilityId, setCopiedUtilityId] = useState("");
   const [completionService, setCompletionService] = useState<ServiceRecord | null>(null);
   const [editingUtility, setEditingUtility] = useState<Partial<PublicUtilityContact> | null>(null);
   const [utilityBusy, setUtilityBusy] = useState(false), [utilityMessage, setUtilityMessage] = useState("");
@@ -259,6 +260,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       if (result.following) openFeed();
     } catch { setFollowError("تعذر الاتصال. حاول مرة أخرى."); } finally { setFollowBusy(false); }
   }
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : "https://daleel-ganzour.vercel.app";
   async function shareApp() {
     const url = `${window.location.origin}/`;
     const text = `📱 دليل المهن والخدمات بقرية جنزور\nكل الحرفيين والعيادات والمحلات والخدمات في مكان واحد.. ابحث واتصل بضغطة واحدة 👇\n${url}`;
@@ -906,32 +908,33 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
           <div className="duty-modal-head">
             <span className={`duty-shift-badge is-${dutyShift.mode}`}><Stethoscope size={15}/>{dutyShift.badge}</span>
             <div className="duty-filter-tabs" role="tablist" aria-label="فلترة المناوبات والطوارئ">
-              <button type="button" role="tab" aria-selected={dutyFilter === "all"} className={dutyFilter === "all" ? "is-active" : ""} onClick={() => setDutyFilter("all")}><Grid2X2 size={14}/>الكل</button>
               <button type="button" role="tab" aria-selected={dutyFilter === "pharmacies"} className={dutyFilter === "pharmacies" ? "is-active" : ""} onClick={() => setDutyFilter("pharmacies")}><Pill size={14}/>الصيدليات</button>
               <button type="button" role="tab" aria-selected={dutyFilter === "clinics"} className={dutyFilter === "clinics" ? "is-active" : ""} onClick={() => setDutyFilter("clinics")}><Stethoscope size={14}/>العيادات والمعامل</button>
               <button type="button" role="tab" aria-selected={dutyFilter === "emergency"} className={dutyFilter === "emergency" ? "is-active" : ""} onClick={() => setDutyFilter("emergency")}><Siren size={14}/>طوارئ ومتاح الآن</button>
             </div>
           </div>
           {dutyServices.length > 0 ? (
-            <div className="duty-grid">
+            <div className="duty-grid-v3">
               {dutyServices.map((service) => {
                 const cat = getCategory(service.category, categories);
                 const liveNow = now > 0 && isAvailableNow(service, now);
+                const open = () => { closeModal(); openDetail(service); };
                 return (
-                  <article key={service.id} className="duty-card duty-card-v2" onClick={() => { closeModal(); openDetail(service); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); closeModal(); openDetail(service); } }}>
-                    <span className={`duty-status-pill ${liveNow ? "is-live" : "is-emergency"}`}>{liveNow ? "متاح الآن" : service.emergency ? "طوارئ" : "مناوبة"}</span>
-                    {!contactLocked && (
-                      <div className="duty-hover-tools" onClick={(event) => event.stopPropagation()}>
-                        <a href={whatsappUrl(service.phone, serviceWhatsappMessage(service, cat.name))} target="_blank" rel="noopener noreferrer" className="duty-tool-btn is-whatsapp" aria-label={`واتساب ${service.name}`} title="واتساب"><MessageCircle size={15}/></a>
-                        <button type="button" className="duty-tool-btn" onClick={() => { closeModal(); openDetail(service); }} aria-label={`تفاصيل ${service.name}`} title="التفاصيل"><Info size={15}/></button>
+                  <article key={service.id} className="duty-card-v3" onClick={open} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); } }} aria-label={`فتح تفاصيل ${service.name}`}>
+                    <div className="duty-v3-main">
+                      <span className={`duty-status-pill ${liveNow ? "is-live" : "is-emergency"}`}>{liveNow ? "متاح الآن" : service.emergency ? "طوارئ" : "مناوبة"}</span>
+                      <h3 className="duty-v3-title"><span className="duty-card-icon" style={categoryTheme(cat)}><CategoryIcon icon={cat.icon} size={17}/></span><span>{service.name}</span></h3>
+                      <p className="duty-v3-sub"><span>{cat.name}</span>{(service.address || service.area) && <span className="duty-v3-address"><MapPin size={12}/>{service.address || service.area}</span>}</p>
+                      <div className="duty-v3-actions" onClick={(event) => event.stopPropagation()}>
+                        {contactLocked
+                          ? <Link href={registerHref} className="duty-v3-call is-locked"><LockKeyhole size={15}/><span>سجّل لعرض الرقم</span></Link>
+                          : <button type="button" className="duty-v3-call" onClick={open} aria-label={`اتصال وتفاصيل ${service.name}`} title="افتح التفاصيل للاتصال"><PhoneCall size={16}/><span>اتصال</span><span dir="ltr" className="duty-v3-phone">{service.phone}</span></button>}
+                        {!contactLocked && <a href={whatsappUrl(service.phone, serviceWhatsappMessage(service, cat.name))} target="_blank" rel="noopener noreferrer" className="duty-v3-wa" aria-label={`واتساب ${service.name}`} title="واتساب"><MessageCircle size={17}/></a>}
                       </div>
-                    )}
-                    <h3 className="duty-card-title"><span className="duty-card-icon" style={categoryTheme(cat)}><CategoryIcon icon={cat.icon} size={17}/></span><span>{service.name}</span></h3>
-                    <p className="duty-card-sub">{cat.name} • {service.address || service.area}</p>
-                    <div className="duty-card-foot" onClick={(event) => event.stopPropagation()}>
-                      {contactLocked
-                        ? <Link href={registerHref} className="button button-primary duty-call-full"><LockKeyhole size={15}/>سجّل لعرض الرقم</Link>
-                        : <a href={`tel:${service.phone}`} className="button button-primary duty-call-full"><PhoneCall size={15}/><span>اتصال</span><span dir="ltr">{service.phone}</span></a>}
+                    </div>
+                    <div className="duty-v3-qr" onClick={(event) => event.stopPropagation()}>
+                      <span className="duty-v3-qr-frame"><QrSvg value={`${siteOrigin}/?service=${encodeURIComponent(service.id)}`} size={92} label={`رمز QR لـ ${service.name}`}/></span>
+                      <small><QrCode size={11}/> امسح لفتح الكارت</small>
                     </div>
                   </article>
                 );

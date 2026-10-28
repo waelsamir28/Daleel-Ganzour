@@ -11705,3 +11705,46 @@ html.dark .center-schedule-day li em { background: color-mix(in srgb, var(--day-
 html.dark .center-schedule-editor { background: #1b1535; border-color: #6d55b5; }
 html.dark .center-schedule-editor legend { color: #e9ddff; }
 html.dark .center-schedule-row input { background: #0f1f33; border-color: #2d4a6e; color: #e2ecf7; }
+
+/* ===== المناوبات (الصيدليات والعيادات) — التنسيق الأفقي v3 مع QR ===== */
+.duty-grid-v3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; padding-top: 16px; }
+.duty-card-v3 { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 12px; padding: 16px 14px 12px; border: 1.5px solid #d7e6f4; border-radius: 18px; background: linear-gradient(180deg, #fff, #f7fbff); box-shadow: 0 6px 18px rgba(17, 57, 94, .06); cursor: pointer; text-align: start; transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease; }
+.duty-card-v3:hover, .duty-card-v3:focus-visible { transform: translateY(-2px); border-color: #9ec8ee; box-shadow: 0 12px 26px rgba(17, 57, 94, .12); outline: none; }
+.duty-card-v3 .duty-status-pill { inset-inline-start: 14px; max-width: calc(100% - 28px); }
+.duty-v3-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.duty-v3-title { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; color: #143a5e; font-size: 15.5px; font-weight: 900; line-height: 1.4; }
+.duty-v3-title > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.duty-v3-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; color: #647f98; font-size: 12px; font-weight: 700; line-height: 1.6; }
+.duty-v3-address { display: inline-flex; align-items: center; gap: 3px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.duty-v3-actions { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 6px; }
+.duty-v3-call { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 8px 12px; border-radius: 12px; border: 1.5px solid #0f6ecd; background: #0f6ecd; color: #fff; font: inherit; font-size: 13.5px; font-weight: 900; cursor: pointer; text-decoration: none; box-shadow: 0 6px 14px rgba(15, 110, 205, .25); transition: background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease; }
+.duty-v3-call .duty-v3-phone { font-size: 12.5px; font-weight: 800; opacity: .92; letter-spacing: .3px; }
+.duty-v3-call:hover, .duty-v3-call:focus-visible { background: #39ff14; border-color: #39ff14; color: #062b12; box-shadow: 0 0 0 4px rgba(57, 255, 20, .28), 0 8px 20px rgba(57, 255, 20, .45); transform: translateY(-1px); outline: none; }
+.duty-v3-call:hover .duty-v3-phone { opacity: 1; }
+.duty-v3-call:active { transform: translateY(0); }
+.duty-v3-call.is-locked { background: #4b6584; border-color: #4b6584; box-shadow: none; }
+.duty-v3-call.is-locked:hover { background: #39ff14; border-color: #39ff14; color: #062b12; }
+.duty-v3-wa { display: inline-grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; background: #25d366; color: #fff; border: 1.5px solid #25d366; text-decoration: none; box-shadow: 0 6px 14px rgba(37, 211, 102, .3); transition: transform .12s ease, filter .16s ease; }
+.duty-v3-wa:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.duty-v3-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex-shrink: 0; cursor: default; }
+.duty-v3-qr-frame { display: grid; place-items: center; padding: 5px; border-radius: 12px; background: #fff; border: 1.5px solid #cfe0f0; box-shadow: 0 4px 12px rgba(17, 57, 94, .10); }
+.duty-v3-qr-frame svg { display: block; width: 92px; height: 92px; border-radius: 6px; }
+.duty-v3-qr small { display: inline-flex; align-items: center; gap: 3px; color: #4b6584; font-size: 10px; font-weight: 800; white-space: nowrap; }
+@media (max-width: 560px) {
+  .duty-grid-v3 { grid-template-columns: 1fr; gap: 12px; }
+  .duty-card-v3 { gap: 10px; padding: 15px 12px 11px; }
+  .duty-v3-qr-frame svg { width: 84px; height: 84px; }
+  .duty-v3-title { font-size: 14.5px; }
+  .duty-v3-call { font-size: 13px; min-height: 40px; padding: 7px 10px; }
+  .duty-v3-call .duty-v3-phone { font-size: 11.5px; }
+  .duty-v3-wa { width: 40px; height: 40px; }
+}
+@media (max-width: 360px) { .duty-v3-qr-frame svg { width: 72px; height: 72px; } .duty-v3-qr small { display: none; } .duty-v3-call .duty-v3-phone { display: none; } }
+html.dark .duty-card-v3 { background: linear-gradient(180deg, #13273c, #0f2033); border-color: #27425f; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+html.dark .duty-card-v3:hover { border-color: #366596; }
+html.dark .duty-v3-title { color: #e4effa; }
+html.dark .duty-v3-sub { color: #8fa9c2; }
+html.dark .duty-v3-call { background: #1d74d4; border-color: #1d74d4; }
+html.dark .duty-v3-call:hover, html.dark .duty-v3-call:focus-visible { background: #39ff14; border-color: #39ff14; color: #062b12; }
+html.dark .duty-v3-qr-frame { border-color: #2b4a6b; }
+html.dark .duty-v3-qr small { color: #a9bdd4; }

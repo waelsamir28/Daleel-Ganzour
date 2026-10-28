@@ -4,64 +4,7 @@ import { useState, type CSSProperties } from "react";
 import { Award, Check, Clipboard, MapPin, MessageCircle, Phone, Printer, QrCode, Share2, ShieldCheck, Star, X } from "lucide-react";
 import { getServiceTrustBadges, whatsappUrl, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, Modal } from "@/components/ui";
-
-function DeterministicQrSvg({ value }: { value: string }) {
-  // Deterministic 21x21 QR-style matrix with standard finder patterns so it renders cleanly even offline.
-  const size = 21;
-  const cells: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
-
-  const drawFinder = (r0: number, c0: number) => {
-    for (let r = 0; r < 7; r++) {
-      for (let c = 0; c < 7; c++) {
-        const isBorder = r === 0 || r === 6 || c === 0 || c === 6;
-        const isInner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
-        cells[r0 + r][c0 + c] = isBorder || isInner;
-      }
-    }
-  };
-  drawFinder(0, 0);
-  drawFinder(0, size - 7);
-  drawFinder(size - 7, 0);
-
-  // Timing patterns
-  for (let i = 8; i < size - 8; i++) {
-    cells[6][i] = i % 2 === 0;
-    cells[i][6] = i % 2 === 0;
-  }
-
-  // Hash value into remaining modules
-  let hash = 2166136261;
-  for (let i = 0; i < value.length; i++) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const inFinder =
-        (r < 8 && c < 8) ||
-        (r < 8 && c >= size - 8) ||
-        (r >= size - 8 && c < 8) ||
-        r === 6 ||
-        c === 6;
-      if (inFinder) continue;
-      const seed = Math.imul(hash ^ (r * 31 + c * 17), 2654435761) >>> 0;
-      const charCode = value.charCodeAt((r * size + c) % Math.max(1, value.length)) || 7;
-      cells[r][c] = ((seed + charCode) & 3) === 0 || ((seed ^ charCode) & 5) === 1;
-    }
-  }
-
-  return (
-    <svg viewBox={`0 0 ${size + 2} ${size + 2}`} className="business-card-qr-svg" role="img" aria-label="رمز الاستجابة السريع QR">
-      <rect width={size + 2} height={size + 2} rx="1.5" fill="#ffffff" />
-      {cells.map((row, r) =>
-        row.map((filled, c) =>
-          filled ? <rect key={`${r}-${c}`} x={c + 1} y={r + 1} width={1} height={1} fill="#0c2238" rx="0.15" /> : null,
-        ),
-      )}
-    </svg>
-  );
-}
+import QrSvg from "@/components/qr-svg";
 
 export default function BusinessCardModal({
   service,
@@ -77,11 +20,9 @@ export default function BusinessCardModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
-  const [qrImgFailed, setQrImgFailed] = useState(false);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://daleel-ganzour.vercel.app";
   const directUrl = `${origin}/?service=${encodeURIComponent(service.id)}`;
-  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=6&data=${encodeURIComponent(directUrl)}`;
   const badges = getServiceTrustBadges(service, now);
   const score = Number.parseFloat(service.rating) || 0;
 
@@ -189,18 +130,7 @@ export default function BusinessCardModal({
 
             <div className="provider-business-card-qr-box">
               <div className="provider-business-card-qr-frame">
-                {!qrImgFailed ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- External QR image with automatic SVG fallback
-                  <img
-                    src={qrApiUrl}
-                    alt={`رمز QR لـ ${service.name}`}
-                    width={140}
-                    height={140}
-                    onError={() => setQrImgFailed(true)}
-                  />
-                ) : (
-                  <DeterministicQrSvg value={directUrl} />
-                )}
+                <QrSvg value={directUrl} size={140} className="business-card-qr-svg" label={`رمز QR لـ ${service.name}`}/>
               </div>
               <span className="provider-business-card-qr-caption">
                 <QrCode size={13} /> امسح الرمز لفتح الكارت
