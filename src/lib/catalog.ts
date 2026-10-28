@@ -2635,9 +2635,23 @@ export function stickerIconUrl(categoryId: string) { return `/images/specialty-s
 /** رابط الأيقونة المرفوعة من الإدارة؛ يحمل رقم النسخة ليُخزَّن في المتصفح بأمان. */
 export function categoryImageUrl(category: Pick<CategoryRecord, "id" | "imageVersion">) { return `/api/category-icon/${category.id}?v=${category.imageVersion ?? 0}`; }
 /** الصورة التي تمثّل التصنيف بالملصقات: المرفوعة أولًا ثم الجاهزة، وإلا فارغ (يرجع للرسم اليدوي/التلقائي). */
-export function categoryStickerSrc(category: Pick<CategoryRecord, "id" | "imageVersion">): string {
+export function categoryStickerSrc(category: Pick<CategoryRecord, "id" | "imageVersion"> & { name?: string }): string {
   if (category.imageVersion) return categoryImageUrl(category);
-  return hasStickerIcon(category.id) ? stickerIconUrl(category.id) : "";
+  if (hasStickerIcon(category.id)) return stickerIconUrl(category.id);
+  const byName = category.name ? stickerIdForName(category.name) : "";
+  return byName ? stickerIconUrl(byName) : "";
+}
+/** ملصقات إضافية غير مرتبطة بتخصص مُضمَّن (تُستخدم عبر مطابقة الاسم فقط). */
+const extraStickerIds = ["computer-services"] as const;
+/** مطابقة ملصق جاهز حسب اسم التخصص — للتخصصات التي أنشأها الأدمن بمعرّف عشوائي ولم يرفع لها أيقونة. */
+const stickerNameHints: [string, RegExp][] = [
+  ["mobile-shops", /موبايل|هواتف|هاتف|محمول|تليفون/],
+  ["computer-services", /كمبيوتر|حاسب|حاسوب|لاب ?توب/],
+  ["cameras", /كاميرا|مراقبة/],
+];
+export function stickerIdForName(name: string): string {
+  for (const [id, pattern] of stickerNameHints) if (pattern.test(name) && (hasStickerIcon(id) || (extraStickerIds as readonly string[]).includes(id))) return id;
+  return "";
 }
 /** صورة معاينة المشاركة (واتساب/فيسبوك) للقسم أو التخصص: ملصقه + اسمه، تُولَّد بـ scripts/make-category-og.cjs (نفس هوية og-style.cjs). فارغ = تُستخدم صورة الدليل العامة. */
 export const OG_IMAGE_VERSION = 2;
