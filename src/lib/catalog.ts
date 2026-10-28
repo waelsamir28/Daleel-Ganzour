@@ -2546,8 +2546,8 @@ export function categoryStickerSrc(category: Pick<CategoryRecord, "id" | "imageV
   if (category.imageVersion) return categoryImageUrl(category);
   return hasStickerIcon(category.id) ? stickerIconUrl(category.id) : "";
 }
-/** صورة معاينة المشاركة (واتساب/فيسبوك) للقسم أو التخصص: ملصقه + اسمه، تُولَّد بـ scripts/og-build.py. فارغ = تُستخدم صورة الدليل العامة. */
-export const OG_IMAGE_VERSION = 1;
+/** صورة معاينة المشاركة (واتساب/فيسبوك) للقسم أو التخصص: ملصقه + اسمه، تُولَّد بـ scripts/make-category-og.cjs (نفس هوية og-style.cjs). فارغ = تُستخدم صورة الدليل العامة. */
+export const OG_IMAGE_VERSION = 2;
 export function categoryOgImage(categoryId: string, name: string) {
   if (!hasStickerIcon(categoryId)) return undefined;
   return [{ url: `/images/og/${categoryId}.jpg?v=${OG_IMAGE_VERSION}`, width: 1200, height: 630, type: "image/jpeg", alt: `${name} — دليل المهن والخدمات بقرية جنزور` }];
