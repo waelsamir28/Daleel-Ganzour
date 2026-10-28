@@ -7,6 +7,7 @@ import { apiError, InputError, objectInput, serviceInput } from "@/lib/inputs";
 import { rateLimit } from "@/lib/validation";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { directoryForViewer } from "@/lib/membership-gate";
+import { saveServicePhoto } from "@/lib/service-photo";
 
 export const dynamic = "force-dynamic";
 export async function GET() {
@@ -23,10 +24,11 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
     const viewer = await getViewer();
     if (viewer.role === "guest") throw new InputError("سجّل عضويتك أولًا لتتمكن من إضافة مهنتك.", 401);
     const body = objectInput(await request.json());
-    const values = await serviceInput(body);
+    const { photo, ...values } = await serviceInput(body);
     const token = randomBytes(32).toString("hex");
     const service = await db.transaction(async (tx) => {
       const [created] = await tx.insert(services).values({ ...values, status: "pending", verified: false, featured: false, demo: false }).returning({ id: services.id, status: services.status });
+      await saveServicePhoto(tx, created.id, photo);
       await tx.insert(submissionTracking).values({ serviceId: created.id, tokenHash: createHash("sha256").update(token).digest("hex") });
       await tx.insert(notifications).values({ type: "service", title: "طلب مهنة جديد بانتظارك", message: `${values.name} أرسل طلب إضافة خدمة • ${values.phone}. راجع البيانات قبل النشر.`, entityId: created.id });
       return created;

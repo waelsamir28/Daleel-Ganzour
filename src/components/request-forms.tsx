@@ -5,6 +5,7 @@ import { Check, CheckCircle2, CirclePlus, Clock3, LoaderCircle, MapPin, ShieldCh
 import { areas, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import { StickerIcon } from "@/components/ui";
+import AvatarPicker from "@/components/avatar-picker";
 
 const CLINIC_SCHEDULE_CHIPS = [
   CLINIC_APPOINTMENT_TAG,
@@ -32,6 +33,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   const [shopItems, setShopItems] = useState<string[]>([]);
   const [customShopItem, setCustomShopItem] = useState("");
   const [homeDelivery, setHomeDelivery] = useState(false);
+  const [photo, setPhoto] = useState<string | null | undefined>(undefined);
   const knownArea = areaOptions.some((item) => item.name === initialArea);
   const [area, setArea] = useState(initialArea ? (knownArea ? initialArea : OTHER_ADDRESS) : "");
   function toggleClinicTag(tag: string) {
@@ -63,6 +65,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
           emergency: form.get("emergency") === "on",
           subSpecialties,
           serviceItems,
+          ...(photo ? { photo } : {}),
         }),
       });
       const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "تعذر إرسال الطلب.");
@@ -93,7 +96,8 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
       <label className="field">رقم الهاتف / واتساب <span className="required">*</span><input name="phone" type="tel" inputMode="tel" dir="ltr" placeholder="01xxxxxxxxx" required maxLength={16}/></label>
       <label className="field">رقم هاتف إضافي<input name="phoneSecondary" type="tel" inputMode="tel" dir="ltr" placeholder="اختياري" maxLength={16}/></label>
     </div>
-    <label className="field">وصف الخدمة <span className="required">*</span><textarea name="description" placeholder="عرّف أهل جنزور بالخدمة اللي بتقدمها وخبرتك..." required minLength={10} maxLength={1000} rows={2}/></label>
+    <label className="field field-description"><span className="field-label-green">وصف الخدمة</span> <small className="field-optional">(اختياري — لو سيبته فاضي هنكتب وصفًا مناسبًا لمهنتك)</small><textarea name="description" placeholder="عرّف أهل جنزور بالخدمة اللي بتقدمها وخبرتك..." maxLength={1000} rows={2}/></label>
+    <AvatarPicker value={photo} onChange={setPhoto}/>
     {root === "clinics" && (
       <div className="field clinic-schedule-picker">
         <span>🩺 نظام الكشف وأيام التواجد في العيادة بجنزور (اختر ما يناسبك):</span>

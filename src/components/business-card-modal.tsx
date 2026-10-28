@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 import { Award, Check, Clipboard, MapPin, MessageCircle, Phone, Printer, QrCode, Share2, ShieldCheck, Star, X } from "lucide-react";
-import { getServiceTrustBadges, whatsappUrl, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
+import { getServiceTrustBadges, servicePhotoUrl, whatsappUrl, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, Modal } from "@/components/ui";
 import QrSvg from "@/components/qr-svg";
 
@@ -65,7 +65,7 @@ export default function BusinessCardModal({
     >
       <div className="business-card-modal-wrap circle-host">
         <article
-          className="provider-business-card"
+          className="provider-business-card provider-business-card-v2"
           style={{ "--cat": category.color, "--cat-light": category.light } as CSSProperties}
         >
           <div className="provider-business-card-ribbon">
@@ -82,6 +82,10 @@ export default function BusinessCardModal({
           <div className="provider-business-card-body">
             <div className="provider-business-card-info">
               <div className="provider-business-card-title-row">
+                <span className={`provider-business-card-avatar ${servicePhotoUrl(service) ? "has-photo" : ""}`} aria-hidden="true">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {servicePhotoUrl(service) ? <img src={servicePhotoUrl(service)} alt="" /> : <CategoryIcon icon={category.icon} size={22} />}
+                </span>
                 <h3>{service.name}</h3>
                 {service.verified && (
                   <span className="provider-business-card-verified">

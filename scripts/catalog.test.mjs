@@ -1233,3 +1233,12 @@ test("village stats count only approved non-demo services and never expose phone
   assert.ok(!JSON.stringify(stats).includes("01000000000"));
   assert.match(villageStatsShareText(stats, "دليل جنزور", "https://x.test/stats"), /3 مهني[\s\S]*https:\/\/x\.test\/stats$/);
 });
+
+test("provider photo url carries the version for cache busting and demolition specialties get the new sticker by name", () => {
+  assert.equal(catalog.servicePhotoUrl({ id: "abc", photoVersion: 0 }), "");
+  assert.equal(catalog.servicePhotoUrl({ id: "abc", photoVersion: 3 }), "/api/service-photo/abc?v=3");
+  assert.equal(catalog.stickerIdForName("الهدم والتكسير"), "demolition");
+  assert.equal(catalog.stickerIdForName("هدم وتكسير وحفر"), "demolition");
+  assert.equal(catalog.categoryStickerSrc({ id: "import-xyz", name: "الهدم والتكسير" }), "/images/specialty-stickers/demolition.webp");
+  assert.ok(existsSync(new URL("../public/images/specialty-stickers/demolition.webp", import.meta.url)));
+});

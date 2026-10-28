@@ -91,6 +91,8 @@ export async function ensureSeed() {
       await tx.execute(sql`UPDATE directory_services SET confirmed_at = created_at WHERE confirmed_at IS NULL`);
       await tx.execute(sql`ALTER TABLE directory_services ALTER COLUMN confirmed_at SET DEFAULT now()`);
       await tx.execute(sql`ALTER TABLE directory_services ALTER COLUMN confirmed_at SET NOT NULL`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS photo_version integer NOT NULL DEFAULT 0`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_photos (service_id uuid PRIMARY KEY REFERENCES directory_services(id) ON DELETE CASCADE, mime varchar(60) NOT NULL DEFAULT 'image/webp', data text NOT NULL DEFAULT '', updated_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_ad_banners (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title varchar(120) NOT NULL, caption varchar(240) NOT NULL DEFAULT '', service_id uuid REFERENCES directory_services(id) ON DELETE SET NULL, whatsapp varchar(24) NOT NULL DEFAULT '', active boolean NOT NULL DEFAULT true, starts_at timestamptz, ends_at timestamptz, sort_order integer NOT NULL DEFAULT 0, duration_seconds integer NOT NULL DEFAULT 6, image_mime varchar(60) NOT NULL DEFAULT 'image/gif', image_data text NOT NULL DEFAULT '', image_version integer NOT NULL DEFAULT 1, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS template varchar(40) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS transition varchar(20) NOT NULL DEFAULT 'random'`);

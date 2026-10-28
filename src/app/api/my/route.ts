@@ -7,6 +7,8 @@ import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { sameOrigin } from "@/lib/auth";
 import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseCenterSchedule, parseServiceOffer, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
+import { parsePhotoInput, saveServicePhoto } from "@/lib/service-photo";
+import { serviceDescriptionVariant } from "@/lib/service-description";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +40,13 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
     }
 
     if (body.action === "quick") {
-      const description = cleanText(body.description ?? service.description, 1000);
+      let description = cleanText(body.description ?? service.description, 1000);
       const hours = cleanText(body.hours ?? service.hours, 120);
-      if (description.length < 10) throw new InputError("اكتب وصفًا لا يقل عن ١٠ أحرف.");
+      // الوصف اختياري: إن تُرك فارغًا نولّد وصفًا مناسبًا للمهنة بدل رفض الحفظ.
+      if (description.length < 10) {
+        const [cat] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, service.category)).limit(1);
+        description = serviceDescriptionVariant(service.category, cat?.name ?? "", `${service.phone}:${service.name}`);
+      }
       let workingHours, serviceItems: string[], schedule;
       try {
         workingHours = parseWorkingHours(body.workingHours ?? service.workingHours);
@@ -76,6 +82,15 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       }
       const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
       return Response.json({ ok: true, service: serializeService(updated), message: offer.offerTitle ? "تم نشر العرض على بطاقتك وفي «عروض الأسبوع» بالصفحة الرئيسية." : "تم إلغاء العرض." });
+    }
+
+    // photo: رفع/تغيير/حذف الصورة الشخصية (مقصوصة ومضغوطة في المتصفح؛ null = حذف).
+    if (body.action === "photo") {
+      const photo = parsePhotoInput(body.photo ?? null);
+      await saveServicePhoto(db, service.id, photo);
+      await db.update(services).set({ confirmedAt: new Date() }).where(eq(services.id, service.id));
+      const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
+      return Response.json({ ok: true, service: serializeService(updated), message: photo ? "تم حفظ صورتك وظهورها على بطاقتك فورًا." : "تم حذف الصورة الشخصية." });
     }
 
     if (body.action === "confirm") {

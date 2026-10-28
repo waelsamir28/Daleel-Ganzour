@@ -6,6 +6,7 @@ import { getViewer, sameOrigin } from "@/lib/auth";
 import { ICON_LIMITS, autoTransparentKey, designImageLimits, optimizeStoredImage, removeFlatBackground } from "@/lib/image-optimize";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
+import { saveServicePhoto } from "@/lib/service-photo";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isDesignImageKey, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, parseDesignImageDataUrl, designImageUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
@@ -183,8 +184,9 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
     } else if (body.type === "event") {
       await db.insert(villageEvents).values(eventInput(values));
     } else if (body.type === "service") {
-      const basics = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
-      await db.insert(services).values({ ...basics, ...availabilityInput(values.availabilityAction), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false });
+      const { photo, ...basics } = await serviceInput(values, true), status = statusInput(values.status ?? "pending");
+      const [createdService] = await db.insert(services).values({ ...basics, ...availabilityInput(values.availabilityAction), status, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: false }).returning({ id: services.id });
+      await saveServicePhoto(db, createdService.id, photo);
     } else throw new InputError("نوع الإضافة غير صحيح.");
     await logActivity(actor, "POST", body, activityLabel);
     return Response.json({ ok: true, ...(await getAdminDirectory(role)) }, { status: 201 });
@@ -295,12 +297,13 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
       const [existing] = await db.select().from(services).where(eq(services.id, id));
       if (!existing) throw new InputError("الخدمة غير موجودة.", 404);
       if (action === "edit") {
-        const values = objectInput(body.values), basics = await serviceInput(values, true), status = statusInput(values.status);
+        const values = objectInput(body.values), { photo, ...basics } = await serviceInput(values, true), status = statusInput(values.status);
+        await saveServicePhoto(db, id, photo);
         const reviewNote = cleanText(values.reviewNote || existing.reviewNote, 1000);
         if ((status === "rejected" || status === "needs-info") && reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوبة.");
         await db.update(services).set({ ...basics, ...availabilityInput(values.availabilityAction, existing), status, reviewNote: status === "approved" || status === "pending" ? "" : reviewNote, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: typeof values.demo === "boolean" ? values.demo : existing.demo }).where(eq(services.id, id));
       } else if (action === "approve") {
-        await serviceInput({ ...existing }, false);
+        await serviceInput({ ...existing, photo: undefined }, false);
         await db.update(services).set({ status: "approved", verified: true, reviewNote: "" }).where(eq(services.id, id));
       } else if (action === "reject" || action === "request-info") {
         const reviewNote = cleanText(body.reviewNote ?? "", 1000);

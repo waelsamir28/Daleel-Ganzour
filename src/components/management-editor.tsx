@@ -2,11 +2,12 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { AlertCircle, Check, CirclePlus, ImageUp, LoaderCircle, Save, Sparkles, Trash2 } from "lucide-react";
-import { activeOffer, offerDaysLeft, OFFER_MAX_DAYS, categoryArt, categoryArtOptions, categoryStageIds, categoryStickerSrc, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CenterSchedule, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
+import { activeOffer, offerDaysLeft, OFFER_MAX_DAYS, servicePhotoUrl, categoryArt, categoryArtOptions, categoryStageIds, categoryStickerSrc, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CenterSchedule, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import { CategoryIcon, MainCategoryIcon, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import CenterScheduleEditor from "@/components/center-schedule-editor";
 import { shrinkImageFile } from "@/lib/client-image";
+import AvatarPicker from "@/components/avatar-picker";
 
 export type EntityKind = "service" | "category" | "area" | "member";
 export type EditorState = { kind: EntityKind; item?: ServiceRecord | CategoryRecord | AreaRecord | MemberRecord; parentId?: string };
@@ -63,6 +64,7 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
   const [scheduleVal, setScheduleVal] = useState<CenterSchedule>(editing.kind === "service" ? (record.schedule ?? []) : []);
   const existingOffer = editing.kind === "service" ? activeOffer(record as ServiceRecord) : null;
   const [offerTitle, setOfferTitle] = useState(existingOffer?.title ?? "");
+  const [photo, setPhoto] = useState<string | null | undefined>(undefined);
   const [offerDetails, setOfferDetails] = useState(existingOffer?.details ?? "");
   const [offerDays, setOfferDays] = useState(existingOffer ? offerDaysLeft(existingOffer) : 7);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -82,6 +84,7 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
     }
     try {
       if (editing.kind === "service") values.workingHours = record.workingHours ?? [];
+      if (editing.kind === "service" && photo !== undefined) values.photo = photo;
       if (editing.kind === "service") values.serviceItems = String(form.get("serviceItems") ?? "").split("\n").map((item) => item.trim()).filter(Boolean);
       if (editing.kind === "service") values.subSpecialties = String(form.get("subSpecialties") ?? "").split("\n").map((item) => item.trim()).filter(Boolean);
       if (editing.kind === "service" && record.status === "needs-info") values.status = "needs-info";
@@ -124,8 +127,9 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
         <input name="phoneSecondary" value={phoneSecondaryVal} onChange={(event) => setPhoneSecondaryVal(event.target.value)} type="tel" dir="ltr" maxLength={16}/>
         {phoneVal && <div className="field-suggestions"><span className="field-suggestions-label"><Sparkles size={12}/>اقتراح سريع:</span><button type="button" className={`suggestion-chip ${phoneSecondaryVal === phoneVal ? "is-selected" : ""}`} onClick={() => setPhoneSecondaryVal(phoneVal)}><CirclePlus size={12}/>نفس الرقم الأساسي للواتساب ({phoneVal})</button></div>}
       </label>
-      <label className="field">وصف الخدمة
-        <textarea name="description" value={descriptionVal} onChange={(event) => setDescriptionVal(event.target.value)} required minLength={10} maxLength={1000} rows={3}/>
+      <AvatarPicker value={photo} currentUrl={record.id ? servicePhotoUrl({ id: record.id, photoVersion: record.photoVersion }) : ""} onChange={setPhoto}/>
+      <label className="field"><span className="field-label-green">وصف الخدمة</span> <small className="field-optional">(اختياري — يُنشأ تلقائيًا إن تُرك فارغًا)</small>
+        <textarea name="description" value={descriptionVal} onChange={(event) => setDescriptionVal(event.target.value)} maxLength={1000} rows={3}/>
         <div className="field-suggestions" aria-label="اقتراحات وصف الخدمة">
           <span className="field-suggestions-label"><Sparkles size={12}/>اقتراحات جاهزة لوصف المهنة:</span>
           {suggestions.descriptions.map((item) => <button key={item} type="button" className={`suggestion-chip ${descriptionVal === item ? "is-selected" : ""}`} onClick={() => setDescriptionVal(item)}><CirclePlus size={12}/>{item}</button>)}
