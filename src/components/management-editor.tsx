@@ -34,7 +34,7 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
   // أيقونة مرفوعة من الجهاز: "" = بلا تغيير، data URL = رفع/استبدال، "__remove__" = حذف المرفوعة الحالية.
   const [iconImage, setIconImage] = useState("");
   const [iconError, setIconError] = useState("");
-  const currentSticker = iconImage && iconImage !== "__remove__" ? iconImage : iconImage === "__remove__" ? "" : categoryStickerSrc({ id: record.id ?? "", imageVersion: record.imageVersion });
+  const currentSticker = iconImage && iconImage !== "__remove__" ? iconImage : iconImage === "__remove__" ? "" : categoryStickerSrc({ id: record.id ?? "", imageVersion: record.imageVersion, name: record.name });
   async function pickIconFile(file: File | null) {
     setIconError("");
     if (!file) return;

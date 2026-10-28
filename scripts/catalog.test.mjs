@@ -1160,3 +1160,14 @@ test("center schedule is validated, grouped from Saturday and rendered as sharea
   assert.match(text, /رياضيات \(ثانوي\) — أ. محمد/);
   assert.match(text, /https:\/\/example\.test$/);
 });
+
+test("admin-created specialties get a sticker by name when they have no id-based or uploaded icon", () => {
+  const { categoryStickerSrc, stickerIdForName } = catalog;
+  assert.equal(stickerIdForName("خدمات الكمبيوتر"), "computer-services");
+  assert.equal(stickerIdForName("خدمات الموبايل"), "mobile-shops");
+  assert.equal(stickerIdForName("كاميرات المراقبة داخل المحلات"), "cameras");
+  assert.equal(stickerIdForName("ملابس أطفال"), "");
+  assert.equal(categoryStickerSrc({ id: "9f1c-uuid", imageVersion: 0, name: "خدمات الكمبيوتر" }), "/images/specialty-stickers/computer-services.webp");
+  assert.equal(categoryStickerSrc({ id: "mobile-shops", imageVersion: 0, name: "خدمات الكمبيوتر" }), "/images/specialty-stickers/mobile-shops.webp", "id match wins over name");
+  assert.equal(categoryStickerSrc({ id: "9f1c-uuid", imageVersion: 3, name: "خدمات الكمبيوتر" }), "/api/category-icon/9f1c-uuid?v=3", "uploaded icon wins");
+});

@@ -37,7 +37,7 @@ export function StickerIcon({ src, size, className = "" }: { src: string; size: 
   // eslint-disable-next-line @next/next/no-img-element -- أيقونة صغيرة ثابتة الحجم بدون تحسين next/image
   return <img src={src} alt="" width={size} height={size} className={`specialty-sticker ${className}`} style={{ width: size, height: size }} loading="lazy" decoding="async" draggable={false} aria-hidden="true"/>;
 }
-export type SpecialtyIconCategory = { id: string; icon: string; color?: string; art?: string; imageVersion?: number };
+export type SpecialtyIconCategory = { id: string; icon: string; color?: string; art?: string; imageVersion?: number; name?: string };
 export function SpecialtyIcon({ category, size = 35, art3d = false, sticker = false, className = "" }: { category: SpecialtyIconCategory; size?: number; art3d?: boolean; sticker?: boolean; className?: string }) {
   const stickerSrc = sticker ? categoryStickerSrc(category) : "";
   if (stickerSrc) return <StickerIcon src={stickerSrc} size={size} className={className}/>;
