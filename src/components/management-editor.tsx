@@ -2,9 +2,10 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { AlertCircle, Check, CirclePlus, ImageUp, LoaderCircle, Save, Sparkles, Trash2 } from "lucide-react";
-import { categoryArt, categoryArtOptions, categoryStageIds, categoryStickerSrc, TEACHER_STAGES, TEACHERS_ROOT_ID, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
+import { categoryArt, categoryArtOptions, categoryStageIds, categoryStickerSrc, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CenterSchedule, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import { CategoryIcon, MainCategoryIcon, SpecialtyIcon, StickerIcon } from "@/components/ui";
+import CenterScheduleEditor from "@/components/center-schedule-editor";
 import { shrinkImageFile } from "@/lib/client-image";
 
 export type EntityKind = "service" | "category" | "area" | "member";
@@ -59,11 +60,13 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
   const suggestions = getCompletionFieldSuggestions(specialty || root, data.categories, nameVal, area);
 
   const [categoryStages, setCategoryStages] = useState<string[]>(categoryStageIds({ stages: record.stages ?? "" }));
+  const [scheduleVal, setScheduleVal] = useState<CenterSchedule>(editing.kind === "service" ? (record.schedule ?? []) : []);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget), values: Record<string, unknown> = Object.fromEntries(form);
     for (const key of ["verified", "featured", "emergency", "active", "demo"]) values[key] = form.get(key) === "on";
     if (editing.kind === "category") values.stages = categoryStages;
+    if (editing.kind === "service") { delete values.schedule; if (values.category === TEACHER_CENTER_ID) values.schedule = scheduleVal; }
     try {
       if (editing.kind === "service") values.workingHours = record.workingHours ?? [];
       if (editing.kind === "service") values.serviceItems = String(form.get("serviceItems") ?? "").split("\n").map((item) => item.trim()).filter(Boolean);
@@ -141,6 +144,7 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
           {suggestions.subSpecialties.map((item) => <button key={item} type="button" className={`suggestion-chip ${hasLineItem(subSpecVal, item) ? "is-selected" : ""}`} onClick={() => setSubSpecVal((curr) => toggleLineItem(curr, item))}>{hasLineItem(subSpecVal, item) ? <Check size={12}/> : <CirclePlus size={12}/>}{item}</button>)}
         </div>
       </label>
+      {specialty === TEACHER_CENTER_ID && <CenterScheduleEditor value={scheduleVal} onChange={setScheduleVal} subjects={teacherSubjects(data.categories).map((subject) => subject.name)}/>}
       <label className="field">ترتيب الأكثر احتياجًا<input name="neededRank" type="number" min={0} max={1000} defaultValue={record.neededRank ?? 0}/><small>٠ للاستبعاد؛ الرقم الأصغر يظهر أولًا.</small></label>
       <label className="field">الخدمات التفصيلية
         <textarea name="serviceItems" value={serviceItemsVal} onChange={(event) => setServiceItemsVal(event.target.value)} rows={5} maxLength={2020} placeholder={"صيانة\nتركيب\nكشف"}/>

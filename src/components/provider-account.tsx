@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { BadgeCheck, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, ShieldCheck, Star, XCircle, Zap } from "lucide-react";
-import { AVAILABILITY_HOURS, centerSubjectNames, getCategory, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
+import { AVAILABILITY_HOURS, centerSubjectNames, getCategory, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
+import CenterScheduleEditor from "@/components/center-schedule-editor";
+import CenterScheduleView from "@/components/center-schedule-view";
 import { SpecialtyIcon, StickerIcon } from "@/components/ui";
 
 type Props = { token: string; initial: ServiceRecord; categories: CategoryRecord[]; areas: string[] };
@@ -43,6 +45,8 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   const isCenter = category.id === TEACHER_CENTER_ID;
   const [subjects, setSubjects] = useState<string[]>(centerSubjectNames(initial, categories));
   const subjectOptions = useMemo(() => teacherSubjects(categories), [categories]);
+  const [schedule, setSchedule] = useState<CenterSchedule>(initial.schedule ?? []);
+  const [schedulePreview, setSchedulePreview] = useState(false);
   // قسم البيانات الحساسة
   const [name, setName] = useState(initial.name);
   const [phone, setPhone] = useState(initial.phone);
@@ -73,7 +77,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
     let workingHours: unknown = [];
     try { workingHours = JSON.parse(String(form.get("workingHours") || "[]")); } catch { workingHours = []; }
     const serviceItems = items.split(/[،,\n]/).map((item) => item.trim()).filter(Boolean);
-    void call("quick", { description, hours, workingHours, serviceItems, emergency, ...(isTeacher ? { stages } : {}), ...(isCenter ? { subjects } : {}) });
+    void call("quick", { description, hours, workingHours, serviceItems, emergency, ...(isTeacher ? { stages } : {}), ...(isCenter ? { subjects, schedule } : {}) });
   }
 
   function submitRequest(event: FormEvent<HTMLFormElement>) {
@@ -126,6 +130,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       <label className="my-field">مواعيد العمل (نص مختصر)<input value={hours} onChange={(event) => setHours(event.target.value)} maxLength={120} placeholder="مثال: يوميًا من ٩ صباحًا حتى ١٠ مساءً عدا الجمعة"/></label>
       <WorkingHoursEditor initial={service.workingHours}/>
       {isCenter && <div className="my-field"><span>📚 المواد المتاحة في السنتر (تظهر على بطاقتك ويظهر السنتر في صفحة كل مادة)</span><div className="field-suggestions" aria-label="مواد السنتر">{subjectOptions.map((subject) => <button key={subject.id} type="button" className={`suggestion-chip ${subjects.includes(subject.name) ? "is-selected" : ""}`} onClick={() => setSubjects((curr) => curr.includes(subject.name) ? curr.filter((item) => item !== subject.name) : [...curr, subject.name])}>{subjects.includes(subject.name) ? "✓ " : "+ "}{subject.name}</button>)}</div></div>}
+      {isCenter && <div className="my-field"><CenterScheduleEditor value={schedule} onChange={setSchedule} subjects={subjects.length ? subjects : subjectOptions.map((subject) => subject.name)}/>{schedule.length > 0 && <><button type="button" className="button button-soft" onClick={() => setSchedulePreview((open) => !open)}>{schedulePreview ? "إخفاء المعاينة" : "معاينة الجدول ومشاركته صورة"}</button>{schedulePreview && <CenterScheduleView name={service.name} schedule={schedule}/>}</>}</div>}
       {isTeacher && <div className="my-field stage-picker-field"><span>🎓 المراحل التي أدرّسها (تظهر على بطاقتك وتحدد أين يجدك الطلاب)</span><div className="stage-picker-options" aria-label="المراحل الدراسية">{TEACHER_STAGES.map((stage) => <label key={stage.id} className={`stage-picker-option ${stages.includes(stage.id) ? "is-selected" : ""}`} style={{ "--stage-color": stage.color } as CSSProperties}><input type="checkbox" checked={stages.includes(stage.id)} onChange={() => setStages((curr) => curr.includes(stage.id) ? curr.filter((id) => id !== stage.id) : [...curr, stage.id])}/><StickerIcon src={stage.sticker} size={38}/><span>{stage.name}</span></label>)}</div><small>لو لم تحدد مرحلة ستظهر في كل المراحل.</small></div>}
       <label className="my-check"><input type="checkbox" checked={emergency} onChange={(event) => setEmergency(event.target.checked)}/>أستقبل حالات الطوارئ خارج المواعيد</label>
       <button type="submit" className="availability-renew is-blue" disabled={busy !== ""}>{busy === "quick" ? <LoaderCircle size={20} className="spin"/> : <CheckCircle2 size={20}/>} حفظ ونشر فورًا</button>
