@@ -16,6 +16,24 @@ export function serviceWhatsappMessage(service: { name: string }, specialty: str
 }
 
 export const specialtySynonyms: Record<string, string[]> = {
+  "tch-arabic": ["عربي", "نحو", "بلاغة", "قراءة", "إملاء", "تعبير", "مدرس عربي"],
+  "tch-english": ["إنجليزي", "انجليزي", "English", "قواعد", "محادثة", "لغة"],
+  "tch-math": ["ماث", "حساب", "جبر", "هندسة", "تفاضل", "تكامل", "إحصاء", "math"],
+  "tch-science": ["ساينس", "علوم", "science"],
+  "tch-social": ["دراسات", "تاريخ", "جغرافيا", "اجتماعيات"],
+  "tch-religion": ["دين", "قرآن", "تحفيظ", "تجويد", "تربية إسلامية"],
+  "tch-foundation": ["تأسيس", "كي جي", "KG", "روضة", "صعوبات تعلم", "حضانة"],
+  "tch-french": ["فرنساوي", "فرنسي", "French", "لغة ثانية"],
+  "tch-german": ["ألماني", "الماني", "German", "لغة ثانية"],
+  "tch-computer": ["كمبيوتر", "حاسب", "برمجة", "ICT", "تكنولوجيا"],
+  "tch-physics": ["فيزياء", "physics", "ميكانيكا", "كهربية"],
+  "tch-chemistry": ["كيمياء", "chemistry", "عضوية"],
+  "tch-biology": ["أحياء", "احياء", "biology", "وراثة"],
+  "tch-geology": ["جيولوجيا", "علوم بيئة", "geology"],
+  "tch-philosophy": ["فلسفة", "منطق"],
+  "tch-psychology": ["علم نفس", "اجتماع"],
+  "tch-history": ["تاريخ"],
+  "tch-geography": ["جغرافيا"],
   plumbing: ["موتور مياه", "ماتور مياه", "حنفيه", "مواسير", "صرف", "تسريب", "تسرب", "سخان", "فلتر", "بلاعه", "خلاط مياه", "قاعده حمام", "حوض", "سباك", "بتنقط", "تنقط", "تنقيط", "بتسرب", "ميه"],
   electricity: ["قفله", "فيشه", "لمبه", "عداد", "كابل", "لوحه", "شورت", "مفتاح كهرباء", "اناره", "نجفه", "سلك", "كهربائي"],
   carpentry: ["باب خشب", "شباك خشب", "غرفه نوم", "مطبخ خشب", "مفصله", "كالون", "سرير", "دولاب", "نيش", "نجار", "عفش"],
@@ -368,6 +386,13 @@ export function serviceStageIds(service: Pick<ServiceRecord, "subSpecialties">):
 export function serviceInStage(service: Pick<ServiceRecord, "subSpecialties">, stageId: TeacherStageId): boolean {
   const ids = serviceStageIds(service);
   return !ids.length || ids.includes(stageId);
+}
+/** يستبدل وسوم المراحل داخل «التخصصات الفرعية» بالمراحل المختارة ويحافظ على باقي الوسوم. */
+export function withServiceStages(subSpecialties: string[], stageIds: unknown): string[] {
+  const chosen = normalizeStages(stageIds).split(",").filter(Boolean);
+  const stageNames = TEACHER_STAGES.map((stage) => normalizeSearch(stage.name));
+  const rest = (subSpecialties ?? []).filter((item) => !stageNames.includes(normalizeSearch(item)));
+  return [...TEACHER_STAGES.filter((stage) => chosen.includes(stage.id)).map((stage) => stage.name), ...rest].slice(0, 20);
 }
 export function stageHref(rootId: string, stageId: TeacherStageId | null | undefined, specialtyId?: string): string {
   return `/categories/${rootId}${specialtyId ? `/${specialtyId}` : ""}${stageId ? `?stage=${stageId}` : ""}`;
@@ -2558,6 +2583,8 @@ export const stickerIconIds = [
   "community-pharmacies", "night-pharmacies", "medical-supplies",
   // الحلاقة والتجميل (القسم + 3)
   "beauty", "barbers", "hairdressers", "makeup",
+  // مواد المدرسين
+  "tch-arabic", "tch-english", "tch-math", "tch-science", "tch-social", "tch-physics", "tch-chemistry", "tch-biology", "tch-french", "tch-religion",
   // الطباعة والدعاية: التصميم الجرافيكي (مقصوص من المرجع)
   "graphic-design",
   // الأفراح والمناسبات (القسم + 3؛ التصوير أعلاه)
@@ -2719,6 +2746,24 @@ const sectionDescriptions: Record<string, string> = {
 };
 
 const specialtyDescriptions: Record<string, string> = {
+  "tch-arabic": "مدرسو اللغة العربية لكل المراحل: نحو وبلاغة وقراءة وتعبير وإملاء، مع متابعة الواجبات والاختبارات.",
+  "tch-english": "مدرسو اللغة الإنجليزية: قواعد ومحادثة وقراءة واستعداد للامتحانات لكل المراحل الدراسية.",
+  "tch-math": "مدرسو الرياضيات: حساب وجبر وهندسة وتفاضل وتكامل وإحصاء حسب المرحلة الدراسية.",
+  "tch-science": "مدرسو العلوم للمرحلتين الابتدائية والإعدادية: شرح مبسط وتجارب وأسئلة الامتحانات.",
+  "tch-social": "مدرسو الدراسات الاجتماعية (تاريخ وجغرافيا) للمرحلتين الابتدائية والإعدادية.",
+  "tch-religion": "مدرسو التربية الدينية وتحفيظ القرآن الكريم والتجويد لكل الأعمار.",
+  "tch-foundation": "تأسيس الأطفال في القراءة والكتابة والحساب وعلاج صعوبات التعلم ومرحلة الروضة.",
+  "tch-french": "مدرسو اللغة الفرنسية للمرحلتين الإعدادية والثانوية كلغة ثانية.",
+  "tch-german": "مدرسو اللغة الألمانية للمرحلة الثانوية كلغة ثانية.",
+  "tch-computer": "مدرسو الحاسب الآلي وتكنولوجيا المعلومات والبرمجة للطلاب.",
+  "tch-physics": "مدرسو الفيزياء للمرحلة الثانوية: ميكانيكا وكهربية وفيزياء حديثة مع حل المسائل.",
+  "tch-chemistry": "مدرسو الكيمياء للمرحلة الثانوية: عضوية وغير عضوية ومعادلات وحسابات كيميائية.",
+  "tch-biology": "مدرسو الأحياء للمرحلة الثانوية: وراثة وتشريح وتصنيف مع الرسومات والأسئلة.",
+  "tch-geology": "مدرسو الجيولوجيا وعلوم البيئة للمرحلة الثانوية.",
+  "tch-philosophy": "مدرسو الفلسفة والمنطق للمرحلة الثانوية (القسم الأدبي).",
+  "tch-psychology": "مدرسو علم النفس والاجتماع للمرحلة الثانوية (القسم الأدبي).",
+  "tch-history": "مدرسو التاريخ للمرحلة الثانوية (القسم الأدبي).",
+  "tch-geography": "مدرسو الجغرافيا للمرحلة الثانوية (القسم الأدبي).",
   carpentry: "خدمات الأعمال الخشبية وتصنيع الأثاث وتركيبه وإصلاحه، بما يشمل الأبواب والشبابيك والمطابخ وغيرها من المشغولات الخشبية، وفقًا لنوع الأعمال التي يقدمها كل نجار.",
   plumbing: "خدمات تركيب وصيانة شبكات المياه والصرف الصحي وإصلاح التسريبات والأعطال المتعلقة بها. يشمل التخصص أعمال السباكة المنزلية وتجهيزات الحمامات والمطابخ حسب خبرة الفني ونطاق عمله.",
   electricity: "خدمات التركيبات والصيانة الكهربائية للمنازل والمنشآت، بما يشمل الإضاءة والمفاتيح والتوصيلات ومعالجة الأعطال. يمكن التواصل مع الفني للاستفسار عن نوع الأعمال التي يتولى تنفيذها.",
@@ -2824,8 +2869,15 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   labs: [["medical-labs", "معامل التحاليل", "FlaskConical"]],
   pharmacies: [["community-pharmacies", "صيدليات عامة", "Pill"], ["night-pharmacies", "صيدليات ٢٤ ساعة", "HeartPulse"], ["medical-supplies", "مستلزمات طبية وأجهزة", "Activity"]],
   shops: [["groceries", "البقالة والسوبر ماركت", "ShoppingBasket"], ["clothing", "الملابس", "Shirt"], ["stationery", "المكتبات والأدوات المدرسية", "BookOpen"], ["appliances", "الأجهزة الكهربائية", "Tv"], ["food", "المطاعم والمأكولات", "Utensils"], ["mobile-shops", "الموبايلات والكمبيوتر", "Smartphone"], ["butchers", "الجزارة واللحوم", "Beef"], ["poultry", "الدواجن والبيض", "Drumstick"], ["fish-shops", "الأسماك", "Fish"], ["bakeries", "المخابز والحلواني", "Croissant"], ["produce", "الخضار والفاكهة", "Carrot"], ["cafes", "الكافيهات والعصائر", "Coffee"], ["hardware", "الأدوات الصحية والكهربائية", "Plug"], ["furniture", "الموبيليا والمفروشات", "Bed"]],
-  // تخصصات المدرسين تُدار من لوحة الإدارة بالكامل (القسم يبدأ فارغًا ويضيف الأدمن تخصصاته).
-  teachers: [],
+  // مواد المدرسين الجاهزة لكل مرحلة (الإدارة تعدلها أو تضيف غيرها؛ مراحل كل مادة في teacherSpecialtyStages).
+  teachers: [
+    ["tch-arabic", "لغة عربية", "BookOpen"], ["tch-english", "لغة إنجليزية", "Languages"], ["tch-math", "رياضيات", "Calculator"],
+    ["tch-science", "علوم", "Microscope"], ["tch-social", "دراسات اجتماعية", "Globe"], ["tch-religion", "تربية دينية وقرآن", "MoonStar"],
+    ["tch-foundation", "تأسيس وصعوبات تعلم", "Backpack"], ["tch-french", "لغة فرنسية", "Feather"], ["tch-german", "لغة ألمانية", "Type"],
+    ["tch-computer", "حاسب آلي وتكنولوجيا", "Laptop"], ["tch-physics", "فيزياء", "Atom"], ["tch-chemistry", "كيمياء", "FlaskConical"],
+    ["tch-biology", "أحياء", "Dna"], ["tch-geology", "جيولوجيا وعلوم بيئة", "Telescope"], ["tch-philosophy", "فلسفة ومنطق", "Brain"],
+    ["tch-psychology", "علم نفس واجتماع", "UsersRound"], ["tch-history", "تاريخ", "Landmark"], ["tch-geography", "جغرافيا", "Map"],
+  ],
   charities: [["charitable-associations", "الجمعيات الأهلية", "HandHeart"], ["orphan-care", "رعاية الأيتام", "Heart"], ["community-support", "التكافل والمساعدات", "UsersRound"]],
   printing: [["print-shops", "الطباعة وتصوير المستندات", "Printer"], ["advertising", "الدعاية والإعلان واللافتات", "Megaphone"], ["graphic-design", "التصميم الجرافيكي", "Palette"]],
   events: [["photography", "التصوير", "Camera"], ["dj", "الدي جي", "Disc3"], ["wedding-planning", "تجهيز الأفراح", "PartyPopper"]],
@@ -3079,9 +3131,17 @@ export const iconArabicLabels: Record<string, string> = {
   Settings: "خدمات | ترس (صيانة عامة)",
   Server: "خدمات | سيرفر (استضافة وأنظمة)",
 };
+/** مراحل كل مادة جاهزة تحت «المدرسين» (الإدارة تعدلها من لوحة التحكم). */
+export const teacherSpecialtyStages: Record<string, string> = {
+  "tch-arabic": "primary,prep,secondary", "tch-english": "primary,prep,secondary", "tch-math": "primary,prep,secondary", "tch-religion": "primary,prep,secondary",
+  "tch-science": "primary,prep", "tch-social": "primary,prep", "tch-foundation": "primary",
+  "tch-french": "prep,secondary", "tch-computer": "prep,secondary",
+  "tch-german": "secondary", "tch-physics": "secondary", "tch-chemistry": "secondary", "tch-biology": "secondary", "tch-geology": "secondary",
+  "tch-philosophy": "secondary", "tch-psychology": "secondary", "tch-history": "secondary", "tch-geography": "secondary",
+};
 export const initialCategories: CategoryRecord[] = roots.flatMap(([id, name, color, icon, description], sortOrder) => [
   { id, name, color, light: `${color}12`, icon, art: iconArtDefaults[icon] ?? "other", description: sectionDescriptions[id] ?? description, sortOrder, parentId: null, active: true },
-  ...specialties[id].map(([childId, childName, childIcon], order) => ({ id: childId, name: childName, color, light: `${color}12`, icon: childIcon, art: "", description: `${specialtyDescriptions[childId] ?? `مقدمو خدمات ${childName} بقرية جنزور`} المجال: ${childName}.`, sortOrder: order, parentId: id, active: true })),
+  ...specialties[id].map(([childId, childName, childIcon], order) => ({ id: childId, name: childName, color, light: `${color}12`, icon: childIcon, art: "", description: `${specialtyDescriptions[childId] ?? `مقدمو خدمات ${childName} بقرية جنزور`} المجال: ${childName}.`, sortOrder: order, parentId: id, active: true, stages: teacherSpecialtyStages[childId] ?? "" })),
 ]);
 export const categories = initialCategories.filter((category) => !category.parentId);
 

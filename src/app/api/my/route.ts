@@ -5,7 +5,7 @@ import { ensureSeed, serializeService, withDirectoryInvalidation } from "@/lib/d
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { sameOrigin } from "@/lib/auth";
-import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseWorkingHours, type ServiceCompletionDraft } from "@/lib/catalog";
+import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseWorkingHours, withServiceStages, type ServiceCompletionDraft } from "@/lib/catalog";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
@@ -45,10 +45,12 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
         serviceItems = parseServiceItems(body.serviceItems ?? service.serviceItems);
       } catch (error) { throw new InputError(error instanceof Error ? error.message : "راجع المواعيد وقائمة الخدمات."); }
       const emergency = typeof body.emergency === "boolean" ? body.emergency : service.emergency;
+      // المدرس يحدد مراحله الدراسية بنفسه (تُحفظ كوسوم داخل التخصصات الفرعية).
+      const subSpecialties = Array.isArray(body.stages) ? withServiceStages(service.subSpecialties, body.stages) : service.subSpecialties;
       // لو هناك مسودة تعديل بانتظار الإدارة نحدّث نسختها من هذه الحقول أيضًا حتى لا تُعيد الموافقة القيم القديمة.
-      const completionDraft = service.completionStatus === "submitted" && service.completionDraft ? { ...service.completionDraft, description, serviceItems, emergency } : service.completionDraft;
-      await db.update(services).set({ description, hours, workingHours, serviceItems, emergency, completionDraft }).where(eq(services.id, service.id));
-      const changed = [description !== service.description && "الوصف", hours !== service.hours && "المواعيد النصية", JSON.stringify(workingHours) !== JSON.stringify(service.workingHours) && "الجدول الأسبوعي", JSON.stringify(serviceItems) !== JSON.stringify(service.serviceItems) && "قائمة الخدمات", emergency !== service.emergency && "خدمة الطوارئ"].filter(Boolean) as string[];
+      const completionDraft = service.completionStatus === "submitted" && service.completionDraft ? { ...service.completionDraft, description, serviceItems, subSpecialties, emergency } : service.completionDraft;
+      await db.update(services).set({ description, hours, workingHours, serviceItems, subSpecialties, emergency, completionDraft }).where(eq(services.id, service.id));
+      const changed = [description !== service.description && "الوصف", hours !== service.hours && "المواعيد النصية", JSON.stringify(workingHours) !== JSON.stringify(service.workingHours) && "الجدول الأسبوعي", JSON.stringify(serviceItems) !== JSON.stringify(service.serviceItems) && "قائمة الخدمات", JSON.stringify(subSpecialties) !== JSON.stringify(service.subSpecialties) && "المراحل الدراسية", emergency !== service.emergency && "خدمة الطوارئ"].filter(Boolean) as string[];
       if (changed.length > 0) {
         await db.insert(notifications).values({ type: "service-update", title: `حدّث المهني بياناته بنفسه: ${service.name}`, message: `عدّل من حسابه: ${changed.join("، ")}. التعديل منشور بالفعل ولا يحتاج موافقة.`, entityId: service.id });
         queueAdminWhatsappAlert("suggestion", `✍️ ${service.name} حدّث بياناته بنفسه`, `${changed.join("، ")} — منشور فورًا.`);

@@ -222,9 +222,15 @@ test("keeps sections, specialties and icons coherent", () => {
     assert.equal(category.active, true);
     if (category.parentId === null) {
       assert.equal(category.light, `${category.color}12`, `${category.id} light tint matches its color`);
-      // قسم المدرسين يبدأ بلا تخصصات مدمجة (الإدارة تضيفها من اللوحة) — طلب المهمة 52.
-      if (category.id !== "teachers") assert.ok(initialCategories.some((item) => item.parentId === category.id), `${category.id} has at least one specialty`);
-      else assert.equal(initialCategories.some((item) => item.parentId === "teachers"), false, "teachers ships without built-in specialties");
+      assert.ok(initialCategories.some((item) => item.parentId === category.id), `${category.id} has at least one specialty`);
+      // مواد المدرسين الجاهزة: كل مادة لها مراحل محددة ومعرّف tch-* (المعرفات القديمة المتقاعدة لا تعود).
+      if (category.id === "teachers") {
+        const subjects = initialCategories.filter((item) => item.parentId === "teachers");
+        assert.ok(subjects.length >= 15, "teachers ships with ready subjects per stage");
+        for (const subject of subjects) { assert.match(subject.id, /^tch-/, `${subject.id} uses the tch- prefix`); assert.ok(catalog.categoryStageIds(subject).length > 0, `${subject.id} has stages`); }
+        assert.deepEqual(subjects.filter((item) => catalog.categoryInStage(item, "primary")).map((item) => item.id).slice(0, 3), ["tch-arabic", "tch-english", "tch-math"]);
+        assert.equal(catalog.categoryInStage(subjects.find((item) => item.id === "tch-physics"), "primary"), false);
+      }
     } else {
       const parent = getCategory(category.parentId, initialCategories);
       assert.equal(parent.parentId, null, `${category.id} belongs to a root section`);
