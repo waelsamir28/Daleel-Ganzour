@@ -2,7 +2,7 @@ import "server-only";
 import { databaseConfigured, db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { hasProfessionArt, categoryArtOptions, defaultSettings, iconNames, OTHER_ADDRESS, parseWorkingHours, parseServiceItems, type SiteSettings } from "@/lib/catalog";
+import { hasProfessionArt, categoryArtOptions, defaultSettings, iconNames, OTHER_ADDRESS, parseWorkingHours, parseServiceItems, normalizeStages, TEACHERS_ROOT_ID, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
 import { normalizeWhatsappNumber } from "@/lib/whatsapp-alert-kinds";
@@ -49,7 +49,9 @@ export function categoryInput(body: Record<string, unknown>) {
   // القسم الرئيسي يختار من رموز category-3d، والتخصص يختار رسمة يدوية من profession-art (أو يتركها فارغة = تلقائي).
   if (art && !parentId && !categoryArtOptions.some((option) => option.id === art)) throw new InputError("اختار أيقونة مجسمة من القائمة.");
   if (art && parentId && !hasProfessionArt(art)) throw new InputError("اختار رسمة يدوية من القائمة أو اتركها تلقائية.");
-  return { name, description, parentId, color, icon, art, sortOrder: integerInput(body.sortOrder ?? 0, 0, 1000, "الترتيب"), active: body.active !== false };
+  // المراحل الدراسية تخص تخصصات قسم المدرسين فقط.
+  const stages = parentId === TEACHERS_ROOT_ID ? normalizeStages(body.stages) : "";
+  return { name, description, parentId, color, icon, art, stages, sortOrder: integerInput(body.sortOrder ?? 0, 0, 1000, "الترتيب"), active: body.active !== false };
 }
 export function settingsInput(body: Record<string, unknown>): SiteSettings {
   const next = { ...defaultSettings };
