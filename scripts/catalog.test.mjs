@@ -1137,3 +1137,26 @@ test("tutoring centers list their subjects and appear on each subject page", () 
   assert.equal(initialCategories.filter((item) => item.parentId === "clinics").length, 21);
   assert.equal(initialCategories.filter((item) => item.parentId === "other-services").length, 18);
 });
+
+test("center schedule is validated, grouped from Saturday and rendered as shareable text", () => {
+  const { parseCenterSchedule, groupScheduleByDay, centerScheduleText } = catalog;
+  const schedule = parseCenterSchedule([
+    { day: 1, subject: " رياضيات ", teacher: "أ. محمد", time: "٤ – ٦ م", stage: "ثانوي" },
+    { day: 6, subject: "فيزياء", teacher: "", time: "٦ م", stage: "" },
+    { day: 6, subject: "كيمياء", teacher: "أ. سارة", time: "٨ م" },
+  ]);
+  assert.equal(schedule.length, 3);
+  assert.equal(schedule[0].subject, "رياضيات", "names are trimmed and rows sorted by day number");
+  assert.deepEqual(groupScheduleByDay(schedule).map((group) => group.label), ["السبت", "الاثنين"]);
+  assert.equal(groupScheduleByDay(schedule)[0].lessons.length, 2);
+  assert.deepEqual(parseCenterSchedule(undefined), []);
+  assert.throws(() => parseCenterSchedule([{ day: 9, subject: "x", time: "y" }]), /يوم/);
+  assert.throws(() => parseCenterSchedule([{ day: 1, subject: "", time: "y" }]), /المادة/);
+  assert.throws(() => parseCenterSchedule([{ day: 1, subject: "x", time: "" }]), /موعد/);
+  assert.throws(() => parseCenterSchedule(Array.from({ length: 61 }, () => ({ day: 0, subject: "x", time: "y" }))), /60/);
+  const text = centerScheduleText("سنتر النور", schedule, "https://example.test");
+  assert.match(text, /جدول حصص سنتر النور/);
+  assert.match(text, /📅 السبت\n• فيزياء ⏰ ٦ م\n• كيمياء — أ. سارة ⏰ ٨ م/);
+  assert.match(text, /رياضيات \(ثانوي\) — أ. محمد/);
+  assert.match(text, /https:\/\/example\.test$/);
+});

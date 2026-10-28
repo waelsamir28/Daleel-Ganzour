@@ -1,5 +1,5 @@
 import { pgTable, uuid, varchar, text, boolean, integer, timestamp, index, jsonb, uniqueIndex, primaryKey } from "drizzle-orm/pg-core";
-import type { ServiceCompletionDraft, WorkingHours } from "@/lib/catalog";
+import type { CenterSchedule, ServiceCompletionDraft, WorkingHours } from "@/lib/catalog";
 
 export const services = pgTable("directory_services", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -19,6 +19,8 @@ export const services = pgTable("directory_services", {
   workingHours: jsonb("working_hours").$type<WorkingHours>().notNull().default([]),
   serviceItems: jsonb("service_items").$type<string[]>().notNull().default([]),
   subSpecialties: jsonb("sub_specialties").$type<string[]>().notNull().default([]),
+  /** جدول حصص السنتر التعليمي (مادة/مدرس/يوم/ساعة). */
+  schedule: jsonb("schedule").$type<CenterSchedule>().notNull().default([]),
   neededRank: integer("needed_rank").notNull().default(0),
   reviewNote: text("review_note").notNull().default(""),
   completionStatus: varchar("completion_status", { length: 20 }).notNull().default("none"),

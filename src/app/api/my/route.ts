@@ -5,7 +5,7 @@ import { ensureSeed, serializeCategory, serializeService, withDirectoryInvalidat
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { sameOrigin } from "@/lib/auth";
-import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
+import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseCenterSchedule, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
@@ -39,10 +39,11 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       const description = cleanText(body.description ?? service.description, 1000);
       const hours = cleanText(body.hours ?? service.hours, 120);
       if (description.length < 10) throw new InputError("اكتب وصفًا لا يقل عن ١٠ أحرف.");
-      let workingHours, serviceItems: string[];
+      let workingHours, serviceItems: string[], schedule;
       try {
         workingHours = parseWorkingHours(body.workingHours ?? service.workingHours);
         serviceItems = parseServiceItems(body.serviceItems ?? service.serviceItems);
+        schedule = service.category === TEACHER_CENTER_ID && body.schedule !== undefined ? parseCenterSchedule(body.schedule) : service.schedule;
       } catch (error) { throw new InputError(error instanceof Error ? error.message : "راجع المواعيد وقائمة الخدمات."); }
       const emergency = typeof body.emergency === "boolean" ? body.emergency : service.emergency;
       // المدرس يحدد مراحله الدراسية بنفسه (تُحفظ كوسوم داخل التخصصات الفرعية).
@@ -53,8 +54,8 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       }
       // لو هناك مسودة تعديل بانتظار الإدارة نحدّث نسختها من هذه الحقول أيضًا حتى لا تُعيد الموافقة القيم القديمة.
       const completionDraft = service.completionStatus === "submitted" && service.completionDraft ? { ...service.completionDraft, description, serviceItems, subSpecialties, emergency } : service.completionDraft;
-      await db.update(services).set({ description, hours, workingHours, serviceItems, subSpecialties, emergency, completionDraft }).where(eq(services.id, service.id));
-      const changed = [description !== service.description && "الوصف", hours !== service.hours && "المواعيد النصية", JSON.stringify(workingHours) !== JSON.stringify(service.workingHours) && "الجدول الأسبوعي", JSON.stringify(serviceItems) !== JSON.stringify(service.serviceItems) && "قائمة الخدمات", JSON.stringify(subSpecialties) !== JSON.stringify(service.subSpecialties) && "المراحل الدراسية", emergency !== service.emergency && "خدمة الطوارئ"].filter(Boolean) as string[];
+      await db.update(services).set({ description, hours, workingHours, serviceItems, subSpecialties, schedule, emergency, completionDraft }).where(eq(services.id, service.id));
+      const changed = [description !== service.description && "الوصف", hours !== service.hours && "المواعيد النصية", JSON.stringify(workingHours) !== JSON.stringify(service.workingHours) && "الجدول الأسبوعي", JSON.stringify(serviceItems) !== JSON.stringify(service.serviceItems) && "قائمة الخدمات", JSON.stringify(subSpecialties) !== JSON.stringify(service.subSpecialties) && "المراحل الدراسية", JSON.stringify(schedule) !== JSON.stringify(service.schedule) && "جدول الحصص", emergency !== service.emergency && "خدمة الطوارئ"].filter(Boolean) as string[];
       if (changed.length > 0) {
         await db.insert(notifications).values({ type: "service-update", title: `حدّث المهني بياناته بنفسه: ${service.name}`, message: `عدّل من حسابه: ${changed.join("، ")}. التعديل منشور بالفعل ولا يحتاج موافقة.`, entityId: service.id });
         queueAdminWhatsappAlert("suggestion", `✍️ ${service.name} حدّث بياناته بنفسه`, `${changed.join("، ")} — منشور فورًا.`);

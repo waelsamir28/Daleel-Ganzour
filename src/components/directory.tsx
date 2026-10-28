@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
-import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_STAGES, TEACHERS_ROOT_ID } from "@/lib/catalog";
+import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
@@ -18,6 +18,7 @@ import { withViewTransition } from "@/lib/motion";
 import { useIsDark } from "@/lib/use-is-dark";
 import { TickerText } from "@/components/ticker-text";
 import TeacherStageModal from "@/components/teacher-stage-modal";
+import CenterScheduleView from "@/components/center-schedule-view";
 
 // تحميل كسول للمكوّنات التي لا تظهر إلا عند فتحها (نوافذ وأدوات الإدارة) لتخفيف الحزمة الأولى للصفحة الرئيسية.
 const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr: false });
@@ -126,6 +127,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   }
   const [detailRatingOpen, setDetailRatingOpen] = useState(false);
   const [detailClinicOpen, setDetailClinicOpen] = useState(false);
+  const [detailScheduleOpen, setDetailScheduleOpen] = useState(false);
   const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
   const [detailCopied, setDetailCopied] = useState(false);
   async function copyDetailPhone(phone: string) {
@@ -154,6 +156,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       setDetail(null);
       setDetailRatingOpen(false);
       setDetailClinicOpen(false);
+      setDetailScheduleOpen(false);
     }, () => source?.style.removeProperty("view-transition-name"));
   }, [detail]);
   function openDetail(service: ServiceRecord) {
@@ -163,7 +166,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
     withViewTransition(() => {
       source?.style.removeProperty("view-transition-name");
       setDetail(service);
-      setDetailQr(false); setDetailUpdate(false); setDetailRatingOpen(false); setDetailClinicOpen(false);
+      setDetailQr(false); setDetailUpdate(false); setDetailRatingOpen(false); setDetailClinicOpen(false); setDetailScheduleOpen(false);
       setDetailBadgesOpen(Boolean(design.badgesDefaultOpen));
       setRatingStars(0); setRatingComment(""); setRatingMessage("");
       setSelectedShopItems([]); setShopOrderNote(""); setShopOrderDelivery(supportsHomeDelivery(service));
@@ -1187,6 +1190,21 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       {detail.menuUrl && <a className="button button-soft detail-menu-button" href={detail.menuUrl} target="_blank" rel="noopener noreferrer">عرض المنيو</a>}
 
       {!contactLocked && <div className="detail-popup-icons-bar detail-v2-triggers" role="group" aria-label="نوافذ التقييم ومواعيد العيادة">
+        {detail.category === TEACHER_CENTER_ID && ((liveDetail ?? detail).schedule?.length ?? 0) > 0 && (
+          <button
+            type="button"
+            className="detail-popup-trigger-btn is-schedule"
+            onClick={() => setDetailScheduleOpen(true)}
+            aria-haspopup="dialog"
+          >
+            <span className="detail-popup-trigger-icon"><CalendarDays size={19}/></span>
+            <div className="detail-popup-trigger-copy">
+              <strong>جدول الحصص الأسبوعي ({(liveDetail ?? detail).schedule?.length} حصة)</strong>
+              <small>المواد والمدرسون والمواعيد — ويمكنك مشاركته صورة</small>
+            </div>
+            <ChevronLeft size={16}/>
+          </button>
+        )}
         {getCategory(detail.category, categories).parentId === "clinics" && (
           <button
             type="button"
@@ -1405,6 +1423,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       </div>
       )}
     </div></Modal>}
+    {detail && detailScheduleOpen && (
+      <Modal floating wide className="modal-quiet-scroll" title="جدول الحصص الأسبوعي" subtitle={`${detail.name} — سنتر تعليمي`} onClose={() => setDetailScheduleOpen(false)}>
+        <div className="floating-submodal-body"><CenterScheduleView name={detail.name} schedule={(liveDetail ?? detail).schedule ?? []}/></div>
+      </Modal>
+    )}
     {detail && detailClinicOpen && (() => {
       const currentDoc = liveDetail ?? detail;
       const bookingMode = getClinicBookingMode(currentDoc);

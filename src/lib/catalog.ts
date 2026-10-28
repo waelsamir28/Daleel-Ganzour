@@ -472,7 +472,7 @@ export type ServiceCompletionDraft = {
 export type ServiceRecord = {
   id: string; name: string; category: string; area: string; address: string; phone: string; phoneSecondary: string;
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
-  availabilityToken?: string; comments?: ServiceComment[]; weeklyStar?: boolean; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
+  availabilityToken?: string; comments?: ServiceComment[]; weeklyStar?: boolean; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; /** جدول حصص السنتر التعليمي. */ schedule?: CenterSchedule; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
   completionStatus?: CompletionStatus; completionNote?: string; completionDraft?: ServiceCompletionDraft | null;
 };
 
@@ -3188,6 +3188,36 @@ export const teacherSpecialtyStages: Record<string, string> = {
   "tch-philosophy": "secondary", "tch-psychology": "secondary", "tch-history": "secondary", "tch-geography": "secondary",
   "tch-center": "primary,prep,secondary",
 };
+/** حصة في جدول السنتر التعليمي الأسبوعي. day = رقم اليوم في WEEK_DAYS (0 الأحد … 6 السبت). */
+export type CenterLesson = { day: number; subject: string; teacher: string; time: string; stage: string };
+export type CenterSchedule = CenterLesson[];
+export const CENTER_SCHEDULE_MAX = 60;
+/** يتحقق من جدول الحصص: حتى 60 حصة، كل حصة بيوم صحيح ومادة ووقت؛ المدرس والمرحلة اختياريان. */
+export function parseCenterSchedule(value: unknown): CenterSchedule {
+  if (value === undefined || value === null || value === "") return [];
+  if (!Array.isArray(value)) throw new Error("جدول الحصص غير صالح.");
+  if (value.length > CENTER_SCHEDULE_MAX) throw new Error(`جدول الحصص حتى ${CENTER_SCHEDULE_MAX} حصة.`);
+  const clean = (input: unknown, max: number) => String(input ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+  return value.map((row) => {
+    const item = typeof row === "object" && row !== null ? row as Record<string, unknown> : {};
+    const day = Number(item.day);
+    const subject = clean(item.subject, 60), teacher = clean(item.teacher, 60), time = clean(item.time, 40), stage = clean(item.stage, 30);
+    if (!Number.isInteger(day) || day < 0 || day > 6) throw new Error("اختر يوم الحصة.");
+    if (!subject) throw new Error("اكتب اسم المادة لكل حصة.");
+    if (!time) throw new Error("اكتب موعد كل حصة (مثال: ٤ – ٦ م).");
+    return { day, subject, teacher, time, stage };
+  }).sort((a, b) => a.day - b.day);
+}
+/** الأيام التي بها حصص مرتبة من السبت (بداية الأسبوع الدراسي) مع حصصها. */
+export function groupScheduleByDay(schedule: CenterSchedule): Array<{ day: number; label: string; lessons: CenterLesson[] }> {
+  const order = [6, 0, 1, 2, 3, 4, 5];
+  return order.map((day) => ({ day, label: WEEK_DAYS[day], lessons: schedule.filter((lesson) => lesson.day === day) })).filter((group) => group.lessons.length > 0);
+}
+/** نص الجدول لمشاركته على واتساب. */
+export function centerScheduleText(name: string, schedule: CenterSchedule, siteUrl = "https://daleel-ganzour.vercel.app"): string {
+  const lines = groupScheduleByDay(schedule).map((group) => `📅 ${group.label}\n${group.lessons.map((lesson) => `• ${lesson.subject}${lesson.stage ? ` (${lesson.stage})` : ""}${lesson.teacher ? ` — ${lesson.teacher}` : ""} ⏰ ${lesson.time}`).join("\n")}`);
+  return `🗓️ جدول حصص ${name}\n\n${lines.join("\n\n")}\n\nمن دليل جنزور ${siteUrl}`;
+}
 /** السنتر التعليمي: نوع داخل قسم المدرسين يضم أكثر من مادة؛ المواد تُحفظ بأسمائها داخل «التخصصات الفرعية». */
 export const TEACHER_CENTER_ID = "tch-center";
 export function teacherSubjects(catalog: CategoryRecord[] = initialCategories): CategoryRecord[] {
