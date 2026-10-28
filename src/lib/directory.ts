@@ -3,7 +3,7 @@ import { cache } from "react";
 import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
 import { activityLog, adBanners, adRequests, categoryHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
-import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type parsePinnedProfessions } from "@/lib/catalog";
+import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type parsePinnedProfessions, DEFAULT_ADMIN_PALETTE, sanitizeAdminPalette, type AdminPaletteId } from "@/lib/catalog";
 import { getWhatsappAlertKinds, getWhatsappAlertStatus } from "@/lib/whatsapp-alert";
 
 let seedPromise: Promise<void> | undefined;
@@ -212,6 +212,12 @@ export async function getUtilityNumbers(): Promise<PublicUtilityContact[]> {
   if (!row) return publicUtilityNumbers;
   try { return sanitizeUtilityNumbers(JSON.parse(row.value)); } catch { return publicUtilityNumbers; }
 }
+export async function getAdminPalette(): Promise<AdminPaletteId> {
+  if (!databaseConfigured) return DEFAULT_ADMIN_PALETTE;
+  await ensureSeed();
+  const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "admin_palette"));
+  return sanitizeAdminPalette(row?.value);
+}
 export async function getAdPricing(): Promise<AdPricing> {
   if (!databaseConfigured) return defaultAdPricing;
   await ensureSeed();
@@ -387,5 +393,6 @@ export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): 
   const ratingRows = await db.select({ id: serviceRatings.id, serviceId: serviceRatings.serviceId, stars: serviceRatings.stars, comment: serviceRatings.comment, status: serviceRatings.status, createdAt: serviceRatings.createdAt, memberName: members.name, serviceName: services.name }).from(serviceRatings).innerJoin(members, eq(serviceRatings.memberId, members.id)).innerJoin(services, eq(serviceRatings.serviceId, services.id)).orderBy(desc(serviceRatings.createdAt)).limit(200);
   const [whatsappAlertKinds, whatsappAlertStatus] = role === "admin" ? await Promise.all([getWhatsappAlertKinds(), getWhatsappAlertStatus()]) : [undefined, undefined];
   const activityRows = role === "admin" ? await db.select().from(activityLog).orderBy(desc(activityLog.createdAt)).limit(300) : [];
-  return { ...catalog, whatsappAlertKinds, whatsappAlertStatus, activityLog: activityRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0, adRequests: adRequestRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))};
+  const adminPalette = await getAdminPalette();
+  return { ...catalog, adminPalette, whatsappAlertKinds, whatsappAlertStatus, activityLog: activityRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0, adRequests: adRequestRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))};
 }

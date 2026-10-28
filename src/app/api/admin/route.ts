@@ -8,7 +8,7 @@ import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, wit
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { saveServicePhoto } from "@/lib/service-photo";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isDesignImageKey, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, parseDesignImageDataUrl, designImageUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isDesignImageKey, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, parseDesignImageDataUrl, designImageUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers, sanitizeAdminPalette } from "@/lib/catalog";
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
 
@@ -219,6 +219,9 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
       const id = uuid(body.id);
       if (action === "pin") await db.update(villageEvents).set({ pinned: body.pinned === true }).where(eq(villageEvents.id, id));
       else await db.update(villageEvents).set(eventInput(objectInput(body.values))).where(eq(villageEvents.id, id));
+    } else if (type === "admin-palette") {
+      const palette = sanitizeAdminPalette(body.palette);
+      await db.insert(directorySettings).values({ key: "admin_palette", value: palette }).onConflictDoUpdate({ target: directorySettings.key, set: { value: palette } });
     } else if (type === "utility-numbers") {
       const utilityNumbers = sanitizeUtilityNumbers(body.utilityNumbers);
       await db.insert(directorySettings).values({ key: "utility_numbers", value: JSON.stringify(utilityNumbers) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(utilityNumbers) } });

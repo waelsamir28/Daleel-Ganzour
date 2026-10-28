@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { Award, Check, Clipboard, MapPin, MessageCircle, Phone, Printer, QrCode, Share2, ShieldCheck, Star, X } from "lucide-react";
+import { Award, Check, Clipboard, MapPin, MessageCircle, Phone, Printer, QrCode, Share2, ShieldCheck, Star, UserPlus, X } from "lucide-react";
 import { getServiceTrustBadges, servicePhotoUrl, whatsappUrl, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, Modal } from "@/components/ui";
 import QrSvg from "@/components/qr-svg";
@@ -47,6 +47,45 @@ export default function BusinessCardModal({
       }
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener,noreferrer");
+  }
+
+  const [savedContact, setSavedContact] = useState(false);
+  /** يبني بطاقة vCard 3.0 (الاسم، الهاتف/الهواتف، التخصص، العنوان، رابط الكارت، الصورة إن وُجدت) لحفظها في جهات الاتصال بضغطة. */
+  function buildVCard() {
+    const escapeText = (value: string) => value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+    const intl = (phone: string) => { const digits = phone.replace(/\D/g, ""); return /^0?1[0125]\d{8}$/.test(digits) ? `+20${digits.replace(/^0/, "")}` : digits ? `+${digits}` : ""; };
+    const photo = servicePhotoUrl(service);
+    const lines = [
+      "BEGIN:VCARD",
+      "VERSION:3.0",
+      `N:;${escapeText(service.name)};;;`,
+      `FN:${escapeText(service.name)}`,
+      `ORG:${escapeText(siteName)}`,
+      `TITLE:${escapeText(category.name)}`,
+      `TEL;TYPE=CELL,VOICE,PREF:${intl(service.phone)}`,
+      ...(service.phoneSecondary ? [`TEL;TYPE=CELL,VOICE:${intl(service.phoneSecondary)}`] : []),
+      `ADR;TYPE=WORK:;;${escapeText(service.address || service.area)};جنزور;المنوفية;;مصر`,
+      `URL:${directUrl}`,
+      ...(photo ? [`PHOTO;VALUE=URI:${origin}${photo}`] : []),
+      `NOTE:${escapeText(`${category.name} — من ${siteName}`)}`,
+      "END:VCARD",
+    ];
+    return lines.join("\r\n");
+  }
+  async function saveContact() {
+    const vcf = buildVCard();
+    const safeName = service.name.replace(/[\\/:*?"<>|]+/g, " ").trim() || "contact";
+    const file = new File([vcf], `${safeName}.vcf`, { type: "text/vcard;charset=utf-8" });
+    // على الموبايل: المشاركة بالملف تفتح «إضافة جهة اتصال» مباشرة؛ وإلا نُنزّل ملف .vcf
+    const mobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    if (mobile && typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: service.name }); setSavedContact(true); window.setTimeout(() => setSavedContact(false), 1800); return; } catch { /* نرجع للتنزيل */ }
+    }
+    const url = URL.createObjectURL(new Blob([vcf], { type: "text/vcard;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url; link.download = `${safeName}.vcf`; document.body.appendChild(link); link.click(); link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+    setSavedContact(true); window.setTimeout(() => setSavedContact(false), 1800);
   }
 
   function printCard() {
@@ -159,6 +198,9 @@ export default function BusinessCardModal({
           </a>
           <button type="button" className={`circle-tool is-copy ${copied ? "is-active" : ""}`} data-tip={copied ? "تم نسخ الرابط ✓" : "نسخ رابط الكارت"} aria-label={copied ? "تم نسخ الرابط" : "نسخ رابط الكارت"} onClick={() => void copyLink()}>
             {copied ? <Check size={16} /> : <Clipboard size={16} />}
+          </button>
+          <button type="button" className={`circle-tool is-contact ${savedContact ? "is-active" : ""}`} data-tip={savedContact ? "تم تجهيز جهة الاتصال ✓" : "احفظ في جهات الاتصال"} aria-label="احفظ الرقم في جهات الاتصال" onClick={() => void saveContact()}>
+            {savedContact ? <Check size={16} /> : <UserPlus size={16} />}
           </button>
           <button type="button" className="circle-tool is-print" data-tip="طباعة الكارت" aria-label="طباعة الكارت" onClick={printCard}>
             <Printer size={16} />

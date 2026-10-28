@@ -2813,7 +2813,14 @@ export type ServiceComment = { stars: number; comment: string; member: string; d
 export type FollowFeedItem = { id: string; createdAt: string };
 export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
 export type ActivityLogRecord = { id: string; actorRole: string; actorName: string; actorUsername: string; action: string; entityKind: string; entityId: string; entityLabel: string; detail: string; createdAt: string };
-export type AdminDirectory = PublicDirectory & { activityLog?: ActivityLogRecord[]; ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[]; whatsappAlertKinds?: string[]; whatsappAlertStatus?: { lastSentAt: string | null; lastResult: string; lastKind: string } };
+/** لوحات ألوان لوحة الإدارة (اختيار مشترك لكل الأدمنز والمشرفين يُحفظ في الإعدادات). */
+export const ADMIN_PALETTE_IDS = ["indigo", "teal", "graphite", "maroon", "midnight", "copper"] as const;
+export type AdminPaletteId = (typeof ADMIN_PALETTE_IDS)[number];
+export const DEFAULT_ADMIN_PALETTE: AdminPaletteId = "indigo";
+export function sanitizeAdminPalette(value: unknown): AdminPaletteId {
+  return typeof value === "string" && (ADMIN_PALETTE_IDS as readonly string[]).includes(value) ? (value as AdminPaletteId) : DEFAULT_ADMIN_PALETTE;
+}
+export type AdminDirectory = PublicDirectory & { adminPalette?: AdminPaletteId; activityLog?: ActivityLogRecord[]; ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[]; whatsappAlertKinds?: string[]; whatsappAlertStatus?: { lastSentAt: string | null; lastResult: string; lastKind: string } };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",

@@ -1242,3 +1242,12 @@ test("provider photo url carries the version for cache busting and demolition sp
   assert.equal(catalog.categoryStickerSrc({ id: "import-xyz", name: "الهدم والتكسير" }), "/images/specialty-stickers/demolition.webp");
   assert.ok(existsSync(new URL("../public/images/specialty-stickers/demolition.webp", import.meta.url)));
 });
+
+test("shared admin palette accepts only the known palette ids and falls back to the default", () => {
+  assert.equal(catalog.DEFAULT_ADMIN_PALETTE, "indigo");
+  assert.equal(catalog.ADMIN_PALETTE_IDS.length, 6);
+  assert.equal(catalog.sanitizeAdminPalette("maroon"), "maroon");
+  assert.equal(catalog.sanitizeAdminPalette("neon"), "indigo");
+  assert.equal(catalog.sanitizeAdminPalette(undefined), "indigo");
+  assert.equal(catalog.sanitizeAdminPalette(42), "indigo");
+});
