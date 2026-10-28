@@ -12100,3 +12100,7 @@ html.dark .avatar-crop-zoom .icon-button { background: rgba(255, 255, 255, .06);
 .admin-import-row-update { display: inline-block; padding: 3px 9px; border-radius: 999px; background: #fff1d6; color: #9a5b00; font-size: 11px; font-weight: 800; }
 .admin-import-row-skipped { display: inline-block; padding: 3px 9px; border-radius: 999px; background: #e9edf2; color: #5b6b7c; font-size: 11px; font-weight: 800; }
 .admin-import-more { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ===== بطاقة العمل: زر «احفظ في جهات الاتصال» (vCard) ===== */
+.circle-tool.is-contact { --tool: #0b8f57; }
+.circle-tool.is-contact.is-active { --tool: #047857; background: rgba(209, 250, 229, .95); border-color: #34d399; }
