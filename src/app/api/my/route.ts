@@ -1,11 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { db, databaseConfigured } from "@/db";
 import { directoryAreas, directoryCategories, notifications, services } from "@/db/schema";
-import { ensureSeed, serializeService, withDirectoryInvalidation } from "@/lib/directory";
+import { ensureSeed, serializeCategory, serializeService, withDirectoryInvalidation } from "@/lib/directory";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { sameOrigin } from "@/lib/auth";
-import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseWorkingHours, withServiceStages, type ServiceCompletionDraft } from "@/lib/catalog";
+import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +46,11 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       } catch (error) { throw new InputError(error instanceof Error ? error.message : "راجع المواعيد وقائمة الخدمات."); }
       const emergency = typeof body.emergency === "boolean" ? body.emergency : service.emergency;
       // المدرس يحدد مراحله الدراسية بنفسه (تُحفظ كوسوم داخل التخصصات الفرعية).
-      const subSpecialties = Array.isArray(body.stages) ? withServiceStages(service.subSpecialties, body.stages) : service.subSpecialties;
+      let subSpecialties = Array.isArray(body.stages) ? withServiceStages(service.subSpecialties, body.stages) : service.subSpecialties;
+      if (Array.isArray(body.subjects) && service.category === TEACHER_CENTER_ID) {
+        const catalogRows = await db.select().from(directoryCategories);
+        subSpecialties = withCenterSubjects(subSpecialties, body.subjects, catalogRows.map((row) => serializeCategory(row)));
+      }
       // لو هناك مسودة تعديل بانتظار الإدارة نحدّث نسختها من هذه الحقول أيضًا حتى لا تُعيد الموافقة القيم القديمة.
       const completionDraft = service.completionStatus === "submitted" && service.completionDraft ? { ...service.completionDraft, description, serviceItems, subSpecialties, emergency } : service.completionDraft;
       await db.update(services).set({ description, hours, workingHours, serviceItems, subSpecialties, emergency, completionDraft }).where(eq(services.id, service.id));

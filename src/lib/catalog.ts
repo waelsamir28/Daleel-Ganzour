@@ -16,6 +16,27 @@ export function serviceWhatsappMessage(service: { name: string }, specialty: str
 }
 
 export const specialtySynonyms: Record<string, string[]> = {
+  "tch-center": ["سنتر", "مجموعات", "تقوية", "مركز تعليمي", "دروس خصوصية", "سناتر"],
+  cardiology: ["قلب", "ضغط", "رسم قلب", "إيكو", "أوعية"],
+  pulmonology: ["صدر", "صدرية", "ربو", "حساسية", "تنفس"],
+  neurology: ["مخ", "أعصاب", "صداع", "صرع", "جلطة"],
+  gastroenterology: ["جهاز هضمي", "معدة", "قولون", "كبد", "مناظير"],
+  urology: ["مسالك", "كلى", "حصوات", "بروستاتا"],
+  endocrinology: ["غدد", "سكر", "سكري", "درقية", "هرمونات", "سمنة"],
+  radiology: ["أشعة", "رنين", "مقطعية", "سونار", "موجات صوتية"],
+  "cosmetic-surgery": ["تجميل", "ليزر", "فيلر", "بوتوكس", "نضارة"],
+  andrology: ["ذكورة", "عقم", "تأخر إنجاب", "خصوبة"],
+  "medical-centers": ["مستشفى", "مركز طبي", "طوارئ", "استقبال"],
+  "engineering-office": ["مهندس", "مكتب هندسي", "مقاول", "مقاولات", "تشطيب", "رسومات"],
+  programming: ["مبرمج", "برمجة", "موقع", "تطبيق", "متجر إلكتروني", "ويب"],
+  accounting: ["محاسب", "ضرائب", "تأمينات", "إقرار", "دفاتر"],
+  travel: ["سفر", "سياحة", "حج", "عمرة", "طيران", "تأشيرة", "رحلات"],
+  catering: ["طباخ", "طباخة", "ولائم", "عزومة", "كيترينج", "أكل بيتي"],
+  security: ["أمن", "حراسة", "حارس", "سكيورتي"],
+  arts: ["رسام", "رسم", "خطاط", "خط عربي", "لوحات", "جداريات"],
+  "real-estate": ["عقارات", "سمسار", "شقق", "إيجار", "أراضي", "بيع وشراء"],
+  nurseries: ["حضانة", "روضة", "كي جي", "أطفال", "نرسري"],
+  "water-filters": ["فلتر", "فلاتر", "شمعات", "تحلية", "مياه"],
   "tch-arabic": ["عربي", "نحو", "بلاغة", "قراءة", "إملاء", "تعبير", "مدرس عربي"],
   "tch-english": ["إنجليزي", "انجليزي", "English", "قواعد", "محادثة", "لغة"],
   "tch-math": ["ماث", "حساب", "جبر", "هندسة", "تفاضل", "تكامل", "إحصاء", "math"],
@@ -965,7 +986,7 @@ export function getCompletionFieldSuggestions(
   const isClinic = category.parentId === "clinics" || category.id === "clinics";
   const isShop = category.parentId === "shops" || category.id === "shops";
   const subSpecialties = isTeacher
-    ? [...TEACHER_STAGES.map((stage) => stage.name), ...rawKeywords.slice(0, 5)]
+    ? [...TEACHER_STAGES.map((stage) => stage.name), ...(categoryId === TEACHER_CENTER_ID ? teacherSubjects(catalog).map((subject) => subject.name) : rawKeywords.slice(0, 5))]
     : isClinic
       ? [CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, "يومياً عدا الجمعة", "السبت والاثنين والأربعاء", "الأحد والثلاثاء والخميس", ...rawKeywords.slice(0, 4)]
       : rawKeywords.length > 0
@@ -2585,7 +2606,11 @@ export const stickerIconIds = [
   "beauty", "barbers", "hairdressers", "makeup",
   // مواد المدرسين
   "tch-arabic", "tch-english", "tch-math", "tch-science", "tch-social", "tch-physics", "tch-chemistry", "tch-biology", "tch-french", "tch-religion",
-  "tch-foundation", "tch-german", "tch-computer", "tch-geology", "tch-philosophy", "tch-psychology", "tch-history", "tch-geography",
+  "tch-foundation", "tch-german", "tch-computer", "tch-geology", "tch-philosophy", "tch-psychology", "tch-history", "tch-geography", "tch-center",
+  // العيادات (10 تخصصات إضافية مقصوصة من صورة المرجع)
+  "cardiology", "pulmonology", "neurology", "gastroenterology", "urology", "endocrinology", "radiology", "cosmetic-surgery", "andrology", "medical-centers",
+  // خدمات أخرى (10 تخصصات إضافية)
+  "engineering-office", "programming", "accounting", "travel", "catering", "security", "arts", "real-estate", "nurseries", "water-filters",
   // الطباعة والدعاية: التصميم الجرافيكي (مقصوص من المرجع)
   "graphic-design",
   // الأفراح والمناسبات (القسم + 3؛ التصوير أعلاه)
@@ -2747,6 +2772,27 @@ const sectionDescriptions: Record<string, string> = {
 };
 
 const specialtyDescriptions: Record<string, string> = {
+  "tch-center": "سناتر تعليمية ومجموعات تقوية تضم أكثر من مادة ومرحلة في مكان واحد، مع جداول الحصص وأسماء المدرسين.",
+  cardiology: "أطباء القلب والأوعية الدموية: ضغط الدم، رسم القلب، الإيكو ومتابعة أمراض القلب المزمنة.",
+  pulmonology: "أطباء الصدر والجهاز التنفسي: الربو والحساسية والالتهابات الرئوية وضيق التنفس.",
+  neurology: "أطباء المخ والأعصاب: الصداع والصرع والجلطات وآلام الأعصاب والعمود الفقري.",
+  gastroenterology: "أطباء الجهاز الهضمي والكبد: المعدة والقولون والمناظير وفيروسات الكبد.",
+  urology: "أطباء المسالك البولية والكلى: الحصوات والبروستاتا والتهابات المسالك.",
+  endocrinology: "أطباء الغدد الصماء والسكر: السكري والغدة الدرقية والسمنة واضطرابات الهرمونات.",
+  radiology: "مراكز الأشعة والتصوير الطبي: أشعة عادية ومقطعية ورنين وموجات صوتية.",
+  "cosmetic-surgery": "عيادات التجميل والليزر: إزالة الشعر، نضارة البشرة، الفيلر والبوتوكس والجراحات التجميلية.",
+  andrology: "أطباء الذكورة والعقم: تأخر الإنجاب والصحة الجنسية والعلاج بالهرمونات.",
+  "medical-centers": "المراكز الطبية والمستشفيات في جنزور والمناطق المجاورة: استقبال وطوارئ وعيادات متعددة.",
+  "engineering-office": "مكاتب هندسية ومقاولون: تصميم ورسومات وإشراف وتنفيذ وتشطيب للمباني والفيلات.",
+  programming: "مبرمجون ومصممو مواقع وتطبيقات ومتاجر إلكترونية وصفحات تواصل اجتماعي.",
+  accounting: "محاسبون قانونيون: ضرائب وتأمينات وإقرارات ومسك دفاتر وتأسيس شركات.",
+  travel: "مكاتب السفر والسياحة: حجز طيران ورحلات داخلية وحج وعمرة وتأشيرات.",
+  catering: "طباخون وطباخات لتجهيز الولائم والعزومات والمناسبات في المنزل.",
+  security: "شركات وأفراد الأمن والحراسة للمحلات والمنشآت والمناسبات.",
+  arts: "رسامون وخطاطون وفنانون: لوحات وجداريات وخط عربي ولافتات فنية.",
+  "real-estate": "سماسرة ومكاتب عقارية: بيع وشراء وإيجار الشقق والأراضي والمحلات.",
+  nurseries: "حضانات ورياض أطفال في جنزور: رعاية وتعليم مبكر وأنشطة للأطفال.",
+  "water-filters": "تركيب وصيانة فلاتر المياه وتغيير الشمعات ومحطات التحلية المنزلية.",
   "tch-arabic": "مدرسو اللغة العربية لكل المراحل: نحو وبلاغة وقراءة وتعبير وإملاء، مع متابعة الواجبات والاختبارات.",
   "tch-english": "مدرسو اللغة الإنجليزية: قواعد ومحادثة وقراءة واستعداد للامتحانات لكل المراحل الدراسية.",
   "tch-math": "مدرسو الرياضيات: حساب وجبر وهندسة وتفاضل وتكامل وإحصاء حسب المرحلة الدراسية.",
@@ -2866,7 +2912,7 @@ const roots: Array<[string, string, string, string, string]> = [
 ];
 const specialties: Record<string, Array<[string, string, string]>> = {
   crafts: [["carpentry", "النجارة", "Hammer"], ["plumbing", "السباكة", "Droplets"], ["electricity", "الكهرباء", "Zap"], ["metalwork", "الحدادة", "Anvil"], ["painting", "النقاشة والدهانات", "Paintbrush"], ["masonry", "البناء والمحارة", "BrickWall"], ["tiles", "السيراميك والبلاط", "PanelsTopLeft"], ["aluminum", "الألوميتال", "PanelsTopLeft"], ["glass", "الزجاج والمرايا", "PanelsTopLeft"], ["ac", "التكييف والتبريد", "Snowflake"], ["mechanics", "ميكانيكا السيارات", "Cog"], ["upholstery", "التنجيد", "Armchair"], ["satellite-dish", "الدش والريسيفر", "Satellite"], ["locksmith", "الكوالين والمفاتيح", "Key"], ["gypsum-decor", "الجبس بورد والديكور", "Ruler"], ["appliance-repair", "صيانة الأجهزة المنزلية", "Refrigerator"]],
-  clinics: [["family", "طب الأسرة والباطنة", "Stethoscope"], ["pediatrics", "الأطفال", "Baby"], ["dentistry", "الأسنان", "Smile"], ["gynecology", "النساء والتوليد", "HeartPulse"], ["orthopedics", "العظام", "Bone"], ["dermatology", "الجلدية", "Sparkles"], ["ophthalmology", "العيون", "Eye"], ["ent", "الأنف والأذن والحنجرة", "Stethoscope"], ["physiotherapy", "العلاج الطبيعي", "Activity"], ["home-nursing", "التمريض المنزلي", "Syringe"], ["psychiatry", "النفسية والأعصاب", "Brain"]],
+  clinics: [["family", "طب الأسرة والباطنة", "Stethoscope"], ["pediatrics", "الأطفال", "Baby"], ["dentistry", "الأسنان", "Smile"], ["gynecology", "النساء والتوليد", "HeartPulse"], ["orthopedics", "العظام", "Bone"], ["dermatology", "الجلدية", "Sparkles"], ["ophthalmology", "العيون", "Eye"], ["ent", "الأنف والأذن والحنجرة", "Stethoscope"], ["physiotherapy", "العلاج الطبيعي", "Activity"], ["home-nursing", "التمريض المنزلي", "Syringe"], ["psychiatry", "النفسية والأعصاب", "Brain"], ["cardiology", "القلب والأوعية الدموية", "HeartPulse"], ["pulmonology", "الصدر والجهاز التنفسي", "Activity"], ["neurology", "المخ والأعصاب", "Brain"], ["gastroenterology", "الجهاز الهضمي والكبد", "Utensils"], ["urology", "المسالك البولية والكلى", "Droplets"], ["endocrinology", "الغدد الصماء والسكر", "Thermometer"], ["radiology", "الأشعة والتصوير الطبي", "Monitor"], ["cosmetic-surgery", "التجميل والليزر", "Sparkles"], ["andrology", "الذكورة والعقم", "HeartHandshake"], ["medical-centers", "المراكز الطبية والمستشفيات", "Hospital"]],
   labs: [["medical-labs", "معامل التحاليل", "FlaskConical"]],
   pharmacies: [["community-pharmacies", "صيدليات عامة", "Pill"], ["night-pharmacies", "صيدليات ٢٤ ساعة", "HeartPulse"], ["medical-supplies", "مستلزمات طبية وأجهزة", "Activity"]],
   shops: [["groceries", "البقالة والسوبر ماركت", "ShoppingBasket"], ["clothing", "الملابس", "Shirt"], ["stationery", "المكتبات والأدوات المدرسية", "BookOpen"], ["appliances", "الأجهزة الكهربائية", "Tv"], ["food", "المطاعم والمأكولات", "Utensils"], ["mobile-shops", "الموبايلات والكمبيوتر", "Smartphone"], ["butchers", "الجزارة واللحوم", "Beef"], ["poultry", "الدواجن والبيض", "Drumstick"], ["fish-shops", "الأسماك", "Fish"], ["bakeries", "المخابز والحلواني", "Croissant"], ["produce", "الخضار والفاكهة", "Carrot"], ["cafes", "الكافيهات والعصائر", "Coffee"], ["hardware", "الأدوات الصحية والكهربائية", "Plug"], ["furniture", "الموبيليا والمفروشات", "Bed"]],
@@ -2878,6 +2924,7 @@ const specialties: Record<string, Array<[string, string, string]>> = {
     ["tch-computer", "حاسب آلي وتكنولوجيا", "Laptop"], ["tch-physics", "فيزياء", "Atom"], ["tch-chemistry", "كيمياء", "FlaskConical"],
     ["tch-biology", "أحياء", "Dna"], ["tch-geology", "جيولوجيا وعلوم بيئة", "Telescope"], ["tch-philosophy", "فلسفة ومنطق", "Brain"],
     ["tch-psychology", "علم نفس واجتماع", "UsersRound"], ["tch-history", "تاريخ", "Landmark"], ["tch-geography", "جغرافيا", "Map"],
+    ["tch-center", "سنتر تعليمي ومجموعات تقوية", "School"],
   ],
   charities: [["charitable-associations", "الجمعيات الأهلية", "HandHeart"], ["orphan-care", "رعاية الأيتام", "Heart"], ["community-support", "التكافل والمساعدات", "UsersRound"]],
   printing: [["print-shops", "الطباعة وتصوير المستندات", "Printer"], ["advertising", "الدعاية والإعلان واللافتات", "Megaphone"], ["graphic-design", "التصميم الجرافيكي", "Palette"]],
@@ -2886,7 +2933,7 @@ const specialties: Record<string, Array<[string, string, string]>> = {
   transport: [["moving", "نقل العفش", "Sofa"], ["freight", "نقل البضائع", "PackageOpen"], ["rides", "المشاوير", "Car"]],
   cleaning: [["apartment-cleaning", "تنظيف الشقق", "SprayCan"], ["carpet-cleaning", "غسيل السجاد", "WashingMachine"]],
   law: [["lawyers", "المحاماة والقضايا", "Gavel"], ["legal-consulting", "الاستشارات القانونية", "Scale"], ["contracts", "العقود والشهر العقاري", "ScrollText"]],
-  "other-services": [["cameras", "كاميرات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["other", "خدمات متنوعة", "Ellipsis"], ["tailors", "الترزية والخياطة", "Shirt"], ["laundry", "المغاسل والمكوجي", "WashingMachine"], ["veterinary", "الطب البيطري", "PawPrint"], ["gyms", "الجيم واللياقة البدنية", "Dumbbell"], ["agri-engineering", "المهندس الزراعي والمشاتل", "Sprout"]],
+  "other-services": [["cameras", "كاميرات المراقبة", "Cctv"], ["solar", "الطاقة الشمسية", "Sun"], ["other", "خدمات متنوعة", "Ellipsis"], ["tailors", "الترزية والخياطة", "Shirt"], ["laundry", "المغاسل والمكوجي", "WashingMachine"], ["veterinary", "الطب البيطري", "PawPrint"], ["gyms", "الجيم واللياقة البدنية", "Dumbbell"], ["agri-engineering", "المهندس الزراعي والمشاتل", "Sprout"], ["engineering-office", "المكاتب الهندسية والمقاولات", "HardHat"], ["programming", "البرمجة وتصميم المواقع", "Code"], ["accounting", "المحاسبة والضرائب", "Calculator"], ["travel", "السفر والسياحة والحج والعمرة", "Plane"], ["catering", "الطباخين وتجهيز الولائم", "ChefHat"], ["security", "الأمن والحراسة", "Shield"], ["arts", "الرسم والفنون والخط", "Palette"], ["real-estate", "العقارات والسمسرة", "House"], ["nurseries", "الحضانات ورياض الأطفال", "Baby"], ["water-filters", "فلاتر المياه", "GlassWater"]],
 };
 export const iconNames = ["Wrench", "Stethoscope", "Store", "GraduationCap", "HandHeart", "Grid2X2", "Hammer", "Droplets", "Zap", "Anvil", "Paintbrush", "BrickWall", "PanelsTopLeft", "Snowflake", "Cog", "Armchair", "Baby", "Smile", "HeartPulse", "Bone", "Sparkles", "Eye", "Activity", "ShoppingBasket", "Pill", "Shirt", "BookOpen", "Tv", "Utensils", "Smartphone", "Languages", "Calculator", "FlaskConical", "Globe", "Heart", "UsersRound", "Scale", "Truck", "Cctv", "Sun", "Ellipsis", "Printer", "Megaphone", "Palette", "Camera", "Disc3", "Scissors", "WandSparkles", "PartyPopper", "Sofa", "PackageOpen", "Car", "SprayCan", "WashingMachine", "Gavel", "ScrollText", "Drill", "Pickaxe", "Shovel", "Axe", "PaintRoller", "PaintBucket", "Ruler", "HardHat", "Construction", "Fence", "Lightbulb", "Plug", "BatteryCharging", "Fan", "AirVent", "Thermometer", "ShowerHead", "Bath", "Toilet", "Flame", "Key", "DoorOpen", "Blinds", "Bed", "Lamp", "Refrigerator", "Microwave", "Nut", "CircuitBoard", "Cuboid", "Boxes", "Waves", "CarFront", "Fuel", "Gauge", "Bus", "Bike", "Tractor", "Forklift", "Plane", "TrafficCone", "Route", "Navigation", "ChefHat", "CookingPot", "Beef", "Drumstick", "Fish", "Croissant", "Cake", "Coffee", "CupSoda", "Apple", "Carrot", "Wheat", "Egg", "Milk", "IceCreamCone", "Pizza", "Sandwich", "Candy", "Cookie", "Salad", "Citrus", "GlassWater", "UtensilsCrossed", "Brush", "Ribbon", "Crown", "Gem", "Watch", "Glasses", "Footprints", "Hand", "Flower", "Gift", "Puzzle", "Gamepad2", "Laptop", "Monitor", "Cpu", "Wifi", "Satellite", "Router", "Keyboard", "Headphones", "Speaker", "Radio", "Code", "Bot", "Antenna", "TabletSmartphone", "Phone", "HardDrive", "Book", "Library", "NotebookPen", "Backpack", "School", "Pencil", "PenTool", "Music", "Guitar", "Mic", "Atom", "Sigma", "Telescope", "Compass", "BookMarked", "MoonStar", "Presentation", "Feather", "Type", "Syringe", "Tablets", "Brain", "Ear", "Microscope", "TestTube", "Dna", "Ambulance", "Hospital", "Cross", "Accessibility", "Dumbbell", "Trophy", "Medal", "Volleyball", "Bandage", "BriefcaseMedical", "HeartHandshake", "PawPrint", "Dog", "Briefcase", "FileText", "Banknote", "CreditCard", "Coins", "PiggyBank", "Receipt", "Wallet", "HandCoins", "Landmark", "Building2", "Hotel", "House", "Warehouse", "Factory", "Stamp", "Signature", "ClipboardList", "Mail", "Send", "Ticket", "ChartBar", "Leaf", "Sprout", "TreePine", "Trees", "Bird", "Bug", "Tent", "Umbrella", "Rabbit", "Shield", "ShieldCheck", "Siren", "BellRing", "Lock", "Flashlight", "Recycle", "Trash2", "Clapperboard", "Video", "Newspaper", "Theater", "Star", "MapPin", "Map", "Moon", "Users", "UserRound", "PersonStanding", "Settings", "Server"];
 export const iconArabicLabels: Record<string, string> = {
@@ -3139,7 +3186,35 @@ export const teacherSpecialtyStages: Record<string, string> = {
   "tch-french": "prep,secondary", "tch-computer": "prep,secondary",
   "tch-german": "secondary", "tch-physics": "secondary", "tch-chemistry": "secondary", "tch-biology": "secondary", "tch-geology": "secondary",
   "tch-philosophy": "secondary", "tch-psychology": "secondary", "tch-history": "secondary", "tch-geography": "secondary",
+  "tch-center": "primary,prep,secondary",
 };
+/** السنتر التعليمي: نوع داخل قسم المدرسين يضم أكثر من مادة؛ المواد تُحفظ بأسمائها داخل «التخصصات الفرعية». */
+export const TEACHER_CENTER_ID = "tch-center";
+export function teacherSubjects(catalog: CategoryRecord[] = initialCategories): CategoryRecord[] {
+  return catalog.filter((category) => category.parentId === TEACHERS_ROOT_ID && category.id !== TEACHER_CENTER_ID && category.active);
+}
+/** أسماء المواد التي يقدمها السنتر (من وسومه الفرعية) بترتيب الكتالوج. */
+export function centerSubjectNames(service: Pick<ServiceRecord, "subSpecialties">, catalog: CategoryRecord[] = initialCategories): string[] {
+  const tags = (service.subSpecialties ?? []).map((item) => normalizeSearch(item));
+  return teacherSubjects(catalog).filter((subject) => tags.includes(normalizeSearch(subject.name))).map((subject) => subject.name);
+}
+/** هل يدرّس السنتر هذه المادة؟ (يظهر في صفحة المادة بجانب مدرسيها) */
+export function serviceTeachesSubject(service: Pick<ServiceRecord, "subSpecialties" | "category">, subject: Pick<CategoryRecord, "name" | "parentId">): boolean {
+  if (service.category !== TEACHER_CENTER_ID || subject.parentId !== TEACHERS_ROOT_ID) return false;
+  const target = normalizeSearch(subject.name);
+  return (service.subSpecialties ?? []).some((item) => normalizeSearch(item) === target);
+}
+/** يستبدل وسوم المواد داخل «التخصصات الفرعية» بالمواد المختارة ويحافظ على المراحل وباقي الوسوم. */
+export function withCenterSubjects(subSpecialties: string[], subjects: unknown, catalog: CategoryRecord[] = initialCategories): string[] {
+  const names = teacherSubjects(catalog).map((subject) => subject.name);
+  const normalized = names.map((name) => normalizeSearch(name));
+  const chosen = Array.isArray(subjects) ? subjects.map((item) => normalizeSearch(String(item))) : [];
+  const rest = (subSpecialties ?? []).filter((item) => !normalized.includes(normalizeSearch(item)));
+  const stageNames = TEACHER_STAGES.map((stage) => normalizeSearch(stage.name));
+  const stages = rest.filter((item) => stageNames.includes(normalizeSearch(item)));
+  const others = rest.filter((item) => !stageNames.includes(normalizeSearch(item)));
+  return [...stages, ...names.filter((name) => chosen.includes(normalizeSearch(name))), ...others].slice(0, 20);
+}
 export const initialCategories: CategoryRecord[] = roots.flatMap(([id, name, color, icon, description], sortOrder) => [
   { id, name, color, light: `${color}12`, icon, art: iconArtDefaults[icon] ?? "other", description: sectionDescriptions[id] ?? description, sortOrder, parentId: null, active: true },
   ...specialties[id].map(([childId, childName, childIcon], order) => ({ id: childId, name: childName, color, light: `${color}12`, icon: childIcon, art: "", description: `${specialtyDescriptions[childId] ?? `مقدمو خدمات ${childName} بقرية جنزور`} المجال: ${childName}.`, sortOrder: order, parentId: id, active: true, stages: teacherSpecialtyStages[childId] ?? "" })),

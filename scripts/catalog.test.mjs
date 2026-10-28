@@ -1120,3 +1120,20 @@ test("teacher stages: categories and providers are filtered by stage and unassig
   assert.equal(stageHref("teachers", "prep", "math"), "/categories/teachers/math?stage=prep");
   assert.equal(stageHref("teachers", null), "/categories/teachers");
 });
+
+test("tutoring centers list their subjects and appear on each subject page", () => {
+  const { centerSubjectNames, serviceTeachesSubject, withCenterSubjects, teacherSubjects, initialCategories, TEACHER_CENTER_ID, hasStickerIcon } = catalog;
+  const math = initialCategories.find((item) => item.id === "tch-math"), physics = initialCategories.find((item) => item.id === "tch-physics");
+  assert.ok(teacherSubjects().length >= 18 && !teacherSubjects().some((item) => item.id === TEACHER_CENTER_ID), "the center itself is not a subject");
+  const center = { category: TEACHER_CENTER_ID, subSpecialties: ["المرحلة الثانوية", "رياضيات", "فيزياء", "جداول مسائية"] };
+  assert.deepEqual(centerSubjectNames(center), ["رياضيات", "فيزياء"]);
+  assert.equal(serviceTeachesSubject(center, math), true);
+  assert.equal(serviceTeachesSubject({ ...center, category: "tch-math" }, physics), false, "only centers are matched by subject tags");
+  assert.deepEqual(withCenterSubjects(center.subSpecialties, ["أحياء"]), ["المرحلة الثانوية", "أحياء", "جداول مسائية"]);
+  for (const id of ["cardiology", "urology", "medical-centers", "engineering-office", "nurseries", "water-filters", TEACHER_CENTER_ID]) {
+    assert.ok(initialCategories.some((item) => item.id === id), `${id} is seeded`);
+    assert.ok(hasStickerIcon(id), `${id} has a sticker`);
+  }
+  assert.equal(initialCategories.filter((item) => item.parentId === "clinics").length, 21);
+  assert.equal(initialCategories.filter((item) => item.parentId === "other-services").length, 18);
+});

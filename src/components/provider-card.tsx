@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
-import { categoryStickerSrc, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
+import { categoryStickerSrc, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, SpecialtyIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 
@@ -20,6 +20,8 @@ export function ProviderRating({ value, reviews }: { value: string; reviews?: nu
 }
 
 type ProviderCardProps = {
+  /** كتالوج التصنيفات (لعرض مواد السنتر التعليمي بأسمائها). */
+  categories?: CategoryRecord[];
   /** عرض أيقونة التخصص المجسّمة (3D) بدل المسطحة. */
   art3d?: boolean;
   /** عرض أيقونة الملصق 3D (الجاهزة/المرفوعة) إن وُجدت. */
@@ -39,7 +41,7 @@ type ProviderCardProps = {
   onToggleFavorite: (id: string) => void;
 };
 // Restored classic provider card with Share & Favorite icons on the left and two action buttons («اتصال» & «واتساب») that both open the provider detail page.
-export default function ProviderCard({ service, category, favorite, now, showAdminQuickEdit, edgeTools, preview, art3d = false, sticker = false, onOpen, onShare, onSuggest, onToggleFavorite }: ProviderCardProps) {
+export default function ProviderCard({ service, category, categories, favorite, now, showAdminQuickEdit, edgeTools, preview, art3d = false, sticker = false, onOpen, onShare, onSuggest, onToggleFavorite }: ProviderCardProps) {
   const [copied, setCopied] = useState(false);
   async function copyPhone() {
     try {
@@ -77,6 +79,12 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
           {category.parentId === TEACHERS_ROOT_ID && serviceStageIds(service).length > 0 && (
             <span className="provider-stages" aria-label="المراحل الدراسية">
               {serviceStageIds(service).map((id) => { const stage = getTeacherStage(id)!; return <span key={id} className="provider-stage-chip" style={{ "--stage-color": stage.color } as CSSProperties}>{stage.short}</span>; })}
+            </span>
+          )}
+          {category.id === TEACHER_CENTER_ID && centerSubjectNames(service, categories).length > 0 && (
+            <span className="provider-center-subjects" aria-label="المواد المتاحة في السنتر">
+              {centerSubjectNames(service, categories).slice(0, 6).map((name) => <span key={name} className="provider-subject-chip">{name}</span>)}
+              {centerSubjectNames(service, categories).length > 6 && <span className="provider-subject-chip is-more">+{centerSubjectNames(service, categories).length - 6}</span>}
             </span>
           )}
           <ProviderRating value={service.rating} reviews={service.reviews}/>

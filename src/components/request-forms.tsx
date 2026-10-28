@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { Check, CheckCircle2, CirclePlus, Clock3, LoaderCircle, MapPin, ShieldCheck } from "lucide-react";
-import { areas, TEACHER_STAGES, TEACHERS_ROOT_ID, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
+import { areas, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import { StickerIcon } from "@/components/ui";
 
@@ -28,6 +28,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   const [specialty, setSpecialty] = useState(selected?.parentId ? selected.id : "");
   const [clinicTags, setClinicTags] = useState<string[]>([]);
   const [teacherStages, setTeacherStages] = useState<string[]>([]);
+  const [centerSubjects, setCenterSubjects] = useState<string[]>([]);
   const [shopItems, setShopItems] = useState<string[]>([]);
   const [customShopItem, setCustomShopItem] = useState("");
   const [homeDelivery, setHomeDelivery] = useState(false);
@@ -50,7 +51,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
-    const subSpecialties = root === "clinics" ? clinicTags : root === TEACHERS_ROOT_ID ? teacherStages : [];
+    const subSpecialties = root === "clinics" ? clinicTags : root === TEACHERS_ROOT_ID ? [...teacherStages, ...(specialty === TEACHER_CENTER_ID ? centerSubjects : [])] : [];
     const baseServiceItems = root === "shops" ? shopItems : [];
     const serviceItems = homeDelivery ? [...baseServiceItems, HOME_DELIVERY_TAG] : baseServiceItems;
     try {
@@ -121,6 +122,19 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
               <StickerIcon src={stage.sticker} size={38}/>
               <span>{stage.name}</span>
             </label>
+          ))}
+        </div>
+      </div>
+    )}
+    {root === TEACHERS_ROOT_ID && specialty === TEACHER_CENTER_ID && (
+      <div className="field center-subjects-picker">
+        <span>📚 المواد المتاحة في السنتر (اضغط لاختيار أكثر من مادة):</span>
+        <div className="field-suggestions" aria-label="مواد السنتر">
+          {teacherSubjects(catalog).map((subject) => (
+            <button key={subject.id} type="button" className={`suggestion-chip ${centerSubjects.includes(subject.name) ? "is-selected" : ""}`} onClick={() => setCenterSubjects((curr) => curr.includes(subject.name) ? curr.filter((item) => item !== subject.name) : [...curr, subject.name])}>
+              {centerSubjects.includes(subject.name) ? <Check size={12}/> : <CirclePlus size={12}/>}
+              {subject.name}
+            </button>
           ))}
         </div>
       </div>
