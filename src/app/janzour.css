@@ -11748,3 +11748,110 @@ html.dark .duty-v3-call { background: #1d74d4; border-color: #1d74d4; }
 html.dark .duty-v3-call:hover, html.dark .duty-v3-call:focus-visible { background: #39ff14; border-color: #39ff14; color: #062b12; }
 html.dark .duty-v3-qr-frame { border-color: #2b4a6b; }
 html.dark .duty-v3-qr small { color: #a9bdd4; }
+
+/* ===== العروض والخصومات المؤقتة ===== */
+.offer-flag { position: absolute; top: -9px; inset-inline-start: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 3px 11px; border-radius: 999px; background: linear-gradient(135deg, #ffb703, #e8792f); color: #3b1d00; font-size: 11px; font-weight: 900; box-shadow: 0 4px 10px rgba(232, 121, 47, .35); }
+.offers-section { display: grid; gap: 12px; margin-top: 8px; }
+.offers-head h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 21px; font-weight: 900; color: #0f2f52; }
+.offers-head h2 svg { color: #e8792f; }
+.offers-count { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 999px; background: #fff3e0; color: #b35a00; font-size: 13px; }
+.offers-head p { margin: 4px 0 0; color: #4b6584; font-size: 13px; font-weight: 700; }
+.offers-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(270px, 1fr); gap: 12px; overflow-x: auto; padding: 10px 2px 14px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.offers-strip::-webkit-scrollbar { display: none; }
+.offer-card { position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px; padding: 14px; border-radius: 18px; border: 1.5px solid #ffd9a8; background: linear-gradient(135deg, #fff8ee, #fff); color: #0f2f52; text-align: start; font: inherit; cursor: pointer; scroll-snap-align: start; box-shadow: 0 8px 20px rgba(232, 121, 47, .12); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.offer-card::before { content: "🏷️ عرض"; position: absolute; top: -10px; inset-inline-end: 14px; padding: 2px 10px; border-radius: 999px; background: linear-gradient(135deg, #ffb703, #e8792f); color: #3b1d00; font-size: 11px; font-weight: 900; }
+.offer-card:hover, .offer-card:focus-visible { transform: translateY(-3px); border-color: #e8792f; box-shadow: 0 14px 30px rgba(232, 121, 47, .22); outline: none; }
+.offer-card-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--cat-light, #fff3e0); }
+.offer-card-body { display: grid; gap: 3px; min-width: 0; }
+.offer-card-title { font-size: 15px; font-weight: 900; color: #b35a00; line-height: 1.4; overflow-wrap: anywhere; }
+.offer-card-name { font-size: 14px; font-weight: 800; color: #0f2f52; }
+.offer-card-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #4b6584; font-weight: 700; }
+.offer-card-meta em { font-style: normal; font-weight: 900; color: #16a37a; }
+.offer-card-meta em.is-urgent { color: #dc2626; }
+.detail-offer { display: flex; align-items: flex-start; gap: 12px; margin: 10px 0 14px; padding: 12px 14px; border-radius: 16px; border: 1.5px dashed #e8a24d; background: linear-gradient(135deg, #fff7e8, #fffdf8); }
+.detail-offer-icon { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #ffb703, #e8792f); color: #3b1d00; }
+.detail-offer-copy { display: grid; gap: 3px; min-width: 0; }
+.detail-offer-copy strong { font-size: 15.5px; color: #b35a00; }
+.detail-offer-copy p { margin: 0; font-size: 13px; color: #334e68; line-height: 1.6; }
+.detail-offer-copy small { font-size: 11.5px; font-weight: 800; color: #16a37a; }
+.offer-editor { border: 1.5px dashed #e8a24d; border-radius: 16px; padding: 10px 12px 12px; margin: 4px 0 8px; background: #fffaf2; }
+.offer-editor legend { font-weight: 900; color: #b35a00; padding: 0 6px; }
+html.dark .offers-head h2 { color: #fff; }
+html.dark .offers-head p { color: #a9bdd4; }
+html.dark .offers-count { background: #3a2a12; color: #ffd08a; }
+html.dark .offer-card { background: linear-gradient(135deg, #2a2114, #13273c); border-color: #6b4a1e; color: #e4effa; }
+html.dark .offer-card-title { color: #ffc46b; }
+html.dark .offer-card-name { color: #fff; }
+html.dark .offer-card-meta { color: #a9bdd4; }
+html.dark .detail-offer { background: linear-gradient(135deg, #2a2114, #1b2535); border-color: #8a5a1e; }
+html.dark .detail-offer-copy strong { color: #ffc46b; }
+html.dark .detail-offer-copy p { color: #d6e2f0; }
+html.dark .offer-editor { background: #241c10; border-color: #8a5a1e; }
+html.dark .offer-editor legend { color: #ffc46b; }
+/* حسابي: تذكير التحديث + الأدوات + العرض */
+.my-confirm { display: grid; grid-template-columns: auto 1fr; gap: 12px 14px; align-items: center; border: 2px solid #f6c26b; background: linear-gradient(135deg, #fff7e3, #fffdf8); }
+.my-confirm > svg { color: #d97706; }
+.my-confirm strong { display: block; font-size: 16px; color: #7c3d00; }
+.my-confirm span { display: block; margin-top: 3px; font-size: 13px; color: #5b4630; line-height: 1.6; }
+.my-confirm .availability-renew { grid-column: 1 / -1; }
+.my-tools .button { width: 100%; justify-content: center; margin-top: 4px; }
+.my-offer-current { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1.5px dashed #e8a24d; background: #fff7e8; }
+.my-offer-current > svg { color: #e8792f; flex-shrink: 0; }
+.my-offer-current > div { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.my-offer-current strong { color: #b35a00; font-size: 14.5px; }
+.my-offer-current span { font-size: 12.5px; color: #4b6584; }
+.my-offer-current small { font-size: 11.5px; font-weight: 800; color: #16a37a; }
+.my-offer-remove { display: inline-flex; align-items: center; gap: 4px; padding: 7px 10px; border-radius: 10px; border: 1.5px solid #f4c6cb; background: #fff4f5; color: #c82333; font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer; }
+html.dark .my-confirm { background: linear-gradient(135deg, #2a2114, #1b2535); border-color: #8a5a1e; }
+html.dark .my-confirm strong { color: #ffc46b; }
+html.dark .my-confirm span { color: #d6e2f0; }
+html.dark .my-offer-current { background: #2a2114; border-color: #8a5a1e; }
+html.dark .my-offer-current strong { color: #ffc46b; }
+/* ملصق التقييم */
+.rating-sticker-body { display: grid; gap: 12px; justify-items: center; }
+.rating-sticker-wait { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: #4b6584; font-weight: 800; }
+.rating-sticker-preview { width: min(100%, 320px); aspect-ratio: 105 / 148; border-radius: 12px; border: 1px solid #d7e6f4; box-shadow: 0 12px 30px rgba(13, 63, 125, .18); background: #fff; }
+.rating-sticker-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; }
+.rating-sticker-actions .button { flex: 1 1 160px; justify-content: center; }
+.rating-sticker-hint { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: #4b6584; font-weight: 700; text-align: center; }
+html.dark .rating-sticker-hint, html.dark .rating-sticker-wait { color: #a9bdd4; }
+
+/* ===== صفحة «جنزور في أرقام» ===== */
+.stats-hero { background: linear-gradient(120deg, #0b4a93 0%, #0d8ee0 60%, #38bdf8 100%); }
+.stats-share { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.stats-updated { color: rgba(255, 255, 255, .85); font-size: 12px; font-weight: 700; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 18px; }
+.stats-tile { display: grid; justify-items: center; gap: 4px; padding: 16px 12px; border-radius: 18px; background: #fff; border: 1.5px solid color-mix(in srgb, var(--tone, #0e6ecc) 30%, #fff); box-shadow: 0 8px 20px rgba(13, 63, 125, .08); text-align: center; }
+.stats-tile-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: color-mix(in srgb, var(--tone, #0e6ecc) 14%, #fff); color: var(--tone, #0e6ecc); }
+.stats-tile strong { font-size: 30px; font-weight: 900; color: var(--tone, #0e6ecc); line-height: 1.1; }
+.stats-tile span:last-child { font-size: 12.5px; font-weight: 800; color: #4b6584; }
+.stats-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 18px; }
+.stats-card { padding: 16px; border-radius: 20px; background: #fff; border: 1px solid #dce9f5; box-shadow: 0 8px 20px rgba(13, 63, 125, .06); }
+.stats-card h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 17px; font-weight: 900; color: #0f2f52; }
+.stats-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.stats-bars li { display: grid; grid-template-columns: 120px 1fr auto; align-items: center; gap: 10px; }
+.stats-bar-label { font-size: 13px; font-weight: 800; color: #0f2f52; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stats-bar { display: block; height: 14px; border-radius: 999px; background: #eef4fb; overflow: hidden; }
+.stats-bar i { display: block; height: 100%; border-radius: 999px; background: var(--tone, #0e6ecc); transition: width .6s ease; }
+.stats-bars b { font-size: 13px; color: #0f2f52; white-space: nowrap; }
+.stats-bars small { color: #4b6584; font-weight: 700; }
+.stats-ranked, .stats-newest { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.stats-ranked li, .stats-newest li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #f7fbff; }
+.stats-newest li { grid-template-columns: 1fr auto; }
+.stats-rank { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: color-mix(in srgb, var(--tone, #0e6ecc) 16%, #fff); color: var(--tone, #0e6ecc); font-weight: 900; font-size: 14px; }
+.stats-rank.is-gold { --tone: #e8a000; }
+.stats-ranked strong, .stats-newest strong { display: block; font-size: 14px; color: #0f2f52; }
+.stats-ranked small, .stats-newest small { display: block; font-size: 11.5px; color: #4b6584; font-weight: 700; }
+.stats-ranked b { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #0e6ecc; }
+.stats-newest time { font-size: 12px; font-weight: 800; color: #4b6584; white-space: nowrap; }
+.stats-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 30px; padding: 18px 20px; border-radius: 20px; background: linear-gradient(135deg, #e6f4ff, #f3fbff); border: 1px solid #bfe0fb; }
+.stats-cta p { margin: 0; font-size: 15px; font-weight: 800; color: #0f2f52; }
+@media (max-width: 560px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .stats-tile strong { font-size: 26px; } .stats-bars li { grid-template-columns: 96px 1fr auto; } }
+html.dark .stats-tile, html.dark .stats-card { background: #13273c; border-color: #27425f; }
+html.dark .stats-tile-icon { background: color-mix(in srgb, var(--tone, #0e6ecc) 28%, #13273c); color: #fff; }
+html.dark .stats-tile span:last-child, html.dark .stats-bars small, html.dark .stats-ranked small, html.dark .stats-newest small, html.dark .stats-newest time { color: #a9bdd4; }
+html.dark .stats-card h2, html.dark .stats-bar-label, html.dark .stats-bars b, html.dark .stats-ranked strong, html.dark .stats-newest strong, html.dark .stats-cta p { color: #fff; }
+html.dark .stats-bar { background: #22395a; }
+html.dark .stats-ranked li, html.dark .stats-newest li { background: #0f2033; }
+html.dark .stats-ranked b { color: #8cc6ff; }
+html.dark .stats-cta { background: linear-gradient(135deg, #13273c, #0f2033); border-color: #27425f; }

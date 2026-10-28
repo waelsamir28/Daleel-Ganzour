@@ -5,7 +5,7 @@ import { ensureSeed, serializeCategory, serializeService, withDirectoryInvalidat
 import { apiError, InputError, objectInput } from "@/lib/inputs";
 import { cleanPhone, cleanText, rateLimit, validPhone } from "@/lib/validation";
 import { sameOrigin } from "@/lib/auth";
-import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseCenterSchedule, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
+import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseCenterSchedule, parseServiceOffer, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,8 @@ export const dynamic = "force-dynamic";
  * - quick: البيانات الآمنة (الوصف، المواعيد، قائمة الخدمات، طوارئ) تُحفظ فورًا وتصل الإدارة كإشعار للعلم.
  * - request: البيانات الحساسة (الاسم، الهاتف، التخصص، العنوان) تُرسل كمسودة تعتمدها الإدارة بضغطة من «طلبات المهن».
  * - availability: تشغيل/إيقاف «متاح الآن» مثل رابط التجديد تمامًا.
+ * - offer: إضافة/إلغاء عرض مؤقت (حتى 30 يومًا) يظهر على البطاقة وفي «عروض الأسبوع».
+ * - confirm: «بياناتي صحيحة» — يجدد تاريخ آخر تأكيد (تذكير كل 6 أشهر).
  */
 export const POST = withDirectoryInvalidation(async (request: Request) => {
   try {
@@ -54,7 +56,7 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       }
       // لو هناك مسودة تعديل بانتظار الإدارة نحدّث نسختها من هذه الحقول أيضًا حتى لا تُعيد الموافقة القيم القديمة.
       const completionDraft = service.completionStatus === "submitted" && service.completionDraft ? { ...service.completionDraft, description, serviceItems, subSpecialties, emergency } : service.completionDraft;
-      await db.update(services).set({ description, hours, workingHours, serviceItems, subSpecialties, schedule, emergency, completionDraft }).where(eq(services.id, service.id));
+      await db.update(services).set({ description, hours, workingHours, serviceItems, subSpecialties, schedule, emergency, completionDraft, confirmedAt: new Date() }).where(eq(services.id, service.id));
       const changed = [description !== service.description && "الوصف", hours !== service.hours && "المواعيد النصية", JSON.stringify(workingHours) !== JSON.stringify(service.workingHours) && "الجدول الأسبوعي", JSON.stringify(serviceItems) !== JSON.stringify(service.serviceItems) && "قائمة الخدمات", JSON.stringify(subSpecialties) !== JSON.stringify(service.subSpecialties) && "المراحل الدراسية", JSON.stringify(schedule) !== JSON.stringify(service.schedule) && "جدول الحصص", emergency !== service.emergency && "خدمة الطوارئ"].filter(Boolean) as string[];
       if (changed.length > 0) {
         await db.insert(notifications).values({ type: "service-update", title: `حدّث المهني بياناته بنفسه: ${service.name}`, message: `عدّل من حسابه: ${changed.join("، ")}. التعديل منشور بالفعل ولا يحتاج موافقة.`, entityId: service.id });
@@ -62,6 +64,24 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       }
       const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
       return Response.json({ ok: true, service: serializeService(updated), message: changed.length > 0 ? "تم الحفظ ونشر التعديل على بطاقتك فورًا." : "لا يوجد تغيير لحفظه." });
+    }
+
+    if (body.action === "offer") {
+      let offer;
+      try { offer = parseServiceOffer(body.offer); } catch (error) { throw new InputError(error instanceof Error ? error.message : "راجع بيانات العرض."); }
+      await db.update(services).set({ ...offer, confirmedAt: new Date() }).where(eq(services.id, service.id));
+      if (offer.offerTitle) {
+        await db.insert(notifications).values({ type: "service-update", entityId: service.id, title: `عرض جديد من ${service.name}`, message: `«${offer.offerTitle}» حتى ${offer.offerEndsAt!.toLocaleDateString("ar-EG")} — منشور على بطاقته وفي عروض الأسبوع.` });
+        queueAdminWhatsappAlert("suggestion", `🏷️ عرض جديد من ${service.name}`, `«${offer.offerTitle}» حتى ${offer.offerEndsAt!.toLocaleDateString("ar-EG")}.`);
+      }
+      const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
+      return Response.json({ ok: true, service: serializeService(updated), message: offer.offerTitle ? "تم نشر العرض على بطاقتك وفي «عروض الأسبوع» بالصفحة الرئيسية." : "تم إلغاء العرض." });
+    }
+
+    if (body.action === "confirm") {
+      await db.update(services).set({ confirmedAt: new Date() }).where(eq(services.id, service.id));
+      const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
+      return Response.json({ ok: true, service: serializeService(updated), message: "شكرًا! تم تأكيد أن بياناتك صحيحة ومحدّثة." });
     }
 
     if (body.action === "request") {

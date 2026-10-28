@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
-import { categoryStickerSrc, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
+import { activeOffer, categoryStickerSrc, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, SpecialtyIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 
@@ -69,6 +69,7 @@ export default function ProviderCard({ service, category, categories, favorite, 
       }}
     >
       {isNewService(service, now) && <span className="new-flag">جديد</span>}
+      {activeOffer(service, now || undefined) && <span className="offer-flag" title={activeOffer(service, now || undefined)!.title}>🏷️ عرض</span>}
       <div className="provider-card-main">
         <span className={`provider-card-icon ${sticker && categoryStickerSrc(category) ? "has-profession-art has-sticker" : art3d ? "has-profession-art" : ""}`} aria-hidden="true">
           {art3d || (sticker && categoryStickerSrc(category)) ? <SpecialtyIcon category={category} size={40} art3d={art3d} sticker={sticker}/> : <CategoryIcon icon={category.icon} size={26}/>}

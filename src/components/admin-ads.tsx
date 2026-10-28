@@ -5,6 +5,7 @@ import SelectField from "@/components/select-field";
 import AdTemplateArt from "@/components/ad-template-art";
 import { AD_ACCENT_PRESETS, AD_CURRENCY, AD_IMAGE_MAX_BYTES, AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, AD_MOTIONS, AD_REQUEST_KINDS, AD_TRANSITIONS, adImageUrl, adTemplates, autoTemplateService, defaultAdPricing, formatEgp, getCategory, isAdLive, whatsappUrl, type AdBannerRecord, type AdPricing, type AdRequestRecord, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { adAccentStyle } from "@/components/ad-rotator";
+import { shrinkImageFile } from "@/lib/client-image";
 
 type Mutate = (method: "POST" | "PATCH" | "DELETE", body: Record<string, unknown>, success?: string) => Promise<boolean>;
 type Source = "upload" | "template";
@@ -70,7 +71,12 @@ export default function AdminAds({ ads, requests, services, categories, busy, mu
     setError("");
     if (!/^image\/(gif|png|jpeg|webp)$/.test(file.type)) { setError("ارفع ملف GIF أو PNG أو JPG أو WebP فقط."); event.target.value = ""; return; }
     if (file.size > AD_IMAGE_MAX_BYTES) { setError(`حجم الملف ${(file.size / 1024 / 1024).toFixed(1)} ميجا. الحد الأقصى ٣ ميجا — صغّر الـ GIF (مثلًا بتقليل الأبعاد إلى 1200×400 أو عدد الإطارات).`); event.target.value = ""; return; }
-    try { const image = await readFileAsDataUrl(file); setDraft((current) => ({ ...current, image, imageName: file.name, removeImage: false, ...(current.source === "template" ? {} : { template: "" }) })); }
+    try {
+      // الصور الثابتة تُصغَّر داخل المتصفح قبل الرفع (حتى 1600×800)؛ GIF يُرفع كما هو حفاظًا على الحركة.
+      const image = file.type === "image/gif" ? await readFileAsDataUrl(file) : (await shrinkImageFile(file, { maxWidth: 1600, maxHeight: 800, quality: 0.86 })).dataUrl;
+      setDraft((current) => ({ ...current, image, imageName: file.name, removeImage: false, ...(current.source === "template" ? {} : { template: "" })
+ }));
+    }
     catch { setError("تعذر قراءة الملف. جرّب ملفًا آخر."); }
   }
   async function submit(event: FormEvent<HTMLFormElement>) {

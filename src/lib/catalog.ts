@@ -474,7 +474,67 @@ export type ServiceRecord = {
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
   availabilityToken?: string; comments?: ServiceComment[]; weeklyStar?: boolean; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; /** جدول حصص السنتر التعليمي. */ schedule?: CenterSchedule; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
   completionStatus?: CompletionStatus; completionNote?: string; completionDraft?: ServiceCompletionDraft | null;
+  /** عرض/خصم مؤقت (اختياري). */
+  offerTitle?: string; offerDetails?: string; offerEndsAt?: string | null;
+  /** آخر تأكيد/تحديث للبيانات من المهني. */
+  confirmedAt?: string;
 };
+
+/* ===== العروض والخصومات المؤقتة ===== */
+export const OFFER_MAX_DAYS = 30;
+export type ServiceOffer = { title: string; details: string; endsAt: string };
+/** العرض النشط للخدمة (عنوان + تاريخ انتهاء لم يمرّ بعد) أو null. */
+export function activeOffer(service: Pick<ServiceRecord, "offerTitle" | "offerDetails" | "offerEndsAt">, now = Date.now()): ServiceOffer | null {
+  const title = (service.offerTitle ?? "").trim();
+  const endsAt = service.offerEndsAt ?? null;
+  if (!title || !endsAt) return null;
+  const end = Date.parse(endsAt);
+  if (!Number.isFinite(end) || end <= now) return null;
+  return { title, details: (service.offerDetails ?? "").trim(), endsAt };
+}
+/** يتحقق من بيانات العرض المرسلة: عنوان 3–120 حرفًا، تفاصيل حتى 300، مدة 1–30 يومًا. يرجع القيم الجاهزة للحفظ، أو قيمًا فارغة عند الإلغاء (null). */
+export function parseServiceOffer(value: unknown, now = Date.now()): { offerTitle: string; offerDetails: string; offerEndsAt: Date | null } {
+  if (value === null || value === undefined || value === "" || value === false) return { offerTitle: "", offerDetails: "", offerEndsAt: null };
+  if (typeof value !== "object") throw new Error("بيانات العرض غير صحيحة.");
+  const record = value as Record<string, unknown>;
+  const title = typeof record.title === "string" ? record.title.replace(/\s+/g, " ").trim().slice(0, 120) : "";
+  if (title.length < 3) throw new Error("اكتب عنوان العرض (٣ أحرف على الأقل)، مثال: خصم ٢٠٪ على التركيب.");
+  const details = typeof record.details === "string" ? record.details.replace(/\s+/g, " ").trim().slice(0, 300) : "";
+  let days = Number(record.days);
+  if (!Number.isFinite(days)) {
+    const end = typeof record.endsAt === "string" ? Date.parse(record.endsAt) : Number.NaN;
+    if (!Number.isFinite(end)) throw new Error("حدد مدة العرض بالأيام (من ١ إلى ٣٠ يومًا).");
+    days = Math.ceil((end - now) / 86_400_000);
+  }
+  days = Math.round(days);
+  if (days < 1 || days > OFFER_MAX_DAYS) throw new Error(`مدة العرض من يوم واحد حتى ${OFFER_MAX_DAYS} يومًا.`);
+  const offerEndsAt = new Date(now + days * 86_400_000);
+  offerEndsAt.setHours(23, 59, 59, 0);
+  return { offerTitle: title, offerDetails: details, offerEndsAt };
+}
+/** الأيام المتبقية على انتهاء العرض (١ على الأقل ما دام نشطًا). */
+export function offerDaysLeft(offer: Pick<ServiceOffer, "endsAt">, now = Date.now()) {
+  return Math.max(1, Math.ceil((Date.parse(offer.endsAt) - now) / 86_400_000));
+}
+/** الخدمات التي لديها عرض نشط، الأقرب انتهاءً أولًا (ليشعر الزائر بالاستعجال)، والمميزون أولًا عند التساوي. */
+export function servicesWithOffers<T extends Pick<ServiceRecord, "offerTitle" | "offerDetails" | "offerEndsAt" | "featured" | "status">>(items: T[], now = Date.now()): T[] {
+  return items
+    .filter((item) => item.status === "approved" && activeOffer(item, now))
+    .sort((a, b) => Date.parse(a.offerEndsAt!) - Date.parse(b.offerEndsAt!) || Number(b.featured) - Number(a.featured));
+}
+
+/* ===== تذكير تجديد البيانات ===== */
+export const DATA_CONFIRM_MONTHS = 6;
+/** عدد الأيام منذ آخر تأكيد/تحديث للبيانات. */
+export function daysSinceConfirmed(service: Pick<ServiceRecord, "confirmedAt" | "createdAt">, now = Date.now()) {
+  const last = Date.parse(service.confirmedAt || service.createdAt);
+  if (!Number.isFinite(last)) return 0;
+  return Math.max(0, Math.floor((now - last) / 86_400_000));
+}
+/** هل مرّ على آخر تحديث أكثر من 6 أشهر (≈ 182 يومًا)؟ */
+export function needsDataConfirmation(service: Pick<ServiceRecord, "confirmedAt" | "createdAt">, now = Date.now()) {
+  return daysSinceConfirmed(service, now) >= Math.round(DATA_CONFIRM_MONTHS * 30.4);
+}
 
 export function missingServiceData(service: ServiceRecord) {
   return [
@@ -1188,6 +1248,8 @@ export type DesignSettings = {
   showHero: boolean;
   showFeatureCards: boolean;
   showFeaturedSection: boolean;
+  /** صف «عروض الأسبوع» (الخدمات التي لديها عرض نشط) في الصفحة الرئيسية. */
+  showOffersSection: boolean;
   showCategoriesSection: boolean;
   showAddProfessionBanner: boolean;
   featuredDefaultOpen: boolean;
@@ -1557,10 +1619,11 @@ export const defaultDesignSettings: DesignSettings = {
   iconPosition: "top-center",
   mobileColumns: "2",
   desktopColumns: "4",
-  sectionOrder: "hero,features,featured,categories,transit,professionBanner",
+  sectionOrder: "hero,features,featured,offers,categories,transit,professionBanner",
   showHero: true,
   showFeatureCards: true,
   showFeaturedSection: true,
+  showOffersSection: true,
   showCategoriesSection: true,
   showAddProfessionBanner: true,
   featuredDefaultOpen: false,
@@ -2158,6 +2221,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.showHero = pickBool(record.showHero, defaultDesignSettings.showHero);
   next.showFeatureCards = pickBool(record.showFeatureCards, defaultDesignSettings.showFeatureCards);
   next.showFeaturedSection = pickBool(record.showFeaturedSection, defaultDesignSettings.showFeaturedSection);
+  next.showOffersSection = pickBool(record.showOffersSection, defaultDesignSettings.showOffersSection);
   next.showCategoriesSection = pickBool(record.showCategoriesSection, defaultDesignSettings.showCategoriesSection);
   next.showAddProfessionBanner = pickBool(record.showAddProfessionBanner, defaultDesignSettings.showAddProfessionBanner);
   next.featuredDefaultOpen = pickBool(record.featuredDefaultOpen, defaultDesignSettings.featuredDefaultOpen);
