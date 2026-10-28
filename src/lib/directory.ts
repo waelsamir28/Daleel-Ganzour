@@ -84,6 +84,13 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_members ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'member'`);
       await tx.execute(sql`ALTER TABLE directory_categories ADD COLUMN IF NOT EXISTS stages varchar(40) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS schedule jsonb NOT NULL DEFAULT '[]'::jsonb`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS offer_title varchar(120) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS offer_details text NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS offer_ends_at timestamptz`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS confirmed_at timestamptz`);
+      await tx.execute(sql`UPDATE directory_services SET confirmed_at = created_at WHERE confirmed_at IS NULL`);
+      await tx.execute(sql`ALTER TABLE directory_services ALTER COLUMN confirmed_at SET DEFAULT now()`);
+      await tx.execute(sql`ALTER TABLE directory_services ALTER COLUMN confirmed_at SET NOT NULL`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_ad_banners (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title varchar(120) NOT NULL, caption varchar(240) NOT NULL DEFAULT '', service_id uuid REFERENCES directory_services(id) ON DELETE SET NULL, whatsapp varchar(24) NOT NULL DEFAULT '', active boolean NOT NULL DEFAULT true, starts_at timestamptz, ends_at timestamptz, sort_order integer NOT NULL DEFAULT 0, duration_seconds integer NOT NULL DEFAULT 6, image_mime varchar(60) NOT NULL DEFAULT 'image/gif', image_data text NOT NULL DEFAULT '', image_version integer NOT NULL DEFAULT 1, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS template varchar(40) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS transition varchar(20) NOT NULL DEFAULT 'random'`);
@@ -236,7 +243,7 @@ export async function getDesignSettings(): Promise<DesignSettings> {
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
   const { reviewNote: _privateNote, availabilityToken: _privateToken, accountToken: _privateAccountToken, ...publicItem } = item;
   const completionStatus = (["none", "requested", "submitted", "rejected"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
-  return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString() };
+  return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString(), offerEndsAt: item.offerEndsAt?.toISOString() ?? null, confirmedAt: (item.confirmedAt ?? item.createdAt).toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect, imageVersion = 0): CategoryRecord { return { ...item, light: `${item.color}12`, ...(imageVersion ? { imageVersion } : {}) }; }
 const adColumns = { id: adBanners.id, template: adBanners.template, transition: adBanners.transition, motion: adBanners.motion, accentColor: adBanners.accentColor, title: adBanners.title, caption: adBanners.caption, serviceId: adBanners.serviceId, whatsapp: adBanners.whatsapp, active: adBanners.active, startsAt: adBanners.startsAt, endsAt: adBanners.endsAt, sortOrder: adBanners.sortOrder, durationSeconds: adBanners.durationSeconds, imageMime: adBanners.imageMime, imageVersion: adBanners.imageVersion, hasImage: sql<boolean>`length(${adBanners.imageData}) > 0`, createdAt: adBanners.createdAt };

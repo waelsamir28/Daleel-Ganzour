@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { BadgeCheck, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, ShieldCheck, Star, XCircle, Zap } from "lucide-react";
-import { AVAILABILITY_HOURS, centerSubjectNames, getCategory, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
+import { BadgeCheck, BadgePercent, CalendarClock, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
+import { activeOffer, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerDaysLeft, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
 import CenterScheduleEditor from "@/components/center-schedule-editor";
 import CenterScheduleView from "@/components/center-schedule-view";
 import { SpecialtyIcon, StickerIcon } from "@/components/ui";
+import RatingStickerModal from "@/components/rating-sticker-modal";
 
 type Props = { token: string; initial: ServiceRecord; categories: CategoryRecord[]; areas: string[] };
 type Notice = { text: string; error: boolean } | null;
@@ -17,7 +18,11 @@ const statusLabel: Record<string, string> = { approved: "منشور على ال�
 /** صفحة «حسابي» لصاحب الخدمة: تعديل ذاتي عبر الرابط السري الذي أرسلته الإدارة على واتسابه. */
 export default function ProviderAccount({ token, initial, categories, areas }: Props) {
   const [service, setService] = useState(initial);
-  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request">("");
+  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request" | "offer" | "confirm">("");
+  const [offerTitle, setOfferTitle] = useState(initial.offerTitle ?? "");
+  const [offerDetails, setOfferDetails] = useState(initial.offerDetails ?? "");
+  const [offerDays, setOfferDays] = useState(7);
+  const [stickerOpen, setStickerOpen] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [now, setNow] = useState(0);
   useEffect(() => {
@@ -57,7 +62,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   const [address, setAddress] = useState(initial.address);
   const specialties = useMemo(() => categories.filter((item) => item.parentId === rootId), [categories, rootId]);
 
-  async function call(action: "availability" | "quick" | "request", payload: Record<string, unknown>) {
+  async function call(action: "availability" | "quick" | "request" | "offer" | "confirm", payload: Record<string, unknown>) {
     if (busy) return;
     setBusy(action); setNotice(null);
     try {
@@ -79,6 +84,14 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
     const serviceItems = items.split(/[،,\n]/).map((item) => item.trim()).filter(Boolean);
     void call("quick", { description, hours, workingHours, serviceItems, emergency, ...(isTeacher ? { stages } : {}), ...(isCenter ? { subjects, schedule } : {}) });
   }
+
+  function submitOffer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void call("offer", { offer: { title: offerTitle, details: offerDetails, days: offerDays } });
+  }
+  const currentOffer = activeOffer(service, now || undefined);
+  const stale = needsDataConfirmation(service, now || undefined);
+  const sinceDays = daysSinceConfirmed(service, now || undefined);
 
   function submitRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -108,6 +121,41 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
     </section>
 
     {notice && <p className={`availability-result ${notice.error ? "is-error" : "is-ok"} my-notice`} role="status">{notice.error ? <XCircle size={16}/> : <CheckCircle2 size={16}/>} {notice.text}</p>}
+
+    {stale && (
+      <section className="availability-card my-confirm" role="alert">
+        <CalendarClock size={30}/>
+        <div>
+          <strong>مرّ {sinceDays >= 365 ? `أكثر من سنة` : `${Math.floor(sinceDays / 30)} شهرًا`} على آخر تحديث لبياناتك</strong>
+          <span>نطلب من كل مهني مراجعة بياناته كل {DATA_CONFIRM_MONTHS} أشهر حتى يظل الدليل دقيقًا. لو كل شيء صحيح اضغط الزر، أو عدّل ما تغيّر في الأقسام بالأسفل.</span>
+        </div>
+        <button type="button" className="availability-renew is-blue" onClick={() => void call("confirm", {})} disabled={busy !== ""}>{busy === "confirm" ? <LoaderCircle size={20} className="spin"/> : <CheckCircle2 size={20}/>} بياناتي صحيحة ✓</button>
+      </section>
+    )}
+
+    {service.status === "approved" && (
+      <section className="availability-card my-tools">
+        <header className="my-section-head"><QrCode size={18}/><div><h2>ملصق التقييم للمحل</h2><span>ملصق A6 جاهز للطباعة: العميل يمسح الرمز فيفتح بطاقتك على نافذة التقييم مباشرة.</span></div></header>
+        <button type="button" className="button button-primary" onClick={() => setStickerOpen(true)}><QrCode size={16}/> تجهيز ملصق «امسح لتقييمنا»</button>
+      </section>
+    )}
+
+    <form className="availability-card my-form my-offer" onSubmit={submitOffer}>
+      <header className="my-section-head"><BadgePercent size={18}/><div><h2>عرض أو خصم مؤقت</h2><span>يظهر وسم «عرض» على بطاقتك ويدخل صف «عروض الأسبوع» في الصفحة الرئيسية، وينتهي تلقائيًا (حتى {OFFER_MAX_DAYS} يومًا).</span></div></header>
+      {currentOffer && (
+        <div className="my-offer-current">
+          <BadgePercent size={18}/>
+          <div><strong>{currentOffer.title}</strong>{currentOffer.details && <span>{currentOffer.details}</span>}<small>{offerDaysLeft(currentOffer, now || undefined) === 1 ? "ينتهي اليوم" : `باقي ${offerDaysLeft(currentOffer, now || undefined)} يوم`}</small></div>
+          <button type="button" className="my-offer-remove" onClick={() => void call("offer", { offer: null })} disabled={busy !== ""} aria-label="إلغاء العرض"><Trash2 size={16}/> إلغاء</button>
+        </div>
+      )}
+      <div className="my-two">
+        <label className="my-field">عنوان العرض<input value={offerTitle} onChange={(event) => setOfferTitle(event.target.value)} maxLength={120} minLength={3} required placeholder="مثال: خصم ٢٠٪ على التركيب"/></label>
+        <label className="my-field">المدة بالأيام<input type="number" min={1} max={OFFER_MAX_DAYS} value={offerDays} onChange={(event) => setOfferDays(Math.min(OFFER_MAX_DAYS, Math.max(1, Number(event.target.value) || 1)))}/></label>
+      </div>
+      <label className="my-field">تفاصيل مختصرة (اختياري)<input value={offerDetails} onChange={(event) => setOfferDetails(event.target.value)} maxLength={300} placeholder="شروط العرض أو ما يشمله"/></label>
+      <button type="submit" className="availability-renew is-blue" disabled={busy !== "" || offerTitle.trim().length < 3}>{busy === "offer" ? <LoaderCircle size={20} className="spin"/> : <BadgePercent size={20}/>} {currentOffer ? "تحديث العرض" : "نشر العرض الآن"}</button>
+    </form>
 
     <section className="availability-card">
       <div className={`availability-status ${live ? "is-live" : ""}`}>
@@ -156,6 +204,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       <button type="submit" className="availability-renew is-amber" disabled={busy !== "" || !specialtyId}>{busy === "request" ? <LoaderCircle size={20} className="spin"/> : <Pencil size={20}/>} إرسال التعديل للإدارة</button>
     </form>
 
+    {stickerOpen && <RatingStickerModal name={service.name} category={category.name} serviceId={service.id} siteName="دليل جنزور" onClose={() => setStickerOpen(false)}/>}
     <a className="availability-contact" href={OFFICE_WHATSAPP} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/> تحتاج مساعدة أو حذف بياناتك؟ تواصل مع الإدارة</a>
   </>;
 }

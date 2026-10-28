@@ -60,6 +60,7 @@ const homeSectionsMeta: Record<string, { label: string; toggleKey: keyof DesignS
   hero: { label: "البانر الترحيبي والبحث الرئيسي", toggleKey: "showHero" },
   features: { label: "الكروت الثلاثة (المناوبات + أرقام تهمك + الخدمات السريعة)", toggleKey: "showFeatureCards" },
   featured: { label: "قسم مقدمو الخدمات المميزين", toggleKey: "showFeaturedSection" },
+  offers: { label: "صف «عروض الأسبوع» (الخصومات النشطة)", toggleKey: "showOffersSection" },
   categories: { label: "أقسام القرية والتخصصات", toggleKey: "showCategoriesSection" },
   professionBanner: { label: "بانر «أضف مهنتك» والطوارئ", toggleKey: "showAddProfessionBanner" },
 };

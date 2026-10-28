@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { AlertCircle, Check, CirclePlus, ImageUp, LoaderCircle, Save, Sparkles, Trash2 } from "lucide-react";
-import { categoryArt, categoryArtOptions, categoryStageIds, categoryStickerSrc, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CenterSchedule, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
+import { activeOffer, offerDaysLeft, OFFER_MAX_DAYS, categoryArt, categoryArtOptions, categoryStageIds, categoryStickerSrc, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CenterSchedule, CATEGORY_ICON_MAX_BYTES, getCategory, getCompletionFieldSuggestions, hasProfessionArt, professionArtIds, professionArtLabels, HOME_DELIVERY_TAG, iconArabicLabels, iconNames, OTHER_ADDRESS, type AdminDirectory, type AreaRecord, type CategoryRecord, type MemberRecord, type ServiceRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import { CategoryIcon, MainCategoryIcon, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import CenterScheduleEditor from "@/components/center-schedule-editor";
@@ -61,12 +61,25 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
 
   const [categoryStages, setCategoryStages] = useState<string[]>(categoryStageIds({ stages: record.stages ?? "" }));
   const [scheduleVal, setScheduleVal] = useState<CenterSchedule>(editing.kind === "service" ? (record.schedule ?? []) : []);
+  const existingOffer = editing.kind === "service" ? activeOffer(record as ServiceRecord) : null;
+  const [offerTitle, setOfferTitle] = useState(existingOffer?.title ?? "");
+  const [offerDetails, setOfferDetails] = useState(existingOffer?.details ?? "");
+  const [offerDays, setOfferDays] = useState(existingOffer ? offerDaysLeft(existingOffer) : 7);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget), values: Record<string, unknown> = Object.fromEntries(form);
     for (const key of ["verified", "featured", "emergency", "active", "demo"]) values[key] = form.get(key) === "on";
     if (editing.kind === "category") values.stages = categoryStages;
     if (editing.kind === "service") { delete values.schedule; if (values.category === TEACHER_CENTER_ID) values.schedule = scheduleVal; }
+    if (editing.kind === "service") {
+      for (const key of ["offerTitle", "offerDetails", "offerDays"]) delete values[key];
+      const title = offerTitle.trim();
+      // نرسل العرض فقط عند تغييره: عنوان جديد/معدّل أو مدة مختلفة، أو إلغاء عرض كان موجودًا.
+      if (title) {
+        const unchanged = existingOffer && existingOffer.title === title && existingOffer.details === offerDetails.trim() && offerDaysLeft(existingOffer) === offerDays;
+        if (!unchanged) values.offer = { title, details: offerDetails.trim(), days: offerDays };
+      } else if (existingOffer) values.offer = null;
+    }
     try {
       if (editing.kind === "service") values.workingHours = record.workingHours ?? [];
       if (editing.kind === "service") values.serviceItems = String(form.get("serviceItems") ?? "").split("\n").map((item) => item.trim()).filter(Boolean);
@@ -145,6 +158,15 @@ export default function ManagementEditor({ editing, data, onSave }: { editing: E
         </div>
       </label>
       {specialty === TEACHER_CENTER_ID && <CenterScheduleEditor value={scheduleVal} onChange={setScheduleVal} subjects={teacherSubjects(data.categories).map((subject) => subject.name)}/>}
+      <fieldset className="field offer-editor">
+        <legend>🏷️ عرض أو خصم مؤقت (اختياري — يظهر على البطاقة وفي «عروض الأسبوع»)</legend>
+        <div className="form-row">
+          <label className="field">عنوان العرض<input name="offerTitle" value={offerTitle} onChange={(event) => setOfferTitle(event.target.value)} maxLength={120} placeholder="مثال: خصم ٢٠٪ على التركيب حتى نهاية الأسبوع"/></label>
+          <label className="field">المدة بالأيام (حتى {OFFER_MAX_DAYS})<input name="offerDays" type="number" min={1} max={OFFER_MAX_DAYS} value={offerDays} onChange={(event) => setOfferDays(Math.min(OFFER_MAX_DAYS, Math.max(1, Number(event.target.value) || 1)))}/></label>
+        </div>
+        <label className="field">تفاصيل مختصرة<input name="offerDetails" value={offerDetails} onChange={(event) => setOfferDetails(event.target.value)} maxLength={300} placeholder="شروط العرض أو ما يشمله"/></label>
+        <small className="input-help">{existingOffer ? `عرض نشط حاليًا وينتهي بعد ${offerDaysLeft(existingOffer)} يوم. امسح العنوان لإلغائه.` : "اترك العنوان فارغًا إذا لا يوجد عرض. ينتهي العرض تلقائيًا بعد المدة."}</small>
+      </fieldset>
       <label className="field">ترتيب الأكثر احتياجًا<input name="neededRank" type="number" min={0} max={1000} defaultValue={record.neededRank ?? 0}/><small>٠ للاستبعاد؛ الرقم الأصغر يظهر أولًا.</small></label>
       <label className="field">الخدمات التفصيلية
         <textarea name="serviceItems" value={serviceItemsVal} onChange={(event) => setServiceItemsVal(event.target.value)} rows={5} maxLength={2020} placeholder={"صيانة\nتركيب\nكشف"}/>

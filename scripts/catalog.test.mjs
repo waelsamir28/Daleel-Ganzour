@@ -1171,3 +1171,65 @@ test("admin-created specialties get a sticker by name when they have no id-based
   assert.equal(categoryStickerSrc({ id: "mobile-shops", imageVersion: 0, name: "خدمات الكمبيوتر" }), "/images/specialty-stickers/mobile-shops.webp", "id match wins over name");
   assert.equal(categoryStickerSrc({ id: "9f1c-uuid", imageVersion: 3, name: "خدمات الكمبيوتر" }), "/api/category-icon/9f1c-uuid?v=3", "uploaded icon wins");
 });
+
+test("temporary offers are validated (1–30 days), expire automatically and sort by soonest end", () => {
+  const { parseServiceOffer, activeOffer, offerDaysLeft, servicesWithOffers, OFFER_MAX_DAYS } = catalog;
+  assert.equal(OFFER_MAX_DAYS, 30);
+  const saved = parseServiceOffer({ title: "  خصم ٢٠٪  على التركيب ", details: "للمنازل فقط", days: 7 }, now);
+  assert.equal(saved.offerTitle, "خصم ٢٠٪ على التركيب");
+  assert.ok(saved.offerEndsAt instanceof Date && saved.offerEndsAt.getTime() > now + 6 * DAY);
+  assert.deepEqual(parseServiceOffer(null), { offerTitle: "", offerDetails: "", offerEndsAt: null }, "null clears the offer");
+  assert.throws(() => parseServiceOffer({ title: "خص", days: 5 }), /عنوان/);
+  assert.throws(() => parseServiceOffer({ title: "خصم كبير", days: 31 }), /30/);
+  assert.throws(() => parseServiceOffer({ title: "خصم كبير", days: 0 }), /30/);
+  const base = { status: "approved", featured: false, offerDetails: "" };
+  const soon = { ...base, offerTitle: "ينتهي قريبًا", offerEndsAt: new Date(now + 2 * DAY).toISOString() };
+  const later = { ...base, offerTitle: "لاحقًا", offerEndsAt: new Date(now + 10 * DAY).toISOString(), featured: true };
+  const expired = { ...base, offerTitle: "منتهي", offerEndsAt: new Date(now - DAY).toISOString() };
+  const pending = { ...later, status: "pending" };
+  assert.equal(activeOffer(expired, now), null);
+  assert.equal(activeOffer({ ...base, offerTitle: "", offerEndsAt: later.offerEndsAt }, now), null);
+  assert.equal(activeOffer(soon, now).title, "ينتهي قريبًا");
+  assert.equal(offerDaysLeft(activeOffer(soon, now), now), 2);
+  assert.deepEqual(servicesWithOffers([later, expired, soon, pending], now).map((item) => item.offerTitle), ["ينتهي قريبًا", "لاحقًا"]);
+});
+
+test("data-confirmation reminder triggers after six months since the last confirmation", () => {
+  const { needsDataConfirmation, daysSinceConfirmed } = catalog;
+  const created = new Date(now - 400 * DAY).toISOString();
+  assert.equal(needsDataConfirmation({ createdAt: created, confirmedAt: new Date(now - 10 * DAY).toISOString() }, now), false);
+  assert.equal(needsDataConfirmation({ createdAt: created, confirmedAt: new Date(now - 200 * DAY).toISOString() }, now), true);
+  assert.equal(needsDataConfirmation({ createdAt: created, confirmedAt: "" }, now), true, "falls back to createdAt");
+  assert.equal(daysSinceConfirmed({ createdAt: created, confirmedAt: new Date(now - 45 * DAY).toISOString() }, now), 45);
+});
+
+test("village stats count only approved non-demo services and never expose phone numbers", async () => {
+  const statsSource = readFileSync(new URL("../src/lib/stats.ts", import.meta.url), "utf8").replace('from "@/lib/catalog"', `from "${catalogModuleUrl}"`);
+  const compiled = ts.transpileModule(statsSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText;
+  const { computeVillageStats, villageStatsShareText } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
+  const cats = catalog.initialCategories;
+  const mk = (over) => ({ id: Math.random().toString(36).slice(2), name: "خدمة", category: "plumbing", status: "approved", demo: false, verified: false, featured: false, emergency: false, availableNow: false, availableUntil: null, rating: "0", reviews: 0, createdAt: new Date(now - 100 * DAY).toISOString(), phone: "01000000000", offerTitle: "", offerDetails: "", offerEndsAt: null, ...over });
+  const services = [
+    mk({ name: "سباك أ", verified: true, rating: "4.8", reviews: 4 }),
+    mk({ name: "سباك ب", rating: "4.0", reviews: 2, createdAt: new Date(now - 3 * DAY).toISOString() }),
+    mk({ name: "كهربائي", category: "electricity", emergency: true, offerTitle: "خصم", offerEndsAt: new Date(now + DAY).toISOString() }),
+    mk({ name: "مرفوض", status: "pending" }),
+    mk({ name: "تجريبي", demo: true }),
+  ];
+  const stats = computeVillageStats({ services, categories: cats, areas: [{ name: "أ" }, { name: "ب" }], memberCount: 12 }, now);
+  assert.equal(stats.providers, 3);
+  assert.equal(stats.verified, 1);
+  assert.equal(stats.emergency, 1);
+  assert.equal(stats.offers, 1);
+  assert.equal(stats.newThisMonth, 1);
+  assert.equal(stats.reviews, 6);
+  assert.equal(stats.averageRating, 4.5);
+  assert.equal(stats.areas, 2);
+  assert.equal(stats.members, 12);
+  assert.equal(stats.topRoots[0].count, 3, "all three approved services are crafts");
+  assert.equal(stats.topSpecialties[0].id, "plumbing");
+  assert.equal(stats.topRated[0].name, "سباك أ");
+  assert.equal(stats.newest[0].name, "سباك ب");
+  assert.ok(!JSON.stringify(stats).includes("01000000000"));
+  assert.match(villageStatsShareText(stats, "دليل جنزور", "https://x.test/stats"), /3 مهني[\s\S]*https:\/\/x\.test\/stats$/);
+});

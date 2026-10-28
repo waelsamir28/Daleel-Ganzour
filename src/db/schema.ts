@@ -21,6 +21,12 @@ export const services = pgTable("directory_services", {
   subSpecialties: jsonb("sub_specialties").$type<string[]>().notNull().default([]),
   /** جدول حصص السنتر التعليمي (مادة/مدرس/يوم/ساعة). */
   schedule: jsonb("schedule").$type<CenterSchedule>().notNull().default([]),
+  /** عرض/خصم مؤقت يضيفه المهني أو الإدارة (حتى 30 يومًا). */
+  offerTitle: varchar("offer_title", { length: 120 }).notNull().default(""),
+  offerDetails: text("offer_details").notNull().default(""),
+  offerEndsAt: timestamp("offer_ends_at", { withTimezone: true }),
+  /** آخر مرة أكّد فيها المهني (أو عدّل) بياناته — لتذكير تجديد البيانات كل 6 أشهر. */
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
   neededRank: integer("needed_rank").notNull().default(0),
   reviewNote: text("review_note").notNull().default(""),
   completionStatus: varchar("completion_status", { length: 20 }).notNull().default("none"),
