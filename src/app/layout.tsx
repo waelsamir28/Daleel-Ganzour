@@ -46,8 +46,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "دليل جنزور", statusBarStyle: "default" },
   icons: {
-    icon: [{ url: "/favicon.png?v=3", type: "image/png", sizes: "48x48" }, { url: "/icon-192.png?v=3", type: "image/png", sizes: "192x192" }],
-    apple: [{ url: "/apple-touch-icon.png?v=3", type: "image/png", sizes: "180x180" }],
+    icon: [{ url: "/favicon.png?v=4", type: "image/png", sizes: "48x48" }, { url: "/icon-192.png?v=4", type: "image/png", sizes: "192x192" }],
+    apple: [{ url: "/apple-touch-icon.png?v=4", type: "image/png", sizes: "180x180" }],
   },
 };
 
