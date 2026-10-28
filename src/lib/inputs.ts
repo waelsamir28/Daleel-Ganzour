@@ -6,6 +6,8 @@ import { hasProfessionArt, categoryArtOptions, defaultSettings, iconNames, OTHER
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
 import { normalizeWhatsappNumber } from "@/lib/whatsapp-alert-kinds";
+import { serviceDescriptionVariant } from "@/lib/service-description";
+import { parsePhotoInput } from "@/lib/service-photo";
 
 export class InputError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export function objectInput(value: unknown): Record<string, unknown> {
@@ -19,19 +21,23 @@ export function integerInput(value: unknown, min: number, max: number, label: st
 }
 export async function serviceInput(body: Record<string, unknown>, admin = false) {
   await ensureSeed();
-  const name = cleanText(body.name, 160), description = cleanText(body.description, 1000), phone = cleanPhone(body.phone);
+  const name = cleanText(body.name, 160), phone = cleanPhone(body.phone);
+  let description = cleanText(body.description, 1000);
   const phoneSecondary = cleanPhone(body.phoneSecondary ?? "");
   const category = cleanText(body.category, 60), area = cleanText(body.area, 80);
   let address = cleanText(body.address, 240);
   const [selected] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, category)).limit(1);
   const [root] = selected?.parentId ? await db.select().from(directoryCategories).where(eq(directoryCategories.id, selected.parentId)).limit(1) : [];
   const [selectedArea] = await db.select().from(directoryAreas).where(eq(directoryAreas.name, area)).limit(1);
-  if (name.length < 3 || description.length < 10 || !validPhone(phone) || (phoneSecondary && !validPhone(phoneSecondary)) || !selected?.parentId || (!admin && (!selected.active || !root?.active))) throw new InputError("أكمل الاسم ووصف الخدمة، واختر تخصصًا صحيحًا، وأدخل رقم هاتف مصري صحيح.");
+  // وصف الخدمة اختياري: إن تُرك فارغًا (أو أقصر من 10 أحرف) يُنشأ وصف مناسب للمهنة يختلف من شخص لآخر.
+  if (description.length < 10 && selected?.parentId) description = serviceDescriptionVariant(selected.id, selected.name, `${phone}:${name}`);
+  if (name.length < 3 || description.length < 10 || !validPhone(phone) || (phoneSecondary && !validPhone(phoneSecondary)) || !selected?.parentId || (!admin && (!selected.active || !root?.active))) throw new InputError("أكمل الاسم ورقم الهاتف، واختر تخصصًا صحيحًا، وأدخل رقم هاتف مصري صحيح.");
   if (area === OTHER_ADDRESS) { if (address.length < 3) throw new InputError("اكتب العنوان الآخر في الخانة المخصصة."); }
   else if (!selectedArea && !admin) throw new InputError("اختار عنوانًا من عناوين جنزور أو اختار عنوان آخر.");
   if (!area) throw new InputError("اختار العنوان.");
   if (!address) address = area;
   const hours = cleanText(body.hours ?? "", 120), menuUrl = cleanText(body.menuUrl ?? "", 500), menuWhatsapp = cleanPhone(body.menuWhatsapp ?? "");
+  const photo = parsePhotoInput(body.photo);
   let workingHours, serviceItems, subSpecialties, schedule, offer;
   try {
     workingHours = parseWorkingHours(admin ? body.workingHours : undefined);
@@ -42,7 +48,7 @@ export async function serviceInput(body: Record<string, unknown>, admin = false)
     offer = admin && body.offer !== undefined ? parseServiceOffer(body.offer) : undefined;
   }
   catch (error) { throw new InputError(error instanceof Error ? error.message : "مواعيد العمل غير صحيحة."); }
-  return { name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, hours, menuUrl, menuWhatsapp, serviceItems, subSpecialties, ...(admin ? { workingHours, neededRank: integerInput(body.neededRank ?? 0, 0, 1000, "ترتيب الأكثر احتياجًا") } : {}), ...(body.schedule !== undefined ? { schedule } : {}), ...(offer ? offer : {}) };
+  return { photo, name, description, phone, phoneSecondary, category, area, address, emergency: body.emergency === true, hours, menuUrl, menuWhatsapp, serviceItems, subSpecialties, ...(admin ? { workingHours, neededRank: integerInput(body.neededRank ?? 0, 0, 1000, "ترتيب الأكثر احتياجًا") } : {}), ...(body.schedule !== undefined ? { schedule } : {}), ...(offer ? offer : {}) };
 }
 export function categoryInput(body: Record<string, unknown>) {
   const name = cleanText(body.name, 100), description = cleanText(body.description, 240);

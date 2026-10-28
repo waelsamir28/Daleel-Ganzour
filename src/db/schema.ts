@@ -27,6 +27,8 @@ export const services = pgTable("directory_services", {
   offerEndsAt: timestamp("offer_ends_at", { withTimezone: true }),
   /** آخر مرة أكّد فيها المهني (أو عدّل) بياناته — لتذكير تجديد البيانات كل 6 أشهر. */
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
+  /** رقم إصدار الصورة الشخصية للمهني (0 = لا توجد صورة)؛ الصورة نفسها في directory_service_photos. */
+  photoVersion: integer("photo_version").notNull().default(0),
   neededRank: integer("needed_rank").notNull().default(0),
   reviewNote: text("review_note").notNull().default(""),
   completionStatus: varchar("completion_status", { length: 20 }).notNull().default("none"),
@@ -173,6 +175,14 @@ export const appointmentRequests = pgTable("directory_appointment_requests", {
 });
 
 /** أيقونة مرفوعة من الإدارة لقسم أو تخصص (تُخزَّن داخل القاعدة لأن Vercel بلا قرص دائم). */
+/** الصورة الشخصية للمهني/المحل (دائرة صغيرة مقصوصة ومضغوطة في المتصفح) — داخل القاعدة لأن Vercel بلا قرص دائم. */
+export const servicePhotos = pgTable("directory_service_photos", {
+  serviceId: uuid("service_id").primaryKey().references(() => services.id, { onDelete: "cascade" }),
+  mime: varchar("mime", { length: 60 }).notNull().default("image/webp"),
+  data: text("data").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const categoryIcons = pgTable("directory_category_icons", {
   categoryId: varchar("category_id", { length: 60 }).primaryKey(),
   mime: varchar("mime", { length: 60 }).notNull().default("image/png"),

@@ -185,7 +185,20 @@ export default function DesignCustomizer({
   }));
   const [activeFilter, setActiveFilter] = useState<SectionFilter>("all");
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  // كل الأقسام منطوية افتراضيًا؛ يُفتح قسم واحد في كل مرة، والضغط في مكان فاضٍ يطوي المفتوح.
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({ general: true, top: true, categories: true, providers: true, footer: true, splash: true });
+  const studioRoot = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    const close = (event: PointerEvent) => {
+      const target = event.target as HTMLElement;
+      if (!studioRoot.current) return;
+      // لا نطوي عند الضغط داخل قسم مفتوح أو على عناصر الاستوديو العلوية (الحفظ/المعاينة/التبويبات)
+      if (target.closest(".design-group-card, .design-studio-top, .design-section-tabs, .modal-panel, .avatar-crop-overlay")) return;
+      setCollapsedGroups({ general: true, top: true, categories: true, providers: true, footer: true, splash: true });
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, []);
   const [openThemeFamilies, setOpenThemeFamilies] = useState<Record<string, boolean>>({});
   const themeFamilies = useMemo(() => {
     // الثيمات المتقاعدة (retired) تبقى صالحة لمن اختارها سابقًا لكنها لا تظهر في القوائم.
@@ -355,7 +368,10 @@ export default function DesignCustomizer({
   }
 
   function toggleGroup(groupId: string) {
-    setCollapsedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
+    setCollapsedGroups((current) => {
+      const all = { general: true, top: true, categories: true, providers: true, footer: true, splash: true } as Record<string, boolean>;
+      return current[groupId] ? { ...all, [groupId]: false } : all;
+    });
   }
 
   function getOrderedSections(): string[] {
@@ -393,7 +409,7 @@ export default function DesignCustomizer({
   const orderedSections = getOrderedSections();
 
   return (
-    <form className="design-studio-form" onSubmit={handleSubmit}>
+    <form className="design-studio-form" onSubmit={handleSubmit} ref={studioRoot}>
       {/* Top Bar: Presets + Reset + Save */}
       <div className="design-studio-top">
         <div className="design-studio-intro">
@@ -533,7 +549,7 @@ export default function DesignCustomizer({
       {(activeFilter === "all" || activeFilter === "general") && (
         <>
           <SectionDivider step="١" label="الستايل العام للتطبيق" />
-          <section className={`design-group-card ${collapsedGroups.general ? "is-collapsed" : ""}`}>
+          <section className={`design-group-card ${collapsedGroups.general ? "is-collapsed" : ""}`} data-zone="general">
             <button type="button" className="design-group-head" onClick={() => toggleGroup("general")} aria-expanded={!collapsedGroups.general}>
               <span className="design-group-icon"><Palette size={20}/></span>
               <div className="design-group-title">
@@ -1035,7 +1051,7 @@ export default function DesignCustomizer({
       {(activeFilter === "all" || activeFilter === "top") && (
         <>
           <SectionDivider step="٢" label="أعلى الصفحة قبل أقسام القرية" />
-          <section className={`design-group-card ${collapsedGroups.top ? "is-collapsed" : ""}`}>
+          <section className={`design-group-card ${collapsedGroups.top ? "is-collapsed" : ""}`} data-zone="top">
             <button type="button" className="design-group-head" onClick={() => toggleGroup("top")} aria-expanded={!collapsedGroups.top}>
               <span className="design-group-icon"><LayoutTemplate size={20}/></span>
               <div className="design-group-title">
@@ -1327,7 +1343,7 @@ export default function DesignCustomizer({
       {(activeFilter === "all" || activeFilter === "categories") && (
         <>
           <SectionDivider step="٣" label="أقسام القرية والتخصصات" />
-          <section className={`design-group-card ${collapsedGroups.categories ? "is-collapsed" : ""}`}>
+          <section className={`design-group-card ${collapsedGroups.categories ? "is-collapsed" : ""}`} data-zone="categories">
             <button type="button" className="design-group-head" onClick={() => toggleGroup("categories")} aria-expanded={!collapsedGroups.categories}>
               <span className="design-group-icon"><Grid2X2 size={20}/></span>
               <div className="design-group-title">
@@ -1452,7 +1468,7 @@ export default function DesignCustomizer({
       {(activeFilter === "all" || activeFilter === "providers") && (
         <>
           <SectionDivider step="٤" label="المميزون وكروت المهنيين" />
-          <section className={`design-group-card ${collapsedGroups.providers ? "is-collapsed" : ""}`}>
+          <section className={`design-group-card ${collapsedGroups.providers ? "is-collapsed" : ""}`} data-zone="providers">
             <button type="button" className="design-group-head" onClick={() => toggleGroup("providers")} aria-expanded={!collapsedGroups.providers}>
               <span className="design-group-icon"><UsersRound size={20}/></span>
               <div className="design-group-title">
@@ -1553,7 +1569,7 @@ export default function DesignCustomizer({
       {(activeFilter === "all" || activeFilter === "footer") && (
         <>
           <SectionDivider step="٥" label="الفوتر أسفل الصفحة" />
-          <section className={`design-group-card ${collapsedGroups.footer ? "is-collapsed" : ""}`}>
+          <section className={`design-group-card ${collapsedGroups.footer ? "is-collapsed" : ""}`} data-zone="footer">
             <button type="button" className="design-group-head" onClick={() => toggleGroup("footer")} aria-expanded={!collapsedGroups.footer}>
               <span className="design-group-icon"><Square size={20}/></span>
               <div className="design-group-title">
@@ -1625,7 +1641,7 @@ export default function DesignCustomizer({
       {(activeFilter === "all" || activeFilter === "splash") && (
         <>
           <SectionDivider step="٦" label="شاشة البداية والدخول والعضوية" />
-          <section className={`design-group-card ${collapsedGroups.splash ? "is-collapsed" : ""}`}>
+          <section className={`design-group-card ${collapsedGroups.splash ? "is-collapsed" : ""}`} data-zone="splash">
             <button type="button" className="design-group-head" onClick={() => toggleGroup("splash")} aria-expanded={!collapsedGroups.splash}>
               <span className="design-group-icon"><LockKeyhole size={20}/></span>
               <div className="design-group-title">

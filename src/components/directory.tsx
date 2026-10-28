@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { BadgePercent, BarChart3, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
-import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerDaysLeft, servicesWithOffers } from "@/lib/catalog";
+import { BadgePercent, BarChart3, Minus, Plus as PlusIcon, ListChecks, PackageOpen, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
+import { buildShopWhatsappOrderMessage, categoryStickerSrc, servicePhotoUrl, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerDaysLeft, servicesWithOffers } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
@@ -130,6 +130,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   const [detailClinicOpen, setDetailClinicOpen] = useState(false);
   const [detailScheduleOpen, setDetailScheduleOpen] = useState(false);
   const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
+  const [detailItemsOpen, setDetailItemsOpen] = useState(false);
+  const [detailOfferOpen, setDetailOfferOpen] = useState(false);
   const [detailCopied, setDetailCopied] = useState(false);
   async function copyDetailPhone(phone: string) {
     try { await navigator.clipboard.writeText(phone); setDetailCopied(true); window.setTimeout(() => setDetailCopied(false), 1600); } catch { window.prompt("انسخ الرقم:", phone); }
@@ -158,10 +160,13 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       setDetailRatingOpen(false);
       setDetailClinicOpen(false);
       setDetailScheduleOpen(false);
+      setDetailItemsOpen(false);
+      setDetailOfferOpen(false);
     }, () => source?.style.removeProperty("view-transition-name"));
   }, [detail]);
   function openDetail(service: ServiceRecord) {
     trackDirectoryEvent({ kind: "view", label: service.name, serviceId: service.id, categoryId: service.category });
+    setDetailItemsOpen(false); setDetailOfferOpen(false);
     const source = Array.from(document.querySelectorAll<HTMLElement>(".provider-card")).find((card) => card.dataset.serviceId === service.id);
     source?.style.setProperty("view-transition-name", "provider-detail");
     withViewTransition(() => {
@@ -1172,6 +1177,12 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
               <ProviderRating value={detail.rating} reviews={detail.reviews}/>
             </div>
           </div>
+          {servicePhotoUrl(liveDetail ?? detail) && (
+            <span className="detail-v2-photo" aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={servicePhotoUrl(liveDetail ?? detail)} alt="" loading="lazy" decoding="async"/>
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -1199,7 +1210,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       )}
 
 
-      <div className="detail-v2-facts" role="list">
+      <div className="detail-v2-facts detail-facts-rows" role="list">
         <div className="detail-v2-fact" role="listitem">
           <span className={`detail-v2-fact-icon is-spec ${hasSticker(getCategory(detail.category, categories)) ? "has-profession-art has-sticker" : specArt3d ? "has-profession-art" : ""}`}><SpecialtyIcon category={getCategory(detail.category, categories)} size={specArt3d ? 34 : 17} art3d={specArt3d} sticker={specSticker}/></span>
           <div><small>التخصص</small><strong>{getCategory(detail.category, categories).name}</strong></div>
@@ -1274,19 +1285,21 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
         const shopHasDelivery = supportsHomeDelivery(currentShop);
         if (!catalogItems.length) return null;
         return (
-          <section className="detail-shop-catalog-card" aria-label="قائمة الأصناف والأسعار المختصرة للطلب السريع">
-            <div className="detail-shop-catalog-head">
+          <section className={`detail-shop-catalog-card detail-collapsible ${detailItemsOpen ? "is-open" : ""}`} aria-label="قائمة الأصناف والأسعار المختصرة للطلب السريع">
+            <button type="button" className="detail-shop-catalog-head detail-collapsible-head" aria-expanded={detailItemsOpen} onClick={() => setDetailItemsOpen((open) => !open)}>
               <div className="detail-shop-catalog-title">
-                <span className="detail-shop-catalog-icon"><ShoppingBag size={18}/></span>
+                <span className={`detail-shop-catalog-icon ${detailItemsOpen ? "is-open" : ""}`}>{detailItemsOpen ? <PackageOpen size={18}/> : <ShoppingBag size={18}/>}</span>
                 <div>
-                  <h4>قائمة الأصناف والعروض المتاحة</h4>
-                  <span>حدد الأصناف التي تريدها واضغط «اطلب عبر واتساب» لتجهيز الرسالة تلقائياً</span>
+                  <h4>قائمة الأصناف والعروض المتاحة <small>({catalogItems.length})</small></h4>
+                  <span>{detailItemsOpen ? "حدد الأصناف التي تريدها واضغط «اطلب عبر واتساب» لتجهيز الرسالة تلقائياً" : "اضغط لعرض الأصناف والأسعار والطلب عبر واتساب"}</span>
                 </div>
               </div>
               {selectedShopItems.length > 0 && (
                 <span className="detail-shop-selected-count">{selectedShopItems.length} أصناف محددة</span>
               )}
-            </div>
+              <span className="detail-collapsible-icon" aria-hidden="true">{detailItemsOpen ? <Minus size={16}/> : <PlusIcon size={16}/>}</span>
+            </button>
+            {detailItemsOpen && <>
             <ul className="detail-shop-items-list">
               {catalogItems.map((item) => {
                 const isSelected = selectedShopItems.includes(item.raw);
@@ -1358,24 +1371,32 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
                 </span>
               </a>
             </div>
+            </>}
           </section>
         );
       })()}
       {(() => { const offer = activeOffer(liveDetail ?? detail, now || undefined); return offer ? (
-        <div className="detail-offer" role="note">
-          <span className="detail-offer-icon"><BadgePercent size={22}/></span>
-          <div className="detail-offer-copy">
-            <strong>{offer.title}</strong>
-            {offer.details && <p>{offer.details}</p>}
-            <small>عرض محدود — {offerDaysLeft(offer, now || undefined) === 1 ? "ينتهي اليوم" : `باقي ${offerDaysLeft(offer, now || undefined)} يوم`}</small>
-          </div>
-        </div>
+        <section className={`detail-offer detail-collapsible ${detailOfferOpen ? "is-open" : ""}`} role="note">
+          <button type="button" className="detail-collapsible-head" aria-expanded={detailOfferOpen} onClick={() => setDetailOfferOpen((open) => !open)}>
+            <span className="detail-offer-icon"><BadgePercent size={20}/></span>
+            <span className="detail-collapsible-title"><strong>{offer.title}</strong><small>عرض محدود — {offerDaysLeft(offer, now || undefined) === 1 ? "ينتهي اليوم" : `باقي ${offerDaysLeft(offer, now || undefined)} يوم`}</small></span>
+            <span className="detail-collapsible-icon" aria-hidden="true">{detailOfferOpen ? <Minus size={16}/> : <PlusIcon size={16}/>}</span>
+          </button>
+          {detailOfferOpen && <div className="detail-collapsible-body detail-offer-copy">{offer.details ? <p>{offer.details}</p> : <p>اسأل عن تفاصيل العرض عند التواصل — صالح حتى {new Date(offer.endsAt).toLocaleDateString("ar-EG", { day: "numeric", month: "long" })}.</p>}</div>}
+        </section>
       ) : null; })()}
-      <div className="detail-about"><h4>نبذة عن الخدمة</h4><p>{detail.description}</p></div>
+      <div className="detail-about detail-about-centered"><h4 className="detail-about-title">نبذة عن الخدمة</h4><p>{detail.description}</p></div>
       {liveDetail?.subSpecialties?.length ? <section className="detail-subspec"><h4>التخصصات الفرعية</h4><ul>{liveDetail.subSpecialties.map((item) => <li key={item}>{item}</li>)}</ul></section> : null}
-      {liveDetail?.serviceItems?.length && getCategory(detail.category, categories).parentId !== "shops" ? <section className="detail-service-items"><h4>الخدمات التفصيلية</h4><ul>{liveDetail.serviceItems.map((item) => <li key={item}>{item} <a href={whatsappUrl(detail.phone, serviceWhatsappMessage(detail, getCategory(detail.category, categories).name, contactArea, item))} target="_blank" rel="noopener noreferrer">اسأل على واتساب</a></li>)}</ul></section> : null}
+      {liveDetail?.serviceItems?.length && getCategory(detail.category, categories).parentId !== "shops" ? <section className={`detail-service-items detail-collapsible ${detailItemsOpen ? "is-open" : ""}`}>
+        <button type="button" className="detail-collapsible-head" aria-expanded={detailItemsOpen} onClick={() => setDetailItemsOpen((open) => !open)}>
+          <span className="detail-collapsible-badge"><ListChecks size={18}/></span>
+          <span className="detail-collapsible-title"><strong>الخدمات التفصيلية</strong><small>{liveDetail.serviceItems.length} خدمة — اضغط للعرض</small></span>
+          <span className="detail-collapsible-icon" aria-hidden="true">{detailItemsOpen ? <Minus size={16}/> : <PlusIcon size={16}/>}</span>
+        </button>
+        {detailItemsOpen && <ul className="detail-collapsible-body">{liveDetail.serviceItems.map((item) => <li key={item}>{item} <a href={whatsappUrl(detail.phone, serviceWhatsappMessage(detail, getCategory(detail.category, categories).name, contactArea, item))} target="_blank" rel="noopener noreferrer">اسأل على واتساب</a></li>)}</ul>}
+      </section> : null}
       {!contactLocked && <div className="detail-tools">
-        <button type="button" className={detailQr ? "is-open" : ""} aria-expanded={detailQr} onClick={() => { setDetailQr(true); setDetailUpdate(false); }}><QrCode size={17}/>بطاقة عمل و QR</button>
+        <button type="button" className={`detail-card-btn ${detailQr ? "is-open" : ""}`} aria-expanded={detailQr} onClick={() => { setDetailQr(true); setDetailUpdate(false); }}><QrCode size={17}/>بطاقة عمل و QR</button>
         {isAdmin && design.showAdminQuickEdit && (
           <Link href={`/admin?tab=directory&editService=${encodeURIComponent(detail.id)}`} className="button button-soft button-small">
             <Pencil size={15}/> تعديل كأدمن

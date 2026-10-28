@@ -478,7 +478,15 @@ export type ServiceRecord = {
   offerTitle?: string; offerDetails?: string; offerEndsAt?: string | null;
   /** آخر تأكيد/تحديث للبيانات من المهني. */
   confirmedAt?: string;
+  /** رقم إصدار الصورة الشخصية (0 = بدون صورة). */
+  photoVersion?: number;
 };
+/** رابط الصورة الشخصية للمهني أو "" إن لم يرفع صورة. */
+export function servicePhotoUrl(service: Pick<ServiceRecord, "id" | "photoVersion">): string {
+  return service.photoVersion ? `/api/service-photo/${service.id}?v=${service.photoVersion}` : "";
+}
+/** الحد الأقصى لملف الصورة الشخصية قبل الضغط في المتصفح. */
+export const SERVICE_PHOTO_MAX_FILE = 3 * 1024 * 1024;
 
 /* ===== العروض والخصومات المؤقتة ===== */
 export const OFFER_MAX_DAYS = 30;
@@ -2706,11 +2714,12 @@ export function categoryStickerSrc(category: Pick<CategoryRecord, "id" | "imageV
   return byName ? stickerIconUrl(byName) : "";
 }
 /** ملصقات إضافية غير مرتبطة بتخصص مُضمَّن (تُستخدم عبر مطابقة الاسم فقط). */
-const extraStickerIds = ["computer-services"] as const;
+const extraStickerIds = ["computer-services", "demolition"] as const;
 /** مطابقة ملصق جاهز حسب اسم التخصص — للتخصصات التي أنشأها الأدمن بمعرّف عشوائي ولم يرفع لها أيقونة. */
 const stickerNameHints: [string, RegExp][] = [
   ["mobile-shops", /موبايل|هواتف|هاتف|محمول|تليفون/],
   ["computer-services", /كمبيوتر|حاسب|حاسوب|لاب ?توب/],
+  ["demolition", /هدم|تكسير|هدّ|تخريم/],
   ["cameras", /كاميرا|مراقبة/],
 ];
 export function stickerIdForName(name: string): string {

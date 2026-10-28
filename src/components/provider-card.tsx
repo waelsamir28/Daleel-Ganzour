@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
-import { activeOffer, categoryStickerSrc, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
+import { activeOffer, categoryStickerSrc, servicePhotoUrl, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, SpecialtyIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 
@@ -106,6 +106,12 @@ export default function ProviderCard({ service, category, categories, favorite, 
             </span>
           )}
         </div>
+        {servicePhotoUrl(service) && (
+          <span className="provider-card-photo" aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={servicePhotoUrl(service)} alt="" loading="lazy" decoding="async"/>
+          </span>
+        )}
       </div>
       {/* Edge tools: flat icons in translucent circles on the card edge, revealed on hover/focus
           (always faintly visible on touch screens). Order/visibility/position come from استوديو المظهر.

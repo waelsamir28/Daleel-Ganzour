@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { BadgeCheck, BadgePercent, CalendarClock, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
-import { activeOffer, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerDaysLeft, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
+import { BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
+import { activeOffer, servicePhotoUrl, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerDaysLeft, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
 import CenterScheduleEditor from "@/components/center-schedule-editor";
 import CenterScheduleView from "@/components/center-schedule-view";
 import { SpecialtyIcon, StickerIcon } from "@/components/ui";
 import RatingStickerModal from "@/components/rating-sticker-modal";
+import AvatarPicker from "@/components/avatar-picker";
 
 type Props = { token: string; initial: ServiceRecord; categories: CategoryRecord[]; areas: string[] };
 type Notice = { text: string; error: boolean } | null;
@@ -18,7 +19,7 @@ const statusLabel: Record<string, string> = { approved: "منشور على ال�
 /** صفحة «حسابي» لصاحب الخدمة: تعديل ذاتي عبر الرابط السري الذي أرسلته الإدارة على واتسابه. */
 export default function ProviderAccount({ token, initial, categories, areas }: Props) {
   const [service, setService] = useState(initial);
-  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request" | "offer" | "confirm">("");
+  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request" | "offer" | "confirm" | "photo">("");
   const [offerTitle, setOfferTitle] = useState(initial.offerTitle ?? "");
   const [offerDetails, setOfferDetails] = useState(initial.offerDetails ?? "");
   const [offerDays, setOfferDays] = useState(7);
@@ -62,7 +63,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   const [address, setAddress] = useState(initial.address);
   const specialties = useMemo(() => categories.filter((item) => item.parentId === rootId), [categories, rootId]);
 
-  async function call(action: "availability" | "quick" | "request" | "offer" | "confirm", payload: Record<string, unknown>) {
+  async function call(action: "availability" | "quick" | "request" | "offer" | "confirm" | "photo", payload: Record<string, unknown>) {
     if (busy) return;
     setBusy(action); setNotice(null);
     try {
@@ -140,6 +141,12 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       </section>
     )}
 
+    <section className="availability-card my-photo">
+      <header className="my-section-head"><Camera size={18}/><div><h2>الصورة الشخصية</h2><span>تظهر في دائرة على بطاقتك وفي صفحة التفاصيل. اختر صورة، قصّها، ثم تُحفظ فورًا.</span></div></header>
+      <AvatarPicker value={undefined} currentUrl={servicePhotoUrl(service)} hint="صورتك أو لوجو المحل — حتى 3 ميجابايت، ونقصّها ونضغطها تلقائيًا قبل الرفع." onChange={(next) => { if (next !== undefined) void call("photo", { photo: next }); }}/>
+      {busy === "photo" && <p className="my-inline-status"><LoaderCircle size={15} className="spin"/> جاري حفظ الصورة…</p>}
+    </section>
+
     <form className="availability-card my-form my-offer" onSubmit={submitOffer}>
       <header className="my-section-head"><BadgePercent size={18}/><div><h2>عرض أو خصم مؤقت</h2><span>يظهر وسم «عرض» على بطاقتك ويدخل صف «عروض الأسبوع» في الصفحة الرئيسية، وينتهي تلقائيًا (حتى {OFFER_MAX_DAYS} يومًا).</span></div></header>
       {currentOffer && (
@@ -173,7 +180,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
 
     <form className="availability-card my-form" onSubmit={submitQuick}>
       <header className="my-section-head"><Zap size={18}/><div><h2>بياناتي السريعة</h2><span>تُحفظ وتظهر للزوار فورًا بدون انتظار.</span></div></header>
-      <label className="my-field">نبذة عن خدمتك<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} minLength={10} maxLength={1000} required placeholder="اكتب ما تقدمه بوضوح: خبرتك، ما يميزك، نطاق عملك…"/></label>
+      <label className="my-field"><span className="field-label-green">وصف الخدمة</span> <small className="field-optional">(اختياري)</small><textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} maxLength={1000} placeholder="اكتب ما تقدمه بوضوح: خبرتك، ما يميزك، نطاق عملك…"/></label>
       <label className="my-field">قائمة خدماتك التفصيلية<input value={items} onChange={(event) => setItems(event.target.value)} maxLength={1200} placeholder="افصل بينها بفاصلة: تركيب، صيانة، طوارئ…"/><small>حتى ٢٠ خدمة، تظهر كشارات على بطاقتك.</small></label>
       <label className="my-field">مواعيد العمل (نص مختصر)<input value={hours} onChange={(event) => setHours(event.target.value)} maxLength={120} placeholder="مثال: يوميًا من ٩ صباحًا حتى ١٠ مساءً عدا الجمعة"/></label>
       <WorkingHoursEditor initial={service.workingHours}/>

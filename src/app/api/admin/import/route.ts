@@ -82,8 +82,14 @@ type ParsedRow = {
   address: string;
   description: string;
   error: string | null;
+  /** في وضع التحديث: معرّف واسم السجل الموجود بنفس رقم الهاتف الذي سيُحدَّث بدل إضافته. */
+  updateId: string | null;
+  updateName: string;
+  hasOwnDescription?: boolean;
 };
 type Candidate = { row: ParsedRow; serviceId: string };
+/** هل كتب صاحب الملف وصفًا حقيقيًا (لا وصفًا مولّدًا) لهذا الصف؟ */
+function columnsHadDescription(row: ParsedRow) { return row.hasOwnDescription === true; }
 
 function normalizedCell(value: string) {
   return normalizeSearch(value).replace(/[._-]/g, " ").replace(/\s+/g, " ").trim();
@@ -244,7 +250,7 @@ async function parseWorkbook(file: File, categories: CategoryRecord[], areas: Ar
     const finalDescription = description.length >= 10
       ? description
       : selected ? serviceDescriptionVariant(selected.id, selected.name, `${phone}:${normalizedCell(name)}`) : description;
-    rows.push({ rowNumber, name, contactName, phone, phoneSecondary, profession, categoryLabel, categoryId: selected?.id ?? "", categoryName, categoryParentId: selected?.parentId ?? "", rootName, newSpecialty, address, description: finalDescription, error });
+    rows.push({ rowNumber, name, contactName, phone, phoneSecondary, profession, categoryLabel, categoryId: selected?.id ?? "", categoryName, categoryParentId: selected?.parentId ?? "", rootName, newSpecialty, address, description: finalDescription, error, updateId: null, updateName: "", hasOwnDescription: description.length >= 10 });
     if (rows.length > MAX_DATA_ROWS) throw new InputError("الملف يتجاوز الحد الأقصى البالغ 500 صف بيانات.");
   }
   if (!rows.length) throw new InputError("لم أجد صفوف بيانات. استخدم أعمدة الاسم ورقم التليفون والمهنة أو المعمل.");
@@ -264,15 +270,18 @@ async function parseWorkbook(file: File, categories: CategoryRecord[], areas: Ar
   return rows;
 }
 
-async function markExistingDuplicates(rows: ParsedRow[]) {
+async function markExistingDuplicates(rows: ParsedRow[], updateExisting = false) {
   const candidates = rows.filter((row) => !row.error);
   if (!candidates.length) return;
   const phones = [...new Set(candidates.flatMap((row) => [row.phone, row.phoneSecondary].filter(Boolean)))];
   const names = [...new Set(candidates.map((row) => row.name))];
-  const existing = await db.select({ name: services.name, phone: services.phone, phoneSecondary: services.phoneSecondary }).from(services).where(or(inArray(services.phone, phones), inArray(services.phoneSecondary, phones), inArray(services.name, names)));
+  const existing = await db.select({ id: services.id, name: services.name, phone: services.phone, phoneSecondary: services.phoneSecondary }).from(services).where(or(inArray(services.phone, phones), inArray(services.phoneSecondary, phones), inArray(services.name, names)));
   const existingPhones = new Set(existing.flatMap((item) => [item.phone, item.phoneSecondary].filter(Boolean)));
   const existingNames = new Set(existing.map((item) => normalizedCell(item.name)));
   for (const row of candidates) {
+    // وضع التحديث: الصف الذي يطابق رقم هاتف سجل موجود يُحدِّثه بدل رفضه كمكرر.
+    const byPhone = existing.find((item) => item.phone === row.phone || (row.phoneSecondary && item.phone === row.phoneSecondary) || (item.phoneSecondary && (item.phoneSecondary === row.phone || item.phoneSecondary === row.phoneSecondary)));
+    if (updateExisting && byPhone) { row.updateId = byPhone.id; row.updateName = byPhone.name; continue; }
     if (existingPhones.has(row.phone) || (row.phoneSecondary && existingPhones.has(row.phoneSecondary)) || existingNames.has(normalizedCell(row.name))) row.error = "الاسم أو رقم الهاتف موجود بالفعل في الدليل.";
   }
 }
@@ -289,6 +298,8 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
     const categoryId = cleanText(form.get("category"), 60);
     const areaName = cleanText(form.get("area"), 80);
     const confirm = form.get("confirm") === "true";
+    const updateExisting = form.get("mode") === "update";
+    const skipRows = new Set(String(form.get("skip") ?? "").split(",").map((value) => Number(value)).filter((value) => Number.isInteger(value) && value > 0));
     const [category] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, categoryId)).limit(1);
     if (!category?.parentId || !category.active) throw new InputError("اختار تخصصًا نشطًا صالحًا.");
     const [parent] = await db.select().from(directoryCategories).where(eq(directoryCategories.id, category.parentId)).limit(1);
@@ -298,23 +309,45 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
     const [categories, areas] = await Promise.all([db.select().from(directoryCategories), db.select({ name: directoryAreas.name }).from(directoryAreas)]);
 
     const rows = await parseWorkbook(file, categories.map((item) => ({ ...item, light: `${item.color}12` })), areas, categoryId, areaName);
-    await markExistingDuplicates(rows);
+    await markExistingDuplicates(rows, updateExisting);
+    for (const row of rows) if (!row.error && skipRows.has(row.rowNumber)) row.error = "تم استبعاده يدويًا من المعاينة.";
     const ready = rows.filter((row) => !row.error);
+    const updateCount = ready.filter((row) => row.updateId).length;
     const newSpecialtyCount = new Set(ready.filter((row) => row.newSpecialty).map((row) => row.categoryId)).size;
-  if (!confirm) return Response.json({ rows, total: rows.length, readyCount: ready.length, newSpecialtyCount });
-  if (!ready.length) return Response.json({ rows, total: rows.length, readyCount: 0, newSpecialtyCount: 0, importedCount: 0 });
+  if (!confirm) return Response.json({ rows, total: rows.length, readyCount: ready.length, updateCount, newSpecialtyCount });
+  if (!ready.length) return Response.json({ rows, total: rows.length, readyCount: 0, updateCount: 0, newSpecialtyCount: 0, importedCount: 0, updatedCount: 0 });
 
   const importSummary = await db.transaction(async (tx) => {
-    const phones = [...new Set(ready.flatMap((row) => [row.phone, row.phoneSecondary].filter(Boolean)))];
-    const names = [...new Set(ready.map((row) => row.name))];
-    const existing = await tx.select({ name: services.name, phone: services.phone, phoneSecondary: services.phoneSecondary }).from(services).where(or(inArray(services.phone, phones), inArray(services.phoneSecondary, phones), inArray(services.name, names)));
+    // صفوف التحديث (وضع «تحديث الموجودين بنفس الرقم»): تُحدَّث الحقول المرسلة فقط ولا تتغير حالة النشر.
+    const updates = ready.filter((row) => row.updateId);
+    let updatedCount = 0;
+    for (const row of updates) {
+      const [current] = await tx.select().from(services).where(eq(services.id, row.updateId!)).limit(1);
+      if (!current) { row.error = "السجل الموجود حُذف منذ المعاينة."; continue; }
+      const rowArea = areas.find((item) => normalizedCell(item.name) === normalizedCell(row.address));
+      const explicitCategory = Boolean(row.profession || row.categoryLabel) && row.categoryId && !row.newSpecialty;
+      await tx.update(services).set({
+        name: row.name,
+        ...(row.phoneSecondary && row.phoneSecondary !== current.phone ? { phoneSecondary: row.phoneSecondary } : {}),
+        ...(row.phone !== current.phone && row.phone !== current.phoneSecondary ? { phone: row.phone } : {}),
+        ...(explicitCategory ? { category: row.categoryId } : {}),
+        ...(row.address ? { address: row.address, area: rowArea?.name ?? current.area } : {}),
+        ...(columnsHadDescription(row) ? { description: row.description } : {}),
+        confirmedAt: new Date(),
+      }).where(eq(services.id, current.id));
+      updatedCount += 1;
+    }
+    const inserts = ready.filter((row) => !row.updateId && !row.error);
+    const phones = [...new Set(inserts.flatMap((row) => [row.phone, row.phoneSecondary].filter(Boolean)))];
+    const names = [...new Set(inserts.map((row) => row.name))];
+    const existing = phones.length ? await tx.select({ name: services.name, phone: services.phone, phoneSecondary: services.phoneSecondary }).from(services).where(or(inArray(services.phone, phones), inArray(services.phoneSecondary, phones), inArray(services.name, names))) : [];
     const existingPhones = new Set(existing.flatMap((item) => [item.phone, item.phoneSecondary].filter(Boolean)));
     const existingNames = new Set(existing.map((item) => normalizedCell(item.name)));
-    const insertable = ready.filter((row) => !existingPhones.has(row.phone) && (!row.phoneSecondary || !existingPhones.has(row.phoneSecondary)) && !existingNames.has(normalizedCell(row.name)));
-    for (const row of ready) {
+    const insertable = inserts.filter((row) => !existingPhones.has(row.phone) && (!row.phoneSecondary || !existingPhones.has(row.phoneSecondary)) && !existingNames.has(normalizedCell(row.name)));
+    for (const row of inserts) {
       if (!insertable.includes(row)) row.error = "تم تسجيل الاسم أو رقم الهاتف منذ المعاينة؛ لم تتم إضافته مرة أخرى.";
     }
-    if (!insertable.length) return { importedCount: 0, newSpecialtyCount: 0 };
+    if (!insertable.length) return { importedCount: 0, newSpecialtyCount: 0, updatedCount };
 
     const latestCategories = await tx.select().from(directoryCategories);
     for (const row of insertable) {
@@ -383,11 +416,121 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       message: `${row.name} • ${row.phone}${row.phoneSecondary ? ` / ${row.phoneSecondary}` : ""} (استيراد Excel)`,
       entityId: serviceId,
     })));
-    return { importedCount: created.length, newSpecialtyCount: insertedSpecialties.length };
+    return { importedCount: created.length, newSpecialtyCount: insertedSpecialties.length, updatedCount };
   });
 
-  return Response.json({ rows, total: rows.length, readyCount: 0, importedCount: importSummary.importedCount, newSpecialtyCount: importSummary.newSpecialtyCount });
+  return Response.json({ rows, total: rows.length, readyCount: 0, updateCount: 0, importedCount: importSummary.importedCount, updatedCount: importSummary.updatedCount, newSpecialtyCount: importSummary.newSpecialtyCount });
   } catch (error) {
     return apiError(error);
   }
 });
+
+/**
+ * GET: تنزيل قالب Excel جاهز (ورقة بيانات بقوائم منسدلة للتصنيف والمهنة والعنوان + ورقة تعليمات + ورقة القوائم).
+ */
+export async function GET(request: Request) {
+  try {
+    if (!(await isAdmin())) throw new InputError("القالب متاح للأدمن فقط. يرجى تسجيل الدخول.", 401);
+    await ensureSeed();
+    const [categories, areas] = await Promise.all([db.select().from(directoryCategories), db.select({ name: directoryAreas.name }).from(directoryAreas).orderBy(directoryAreas.sortOrder)]);
+    const roots = categories.filter((item) => !item.parentId && item.active).sort((a, b) => a.sortOrder - b.sortOrder);
+    const specialties = categories.filter((item) => item.parentId && item.active && roots.some((root) => root.id === item.parentId));
+    const rootName = (id: string | null) => roots.find((root) => root.id === id)?.name ?? "";
+    const specialtyNames = [...new Set(specialties.sort((a, b) => rootName(a.parentId).localeCompare(rootName(b.parentId), "ar") || a.sortOrder - b.sortOrder).map((item) => item.name))];
+    const areaNames = areas.map((item) => item.name);
+    const url = new URL(request.url);
+    const sample = url.searchParams.get("sample") === "1";
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "دليل جنزور";
+    workbook.created = new Date();
+
+    const headerFill: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0F5FB8" } };
+    const requiredFill: ExcelJS.Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8792F" } };
+    const thin: Partial<ExcelJS.Borders> = { top: { style: "thin", color: { argb: "FFD0DCEA" } }, bottom: { style: "thin", color: { argb: "FFD0DCEA" } }, left: { style: "thin", color: { argb: "FFD0DCEA" } }, right: { style: "thin", color: { argb: "FFD0DCEA" } } };
+
+    // ورقة القوائم (مرجع القوائم المنسدلة)
+    const lists = workbook.addWorksheet("القوائم", { views: [{ rightToLeft: true }] });
+    lists.columns = [{ header: "التصنيف الرئيسي", key: "root", width: 26 }, { header: "المهنة / التخصص", key: "spec", width: 32 }, { header: "التصنيف الرئيسي للمهنة", key: "specRoot", width: 26 }, { header: "العنوان", key: "area", width: 34 }];
+    const longest = Math.max(roots.length, specialtyNames.length, areaNames.length);
+    const orderedSpecialties = specialties.sort((a, b) => rootName(a.parentId).localeCompare(rootName(b.parentId), "ar") || a.sortOrder - b.sortOrder);
+    for (let index = 0; index < longest; index += 1) {
+      lists.addRow({ root: roots[index]?.name ?? "", spec: orderedSpecialties[index]?.name ?? "", specRoot: orderedSpecialties[index] ? rootName(orderedSpecialties[index].parentId) : "", area: areaNames[index] ?? "" });
+    }
+    lists.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    lists.getRow(1).fill = headerFill;
+
+    // ورقة البيانات
+    const sheet = workbook.addWorksheet("المهنيين", { views: [{ rightToLeft: true, state: "frozen", ySplit: 1 }] });
+    const columns = [
+      { header: "الاسم", key: "name", width: 30, required: true, note: "اسم مقدم الخدمة أو النشاط (3 أحرف على الأقل)." },
+      { header: "رقم التليفون", key: "phone", width: 16, required: true, note: "رقم مصري 11 رقمًا يبدأ بـ 01. اكتبه كنص حتى لا يُحذف الصفر." },
+      { header: "رقم التليفون 1", key: "phoneSecondary", width: 16, required: false, note: "رقم إضافي (اختياري)." },
+      { header: "المهنة", key: "profession", width: 26, required: true, note: "اختر من القائمة أو اكتب مهنة جديدة؛ المهنة الجديدة تُضاف تحت التصنيف المكتوب." },
+      { header: "التصنيف", key: "category", width: 22, required: false, note: "القسم الرئيسي مثل «حرفيين» أو «أطباء». مطلوب فقط إذا كانت المهنة جديدة." },
+      { header: "العنوان", key: "address", width: 30, required: false, note: "اختر من عناوين جنزور أو اكتب عنوانًا تفصيليًا." },
+      { header: "وصف الخدمة", key: "description", width: 44, required: false, note: "اختياري — لو تُرك فارغًا نكتب وصفًا مناسبًا للمهنة." },
+    ];
+    sheet.columns = columns.map(({ header, key, width }) => ({ header, key, width }));
+    const header = sheet.getRow(1);
+    header.height = 26;
+    columns.forEach((column, index) => {
+      const cell = header.getCell(index + 1);
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
+      cell.fill = column.required ? requiredFill : headerFill;
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = thin;
+      cell.note = column.note;
+    });
+    const TOTAL_ROWS = 501;
+    for (let rowNumber = 2; rowNumber <= TOTAL_ROWS; rowNumber += 1) {
+      const row = sheet.getRow(rowNumber);
+      row.getCell(2).numFmt = "@";
+      row.getCell(3).numFmt = "@";
+      for (let col = 1; col <= columns.length; col += 1) { row.getCell(col).border = thin; row.getCell(col).alignment = { vertical: "middle", wrapText: col === 7 }; }
+    }
+    const listRef = (column: string, count: number) => `'القوائم'!$${column}$2:$${column}$${Math.max(2, count + 1)}`;
+    for (let rowNumber = 2; rowNumber <= TOTAL_ROWS; rowNumber += 1) {
+      sheet.getCell(`D${rowNumber}`).dataValidation = { type: "list", allowBlank: true, showErrorMessage: false, formulae: [listRef("B", orderedSpecialties.length)], promptTitle: "المهنة", prompt: "اختر من القائمة أو اكتب مهنة جديدة", showInputMessage: true };
+      sheet.getCell(`E${rowNumber}`).dataValidation = { type: "list", allowBlank: true, showErrorMessage: false, formulae: [listRef("A", roots.length)], promptTitle: "التصنيف", prompt: "القسم الرئيسي", showInputMessage: true };
+      sheet.getCell(`F${rowNumber}`).dataValidation = { type: "list", allowBlank: true, showErrorMessage: false, formulae: [listRef("D", areaNames.length)], promptTitle: "العنوان", prompt: "اختر عنوانًا أو اكتب عنوانًا تفصيليًا", showInputMessage: true };
+    }
+    if (sample) {
+      const firstSpec = orderedSpecialties[0];
+      const sampleRow = sheet.getRow(2);
+      sampleRow.values = ["مثال: وائل سمير للنجارة", "01000000000", "", firstSpec?.name ?? "", firstSpec ? rootName(firstSpec.parentId) : "", areaNames[0] ?? "", "احذف هذا الصف المثال قبل الرفع أو عدّله ببياناتك."];
+      sampleRow.font = { italic: true, color: { argb: "FF8A9BB0" } };
+    }
+
+    // ورقة التعليمات
+    const guide = workbook.addWorksheet("التعليمات", { views: [{ rightToLeft: true }] });
+    guide.columns = [{ width: 110 }];
+    const lines = [
+      "📋 قالب استيراد المهنيين إلى دليل جنزور",
+      "",
+      "1) املأ ورقة «المهنيين» صفًا لكل مهني أو محل. الأعمدة البرتقالية مطلوبة (الاسم، رقم التليفون، المهنة).",
+      "2) رقم التليفون: 11 رقمًا يبدأ بـ 01. الخلية مضبوطة كنص حتى لا يختفي الصفر الأول.",
+      "3) المهنة: اختر من القائمة المنسدلة (تظهر بالسهم بجوار الخلية). لو كتبت مهنة غير موجودة اكتب القسم الرئيسي في عمود «التصنيف» وستُضاف كتخصص جديد بعد المعاينة.",
+      "4) العنوان: اختر من عناوين جنزور أو اكتب عنوانًا تفصيليًا؛ لو تُرك فارغًا يُستخدم العنوان الافتراضي الذي تختاره عند الاستيراد.",
+      "5) وصف الخدمة اختياري — الفارغ يُكتب تلقائيًا بصياغة تناسب المهنة وتختلف من شخص لآخر.",
+      "6) لا تغيّر أسماء الأعمدة في الصف الأول ولا ترتيبها، ولا تحذف ورقة «القوائم» (مرجع القوائم المنسدلة).",
+      "7) الحد الأقصى 500 صف في الملف الواحد وحجم 4 ميجابايت.",
+      "8) بعد الرفع تظهر معاينة لكل الصفوف: يمكنك استبعاد أي صف قبل الحفظ، والسجلات تدخل «طلبات المهن» للمراجعة قبل النشر.",
+      "9) خيار «تحديث الموجودين بنفس رقم الهاتف»: الصف الذي يطابق رقم مهني مسجل يحدّث بياناته (الاسم، المهنة، العنوان، الوصف إن كُتب) بدل رفضه كمكرر، ويبقى منشورًا كما هو.",
+      "",
+      `تم إنشاء القالب في ${new Date().toLocaleDateString("ar-EG")} — ${roots.length} قسمًا، ${orderedSpecialties.length} تخصصًا، ${areaNames.length} عنوانًا.`,
+    ];
+    lines.forEach((line, index) => {
+      const row = guide.addRow([line]);
+      row.alignment = { wrapText: true, vertical: "middle", horizontal: "right" };
+      if (index === 0) { row.font = { bold: true, size: 14, color: { argb: "FF0F5FB8" } }; row.height = 28; }
+    });
+    workbook.views = [{ x: 0, y: 0, width: 20000, height: 12000, firstSheet: 1, activeTab: 1, visibility: "visible" }];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const filename = encodeURIComponent(`قالب-استيراد-دليل-جنزور.xlsx`);
+    return new Response(buffer, { status: 200, headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Content-Disposition": `attachment; filename="daleel-ganzour-import-template.xlsx"; filename*=UTF-8''${filename}`, "Cache-Control": "no-store" } });
+  } catch (error) {
+    return apiError(error);
+  }
+}
