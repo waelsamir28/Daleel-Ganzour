@@ -1548,6 +1548,9 @@ html.dark .replies-provider-list strong { color: #dcebf9; }
 .utilities-admin-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 11px 14px; border: 1px solid #cbe2f7; border-radius: 13px; background: #f1f8ff; color: #144470; font-size: 12.5px; font-weight: 800; }
 .utilities-admin-bar > span { display: inline-flex; align-items: center; gap: 7px; }
 .utility-editor-form { display: grid; gap: 12px; padding: 15px; border: 1px solid #bfdcf6; border-radius: 15px; background: #f8fbff; }
+.utilities-modal-content > .form-notice { position: sticky; top: 0; z-index: 3; }
+.utility-duty-card .duty-hover-tools { top: -14px; }
+.utility-duty-card .duty-tool-btn { touch-action: manipulation; }
 .utility-editor-form h4 { margin: 0; color: #153e65; font-size: 14px; font-weight: 900; }
 .utility-editor-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 

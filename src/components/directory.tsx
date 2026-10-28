@@ -955,31 +955,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             </div>
           )}
           {utilityMessage && <div className="form-notice"><CheckCircle2 size={16}/><span>{utilityMessage}</span></div>}
-          {isAdmin && editingUtility && (
-            <form className="utility-editor-form" onSubmit={handleUtilitySubmit}>
-              <h4>{editingUtility.id ? "تعديل بيانات الرقم" : "إضافة رقم جديد في أرقام تهمك في جنزور"}</h4>
-              <div className="form-row">
-                <label className="field">اسم الجهة أو المرفق<input name="name" defaultValue={editingUtility.name} required minLength={2} maxLength={120} placeholder="مثال: طوارئ الكهرباء بجنزور"/></label>
-                <label className="field">رقم الهاتف أو الخط الساخن<input name="number" defaultValue={editingUtility.number} required dir="ltr" maxLength={24} placeholder="مثال: 121"/></label>
-              </div>
-              <div className="form-row">
-                <label className="field">التصنيف<input name="category" defaultValue={editingUtility.category ?? "مرافق عامة"} maxLength={60} placeholder="مثال: مرافق عامة"/></label>
-                <label className="field">لون البطاقة
-                  <SelectField name="tone" defaultValue={editingUtility.tone ?? "blue"}>
-                    <option value="blue">أزرق (مرافق وإدارة)</option>
-                    <option value="red">أحمر (طوارئ عاجلة)</option>
-                    <option value="amber">ذهبي (كهرباء وإطفاء)</option>
-                    <option value="emerald">أخضر (صحة وخدمات عامة)</option>
-                  </SelectField>
-                </label>
-              </div>
-              <label className="field">وصف مختصر<input name="detail" defaultValue={editingUtility.detail} maxLength={240} placeholder="تفاصيل الخدمة أو مواعيد العمل"/></label>
-              <div className="utility-editor-actions">
-                <button type="submit" className="button button-success button-small" disabled={utilityBusy}><Check size={15}/>حفظ الرقم</button>
-                <button type="button" className="button button-soft button-small" onClick={() => setEditingUtility(null)}><X size={15}/>إلغاء</button>
-              </div>
-            </form>
-          )}
           <div className="duty-grid utilities-grid">
             {utilityNumbers.map((item) => {
               const UtilityIcon = utilityIcon(item);
@@ -1006,6 +981,34 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
               );
             })}
           </div>
+        </div>
+      </Modal>
+    )}
+    {modal === "utilities" && isAdmin && editingUtility && (
+      <Modal floating className="modal-quiet-scroll" title={editingUtility.id ? "تعديل بيانات الرقم" : "إضافة رقم جديد"} subtitle="أرقام تهمك في جنزور — التعديل يُنشر فورًا لكل الزوار" onClose={() => setEditingUtility(null)}>
+        <div className="floating-submodal-body">
+            <form key={editingUtility.id ?? "new"} className="utility-editor-form" onSubmit={handleUtilitySubmit}>
+              <div className="form-row">
+                <label className="field">اسم الجهة أو المرفق<input name="name" defaultValue={editingUtility.name} required minLength={2} maxLength={120} placeholder="مثال: طوارئ الكهرباء بجنزور"/></label>
+                <label className="field">رقم الهاتف أو الخط الساخن<input name="number" defaultValue={editingUtility.number} required dir="ltr" maxLength={24} placeholder="مثال: 121"/></label>
+              </div>
+              <div className="form-row">
+                <label className="field">التصنيف<input name="category" defaultValue={editingUtility.category ?? "مرافق عامة"} maxLength={60} placeholder="مثال: مرافق عامة"/></label>
+                <label className="field">لون البطاقة
+                  <SelectField name="tone" defaultValue={editingUtility.tone ?? "blue"}>
+                    <option value="blue">أزرق (مرافق وإدارة)</option>
+                    <option value="red">أحمر (طوارئ عاجلة)</option>
+                    <option value="amber">ذهبي (كهرباء وإطفاء)</option>
+                    <option value="emerald">أخضر (صحة وخدمات عامة)</option>
+                  </SelectField>
+                </label>
+              </div>
+              <label className="field">وصف مختصر<input name="detail" defaultValue={editingUtility.detail} maxLength={240} placeholder="تفاصيل الخدمة أو مواعيد العمل"/></label>
+              <div className="utility-editor-actions">
+                <button type="submit" className="button button-success button-small" disabled={utilityBusy}><Check size={15}/>حفظ الرقم</button>
+                <button type="button" className="button button-soft button-small" onClick={() => setEditingUtility(null)}><X size={15}/>إلغاء</button>
+              </div>
+            </form>
         </div>
       </Modal>
     )}
