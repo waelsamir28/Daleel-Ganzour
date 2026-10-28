@@ -2585,6 +2585,7 @@ export const stickerIconIds = [
   "beauty", "barbers", "hairdressers", "makeup",
   // مواد المدرسين
   "tch-arabic", "tch-english", "tch-math", "tch-science", "tch-social", "tch-physics", "tch-chemistry", "tch-biology", "tch-french", "tch-religion",
+  "tch-foundation", "tch-german", "tch-computer", "tch-geology", "tch-philosophy", "tch-psychology", "tch-history", "tch-geography",
   // الطباعة والدعاية: التصميم الجرافيكي (مقصوص من المرجع)
   "graphic-design",
   // الأفراح والمناسبات (القسم + 3؛ التصوير أعلاه)
