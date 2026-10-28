@@ -1122,7 +1122,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
         />
       </Modal>
     )}
-    {stageModalOpen && <TeacherStageModal current={stage?.id} counts={stageCounts} onClose={() => setStageModalOpen(false)}/>}
+    {stageModalOpen && <TeacherStageModal current={stage?.id} counts={stageCounts} centerCount={services.filter((service) => service.category === TEACHER_CENTER_ID).length} onClose={() => setStageModalOpen(false)}/>}
     {detail && <Modal floating className="modal-quiet-scroll detail-modal" title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details detail-v2">
       <header className="detail-v2-hero" style={categoryTheme(getCategory(detail.category, categories))}>
         <span className="detail-v2-hero-glow" aria-hidden="true"/>
