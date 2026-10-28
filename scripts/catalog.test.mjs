@@ -1098,3 +1098,19 @@ test("hero banner overlay/height controls and Windows 10 corner radius sanitize 
   assert.equal(bad.heroBannerHeight, "auto");
   assert.equal(bad.win10Radius, "2");
 });
+
+test("teacher stages: categories and providers are filtered by stage and unassigned ones stay visible everywhere", () => {
+  const { normalizeStages, categoryInStage, serviceInStage, serviceStageIds, stageHref, TEACHER_STAGES } = catalog;
+  assert.deepEqual(TEACHER_STAGES.map((stage) => stage.id), ["primary", "prep", "secondary"]);
+  assert.equal(normalizeStages(["secondary", "bogus", "primary"]), "primary,secondary");
+  assert.equal(normalizeStages("prep, primary"), "primary,prep");
+  assert.equal(normalizeStages(undefined), "");
+  assert.equal(categoryInStage({ stages: "secondary" }, "primary"), false);
+  assert.equal(categoryInStage({ stages: "primary,prep" }, "prep"), true);
+  assert.equal(categoryInStage({ stages: "" }, "secondary"), true);
+  assert.deepEqual(serviceStageIds({ subSpecialties: ["المرحلة الثانوية", "جبر"] }), ["secondary"]);
+  assert.equal(serviceInStage({ subSpecialties: ["المرحلة الثانوية"] }, "primary"), false);
+  assert.equal(serviceInStage({ subSpecialties: ["جبر وهندسة"] }, "primary"), true);
+  assert.equal(stageHref("teachers", "prep", "math"), "/categories/teachers/math?stage=prep");
+  assert.equal(stageHref("teachers", null), "/categories/teachers");
+});

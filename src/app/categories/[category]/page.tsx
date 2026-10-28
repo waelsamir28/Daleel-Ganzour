@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
   const images = root ? categoryOgImage(root.id, root.name) : undefined;
   return { title, description, alternates: { canonical: `/categories/${category}` }, openGraph: { title, description, url: `/categories/${category}`, ...(images ? { images } : {}) }, twitter: { title, description, ...(images ? { images: images.map((image) => image.url) } : {}) } };
 }
-export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
-  const [data, viewer, { category }] = await Promise.all([getPublicDirectory(), getViewer(), params]);
+export default async function CategoryPage({ params, searchParams }: { params: Promise<{ category: string }>; searchParams: Promise<{ stage?: string }> }) {
+  const [data, viewer, { category }, { stage }] = await Promise.all([getPublicDirectory(), getViewer(), params, searchParams]);
   if (!data.categories.some((item) => item.id === category && !item.parentId)) notFound();
-  return <Directory key={category} initialData={directoryForViewer(data, viewer)} viewer={viewer} rootId={category} guestLocked={guestLocked(viewer, data.designSettings)}/>;
+  return <Directory key={category} initialData={directoryForViewer(data, viewer)} viewer={viewer} rootId={category} stageId={stage} guestLocked={guestLocked(viewer, data.designSettings)}/>;
 }

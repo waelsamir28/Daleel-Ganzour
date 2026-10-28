@@ -331,7 +331,47 @@ export type CategoryRecord = {
   art: string;
   /** رقم نسخة الأيقونة المرفوعة من الإدارة (0 أو غير موجود = لا توجد). */
   imageVersion?: number;
+  /** (تخصصات المدرسين) المراحل الدراسية مفصولة بفواصل: primary,prep,secondary — فارغ = يظهر في كل المراحل. */
+  stages?: string;
 };
+
+/** المراحل الدراسية لقسم «المدرسين»: تظهر شاشة اختيار المرحلة قبل التخصصات. */
+export const TEACHERS_ROOT_ID = "teachers";
+export type TeacherStageId = "primary" | "prep" | "secondary";
+export type TeacherStage = { id: TeacherStageId; name: string; short: string; hint: string; color: string; sticker: string };
+export const TEACHER_STAGES: TeacherStage[] = [
+  { id: "primary", name: "المرحلة الابتدائية", short: "ابتدائي", hint: "من الصف الأول حتى السادس الابتدائي", color: "#2f8be8", sticker: "/images/stage-stickers/primary.webp" },
+  { id: "prep", name: "المرحلة الإعدادية", short: "إعدادي", hint: "الصفوف الأول والثاني والثالث الإعدادي", color: "#16a37a", sticker: "/images/stage-stickers/prep.webp" },
+  { id: "secondary", name: "المرحلة الثانوية", short: "ثانوي", hint: "الصفوف الأول والثاني والثالث الثانوي", color: "#e8792f", sticker: "/images/stage-stickers/secondary.webp" },
+];
+export function getTeacherStage(id: unknown): TeacherStage | null {
+  return TEACHER_STAGES.find((stage) => stage.id === id) ?? null;
+}
+/** يحوّل أي مدخل (قائمة أو نص مفصول بفواصل) إلى نص مراحل صالح ومرتب. */
+export function normalizeStages(value: unknown): string {
+  const raw = Array.isArray(value) ? value.map(String) : typeof value === "string" ? value.split(/[,\s]+/) : [];
+  return TEACHER_STAGES.filter((stage) => raw.includes(stage.id)).map((stage) => stage.id).join(",");
+}
+export function categoryStageIds(category: Pick<CategoryRecord, "stages">): TeacherStageId[] {
+  return normalizeStages(category.stages ?? "").split(",").filter(Boolean) as TeacherStageId[];
+}
+/** التخصص بلا مراحل محددة يظهر في كل المراحل حتى لا يختفي شيء. */
+export function categoryInStage(category: Pick<CategoryRecord, "stages">, stageId: TeacherStageId): boolean {
+  const ids = categoryStageIds(category);
+  return !ids.length || ids.includes(stageId);
+}
+/** المدرس يحدد مراحله في «التخصصات الفرعية» بوسم اسم المرحلة؛ من لم يحدد يظهر في كل المراحل. */
+export function serviceStageIds(service: Pick<ServiceRecord, "subSpecialties">): TeacherStageId[] {
+  const tags = (service.subSpecialties ?? []).map((item) => normalizeSearch(item));
+  return TEACHER_STAGES.filter((stage) => tags.includes(normalizeSearch(stage.name))).map((stage) => stage.id);
+}
+export function serviceInStage(service: Pick<ServiceRecord, "subSpecialties">, stageId: TeacherStageId): boolean {
+  const ids = serviceStageIds(service);
+  return !ids.length || ids.includes(stageId);
+}
+export function stageHref(rootId: string, stageId: TeacherStageId | null | undefined, specialtyId?: string): string {
+  return `/categories/${rootId}${specialtyId ? `/${specialtyId}` : ""}${stageId ? `?stage=${stageId}` : ""}`;
+}
 /** The 3D symbols available in /images/category-3d.svg that a root section can display. */
 export const categoryArtOptions: Array<{ id: string; label: string }> = [
   { id: "crafts", label: "مفتاح وشاكوش (حرفيين)" },
@@ -900,7 +940,7 @@ export function getCompletionFieldSuggestions(
   const isClinic = category.parentId === "clinics" || category.id === "clinics";
   const isShop = category.parentId === "shops" || category.id === "shops";
   const subSpecialties = isTeacher
-    ? rawKeywords.slice(0, 7)
+    ? [...TEACHER_STAGES.map((stage) => stage.name), ...rawKeywords.slice(0, 5)]
     : isClinic
       ? [CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, "يومياً عدا الجمعة", "السبت والاثنين والأربعاء", "الأحد والثلاثاء والخميس", ...rawKeywords.slice(0, 4)]
       : rawKeywords.length > 0

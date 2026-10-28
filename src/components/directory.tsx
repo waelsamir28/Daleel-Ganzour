@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import { ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
-import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt } from "@/lib/catalog";
+import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, stageHref, TEACHER_STAGES, TEACHERS_ROOT_ID } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
@@ -17,6 +17,7 @@ import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
 import { withViewTransition } from "@/lib/motion";
 import { useIsDark } from "@/lib/use-is-dark";
 import { TickerText } from "@/components/ticker-text";
+import TeacherStageModal from "@/components/teacher-stage-modal";
 
 // تحميل كسول للمكوّنات التي لا تظهر إلا عند فتحها (نوافذ وأدوات الإدارة) لتخفيف الحزمة الأولى للصفحة الرئيسية.
 const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr: false });
@@ -42,7 +43,7 @@ function utilityIcon(item: { id: string; name: string; category: string; tone: s
 }
 type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | "about" | null;
 
-export default function Directory({ initialData, viewer, rootId, specialtyId, initialFavorites = false, guestLocked = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; initialFavorites?: boolean; guestLocked?: boolean }) {
+export default function Directory({ initialData, viewer, rootId, specialtyId, stageId, initialFavorites = false, guestLocked = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; stageId?: string; initialFavorites?: boolean; guestLocked?: boolean }) {
   const [data, setData] = useState(initialData), [modal, setModal] = useState<ModalName>(null), [detail, setDetail] = useState<ServiceRecord | null>(null);
   const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
@@ -172,6 +173,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const roots = categories.filter((category) => !category.parentId);
   const root = rootId ? getCategory(rootId, categories) : null, specialty = specialtyId ? getCategory(specialtyId, categories) : null;
   const scoped = Boolean(rootId), isHome = !scoped;
+  // قسم المدرسين: المرحلة الدراسية المختارة من الرابط (?stage=)، وشاشة الاختيار تظهر تلقائيًا لو لم تُحدد.
+  const isTeachersContext = rootId === TEACHERS_ROOT_ID || specialty?.parentId === TEACHERS_ROOT_ID;
+  const stage = isTeachersContext ? getTeacherStage(stageId) : null;
+  const [stageModalOpen, setStageModalOpen] = useState(rootId === TEACHERS_ROOT_ID && !specialtyId && !stage);
+  const stageCounts = useMemo(() => Object.fromEntries(TEACHER_STAGES.map((item) => [item.id, categories.filter((category) => category.active && category.parentId === TEACHERS_ROOT_ID && categoryInStage(category, item.id)).length])), [categories]);
   const whatsapp = whatsappUrl(settings.phone);
   const adSlot = <AdRotator ads={data.ads ?? []} services={data.services} categories={categories} adminPhone={settings.phone} siteName={settings.siteName} logoUrl={design.headerLogoUrl} pricing={data.adPricing ?? null} onOpenService={(service) => openDetail(service)}/>;
   useEffect(() => {
@@ -313,13 +319,14 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
       return (!activeDeliveryOnly || supportsHomeDelivery(service))
         && (!isClinicsContext || activeClinicFilter === "all" || matchesClinicFilter(service, activeClinicFilter, now || undefined))
         && (!activeSpecialtyId || service.category === activeSpecialtyId)
+        && (!stage || serviceInStage(service, stage.id))
         && (!rootFilter || item.parentId === rootFilter || item.id === rootFilter)
         && (!query || matchesServiceQuery(service, item.name, query))
         && (!area || service.area === area)
         && (area !== OTHER_ADDRESS || !customAddress || normalizeSearch(service.address).includes(normalizeSearch(customAddress)))
         && (!emergency || service.emergency)
         && (view !== "favorites" || favorites.includes(service.id));
-    }), [services, categories, activeSpecialtyId, rootFilter, query, area, customAddress, emergency, view, favorites, activeDeliveryOnly, isClinicsContext, activeClinicFilter, now]);
+    }), [services, categories, activeSpecialtyId, stage, rootFilter, query, area, customAddress, emergency, view, favorites, activeDeliveryOnly, isClinicsContext, activeClinicFilter, now]);
   const isFiltering = Boolean(activeDeliveryOnly || (isClinicsContext && activeClinicFilter !== "all") || query || area || emergency || view === "favorites" || (!rootId && rootFilter));
   const isFeaturedCollapsible = !isFiltering && !specialty;
   const showProvidersList = !isFeaturedCollapsible || featuredOpen;
@@ -332,8 +339,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
   const specArt3d = design.specialtyArt3d && !flatSpecialties;
   const specSticker = design.specialtyStickerIcons && !flatSpecialties;
   const hasSticker = (category: { id: string; imageVersion?: number; parentId?: string | null }) => Boolean(design.specialtyStickerIcons && categoryStickerSrc(category)) && !(flatSpecialties && category.parentId);
-  const displayedCategories = root ? categories.filter((category) => category.parentId === root.id) : roots;
-  const title = specialty ? `${specialty.name} بقرية جنزور` : root ? `${root.name} بقرية جنزور` : settings.siteName;
+  const displayedCategories = root ? categories.filter((category) => category.parentId === root.id && (!stage || categoryInStage(category, stage.id))) : roots;
+  const title = specialty ? `${specialty.name}${stage ? ` (${stage.short})` : ""} بقرية جنزور` : root ? `${stage ? `مدرسين ${stage.name}` : root.name} بقرية جنزور` : settings.siteName;
   function categoryCount(category: CategoryRecord) {
     if (category.parentId) {
       return services.filter((service) => service.category === category.id && (!isClinicsContext || activeClinicFilter === "all" || matchesClinicFilter(service, activeClinicFilter, now || undefined))).length;
@@ -622,7 +629,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
     </header>
     {data.previewMode && <div className="preview-mode-notice" role="status">وضع المعاينة: البيانات المعروضة توضيحية، ولن تُحفَظ الإضافات دون قاعدة بيانات.</div>}
     {logoutError && <div role="alert" className="form-error container">{logoutError}</div>}
-    {(scoped || design.showHero) && <section className={`hero ${scoped ? "category-page-hero" : "hero-with-banner"}`} aria-labelledby="hero-title"><div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/><svg className="hero-skyline" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path d="M0 210V105h43V81h32v50h29V64h32V22h8V0h6v22h10v42h29v83h27v-39h24V77h22v31h20v102h31V97h33v28h17V65h50v145h42v-65h22v-20h29v20h28v65h33V79h26V36h8V15h5v21h9v43h31v131h32v-86h22V98h38v26h24v86h31V73h49v35h29v102h45V94h31V62h40v148h29v-62h50v62h50V99h34V80h21v19h32v111h41V64h29V26h9V5h5v21h12v38h30v146h42V91h47v119h31V70h26V40h23v30h22v140h37v-63h52v63h34v-98h26V79h31v33h20v98Z"/></svg>{!scoped && <div className={`hero-banner-wrap is-h-${design.heroBannerHeight || "auto"} is-fit-${design.heroBannerFit || "cover"}`} style={{ "--hero-overlay": (design.heroBannerOverlay || 0) / 100 } as CSSProperties}><Image key={heroBannerSrc} src={heroBannerSrc} alt="دليل المهن والخدمات بقرية جنزور، كل أرقام المهنيين والخدمات والمشاريع في مكان واحد" width={2048} height={768} sizes="(max-width: 700px) 100vw, (max-width: 1378px) 90vw, 1240px" priority/>{(design.heroBannerOverlay || 0) > 0 && <span className="hero-banner-overlay" aria-hidden="true"/>}{design.heroBannerText && <div className="hero-banner-text"><strong>{settings.siteName}</strong>{settings.heroSubtitle && <span>{settings.heroSubtitle}</span>}</div>}</div>}<div className="container hero-inner"><div className="hero-visual"><span className="hero-floating-tag"><CheckCircle2 size={16}/> من أهل القرية.. لأهل القرية</span></div><div className="hero-copy">{scoped ? <nav className="hero-breadcrumb" aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><ChevronLeft size={13}/>{specialty ? <><Link href={`/categories/${rootId}`}>{root?.name}</Link><ChevronLeft size={13}/><span>{specialty.name}</span></> : <span>{root?.name}</span>}</nav> : <div className="hero-eyebrow"><Sparkles size={15}/>{settings.heroEyebrow}</div>}<h1 id="hero-title">{title}</h1>{!scoped && <><p className="hero-subtitle">{settings.heroSubtitle}</p><p className="hero-tagline">{settings.tagline}</p></>}
+    {(scoped || design.showHero) && <section className={`hero ${scoped ? "category-page-hero" : "hero-with-banner"}`} aria-labelledby="hero-title"><div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/><svg className="hero-skyline" viewBox="0 0 1440 210" preserveAspectRatio="none" aria-hidden="true"><path d="M0 210V105h43V81h32v50h29V64h32V22h8V0h6v22h10v42h29v83h27v-39h24V77h22v31h20v102h31V97h33v28h17V65h50v145h42v-65h22v-20h29v20h28v65h33V79h26V36h8V15h5v21h9v43h31v131h32v-86h22V98h38v26h24v86h31V73h49v35h29v102h45V94h31V62h40v148h29v-62h50v62h50V99h34V80h21v19h32v111h41V64h29V26h9V5h5v21h12v38h30v146h42V91h47v119h31V70h26V40h23v30h22v140h37v-63h52v63h34v-98h26V79h31v33h20v98Z"/></svg>{!scoped && <div className={`hero-banner-wrap is-h-${design.heroBannerHeight || "auto"} is-fit-${design.heroBannerFit || "cover"}`} style={{ "--hero-overlay": (design.heroBannerOverlay || 0) / 100 } as CSSProperties}><Image key={heroBannerSrc} src={heroBannerSrc} alt="دليل المهن والخدمات بقرية جنزور، كل أرقام المهنيين والخدمات والمشاريع في مكان واحد" width={2048} height={768} sizes="(max-width: 700px) 100vw, (max-width: 1378px) 90vw, 1240px" priority/>{(design.heroBannerOverlay || 0) > 0 && <span className="hero-banner-overlay" aria-hidden="true"/>}{design.heroBannerText && <div className="hero-banner-text"><strong>{settings.siteName}</strong>{settings.heroSubtitle && <span>{settings.heroSubtitle}</span>}</div>}</div>}<div className="container hero-inner"><div className="hero-visual"><span className="hero-floating-tag"><CheckCircle2 size={16}/> من أهل القرية.. لأهل القرية</span></div><div className="hero-copy">{scoped ? <nav className="hero-breadcrumb" aria-label="مسار الصفحة"><Link href="/">الرئيسية</Link><ChevronLeft size={13}/>{specialty ? <><Link href={stageHref(rootId ?? "", stage?.id)}>{root?.name}</Link>{stage && <><ChevronLeft size={13}/><Link href={stageHref(rootId ?? "", stage.id)}>{stage.short}</Link></>}<ChevronLeft size={13}/><span>{specialty.name}</span></> : stage ? <><Link href={`/categories/${rootId}`}>{root?.name}</Link><ChevronLeft size={13}/><span>{stage.name}</span></> : <span>{root?.name}</span>}</nav> : <div className="hero-eyebrow"><Sparkles size={15}/>{settings.heroEyebrow}</div>}<h1 id="hero-title">{title}</h1>{!scoped && <><p className="hero-subtitle">{settings.heroSubtitle}</p><p className="hero-tagline">{settings.tagline}</p></>}
     {design.announcementEnabled && announcementList.length > 0 && (
       <div
         className={`site-announcement-ticker-card is-${design.announcementStyle} is-mode-${design.announcementTickerMode || "marquee"}`}
@@ -745,18 +752,26 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
           </div>
           <div className="section-heading directory-section-heading">
             <div>
-              <h2><Grid2X2 size={23}/>{root ? `تخصصات ${root.name}` : "تصفح أقسام القرية"}</h2>
+              <h2><Grid2X2 size={23}/>{root ? `تخصصات ${stage ? stage.name : root.name}` : "تصفح أقسام القرية"}</h2>
             </div>
             <span className="section-count">{displayedCategories.length} {root ? "تخصص" : "أقسام رئيسية"}</span>
           </div>
+          {rootId === TEACHERS_ROOT_ID && <div className="stage-switcher" role="navigation" aria-label="المرحلة الدراسية">
+            {TEACHER_STAGES.map((item) => <Link key={item.id} href={stageHref(TEACHERS_ROOT_ID, item.id)} className={`stage-chip ${stage?.id === item.id ? "is-active" : ""}`} style={{ "--stage-color": item.color } as CSSProperties} aria-current={stage?.id === item.id ? "page" : undefined}><StickerIcon src={item.sticker} size={26}/>{item.short}</Link>)}
+            <Link href={stageHref(TEACHERS_ROOT_ID, null)} className={`stage-chip stage-chip-all ${!stage ? "is-active" : ""}`} aria-current={!stage ? "page" : undefined}>كل المراحل</Link>
+            <button type="button" className="stage-chip stage-chip-change" onClick={() => setStageModalOpen(true)}><Grid2X2 size={15}/> اختيار المرحلة</button>
+          </div>}
           <div className={`category-grid ${root ? "specialties-grid" : "main-category-grid"}`}>
             {displayedCategories.map((category) => {
-              const href = category.parentId ? `/categories/${category.parentId}/${category.id}` : `/categories/${category.id}`;
+              const href = category.parentId ? stageHref(category.parentId, category.parentId === TEACHERS_ROOT_ID ? stage?.id : null, category.id) : `/categories/${category.id}`;
+              const opensStageChooser = !category.parentId && category.id === TEACHERS_ROOT_ID;
               return (
                 <Link
                   key={category.id}
                   href={href}
                   aria-label={category.name}
+                  aria-haspopup={opensStageChooser ? "dialog" : undefined}
+                  onClick={opensStageChooser ? (event) => { event.preventDefault(); setStageModalOpen(true); } : undefined}
                   className="category-tile"
                   style={{ "--category-color": category.color, "--category-light": category.light } as CSSProperties}
                 >
@@ -767,7 +782,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
               );
             })}
           </div>
-          {!displayedCategories.length && <div className="empty-state"><h3>التخصصات قيد التجهيز</h3><p>الإدارة هتضيف تخصصات القسم قريبًا.</p></div>}
+          {!displayedCategories.length && <div className="empty-state"><h3>التخصصات قيد التجهيز</h3><p>{stage ? `الإدارة هتضيف تخصصات ${stage.name} قريبًا.` : "الإدارة هتضيف تخصصات القسم قريبًا."}</p></div>}
         </section>
       )}
       {(scoped || isFiltering || design.showFeaturedSection) && <section id="providers" className={`providers-section ${specialty ? "specialty-providers" : ""}`} style={scoped ? { order: 3 } : { order: sectionOrderIndex("featured", 2) }}>{isFeaturedCollapsible ? (
@@ -1104,6 +1119,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, in
         />
       </Modal>
     )}
+    {stageModalOpen && <TeacherStageModal current={stage?.id} counts={stageCounts} onClose={() => setStageModalOpen(false)}/>}
     {detail && <Modal floating className="modal-quiet-scroll detail-modal" title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details detail-v2">
       <header className="detail-v2-hero" style={categoryTheme(getCategory(detail.category, categories))}>
         <span className="detail-v2-hero-glow" aria-hidden="true"/>

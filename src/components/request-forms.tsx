@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import { Check, CheckCircle2, CirclePlus, Clock3, LoaderCircle, MapPin, ShieldCheck } from "lucide-react";
-import { areas, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
+import { areas, TEACHER_STAGES, TEACHERS_ROOT_ID, CLINIC_APPOINTMENT_TAG, CLINIC_WALKIN_TAG, HOME_DELIVERY_TAG, initialCategories, OTHER_ADDRESS, shopSampleMenuItems, type AreaRecord, type CategoryRecord } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
+import { StickerIcon } from "@/components/ui";
 
 const CLINIC_SCHEDULE_CHIPS = [
   CLINIC_APPOINTMENT_TAG,
@@ -26,6 +27,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   const [root, setRoot] = useState(selected?.parentId ?? (selected && !selected.parentId ? selected.id : ""));
   const [specialty, setSpecialty] = useState(selected?.parentId ? selected.id : "");
   const [clinicTags, setClinicTags] = useState<string[]>([]);
+  const [teacherStages, setTeacherStages] = useState<string[]>([]);
   const [shopItems, setShopItems] = useState<string[]>([]);
   const [customShopItem, setCustomShopItem] = useState("");
   const [homeDelivery, setHomeDelivery] = useState(false);
@@ -48,7 +50,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const form = new FormData(event.currentTarget);
-    const subSpecialties = root === "clinics" ? clinicTags : [];
+    const subSpecialties = root === "clinics" ? clinicTags : root === TEACHERS_ROOT_ID ? teacherStages : [];
     const baseServiceItems = root === "shops" ? shopItems : [];
     const serviceItems = homeDelivery ? [...baseServiceItems, HOME_DELIVERY_TAG] : baseServiceItems;
     try {
@@ -105,6 +107,20 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
               {clinicTags.includes(tag) ? <Check size={12}/> : <CirclePlus size={12}/>}
               {tag}
             </button>
+          ))}
+        </div>
+      </div>
+    )}
+    {root === TEACHERS_ROOT_ID && (
+      <div className="field stage-picker-field">
+        <span>🎓 المراحل التي تدرّسها (اختر مرحلة أو أكثر):</span>
+        <div className="stage-picker-options" aria-label="المراحل الدراسية">
+          {TEACHER_STAGES.map((stage) => (
+            <label key={stage.id} className={`stage-picker-option ${teacherStages.includes(stage.name) ? "is-selected" : ""}`} style={{ "--stage-color": stage.color } as CSSProperties}>
+              <input type="checkbox" checked={teacherStages.includes(stage.name)} onChange={() => setTeacherStages((curr) => curr.includes(stage.name) ? curr.filter((item) => item !== stage.name) : [...curr, stage.name])}/>
+              <StickerIcon src={stage.sticker} size={38}/>
+              <span>{stage.name}</span>
+            </label>
           ))}
         </div>
       </div>
