@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
-import { categoryStickerSrc, isNewService, serviceWhatsappMessage, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
+import { categoryStickerSrc, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, SpecialtyIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 
@@ -74,6 +74,11 @@ export default function ProviderCard({ service, category, favorite, now, showAdm
         <div className="provider-card-copy">
           <h3 className="provider-name">{service.name}</h3>
           <span className="provider-specialty">{category.name}</span>
+          {category.parentId === TEACHERS_ROOT_ID && serviceStageIds(service).length > 0 && (
+            <span className="provider-stages" aria-label="المراحل الدراسية">
+              {serviceStageIds(service).map((id) => { const stage = getTeacherStage(id)!; return <span key={id} className="provider-stage-chip" style={{ "--stage-color": stage.color } as CSSProperties}>{stage.short}</span>; })}
+            </span>
+          )}
           <ProviderRating value={service.rating} reviews={service.reviews}/>
           {(service.address || service.area) && (
             <span className="provider-address">

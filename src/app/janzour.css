@@ -11651,3 +11651,7 @@ html.dark .stage-chip.is-active { background: var(--stage-color, #0e6ecc); color
 .stage-picker-option:focus-within { outline: 2px solid var(--stage-color, #0e6ecc); outline-offset: 2px; }
 html.dark .stage-picker-option { background: #13273c; border-color: #244363; color: #cfe0f3; }
 html.dark .stage-picker-option.is-selected { background: color-mix(in srgb, var(--stage-color, #0e6ecc) 30%, #13273c); color: #fff; }
+/* شارات مراحل المدرس على بطاقته */
+.provider-stages { display: inline-flex; flex-wrap: wrap; gap: 4px; margin: 1px 0 2px; }
+.provider-stage-chip { display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 800; line-height: 1.6; color: var(--stage-color, #0e6ecc); background: color-mix(in srgb, var(--stage-color, #0e6ecc) 12%, #fff); border: 1px solid color-mix(in srgb, var(--stage-color, #0e6ecc) 35%, #fff); }
+html.dark .provider-stage-chip { color: #fff; background: color-mix(in srgb, var(--stage-color, #0e6ecc) 35%, #13273c); border-color: color-mix(in srgb, var(--stage-color, #0e6ecc) 55%, #13273c); }

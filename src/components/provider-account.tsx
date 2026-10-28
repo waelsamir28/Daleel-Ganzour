@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
 import { BadgeCheck, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, ShieldCheck, Star, XCircle, Zap } from "lucide-react";
-import { AVAILABILITY_HOURS, getCategory, OFFICE_WHATSAPP, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
+import { AVAILABILITY_HOURS, getCategory, OFFICE_WHATSAPP, serviceStageIds, TEACHER_STAGES, TEACHERS_ROOT_ID, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
-import { SpecialtyIcon } from "@/components/ui";
+import { SpecialtyIcon, StickerIcon } from "@/components/ui";
 
 type Props = { token: string; initial: ServiceRecord; categories: CategoryRecord[]; areas: string[] };
 type Notice = { text: string; error: boolean } | null;
@@ -38,6 +38,8 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   const [hours, setHours] = useState(initial.hours);
   const [items, setItems] = useState(initial.serviceItems.join("، "));
   const [emergency, setEmergency] = useState(initial.emergency);
+  const [stages, setStages] = useState<TeacherStageId[]>(serviceStageIds(initial));
+  const isTeacher = root.id === TEACHERS_ROOT_ID;
   // قسم البيانات الحساسة
   const [name, setName] = useState(initial.name);
   const [phone, setPhone] = useState(initial.phone);
@@ -68,7 +70,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
     let workingHours: unknown = [];
     try { workingHours = JSON.parse(String(form.get("workingHours") || "[]")); } catch { workingHours = []; }
     const serviceItems = items.split(/[،,\n]/).map((item) => item.trim()).filter(Boolean);
-    void call("quick", { description, hours, workingHours, serviceItems, emergency });
+    void call("quick", { description, hours, workingHours, serviceItems, emergency, ...(isTeacher ? { stages } : {}) });
   }
 
   function submitRequest(event: FormEvent<HTMLFormElement>) {
@@ -120,6 +122,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       <label className="my-field">قائمة خدماتك التفصيلية<input value={items} onChange={(event) => setItems(event.target.value)} maxLength={1200} placeholder="افصل بينها بفاصلة: تركيب، صيانة، طوارئ…"/><small>حتى ٢٠ خدمة، تظهر كشارات على بطاقتك.</small></label>
       <label className="my-field">مواعيد العمل (نص مختصر)<input value={hours} onChange={(event) => setHours(event.target.value)} maxLength={120} placeholder="مثال: يوميًا من ٩ صباحًا حتى ١٠ مساءً عدا الجمعة"/></label>
       <WorkingHoursEditor initial={service.workingHours}/>
+      {isTeacher && <div className="my-field stage-picker-field"><span>🎓 المراحل التي أدرّسها (تظهر على بطاقتك وتحدد أين يجدك الطلاب)</span><div className="stage-picker-options" aria-label="المراحل الدراسية">{TEACHER_STAGES.map((stage) => <label key={stage.id} className={`stage-picker-option ${stages.includes(stage.id) ? "is-selected" : ""}`} style={{ "--stage-color": stage.color } as CSSProperties}><input type="checkbox" checked={stages.includes(stage.id)} onChange={() => setStages((curr) => curr.includes(stage.id) ? curr.filter((id) => id !== stage.id) : [...curr, stage.id])}/><StickerIcon src={stage.sticker} size={38}/><span>{stage.name}</span></label>)}</div><small>لو لم تحدد مرحلة ستظهر في كل المراحل.</small></div>}
       <label className="my-check"><input type="checkbox" checked={emergency} onChange={(event) => setEmergency(event.target.checked)}/>أستقبل حالات الطوارئ خارج المواعيد</label>
       <button type="submit" className="availability-renew is-blue" disabled={busy !== ""}>{busy === "quick" ? <LoaderCircle size={20} className="spin"/> : <CheckCircle2 size={20}/>} حفظ ونشر فورًا</button>
     </form>
