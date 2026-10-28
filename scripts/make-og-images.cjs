@@ -1,32 +1,45 @@
 /**
  * توليد صور معاينة الرابط (Open Graph) لدليل جنزور: عريضة 1200×630 (فيسبوك/واتساب/تويتر) ومربعة 1080×1080.
- * التشغيل:  npm i --no-save @napi-rs/canvas && node scripts/make-og-images.cjs
+ * التشغيل:  npm i --no-save @napi-rs/canvas qrcode && node scripts/make-og-images.cjs
  * يحتاج خط Cairo المتغيّر في /tmp/fonts/Cairo.ttf (https://github.com/google/fonts/tree/main/ofl/cairo).
  * اللوجو: docs/brand/logo-option-1.png (نسخة شفافة من اللوجو الذي أرسله المدير).
  */
 const { createCanvas, loadImage, GlobalFonts } = require("@napi-rs/canvas");
+const QRCode = require("qrcode");
 const fs = require("node:fs");
 GlobalFonts.registerFromPath(process.env.CAIRO_TTF || "/tmp/fonts/Cairo.ttf", "Cairo");
 
 const LOGO = "docs/brand/logo-option-1.png";
-const SITE = "daleel-ganzour.vercel.app";
+const SITE = "daleel-ganzour.vercel.app", SITE_URL = `https://${SITE}`;
 const TITLE_1 = "دليل المهن والخدمات", TITLE_2 = "بقرية جنزور";
 const SUB = "كل أرقام المهنيين والصيدليات والمحلات في مكان واحد";
 const SUB_1 = "كل أرقام المهنيين والصيدليات", SUB_2 = "والمحلات في مكان واحد";
-const BADGE = "مجاناً لأهل القرية", FOOT = "ابحث واتصل بضغطة واحدة";
+const BADGE = "مجاناً لأهل القرية", QR_CAPTION = "امسح وافتح الدليل";
+const GOLD = "#ffe066", NAVY = "#0b4a93";
 
 function background(ctx, W, H) {
   const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, "#0a87d7"); g.addColorStop(0.58, "#0765bd"); g.addColorStop(1, "#104c91");
+  g.addColorStop(0, "#0d8ee0"); g.addColorStop(0.55, "#0765bd"); g.addColorStop(1, "#0d3f7d");
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   const glow = (x, y, r, color) => { const rg = ctx.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, color); rg.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); };
-  glow(W * 0.85, H * 0.1, W * 0.55, "rgba(255,255,255,0.20)");
-  glow(W * 0.05, H * 0.95, W * 0.45, "rgba(120,200,255,0.18)");
-  ctx.fillStyle = "rgba(255,255,255,0.09)";
-  for (let y = 12; y < H; y += 36) for (let x = 12; x < W; x += 36) { ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill(); }
+  glow(W * 0.82, H * 0.12, W * 0.5, "rgba(255,255,255,0.22)");
+  glow(W * 0.08, H * 0.92, W * 0.4, "rgba(120,200,255,0.16)");
+  // شعاع ضوء قطري ناعم
+  const sweep = ctx.createLinearGradient(0, 0, W, H);
+  sweep.addColorStop(0.35, "rgba(255,255,255,0)"); sweep.addColorStop(0.5, "rgba(255,255,255,0.07)"); sweep.addColorStop(0.65, "rgba(255,255,255,0)");
+  ctx.fillStyle = sweep; ctx.fillRect(0, 0, W, H);
+  // شبكة نقاط خفيفة
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  for (let y = 12; y < H; y += 36) for (let x = 12; x < W; x += 36) { ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill(); }
+  // إطار داخلي رفيع ذهبي/أبيض يعطي لمسة احترافية
+  ctx.strokeStyle = "rgba(255,255,255,0.22)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(18, 18, W - 36, H - 36, 28); ctx.stroke();
+  ctx.strokeStyle = "rgba(255,224,102,0.35)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(24, 24, W - 48, H - 48, 24); ctx.stroke();
+  // زوايا ذهبية
+  ctx.strokeStyle = "rgba(255,224,102,0.9)"; ctx.lineWidth = 3; ctx.lineCap = "round";
+  const corner = (x, y, dx, dy) => { ctx.beginPath(); ctx.moveTo(x + dx * 34, y); ctx.lineTo(x, y); ctx.lineTo(x, y + dy * 34); ctx.stroke(); };
+  corner(40, 40, 1, 1); corner(W - 40, 40, -1, 1); corner(40, H - 40, 1, -1); corner(W - 40, H - 40, -1, -1);
 }
-function roundRect(ctx, x, y, w, h, r, fill) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fillStyle = fill; ctx.fill(); }
-/** يصغّر حجم الخط تلقائيًا حتى يدخل النص في العرض المتاح. */
+function roundRect(ctx, x, y, w, h, r, fill, stroke) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); } }
 function fitFont(ctx, str, weight, size, maxW) {
   for (let px = size; px >= 18; px -= 2) { ctx.font = `${weight} ${px}px Cairo`; if (ctx.measureText(str).width <= maxW) return ctx.font; }
   return `${weight} 18px Cairo`;
@@ -34,7 +47,7 @@ function fitFont(ctx, str, weight, size, maxW) {
 function text(ctx, str, x, y, font, color, align = "right", shadow = true, maxW = 0) {
   if (maxW) { const [weight, px] = font.split(" "); font = fitFont(ctx, str, weight, parseInt(px, 10), maxW); }
   ctx.font = font; ctx.textAlign = align; ctx.textBaseline = "alphabetic"; ctx.direction = "rtl";
-  if (shadow) { ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4; }
+  if (shadow) { ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4; }
   ctx.fillStyle = color; ctx.fillText(str, x, y);
   ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
   return ctx.measureText(str).width;
@@ -42,53 +55,72 @@ function text(ctx, str, x, y, font, color, align = "right", shadow = true, maxW 
 async function drawLogo(ctx, boxW, boxH, cx, cy) {
   const img = await loadImage(LOGO);
   const s = Math.min(boxW / img.width, boxH / img.height); const w = img.width * s, h = img.height * s;
-  ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 34; ctx.shadowOffsetY = 18;
+  // هالة ناعمة خلف اللوجو
+  const rg = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(w, h) * 0.62);
+  rg.addColorStop(0, "rgba(255,255,255,0.18)"); rg.addColorStop(1, "rgba(255,255,255,0)"); ctx.fillStyle = rg; ctx.fillRect(cx - w, cy - h, w * 2, h * 2);
+  ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 36; ctx.shadowOffsetY = 18;
   ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h); ctx.restore();
 }
 function urlPill(ctx, right, y, h, centered = false) {
-  ctx.font = "800 34px Cairo"; ctx.direction = "ltr"; const w = ctx.measureText(SITE).width;
-  const pillW = w + 112; const x = centered ? right - pillW / 2 : right - pillW;
+  ctx.font = "800 27px Cairo"; ctx.direction = "ltr"; const w = ctx.measureText(SITE).width;
+  const pillW = w + 96; const x = centered ? right - pillW / 2 : right - pillW;
   ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8;
   roundRect(ctx, x, y, pillW, h, h / 2, "#ffffff"); ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-  ctx.beginPath(); ctx.arc(x + pillW - h / 2, y + h / 2, h / 2 - 12, 0, Math.PI * 2); ctx.fillStyle = "#0a6fc2"; ctx.fill();
-  ctx.fillStyle = "#fff"; ctx.font = "900 26px Cairo"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("↗", x + pillW - h / 2, y + h / 2 + 1);
-  ctx.font = "800 34px Cairo"; ctx.fillStyle = "#0b4a93"; ctx.textAlign = "left"; ctx.fillText(SITE, x + 30, y + h / 2 + 2);
-  ctx.textBaseline = "alphabetic";
+  ctx.beginPath(); ctx.arc(x + pillW - h / 2, y + h / 2, h / 2 - 11, 0, Math.PI * 2); ctx.fillStyle = "#0a6fc2"; ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "900 24px Cairo"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("↗", x + pillW - h / 2, y + h / 2 + 1);
+  ctx.font = "800 27px Cairo"; ctx.fillStyle = NAVY; ctx.textAlign = "left"; ctx.fillText(SITE, x + 26, y + h / 2 + 2);
+  ctx.textBaseline = "alphabetic"; ctx.direction = "rtl";
+  return { x, w: pillW };
 }
 function badge(ctx, right, y, centered = false) {
-  ctx.font = "800 26px Cairo"; ctx.direction = "rtl"; const w = ctx.measureText(BADGE).width + 48;
+  ctx.font = "800 24px Cairo"; ctx.direction = "rtl"; const w = ctx.measureText(BADGE).width + 60;
   const x = centered ? right - w / 2 : right - w;
-  roundRect(ctx, x, y, w, 54, 27, "#10b981");
-  ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(BADGE, x + w / 2, y + 29); ctx.textBaseline = "alphabetic";
+  ctx.shadowColor = "rgba(0,0,0,0.25)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+  roundRect(ctx, x, y, w, 50, 25, "#10b981"); ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  ctx.beginPath(); ctx.arc(x + w - 25, y + 25, 7, 0, Math.PI * 2); ctx.fillStyle = GOLD; ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillText(BADGE, x + w - 42, y + 26); ctx.textBaseline = "alphabetic";
+  return { x, w };
+}
+async function qrCard(ctx, x, y, size) {
+  // بطاقة بيضاء بزوايا دائرية + باركود يفتح الموقع + تعليق
+  const pad = 14, capH = 34;
+  ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 22; ctx.shadowOffsetY = 10;
+  roundRect(ctx, x, y, size + pad * 2, size + pad * 2 + capH, 22, "#ffffff"); ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  const qr = await QRCode.toBuffer(SITE_URL, { errorCorrectionLevel: "H", margin: 0, width: size * 2, color: { dark: NAVY, light: "#ffffff" } });
+  const img = await loadImage(qr); ctx.drawImage(img, x + pad, y + pad, size, size);
+  ctx.fillStyle = NAVY; ctx.font = "800 17px Cairo"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.direction = "rtl"; ctx.fillText(QR_CAPTION, x + pad + size / 2, y + pad + size + capH / 2 + 4); ctx.textBaseline = "alphabetic";
+  return { w: size + pad * 2, h: size + pad * 2 + capH };
 }
 
 async function wide() {
   const W = 1200, H = 630; const c = createCanvas(W, H); const ctx = c.getContext("2d");
   background(ctx, W, H);
-  await drawLogo(ctx, 540, 580, 905, 318);
-  const right = 640;
-  const maxW = right - 40;
-  text(ctx, TITLE_1, right, 126, "900 76px Cairo", "#ffffff", "right", true, maxW);
-  text(ctx, TITLE_2, right, 214, "900 76px Cairo", "#ffe066", "right", true, maxW);
-  roundRect(ctx, right - 250, 230, 250, 8, 4, "rgba(255,224,102,0.9)");
-  text(ctx, SUB_1, right, 292, "700 30px Cairo", "#e2f0ff", "right", true, maxW);
-  text(ctx, SUB_2, right, 336, "700 30px Cairo", "#e2f0ff", "right", true, maxW);
-  badge(ctx, right, 364);
-  urlPill(ctx, right, 452, 72);
-  text(ctx, FOOT, right, 584, "700 24px Cairo", "#bedcff");
+  await drawLogo(ctx, 520, 560, 915, 315);
+  const right = 655, maxW = right - 60;
+  text(ctx, TITLE_1, right, 128, "900 74px Cairo", "#ffffff", "right", true, maxW);
+  text(ctx, TITLE_2, right, 214, "900 74px Cairo", GOLD, "right", true, maxW);
+  text(ctx, SUB_1, right, 282, "700 29px Cairo", "#e2f0ff", "right", true, maxW);
+  text(ctx, SUB_2, right, 324, "700 29px Cairo", "#e2f0ff", "right", true, maxW);
+  badge(ctx, right, 350);
+  urlPill(ctx, right, 426, 62);
+  text(ctx, "ابحث واتصل بضغطة واحدة", right, 548, "700 22px Cairo", "#bedcff");
+  // الباركود أسفل اليسار
+  await qrCard(ctx, 60, 398, 132);
   fs.writeFileSync("public/images/og-cover.jpg", c.toBuffer("image/jpeg", 90));
 }
 async function square() {
   const W = 1080, H = 1080; const c = createCanvas(W, H); const ctx = c.getContext("2d");
   background(ctx, W, H);
-  await drawLogo(ctx, 600, 580, 540, 322);
+  await drawLogo(ctx, 580, 560, 540, 318);
   const cx = 540;
-  text(ctx, TITLE_1, cx, 700, "900 74px Cairo", "#ffffff", "center", true, W - 80);
-  text(ctx, TITLE_2, cx, 788, "900 74px Cairo", "#ffe066", "center", true, W - 80);
-  roundRect(ctx, cx - 120, 806, 240, 8, 4, "rgba(255,224,102,0.9)");
-  text(ctx, SUB, cx, 868, "700 30px Cairo", "#e2f0ff", "center", true, W - 80);
-  badge(ctx, cx, 892, true);
-  urlPill(ctx, cx, 972, 72, true);
+  text(ctx, TITLE_1, cx, 690, "900 72px Cairo", "#ffffff", "center", true, W - 120);
+  text(ctx, TITLE_2, cx, 776, "900 72px Cairo", GOLD, "center", true, W - 120);
+  text(ctx, SUB, cx, 838, "700 29px Cairo", "#e2f0ff", "center", true, W - 120);
+  // الصف السفلي: باركود يسارًا، الرابط والشارة يمينًا
+  const right = W - 64;
+  badge(ctx, right, 876);
+  urlPill(ctx, right, 948, 66);
+  await qrCard(ctx, 64, 858, 124);
   fs.writeFileSync("public/images/og-square.jpg", c.toBuffer("image/jpeg", 90));
 }
 (async () => { await wide(); await square(); console.log("done"); })();
