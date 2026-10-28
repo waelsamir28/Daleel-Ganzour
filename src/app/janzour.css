@@ -11625,6 +11625,11 @@ html.dark .image-upload-hint { color: #b6cbe3; }
 .stage-choice-text em { font-style: normal; font-size: 12px; font-weight: 800; color: #0e6ecc; }
 .stage-choice-arrow { color: var(--stage-color, #2f8be8); }
 .stage-choice-all { justify-content: center; width: 100%; margin-top: 12px; }
+.stage-choice-center { position: relative; margin-top: 6px; }
+.stage-choice-center::before { content: "أو"; position: absolute; top: -15px; inset-inline-start: 50%; transform: translateX(50%); padding: 0 10px; border-radius: 999px; background: #fff; border: 1.5px solid #d9c9ff; color: #6d3fc4; font-size: 11.5px; font-weight: 900; line-height: 18px; }
+.stage-choice-center .stage-choice-text em { display: inline-flex; align-items: center; gap: 4px; color: #6d3fc4; }
+html.dark .stage-choice-center::before { background: #1b1535; border-color: #6d55b5; color: #e9ddff; }
+html.dark .stage-choice-center .stage-choice-text em { color: #cdb7ff; }
 @media (max-width: 420px) { .stage-choice { gap: 10px; padding: 10px; } .stage-choice-art { width: 72px; height: 72px; } .stage-choice-art img { width: 72px !important; height: 72px !important; } .stage-choice-text strong { font-size: 17px; } }
 html.dark .stage-choice { background: linear-gradient(135deg, color-mix(in srgb, var(--stage-color, #2f8be8) 22%, #0f1f33), #0f1f33 70%); border-color: color-mix(in srgb, var(--stage-color, #2f8be8) 45%, #0f1f33); color: #e2ecf7; box-shadow: 0 8px 22px rgba(0, 0, 0, .35); }
 html.dark .stage-choice-text strong { color: #fff; filter: none; }
