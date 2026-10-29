@@ -559,6 +559,32 @@ export function parseServiceOffer(value: unknown, now = Date.now()): { offerTitl
 export function offerDaysLeft(offer: Pick<ServiceOffer, "endsAt">, now = Date.now()) {
   return Math.max(1, Math.ceil((Date.parse(offer.endsAt) - now) / 86_400_000));
 }
+/** عدّاد تنازلي للعرض: أيام وساعات (ودقائق في آخر ساعة) مع نص عربي جاهز، و`urgent` في آخر ٢٤ ساعة. */
+export function offerTimeLeft(offer: Pick<ServiceOffer, "endsAt">, now = Date.now()): { days: number; hours: number; minutes: number; urgent: boolean; label: string } {
+  const left = Math.max(0, Date.parse(offer.endsAt) - now);
+  const days = Math.floor(left / 86_400_000);
+  const hours = Math.floor((left % 86_400_000) / 3_600_000);
+  const minutes = Math.floor((left % 3_600_000) / 60_000);
+  const urgent = left < 86_400_000;
+  const dayWord = (n: number) => (n === 1 ? "يوم" : n === 2 ? "يومين" : n <= 10 ? `${n} أيام` : `${n} يوم`);
+  const hourWord = (n: number) => (n === 1 ? "ساعة" : n === 2 ? "ساعتين" : n <= 10 ? `${n} ساعات` : `${n} ساعة`);
+  let label: string;
+  if (left === 0) label = "انتهى";
+  else if (days === 0 && hours === 0) label = `باقي ${Math.max(1, minutes)} دقيقة`;
+  else if (days === 0) label = `باقي ${hourWord(hours)}`;
+  else if (hours === 0) label = `باقي ${dayWord(days)}`;
+  else label = `باقي ${dayWord(days)} و${hourWord(hours)}`;
+  return { days, hours, minutes, urgent, label };
+}
+/** عرض انتهى مؤخرًا (خلال ١٤ يومًا) وما زال عنوانه محفوظًا — لعرض زر «جدّد العرض» لصاحب الخدمة. */
+export function recentlyExpiredOffer(service: Pick<ServiceRecord, "offerTitle" | "offerDetails" | "offerEndsAt">, now = Date.now()): ServiceOffer | null {
+  const title = (service.offerTitle ?? "").trim();
+  const endsAt = service.offerEndsAt ?? null;
+  if (!title || !endsAt) return null;
+  const end = Date.parse(endsAt);
+  if (!Number.isFinite(end) || end > now || now - end > 14 * 86_400_000) return null;
+  return { title, details: (service.offerDetails ?? "").trim(), endsAt };
+}
 /** الخدمات التي لديها عرض نشط، الأقرب انتهاءً أولًا (ليشعر الزائر بالاستعجال)، والمميزون أولًا عند التساوي. */
 export function servicesWithOffers<T extends Pick<ServiceRecord, "offerTitle" | "offerDetails" | "offerEndsAt" | "featured" | "status">>(items: T[], now = Date.now()): T[] {
   return items

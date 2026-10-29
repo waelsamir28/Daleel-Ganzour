@@ -12275,3 +12275,77 @@ html.dark .admin-notif-item { background: #132743; border-color: #27405f; }
 html.dark .admin-notif-item.is-unread { background: #1d2a44; border-color: #6b5a2a; }
 html.dark .admin-notif-copy strong { color: #e6f0fb; }
 html.dark .admin-notif-copy span { color: #b7c9df; }
+
+/* ===== طلبات المهن: شريط علوي (تحديد / تحديد الكل / موافقة الكل / رفض الكل) + أيقونات صح/خطأ/إجراءات على كل طلب ===== */
+.admin-bulk-bar-v2 { justify-content: flex-start; gap: 8px; position: sticky; top: 8px; z-index: 5; box-shadow: 0 8px 20px -14px rgba(15, 48, 92, .5); }
+.admin-bulk-bar-v2 .button-small { white-space: nowrap; }
+.admin-bulk-bar-v2 .button-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: 0; }
+.admin-bulk-bar-v2 .button-danger:disabled, .admin-bulk-bar-v2 .button-success:disabled { opacity: .45; cursor: not-allowed; }
+.admin-bulk-spacer { flex: 1 1 auto; }
+.admin-bulk-count { padding: 4px 10px; border-radius: 999px; background: #e3effc; color: #0f5bb5; font-size: 12px; font-weight: 900; }
+.admin-service-row.is-request-row { position: relative; }
+.admin-request-icons { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 10px; border-top: 1px solid #e8eff0; }
+.admin-req-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+.admin-req-icon:hover:not(:disabled) { transform: translateY(-2px) scale(1.06); filter: brightness(1.05); }
+.admin-req-icon:disabled { opacity: .45; cursor: wait; }
+.admin-req-icon.is-approve { background: linear-gradient(145deg, #34d399, #15803d); color: #fff; box-shadow: 0 8px 18px -8px rgba(21, 128, 61, .8); }
+.admin-req-icon.is-reject { background: linear-gradient(145deg, #f87171, #b91c1c); color: #fff; box-shadow: 0 8px 18px -8px rgba(185, 28, 28, .8); }
+.admin-req-icon.is-more { background: #eef4fb; color: #0f5bb5; border-color: #c9dcf3; }
+.admin-req-icon.is-more:hover { background: #0f5bb5; color: #fff; border-color: #0f5bb5; }
+html.dark .admin-req-icon.is-more { background: #1b2d47; color: #bcd6f7; border-color: #2e4a6e; }
+html.dark .admin-request-icons { border-top-color: #27405f; }
+@media (max-width: 560px) {
+  .admin-bulk-bar-v2 { position: static; }
+  .admin-bulk-bar-v2 .button-small { flex: 1 1 calc(50% - 8px); justify-content: center; }
+  .admin-bulk-spacer { display: none; }
+  .admin-bulk-count { flex: 1 1 100%; text-align: center; }
+  .admin-request-icons { justify-content: center; gap: 18px; }
+  .admin-req-icon { width: 46px; height: 46px; }
+}
+.modal-panel:focus { outline: none; }
+
+/* ===== عدّاد تنازلي للعروض + تنبيه «جدّد العرض» في «حسابي» ===== */
+.offer-countdown { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.offer-card-meta em.is-soon { color: #d97706; }
+.offer-card-meta em.is-urgent { color: #dc2626; animation: offer-urgent-pulse 1.4s ease-in-out infinite; }
+.detail-collapsible-title small.is-urgent, .my-offer-current small.is-urgent { color: #dc2626 !important; }
+@keyframes offer-urgent-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .offer-card-meta em.is-urgent { animation: none; } }
+.my-offer-renew { display: grid; gap: 10px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid #fbbf24; background: linear-gradient(135deg, #fffbeb, #fff7e0); }
+.my-offer-renew.is-expired { border-color: #f87171; background: linear-gradient(135deg, #fef2f2, #fff1f1); }
+.my-offer-renew-text { display: flex; align-items: flex-start; gap: 10px; }
+.my-offer-renew-text > svg { flex: none; color: #d97706; margin-top: 2px; }
+.my-offer-renew.is-expired .my-offer-renew-text > svg { color: #dc2626; }
+.my-offer-renew-text div { display: grid; gap: 2px; }
+.my-offer-renew-text strong { font-size: 14px; color: #7c2d12; line-height: 1.5; }
+.my-offer-renew.is-expired .my-offer-renew-text strong { color: #991b1b; }
+.my-offer-renew-text span { font-size: 12.5px; color: #4b6584; }
+.my-offer-renew-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.my-offer-renew-btn { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 999px; border: 0; background: linear-gradient(135deg, #16a37a, #0b7a4b); color: #fff; font: inherit; font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 18px -10px rgba(11, 122, 75, .8); transition: transform .15s; }
+.my-offer-renew-btn:hover:not(:disabled) { transform: translateY(-2px); }
+.my-offer-renew-btn:disabled { opacity: .55; cursor: wait; }
+html.dark .my-offer-renew { background: #2a2114; border-color: #b45309; }
+html.dark .my-offer-renew.is-expired { background: #2a1616; border-color: #b91c1c; }
+html.dark .my-offer-renew-text strong { color: #fde68a; }
+html.dark .my-offer-renew.is-expired .my-offer-renew-text strong { color: #fca5a5; }
+html.dark .my-offer-renew-text span { color: #c8d8ea; }
+
+/* ===== تقرير الدليل: حفظ PDF / طباعة ===== */
+.stats-print-head { display: none; }
+@media print {
+  @page { size: A4; margin: 12mm; }
+  .stats-page .admin-public-header, .stats-page .stats-share, .stats-page .stats-updated, .stats-page .ticker-shell, .stats-page .app-info-fab, .stats-page .entry-splash, .stats-page footer { display: none !important; }
+  .stats-page, .stats-page .events-main { background: #fff !important; color: #111 !important; max-width: none !important; padding: 0 !important; }
+  .stats-print-head { display: grid; gap: 4px; margin-bottom: 10mm; padding-bottom: 4mm; border-bottom: 2px solid #0b4a93; text-align: center; }
+  .stats-print-head strong { font-size: 20pt; color: #0b4a93; }
+  .stats-print-head span { font-size: 10pt; color: #555; }
+  .stats-page .stats-hero { background: none !important; color: #0b4a93 !important; padding: 0 !important; box-shadow: none !important; }
+  .stats-page .stats-hero p { color: #333 !important; }
+  .stats-page .adv-eyebrow { display: none !important; }
+  .stats-page .stats-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 4mm !important; }
+  .stats-page .stats-tile, .stats-page .stats-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #cbd5e1 !important; background: #fff !important; }
+  .stats-page .stats-columns { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 4mm !important; }
+  .stats-page .stats-bar { background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .stats-page .stats-bar i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .stats-page a { text-decoration: none !important; color: inherit !important; }
+}

@@ -1194,6 +1194,24 @@ test("temporary offers are validated (1–30 days), expire automatically and sor
   assert.deepEqual(servicesWithOffers([later, expired, soon, pending], now).map((item) => item.offerTitle), ["ينتهي قريبًا", "لاحقًا"]);
 });
 
+test("offer countdown shows days + hours, flags the last 24h and spots recently expired offers", () => {
+  const { offerTimeLeft, recentlyExpiredOffer } = catalog;
+  const HOUR = 3_600_000;
+  const at = (ms) => ({ endsAt: new Date(now + ms).toISOString() });
+  assert.deepEqual(offerTimeLeft(at(2 * DAY + 5 * HOUR), now), { days: 2, hours: 5, minutes: 0, urgent: false, label: "باقي يومين و5 ساعات" });
+  assert.equal(offerTimeLeft(at(1 * DAY), now).label, "باقي يوم");
+  assert.equal(offerTimeLeft(at(12 * DAY + 1 * HOUR), now).label, "باقي 12 يوم وساعة");
+  const lastDay = offerTimeLeft(at(5 * HOUR + 30 * 60_000), now);
+  assert.equal(lastDay.urgent, true);
+  assert.equal(lastDay.label, "باقي 5 ساعات");
+  assert.equal(offerTimeLeft(at(20 * 60_000), now).label, "باقي 20 دقيقة");
+  assert.equal(offerTimeLeft(at(-HOUR), now).label, "انتهى");
+  const base = { offerTitle: "خصم", offerDetails: "" };
+  assert.equal(recentlyExpiredOffer({ ...base, offerEndsAt: new Date(now - 3 * DAY).toISOString() }, now)?.title, "خصم");
+  assert.equal(recentlyExpiredOffer({ ...base, offerEndsAt: new Date(now - 20 * DAY).toISOString() }, now), null, "too old");
+  assert.equal(recentlyExpiredOffer({ ...base, offerEndsAt: new Date(now + DAY).toISOString() }, now), null, "still active");
+});
+
 test("data-confirmation reminder triggers after six months since the last confirmation", () => {
   const { needsDataConfirmation, daysSinceConfirmed } = catalog;
   const created = new Date(now - 400 * DAY).toISOString();

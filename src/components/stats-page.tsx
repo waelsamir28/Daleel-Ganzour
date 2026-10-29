@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
-import { ArrowLeft, Award, BadgePercent, BarChart3, Grid2X2, ImageDown, LoaderCircle, MapPin, Medal, Share2, ShieldCheck, Siren, Sparkles, Star, Users, UsersRound, Zap } from "lucide-react";
+import { ArrowLeft, Award, BadgePercent, BarChart3, FileDown, Grid2X2, ImageDown, LoaderCircle, MapPin, Medal, Share2, ShieldCheck, Siren, Sparkles, Star, Users, UsersRound, Zap } from "lucide-react";
 import DesignApplicator from "@/components/design-applicator";
 import { Logo } from "@/components/ui";
 import { defaultDesignSettings, type DesignSettings, type SiteSettings } from "@/lib/catalog";
@@ -90,6 +90,7 @@ export default function StatsPage({ stats, settings, design }: { stats: VillageS
     <DesignApplicator design={theme}/>
     <header className="admin-public-header container"><Logo name={settings.siteName} logoUrl={theme.headerLogoUrl}/><Link href="/">العودة للدليل <ArrowLeft size={17}/></Link></header>
     <main className="container events-main">
+      <div className="stats-print-head" aria-hidden="true"><strong>{settings.siteName} — تقرير الدليل</strong><span>{new Date(stats.generatedAt).toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })} · {host}/stats</span></div>
       <section className="events-hero stats-hero">
         <span className="adv-eyebrow"><BarChart3 size={14}/> إحصائيات حية</span>
         <h1>تقرير الدليل</h1>
@@ -98,6 +99,7 @@ export default function StatsPage({ stats, settings, design }: { stats: VillageS
           <button type="button" className="button button-primary" onClick={() => void shareImage(false)} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Share2 size={16}/>} مشاركة كصورة</button>
           <button type="button" className="button button-soft" onClick={() => void shareImage(true)} disabled={busy}><ImageDown size={16}/> تنزيل الصورة</button>
           <a className="button button-whatsapp" href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"><Share2 size={16}/> واتساب</a>
+          <button type="button" className="button button-soft" onClick={() => window.print()} title="يفتح نافذة الطباعة — اختر «حفظ بصيغة PDF» لحفظ التقرير"><FileDown size={16}/> حفظ PDF / طباعة</button>
         </div>
         <small className="stats-updated">آخر تحديث: {new Date(stats.generatedAt).toLocaleString("ar-EG", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Cairo" })}</small>
       </section>

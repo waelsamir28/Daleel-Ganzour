@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { BadgePercent, BarChart3, Minus, Plus as PlusIcon, ListChecks, PackageOpen, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
-import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerDaysLeft, servicesWithOffers } from "@/lib/catalog";
+import { Timer, BadgePercent, BarChart3, Minus, Plus as PlusIcon, ListChecks, PackageOpen, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
+import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerTimeLeft, servicesWithOffers } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
@@ -15,7 +15,7 @@ import DesignApplicator from "@/components/design-applicator";
 import SelectField from "@/components/select-field";
 import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
 import ProfilePhotoCircle from "@/components/profile-photo-circle";
-import AdminNotificationsModal, { fetchAdminFeed, type AdminFeed } from "@/components/admin-notifications-modal";
+import AdminNotificationsModal, { chimeForNewItems, fetchAdminFeed, type AdminFeed } from "@/components/admin-notifications-modal";
 import { saveVCard, serviceVCard } from "@/lib/vcard";
 import { withViewTransition } from "@/lib/motion";
 import { useIsDark } from "@/lib/use-is-dark";
@@ -410,7 +410,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   useEffect(() => {
     if (!isAdmin || data.previewMode) return;
     let disposed = false;
-    const load = () => { if (document.hidden) return; void fetchAdminFeed().then((next) => { if (next && !disposed) setAdminFeed(next); }); };
+    let seenIds: Set<string> | null = null;
+    const load = () => { if (document.hidden) return; void fetchAdminFeed().then((next) => { if (!next || disposed) return; seenIds = chimeForNewItems(seenIds, next); setAdminFeed(next); }); };
     load();
     const timer = window.setInterval(load, 30000);
     window.addEventListener("focus", load);
@@ -738,9 +739,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             title="بحث في الدليل"
             onClick={() => {
               setSearchModalOpen(true);
-              setTimeout(() => {
-                document.getElementById("hero-search-input")?.focus();
-              }, 60);
             }}
           >
             <Search size={22}/>
@@ -772,9 +770,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
               title="بحث في الدليل"
               onClick={() => {
                 setSearchModalOpen(true);
-                setTimeout(() => {
-                  document.getElementById("hero-search-input")?.focus();
-                }, 60);
               }}
             >
               <Search size={22}/>
@@ -878,14 +873,14 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             {offerServices.slice(0, 12).map((service) => {
               const cat = getCategory(service.category, categories);
               const offer = activeOffer(service, now || undefined)!;
-              const days = offerDaysLeft(offer, now || undefined);
+              const left = offerTimeLeft(offer, now || undefined);
               return (
                 <button type="button" key={service.id} role="listitem" className="offer-card" style={categoryTheme(cat)} onClick={() => openDetail(service)} aria-label={`عرض ${service.name}: ${offer.title}`}>
                   <span className="offer-card-icon"><SpecialtyIcon category={cat} size={44} art3d sticker/></span>
                   <span className="offer-card-body">
                     <strong className="offer-card-title">{offer.title}</strong>
                     <span className="offer-card-name">{service.name}</span>
-                    <span className="offer-card-meta"><span>{cat.name}</span><em className={days <= 3 ? "is-urgent" : ""}>{days === 1 ? "ينتهي اليوم" : `باقي ${days} يوم`}</em></span>
+                    <span className="offer-card-meta"><span>{cat.name}</span><em className={`offer-countdown ${left.urgent ? "is-urgent" : left.days <= 3 ? "is-soon" : ""}`}><Timer size={12} aria-hidden="true"/>{left.label}</em></span>
                   </span>
                 </button>
               );
@@ -1406,7 +1401,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
         <section className={`detail-offer detail-collapsible ${detailOfferOpen ? "is-open" : ""}`} role="note">
           <button type="button" className="detail-collapsible-head" aria-expanded={detailOfferOpen} onClick={() => setDetailOfferOpen((open) => !open)}>
             <span className="detail-offer-icon"><BadgePercent size={20}/></span>
-            <span className="detail-collapsible-title"><strong>{offer.title}</strong><small>عرض محدود — {offerDaysLeft(offer, now || undefined) === 1 ? "ينتهي اليوم" : `باقي ${offerDaysLeft(offer, now || undefined)} يوم`}</small></span>
+            <span className="detail-collapsible-title"><strong>{offer.title}</strong><small className={offerTimeLeft(offer, now || undefined).urgent ? "is-urgent" : ""}>عرض محدود — {offerTimeLeft(offer, now || undefined).label}</small></span>
             <span className="detail-collapsible-icon" aria-hidden="true">{detailOfferOpen ? <Minus size={16}/> : <PlusIcon size={16}/>}</span>
           </button>
           {detailOfferOpen && <div className="detail-collapsible-body detail-offer-copy">{offer.details ? <p>{offer.details}</p> : <p>اسأل عن تفاصيل العرض عند التواصل — صالح حتى {new Date(offer.endsAt).toLocaleDateString("ar-EG", { day: "numeric", month: "long" })}.</p>}</div>}
@@ -1688,6 +1683,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
     {searchModalOpen && (
       <Modal
         floating
+        autoFocus={false}
         title="البحث في دليل قرية جنزور"
         subtitle="ابحث بالاسم أو المهنة أو التخصص أو العنوان وانتقل مباشرة للنتائج"
         onClose={() => setSearchModalOpen(false)}
