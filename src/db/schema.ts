@@ -25,6 +25,8 @@ export const services = pgTable("directory_services", {
   offerTitle: varchar("offer_title", { length: 120 }).notNull().default(""),
   offerDetails: text("offer_details").notNull().default(""),
   offerEndsAt: timestamp("offer_ends_at", { withTimezone: true }),
+  /** وقت نشر/تجديد العرض — لشارة «جديد» خلال أول 48 ساعة. */
+  offerStartedAt: timestamp("offer_started_at", { withTimezone: true }),
   /** آخر مرة أكّد فيها المهني (أو عدّل) بياناته — لتذكير تجديد البيانات كل 6 أشهر. */
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
   /** رقم إصدار الصورة الشخصية للمهني (0 = لا توجد صورة)؛ الصورة نفسها في directory_service_photos. */

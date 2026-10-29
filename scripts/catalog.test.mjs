@@ -1178,7 +1178,12 @@ test("temporary offers are validated (1–30 days), expire automatically and sor
   const saved = parseServiceOffer({ title: "  خصم ٢٠٪  على التركيب ", details: "للمنازل فقط", days: 7 }, now);
   assert.equal(saved.offerTitle, "خصم ٢٠٪ على التركيب");
   assert.ok(saved.offerEndsAt instanceof Date && saved.offerEndsAt.getTime() > now + 6 * DAY);
-  assert.deepEqual(parseServiceOffer(null), { offerTitle: "", offerDetails: "", offerEndsAt: null }, "null clears the offer");
+  assert.deepEqual(parseServiceOffer(null), { offerTitle: "", offerDetails: "", offerEndsAt: null, offerStartedAt: null }, "null clears the offer");
+  assert.equal(saved.offerStartedAt.getTime(), now, "started-at stamps the publish time");
+  const { isNewOffer } = catalog;
+  assert.equal(isNewOffer({ offerStartedAt: new Date(now - 5 * 3_600_000).toISOString() }, now), true);
+  assert.equal(isNewOffer({ offerStartedAt: new Date(now - 49 * 3_600_000).toISOString() }, now), false);
+  assert.equal(isNewOffer({ offerStartedAt: null }, now), false);
   assert.throws(() => parseServiceOffer({ title: "خص", days: 5 }), /عنوان/);
   assert.throws(() => parseServiceOffer({ title: "خصم كبير", days: 31 }), /30/);
   assert.throws(() => parseServiceOffer({ title: "خصم كبير", days: 0 }), /30/);

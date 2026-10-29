@@ -475,7 +475,7 @@ export type ServiceRecord = {
   availabilityToken?: string; comments?: ServiceComment[]; weeklyStar?: boolean; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; /** جدول حصص السنتر التعليمي. */ schedule?: CenterSchedule; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
   completionStatus?: CompletionStatus; completionNote?: string; completionDraft?: ServiceCompletionDraft | null;
   /** عرض/خصم مؤقت (اختياري). */
-  offerTitle?: string; offerDetails?: string; offerEndsAt?: string | null;
+  offerTitle?: string; offerDetails?: string; offerEndsAt?: string | null; offerStartedAt?: string | null;
   /** آخر تأكيد/تحديث للبيانات من المهني. */
   confirmedAt?: string;
   /** رقم إصدار الصورة الشخصية (0 = بدون صورة). */
@@ -536,8 +536,8 @@ export function activeOffer(service: Pick<ServiceRecord, "offerTitle" | "offerDe
   return { title, details: (service.offerDetails ?? "").trim(), endsAt };
 }
 /** يتحقق من بيانات العرض المرسلة: عنوان 3–120 حرفًا، تفاصيل حتى 300، مدة 1–30 يومًا. يرجع القيم الجاهزة للحفظ، أو قيمًا فارغة عند الإلغاء (null). */
-export function parseServiceOffer(value: unknown, now = Date.now()): { offerTitle: string; offerDetails: string; offerEndsAt: Date | null } {
-  if (value === null || value === undefined || value === "" || value === false) return { offerTitle: "", offerDetails: "", offerEndsAt: null };
+export function parseServiceOffer(value: unknown, now = Date.now()): { offerTitle: string; offerDetails: string; offerEndsAt: Date | null; offerStartedAt: Date | null } {
+  if (value === null || value === undefined || value === "" || value === false) return { offerTitle: "", offerDetails: "", offerEndsAt: null, offerStartedAt: null };
   if (typeof value !== "object") throw new Error("بيانات العرض غير صحيحة.");
   const record = value as Record<string, unknown>;
   const title = typeof record.title === "string" ? record.title.replace(/\s+/g, " ").trim().slice(0, 120) : "";
@@ -553,7 +553,13 @@ export function parseServiceOffer(value: unknown, now = Date.now()): { offerTitl
   if (days < 1 || days > OFFER_MAX_DAYS) throw new Error(`مدة العرض من يوم واحد حتى ${OFFER_MAX_DAYS} يومًا.`);
   const offerEndsAt = new Date(now + days * 86_400_000);
   offerEndsAt.setHours(23, 59, 59, 0);
-  return { offerTitle: title, offerDetails: details, offerEndsAt };
+  return { offerTitle: title, offerDetails: details, offerEndsAt, offerStartedAt: new Date(now) };
+}
+/** شارة «جديد» على العرض المنشور أو المجدَّد خلال آخر 48 ساعة. */
+export const NEW_OFFER_HOURS = 48;
+export function isNewOffer(service: Pick<ServiceRecord, "offerStartedAt">, now = Date.now()) {
+  const started = service.offerStartedAt ? Date.parse(service.offerStartedAt) : Number.NaN;
+  return Number.isFinite(started) && now - started >= 0 && now - started < NEW_OFFER_HOURS * 3_600_000;
 }
 /** الأيام المتبقية على انتهاء العرض (١ على الأقل ما دام نشطًا). */
 export function offerDaysLeft(offer: Pick<ServiceOffer, "endsAt">, now = Date.now()) {
