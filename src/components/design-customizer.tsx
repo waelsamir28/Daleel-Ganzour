@@ -186,20 +186,9 @@ export default function DesignCustomizer({
   }));
   const [activeFilter, setActiveFilter] = useState<SectionFilter>("all");
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "desktop">("mobile");
-  // كل الأقسام منطوية افتراضيًا؛ يُفتح قسم واحد في كل مرة، والضغط في مكان فاضٍ يطوي المفتوح.
+  // كل الأقسام منطوية افتراضيًا؛ القسم يُفتح ويُطوى بالضغط على عنوانه فقط (لا طيّ تلقائي عند الضغط في مكان آخر — بطلب المدير).
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({ general: true, top: true, categories: true, providers: true, footer: true, splash: true });
   const studioRoot = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    const close = (event: PointerEvent) => {
-      const target = event.target as HTMLElement;
-      if (!studioRoot.current) return;
-      // لا نطوي عند الضغط داخل قسم مفتوح أو على عناصر الاستوديو العلوية (الحفظ/المعاينة/التبويبات)
-      if (target.closest(".design-group-card, .design-studio-top, .design-section-tabs, .modal-panel, .avatar-crop-overlay")) return;
-      setCollapsedGroups({ general: true, top: true, categories: true, providers: true, footer: true, splash: true });
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, []);
   const [openThemeFamilies, setOpenThemeFamilies] = useState<Record<string, boolean>>({});
   const themeFamilies = useMemo(() => {
     // الثيمات المتقاعدة (retired) تبقى صالحة لمن اختارها سابقًا لكنها لا تظهر في القوائم.
@@ -368,10 +357,8 @@ export default function DesignCustomizer({
   }
 
   function toggleGroup(groupId: string) {
-    setCollapsedGroups((current) => {
-      const all = { general: true, top: true, categories: true, providers: true, footer: true, splash: true } as Record<string, boolean>;
-      return current[groupId] ? { ...all, [groupId]: false } : all;
-    });
+    // كل قسم مستقل: يُفتح ويُطوى بالضغط على عنوانه فقط ولا يؤثر على الأقسام الأخرى.
+    setCollapsedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
   }
 
   function getOrderedSections(): string[] {
