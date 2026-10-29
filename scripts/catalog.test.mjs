@@ -1325,3 +1325,14 @@ test("duplicate check: same phone or near-identical name in the same specialty",
   assert.equal(hits.has("e"), false, "demo services are ignored");
   assert.equal(hits.has("f"), false);
 });
+
+test("logo-tiled page backgrounds exist in the library with their files", () => {
+  const ids = ["logo-white", "logo-navy", "logo-orange", "logo-green"];
+  for (const id of ids) {
+    const preset = catalog.PAGE_BACKGROUND_LIBRARY.find((item) => item.id === id);
+    assert.ok(preset, `${id} missing from library`);
+    for (const key of ["light", "dark", "thumb"]) {
+      assert.ok(existsSync(new URL(`../public${preset[key]}`, import.meta.url)), `${id}.${key} file missing`);
+    }
+  }
+});
