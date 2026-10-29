@@ -3189,3 +3189,16 @@ html.dark .admin-request-icons { border-top-color: #27405f; }
 .admin-request-icons { justify-content: center; gap: 18px; }
 .admin-req-icon { width: 46px; height: 46px; }
 }
+
+/* ---------- مكتبة خلفيات التطبيق الجاهزة (استوديو المظهر) ---------- */
+.design-bg-library { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; margin: 6px 0 4px; }
+.design-bg-tile { display: grid; justify-items: center; gap: 4px; padding: 8px 6px 9px; border: 2px solid var(--design-border-color, #dbe7f3); border-radius: 14px; background: #fff; color: #17344d; cursor: pointer; text-align: center; transition: transform .15s, border-color .15s, box-shadow .15s; }
+.design-bg-tile:hover { transform: translateY(-2px); border-color: var(--primary, #0878c9); }
+.design-bg-tile.is-active { border-color: var(--primary, #0878c9); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary, #0878c9) 22%, transparent), 0 8px 18px rgba(8, 120, 201, .14); }
+.design-bg-tile b { font-size: 12px; font-weight: 800; }
+.design-bg-tile small { font-size: 10.5px; color: #5b7186; line-height: 1.4; }
+.design-bg-thumb { width: 72px; height: 128px; border-radius: 10px; object-fit: cover; display: grid; place-items: center; background: #eef4f9; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06); }
+.design-bg-tile-none .design-bg-thumb { font-size: 26px; color: #94a3b8; }
+html.dark .design-bg-tile { background: #112238; color: #eaf3fc; border-color: #254363; }
+html.dark .design-bg-tile small { color: #a9c3dd; }
+html.dark .design-bg-thumb { background: #0d1b2d; }

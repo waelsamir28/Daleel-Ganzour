@@ -2852,6 +2852,18 @@ export function parseCategoryIconDataUrl(value: unknown): { mime: string; base64
   if (bytes > CATEGORY_ICON_MAX_BYTES) throw new Error("حجم الأيقونة أكبر من 800 كيلوبايت. صغّر الصورة (256×256 يكفي) وحاول مرة أخرى.");
   return { mime: match[1], base64 };
 }
+/** مكتبة خلفيات جاهزة للتطبيق بالكامل (WebP خفيفة 1080×1920) — تُختار بضغطة من الاستوديو بدون رفع. */
+export type PageBackgroundPreset = { id: string; name: string; hint: string; light: string; dark: string; thumb: string; overlay: number; mode: DesignSettings["pageBackgroundMode"] };
+export const PAGE_BACKGROUND_LIBRARY: readonly PageBackgroundPreset[] = [
+  { id: "sky", name: "سماء جنزور", hint: "سماء صافية هادئة — الأنسب للقراءة", light: "/images/backgrounds/sky.webp", dark: "/images/backgrounds/sky-dark.webp", thumb: "/images/backgrounds/sky-thumb.webp", overlay: 20, mode: "cover-fixed" },
+  { id: "palms", name: "نخيل الغروب", hint: "نخيل الدلتا وقت المغرب", light: "/images/backgrounds/palms.webp", dark: "/images/backgrounds/palms-dark.webp", thumb: "/images/backgrounds/palms-thumb.webp", overlay: 40, mode: "cover-fixed" },
+  { id: "fields", name: "حقول المنوفية", hint: "خضرة الريف والترعة صباحًا", light: "/images/backgrounds/fields.webp", dark: "/images/backgrounds/fields-dark.webp", thumb: "/images/backgrounds/fields-thumb.webp", overlay: 40, mode: "cover-fixed" },
+  { id: "nile", name: "ترعة الفجر", hint: "مياه هادئة وسماء وردية", light: "/images/backgrounds/nile.webp", dark: "/images/backgrounds/nile-dark.webp", thumb: "/images/backgrounds/nile-thumb.webp", overlay: 40, mode: "cover-fixed" },
+  { id: "arabesque", name: "زخرفة إسلامية", hint: "نقشة هندسية ذهبية خفيفة", light: "/images/backgrounds/arabesque.webp", dark: "/images/backgrounds/arabesque-dark.webp", thumb: "/images/backgrounds/arabesque-thumb.webp", overlay: 10, mode: "cover-fixed" },
+  { id: "gold", name: "كريمي ذهبي", hint: "أركان مزخرفة ووسط فاضي", light: "/images/backgrounds/gold.webp", dark: "/images/backgrounds/gold-dark.webp", thumb: "/images/backgrounds/gold-thumb.webp", overlay: 0, mode: "cover-fixed" },
+  { id: "mesh", name: "أزرق حديث", hint: "تدرج ناعم بأسلوب Windows 11", light: "/images/backgrounds/mesh.webp", dark: "/images/backgrounds/mesh-dark.webp", thumb: "/images/backgrounds/mesh-thumb.webp", overlay: 20, mode: "cover-fixed" },
+  { id: "night", name: "ليل القرية", hint: "هلال ونجوم فوق المئذنة (داكن)", light: "/images/backgrounds/night.webp", dark: "/images/backgrounds/night.webp", thumb: "/images/backgrounds/night-thumb.webp", overlay: 20, mode: "cover-fixed" },
+];
 /** صور المظهر القابلة للرفع من استوديو التصميم. */
 export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark", "page-bg", "page-bg-dark"] as const;
 export type DesignImageKey = (typeof DESIGN_IMAGE_KEYS)[number];
