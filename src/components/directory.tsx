@@ -51,6 +51,9 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   // الغلاف (DirectoryShell) يحتفظ بأحدث نسخة من البيانات حتى يفتح القسم التالي فورًا بها.
   const onDataRef = useRef(onData);
   useEffect(() => { onDataRef.current = onData; }, [onData]);
+  // آخر نسخة JSON وصلت من الخادم (أو التي رُسمت بها الصفحة) لتخطي التحديثات المتطابقة.
+  const lastPayloadRef = useRef<string>("");
+  useEffect(() => { lastPayloadRef.current = JSON.stringify(initialData); }, [initialData]);
   const [data, setData] = useState(initialData), [modal, setModal] = useState<ModalName>(null), [detail, setDetail] = useState<ServiceRecord | null>(null);
   const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
@@ -256,7 +259,20 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
     try { const stored: unknown = JSON.parse(localStorage.getItem("elgamal-favorites") ?? "[]"); if (Array.isArray(stored)) setFavorites(stored.filter((id): id is string => typeof id === "string")); } catch { /* Use session-only favorites if storage is unavailable. */ }
     try { const storedOwned: unknown = JSON.parse(localStorage.getItem("janzour-owned-services") ?? "[]"); if (Array.isArray(storedOwned)) setOwnedServiceIds(storedOwned.filter((id): id is string => typeof id === "string")); } catch { /* Ignore storage issues. */ }
     let disposed = false;
-    const refresh = async () => { if (document.hidden) return; try { const response = await fetch("/api/services", { cache: "no-store" }); if (response.ok && !disposed) { const fresh = await response.json(); setData(fresh); onDataRef.current?.(fresh); } } catch { /* Preserve the directory on temporary network failures. */ } };
+    // لا نعيد رسم الدليل كله إلا إذا تغيّرت البيانات فعلًا: نقارن نص الاستجابة بآخر نسخة معروفة
+    // (المقارنة النصية أرخص بكثير من إعادة رسم مئات الكروت على الهاتف كل 30 ثانية أو عند كل رجوع للتبويب).
+    const refresh = async () => {
+      if (document.hidden) return;
+      try {
+        const response = await fetch("/api/services", { cache: "no-store" });
+        if (!response.ok || disposed) return;
+        const text = await response.text();
+        if (text === lastPayloadRef.current) return;
+        lastPayloadRef.current = text;
+        const fresh = JSON.parse(text) as PublicDirectory;
+        setData(fresh); onDataRef.current?.(fresh);
+      } catch { /* Preserve the directory on temporary network failures. */ }
+    };
     // عند الفتح الفوري من بيانات الجهاز (تنقّل داخلي) نحدّث بهدوء في الخلفية فورًا.
     if (refreshOnMount) void refresh();
     const timer = setInterval(refresh, 30000); window.addEventListener("focus", refresh);

@@ -1668,11 +1668,11 @@ export function parseSponsoredProviders(jsonText: string | undefined | null): Sp
 }
 
 export const defaultDesignSettings: DesignSettings = {
-  themePreset: "royal-blue",
-  primaryColor: "#095de2",
-  pageBgColor: "#edf7ff",
-  modalHeaderBg: "#d7edff",
-  buttonColor: "#1079ff",
+  themePreset: "win11-bloom",
+  primaryColor: "#0067c0",
+  pageBgColor: "#f3f6fb",
+  modalHeaderBg: "#e8f1fb",
+  buttonColor: "#005fb8",
   themeMode: "auto",
   headingAlign: "right",
   cardTextAlign: "center",
@@ -1682,7 +1682,7 @@ export const defaultDesignSettings: DesignSettings = {
   fontFamily: "cairo",
   sectionHeadingStyle: "clean",
   borderWidth: "thin",
-  borderColor: "#b8e0ff",
+  borderColor: "#c9d9ea",
   cardBgColor: "#ffffff",
   cardRadius: "rounded",
   cardShadow: "soft",
@@ -1709,7 +1709,7 @@ export const defaultDesignSettings: DesignSettings = {
   showHeaderFavorites: true,
   showHeaderDarkToggle: true,
   showHeaderLoginBtn: true,
-  footerBgColor: "#112b5a",
+  footerBgColor: "#1b2a3d",
   showFooterWhatsapp: true,
   splashEnabled: true,
   splashImageUrl: "/images/logo-daleel-transparent.png",
@@ -1736,7 +1736,7 @@ export const defaultDesignSettings: DesignSettings = {
   authInputBorderColor: "#b8e0ff",
   announcementEnabled: true,
   announcementText: "أهلاً بكم في دليل جنزور — أضف مهنتك مجاناً وتواصل مع أهل القرية مباشرة",
-  announcementBgColor: "#0f4ebe",
+  announcementBgColor: "#1f3550",
   announcementBgColorLight: "#0b4a93",
   announcementTextColor: "",
   announcementTextColorLight: "",
@@ -1791,7 +1791,7 @@ export const defaultDesignSettings: DesignSettings = {
   officeWorkingHours: "يومياً من ٩ صباحاً حتى ١١ مساءً",
   whatsappDefaultGreeting: "مرحبًا، وصلت إليك من دليل المهن والخدمات بقرية جنزور.",
   allowPublicSubmissions: true,
-  detailNameBoxColor: "#134595",
+  detailNameBoxColor: "#2b2b2b",
   outerCardStyle: "modern",
   searchTriggerStyle: "pill-gradient",
   badgesDefaultOpen: false,
@@ -1806,10 +1806,10 @@ export const defaultDesignSettings: DesignSettings = {
   showDailyOffersSection: false,
   showSponsorsRibbon: false,
   sponsoredProvidersJson: JSON.stringify(defaultSponsoredProviders),
-  darkPageBgColor: "#112b5a",
-  darkCardBgColor: "#134595",
-  darkBorderColor: "#0f4ebe",
-  darkPrimaryColor: "#50b4ff",
+  darkPageBgColor: "#202020",
+  darkCardBgColor: "#2b2b2b",
+  darkBorderColor: "#3a3a3a",
+  darkPrimaryColor: "#60cdff",
   shimmerEffectEnabled: true,
 };
 
@@ -1840,6 +1840,7 @@ export type GradientThemePresetEntry = {
 export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "custom">, GradientThemePresetEntry> = {
   "royal-blue": {
     label: "🌌 جريديانت الأزرق الملكي والنيون الليلي",
+    retired: true,
     badge: "الافتراضي",
     description: "تدرج Royal Blue الفاخر (50–950) المتناغم مع براويز العناوين الرئيسية في الليل والنهار",
     gradientPreview: "linear-gradient(135deg, #112b5a 0%, #095de2 52%, #50b4ff 100%)",
@@ -1848,6 +1849,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "classic-blue": {
     label: "💎 جريديانت السافير والسماوي المضيء",
+    retired: true,
     badge: "جريديانت",
     description: "تدرج السافير الأزرق مع إطارات عناوين مضيئة وتباين ليلي ونهاري مريح للعين",
     gradientPreview: "linear-gradient(135deg, #08203e 0%, #0878c9 55%, #38bdf8 100%)",
@@ -1856,6 +1858,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   emerald: {
     label: "❇️ جريديانت الشفق الزمردي والتركواز",
+    retired: true,
     badge: "جريديانت",
     description: "تدرج الزمرد الملكي والتركواز المشرق لبراويز العناوين والكروت الليلية والنهارية",
     gradientPreview: "linear-gradient(135deg, #022c22 0%, #059669 55%, #34d399 100%)",
@@ -1873,6 +1876,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "warm-gold": {
     label: "👑 جريديانت الذهب الإمبراطوري والكحلي",
+    retired: true,
     badge: "جريديانت",
     description: "تدرج الكهرمان الذهبي مع الكحلي الليلي الفاخر لبراويز العناوين والأزرار",
     gradientPreview: "linear-gradient(135deg, #271505 0%, #b45309 52%, #fbbf24 100%)",
@@ -1926,6 +1930,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "sunset-coral": {
     label: "🔥 جريديانت الياقوت الأحمر والغروب المرجاني",
+    retired: true,
     badge: "جريديانت",
     description: "تدرج الياقوت القرمزي والمرجاني المضيء لبراويز عناوين نابضة بالحياة",
     gradientPreview: "linear-gradient(135deg, #310b19 0%, #e11d48 55%, #fb7185 100%)",
@@ -2071,6 +2076,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "win11-mica": {
     label: "🩶 سمة Windows 11 Mica الهادئة",
+    retired: true,
     badge: "Win 11",
     description: "أسطح Mica الرمادية الفاتحة الهادئة كما في تطبيقات ويندوز 11 الأصلية، تمييز أزرق هادئ وبدون ضجيج لوني",
     gradientPreview: "linear-gradient(135deg, #005fb8 0%, #8fbce8 55%, #f3f3f3 100%)",
@@ -2103,6 +2109,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "win11-motion": {
     label: "🌹 سمة Windows 11 Motion الوردية",
+    retired: true,
     badge: "Win 11",
     description: "Bloom وردي أحمر مستوحى من Captured Motion مع أسطح Mica وردية فاتحة وأزرار Fluent قرمزية",
     gradientPreview: "linear-gradient(135deg, #be123c 0%, #fb7185 55%, #ffe4e6 100%)",
@@ -2111,6 +2118,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "win11-sunset": {
     label: "🌇 سمة Windows 11 Sunset الذهبية",
+    retired: true,
     badge: "Win 11",
     description: "Bloom ذهبي كهرماني مع أسطح Mica عسلية وأزرار Fluent بلون العنبر",
     gradientPreview: "linear-gradient(135deg, #b45309 0%, #fbbf24 55%, #fef3c7 100%)",
@@ -2119,6 +2127,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "win11-graphite": {
     label: "🩶 سمة Windows 11 Graphite الرمادية",
+    retired: true,
     badge: "Win 11",
     description: "Bloom رمادي فولاذي أنيق مع أسطح Mica محايدة وأزرار Fluent بلون الأردواز — مظهر رسمي هادئ",
     gradientPreview: "linear-gradient(135deg, #334155 0%, #94a3b8 55%, #f1f5f9 100%)",
@@ -2127,6 +2136,7 @@ export const designThemePresets: Record<Exclude<DesignSettings["themePreset"], "
   },
   "win11-ocean": {
     label: "🌊 سمة Windows 11 Ocean البحرية",
+    retired: true,
     badge: "Win 11",
     description: "Bloom كحلي وسماوي كأعماق البحر مع أسطح Mica زرقاء فاتحة وأزرار Fluent سماوية",
     gradientPreview: "linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 55%, #e0f2fe 100%)",
@@ -2192,6 +2202,8 @@ function sanitizeProviderEdgeTools(value: unknown): string {
   if (typeof value !== "string") return defaultDesignSettings.providerEdgeTools;
   return parseProviderEdgeTools(value).join(",");
 }
+/** معرّفات ثيمات الجريديانت القديمة (محذوفة من الاستوديو، وتُستبدل بالثيم الافتراضي عند القراءة). */
+const RETIRED_GRADIENT_PRESET_IDS = new Set<string>(["royal-blue", "classic-blue", "emerald", "royal-navy", "warm-gold", "festive", "ramadan", "eid", "schools", "winter-emergency", "sunset-coral", "turquoise-nile", "lavender-soft", "graphite-modern", "olive-country"]);
 export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   const next: DesignSettings = { ...defaultDesignSettings };
   if (!saved || typeof saved !== "object") return next;
@@ -2450,7 +2462,11 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.darkBorderColor = hexColor(record.darkBorderColor, defaultDesignSettings.darkBorderColor);
   next.darkPrimaryColor = hexColor(record.darkPrimaryColor, defaultDesignSettings.darkPrimaryColor);
   next.shimmerEffectEnabled = pickBool(record.shimmerEffectEnabled, defaultDesignSettings.shimmerEffectEnabled);
-
+  // ثيمات الجريديانت أُلغيت: أي موقع كان يستخدم واحدًا منها ينتقل تلقائيًا إلى الثيم الافتراضي (Windows 11 Bloom) بألوانه.
+  if (RETIRED_GRADIENT_PRESET_IDS.has(next.themePreset)) {
+    const fallback = designThemePresets[defaultDesignSettings.themePreset as Exclude<DesignSettings["themePreset"], "custom">];
+    Object.assign(next, { themePreset: defaultDesignSettings.themePreset }, fallback.colors, fallback.darkColors);
+  }
   return next;
 }
 
@@ -2510,7 +2526,7 @@ export function parseColorScaleOrThemeJson(
 
     const merged = sanitizeDesignSettings({
       ...base,
-      themePreset: scaleName === "royal-blue" ? "royal-blue" : "custom",
+      themePreset: "custom",
       pageBgColor: s50,
       modalHeaderBg: s100,
       borderColor: s200,

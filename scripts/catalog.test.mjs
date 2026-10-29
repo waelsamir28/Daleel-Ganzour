@@ -455,8 +455,12 @@ test("sanitizeDesignSettings validates all 8 design customizer groups and falls 
     sectionDividerStyle: "gradient",
     cardHoverEffect: "glow",
   });
-  assert.equal(custom.themePreset, "emerald");
-  assert.equal(custom.primaryColor, "#0d8a5f");
+  // ثيمات الجريديانت أُلغيت: تنتقل تلقائيًا إلى Windows 11 Bloom بألوانه.
+  assert.equal(custom.themePreset, "win11-bloom");
+  assert.equal(custom.primaryColor, "#0067c0");
+  const vista = sanitizeDesignSettings({ themePreset: "vista-aero", primaryColor: "#0d8a5f" });
+  assert.equal(vista.themePreset, "vista-aero");
+  assert.equal(vista.primaryColor, "#0d8a5f");
   assert.equal(custom.headingAlign, "center");
   assert.equal(custom.cardTextAlign, "right");
   assert.equal(custom.borderWidth, "medium");
@@ -483,7 +487,7 @@ test("sanitizeDesignSettings validates all 8 design customizer groups and falls 
     showPrayerWeatherBar: true,
     showTransitGuide: true,
   });
-  assert.equal(seasonal.themePreset, "ramadan");
+  assert.equal(seasonal.themePreset, "win11-bloom"); // ثيم رمضان الجريديانت ألغي، لكن الشريط الموسمي يبقى
   assert.equal(seasonal.seasonalRibbon, "ramadan");
   assert.equal(seasonal.footerDescription, "دليل جنزور الشامل");
   assert.equal(seasonal.showFooterStats, false);
@@ -623,7 +627,7 @@ test("extended design & site studio settings sanitize cleanly", () => {
     cardAnimationSpeed: "smooth",
     officeAddress: "جنزور — بجوار المسجد الكبير",
     allowPublicSubmissions: false,
-    themePreset: "turquoise-nile",
+    themePreset: "vista-frost",
     announcementTickerMode: "vertical-slide",
     announcementSpeed: "turbo",
     detailNameBoxColor: "#1e3a8a",
@@ -639,7 +643,7 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.cardAnimationSpeed, "smooth");
   assert.equal(custom.officeAddress, "جنزور — بجوار المسجد الكبير");
   assert.equal(custom.allowPublicSubmissions, false);
-  assert.equal(custom.themePreset, "turquoise-nile");
+  assert.equal(custom.themePreset, "vista-frost");
   assert.equal(custom.announcementTickerMode, "vertical-slide");
   assert.equal(custom.announcementSpeed, "turbo");
   assert.equal(custom.detailNameBoxColor, "#1e3a8a");
@@ -707,7 +711,7 @@ test("extended design & site studio settings sanitize cleanly", () => {
 }`;
   const parsedScale = catalog.parseColorScaleOrThemeJson(royalBlueSnippet);
   assert.equal(parsedScale.detectedFormat, "scale-50-950");
-  assert.equal(parsedScale.settings.themePreset, "royal-blue");
+  assert.equal(parsedScale.settings.themePreset, "custom");
   assert.equal(parsedScale.settings.pageBgColor, "#edf7ff");
   assert.equal(parsedScale.settings.modalHeaderBg, "#d7edff");
   assert.equal(parsedScale.settings.borderColor, "#b8e0ff");

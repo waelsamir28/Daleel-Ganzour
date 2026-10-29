@@ -25,19 +25,19 @@ import { activityActionLabel, activityKindLabel } from "@/lib/activity-labels";
 type Tab = "requests" | "community" | "directory" | "completion" | "sponsors" | "ads" | "events" | "analytics" | "categories" | "addresses" | "members" | "ratings" | "posts" | "replies" | "notifications" | "settings" | "design" | "import" | "activity";
 const tabs: Array<{ id: Tab; name: string; icon: typeof FileClock }> = [{ id: "requests", name: "طلبات المهن", icon: FileClock }, { id: "community", name: "إعلانات المجتمع", icon: Megaphone }, { id: "directory", name: "الدليل المنشور", icon: UsersRound }, { id: "sponsors", name: "باقات الرعاية والتميز", icon: Crown }, { id: "ads", name: "الإعلانات المتحركة", icon: Clapperboard }, { id: "events", name: "مناسبات القرية والتهاني", icon: CalendarDays }, { id: "completion", name: "طلب استكمال بيانات", icon: ClipboardList }, { id: "analytics", name: "إحصائيات التفاعل والبحث", icon: BarChart3 }, { id: "import", name: "استيراد Excel", icon: FileSpreadsheet }, { id: "categories", name: "التصنيفات والتخصصات", icon: Grid2X2 }, { id: "addresses", name: "عناوين جنزور", icon: MapPin }, { id: "members", name: "أعضاء الموقع", icon: UserRound }, { id: "ratings", name: "تقييمات الأعضاء", icon: Star }, { id: "posts", name: "مولد المنشورات", icon: Megaphone }, { id: "replies", name: "الردود الجاهزة", icon: MessageSquareQuote }, { id: "notifications", name: "الإشعارات", icon: Bell }, { id: "activity", name: "سجل النشاط", icon: History }, { id: "design", name: "تخصيص المظهر والهيكل", icon: Palette }, { id: "settings", name: "إعدادات الموقع", icon: Settings2 }];
 const ADMIN_PALETTES: Array<{ id: AdminPaletteId; name: string; swatch: string }> = [
-  { id: "indigo", name: "بنفسجي نيلي", swatch: "linear-gradient(135deg,#2b2676 50%,#6366f1 50%)" },
-  { id: "teal", name: "أخضر بحري + برتقالي", swatch: "linear-gradient(135deg,#0f4c48 50%,#f97316 50%)" },
-  { id: "graphite", name: "جرافيت + فيروزي", swatch: "linear-gradient(135deg,#1f2937 50%,#06b6d4 50%)" },
-  { id: "maroon", name: "عنابي + ذهبي", swatch: "linear-gradient(135deg,#7f1d3a 50%,#d4a017 50%)" },
-  { id: "midnight", name: "كحلي ليلي + سماوي", swatch: "linear-gradient(135deg,#102a56 50%,#0ea5e9 50%)" },
-  { id: "copper", name: "فحمي + نحاسي", swatch: "linear-gradient(135deg,#292524 50%,#d97706 50%)" },
-  { id: "forest", name: "أخضر غابة + ليموني", swatch: "linear-gradient(135deg,#14532d 50%,#84cc16 50%)" },
-  { id: "ocean", name: "أزرق محيط + فيروزي", swatch: "linear-gradient(135deg,#0c4a6e 50%,#22d3ee 50%)" },
-  { id: "plum", name: "برقوقي + وردي", swatch: "linear-gradient(135deg,#4a1d96 50%,#ec4899 50%)" },
-  { id: "cocoa", name: "بني كاكاو + كريمي", swatch: "linear-gradient(135deg,#3f2a1d 50%,#f59e0b 50%)" },
-  { id: "rose", name: "وردي داكن + مرجاني", swatch: "linear-gradient(135deg,#881337 50%,#fb7185 50%)" },
-  { id: "steel", name: "رمادي فولاذي + أخضر", swatch: "linear-gradient(135deg,#334155 50%,#10b981 50%)" },
-  { id: "royal", name: "أزرق ملكي + ذهبي", swatch: "linear-gradient(135deg,#1e3a8a 50%,#fbbf24 50%)" },
+  { id: "indigo", name: "بنفسجي نيلي", swatch: "linear-gradient(135deg,#4338ca 50%,#6366f1 50%)" },
+  { id: "teal", name: "أخضر بحري + برتقالي", swatch: "linear-gradient(135deg,#0d9488 50%,#f97316 50%)" },
+  { id: "graphite", name: "جرافيت + فيروزي", swatch: "linear-gradient(135deg,#475569 50%,#06b6d4 50%)" },
+  { id: "maroon", name: "عنابي + ذهبي", swatch: "linear-gradient(135deg,#be123c 50%,#d4a017 50%)" },
+  { id: "midnight", name: "كحلي ليلي + سماوي", swatch: "linear-gradient(135deg,#1d4ed8 50%,#0ea5e9 50%)" },
+  { id: "copper", name: "نحاسي + برتقالي", swatch: "linear-gradient(135deg,#c2410c 50%,#d97706 50%)" },
+  { id: "forest", name: "أخضر غابة + ليموني", swatch: "linear-gradient(135deg,#15803d 50%,#84cc16 50%)" },
+  { id: "ocean", name: "أزرق محيط + فيروزي", swatch: "linear-gradient(135deg,#0284c7 50%,#22d3ee 50%)" },
+  { id: "plum", name: "برقوقي + وردي", swatch: "linear-gradient(135deg,#7e22ce 50%,#ec4899 50%)" },
+  { id: "cocoa", name: "بني كاكاو + كريمي", swatch: "linear-gradient(135deg,#92400e 50%,#f59e0b 50%)" },
+  { id: "rose", name: "وردي داكن + مرجاني", swatch: "linear-gradient(135deg,#db2777 50%,#fb7185 50%)" },
+  { id: "steel", name: "رمادي فولاذي + أخضر", swatch: "linear-gradient(135deg,#52607a 50%,#10b981 50%)" },
+  { id: "royal", name: "أزرق ملكي + ذهبي", swatch: "linear-gradient(135deg,#2563eb 50%,#fbbf24 50%)" },
 ];
 const statusLabels: Record<string, string> = { pending: "قيد المراجعة", "needs-info": "بانتظار الاستكمال", approved: "منشور", rejected: "مرفوض / موقوف", sold: "تم البيع", filled: "تم شغل الوظيفة" };
 const communityTypeLabels: Record<CommunityListingRecord["type"], string> = { labor: "عمالة يومية", property: "عقارات بدون وسطاء", job: "وظائف جنزور" };
