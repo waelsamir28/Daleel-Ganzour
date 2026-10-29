@@ -3202,3 +3202,17 @@ html.dark .admin-request-icons { border-top-color: #27405f; }
 html.dark .design-bg-tile { background: #112238; color: #eaf3fc; border-color: #254363; }
 html.dark .design-bg-tile small { color: #a9c3dd; }
 html.dark .design-bg-thumb { background: #0d1b2d; }
+
+/* ---------- فحص المكررات ---------- */
+.admin-dup-toggle { position: relative; gap: 6px; white-space: nowrap; }
+.admin-dup-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 11px; font-style: normal; font-weight: 800; }
+.admin-dup-warning { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0 8px; padding: 9px 11px; border: 1px solid #fcd34d; border-radius: 12px; background: #fffbeb; color: #78350f; font-size: 12.5px; line-height: 1.6; }
+.admin-dup-warning > svg { flex: none; color: #d97706; margin-top: 3px; }
+.admin-dup-warning > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.admin-dup-warning b { font-weight: 800; }
+.admin-dup-link { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border: 1px solid #f59e0b; border-radius: 999px; background: #fff; color: #92400e; font-size: 12px; font-weight: 700; cursor: pointer; }
+.admin-dup-link:hover { background: #fef3c7; }
+.admin-dup-link small { font-size: 10.5px; opacity: .8; }
+html.dark .admin-dup-warning { background: #3a2e10; border-color: #6b531c; color: #ffe7b0; }
+html.dark .admin-dup-link { background: #4a3a14; border-color: #b98a1c; color: #ffe7b0; }
+html.dark .admin-dup-link:hover { background: #5b4718; }

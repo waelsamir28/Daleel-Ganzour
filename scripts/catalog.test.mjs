@@ -919,7 +919,7 @@ test("Windows 11 Fluent theme presets are registered and accepted by the design 
     assert.equal(designThemePresets[id].badge, "Win 11");
     assert.equal(sanitizeDesignSettings({ ...defaultDesignSettings, themePreset: id }).themePreset, id);
   }
-  const fluentCss = readFileSync(new URL("../src/app/fluent.css", import.meta.url), "utf8");
+  const fluentCss = readFileSync(new URL("../public/themes/win11.css", import.meta.url), "utf8");
   for (const id of ids.filter((item) => item !== "win11-bloom")) assert.ok(fluentCss.includes(`html[data-design-preset="${id}"]`), `${id} has its own Bloom palette`);
 });
 
@@ -1300,4 +1300,28 @@ test("profile helpers: phone normalisation, profile/photo urls and vCard output"
   assert.ok(card.includes("URL:https://x.test/?service=1"));
   assert.ok(card.trim().endsWith("END:VCARD"));
   assert.equal(vcard.vcardFileName('أحمد/السباك: "1"'), "أحمد السباك 1.vcf");
+});
+
+test("duplicate check: same phone or near-identical name in the same specialty", () => {
+  const { normalizeNameForMatch, namesLookDuplicate, findServiceDuplicates } = catalog;
+  assert.equal(normalizeNameForMatch("د. أحمد السباك"), "احمد سباك");
+  assert.equal(normalizeNameForMatch("صيدلية النور"), "نور");
+  assert.ok(namesLookDuplicate("أحمد محمد السباك", "احمد محمد سباك"));
+  assert.ok(namesLookDuplicate("كريم الكهربائي", "كريم الكهربائى"));
+  assert.ok(!namesLookDuplicate("أحمد", "محمد"));
+  assert.ok(!namesLookDuplicate("صيدلية النور", "صيدلية النيل"));
+  const services = [
+    { id: "a", name: "أحمد السباك", phone: "01012345678", phoneSecondary: "", category: "plumbing", status: "approved" },
+    { id: "b", name: "محل الأمل", phone: "+20 10 1234 5678", phoneSecondary: "", category: "groceries", status: "pending" },
+    { id: "c", name: "د. احمد سباك", phone: "01155555555", phoneSecondary: "", category: "plumbing", status: "pending" },
+    { id: "d", name: "سمير النجار", phone: "01299999999", phoneSecondary: "01012345678", category: "carpentry", status: "approved" },
+    { id: "e", name: "نموذج", phone: "01012345678", phoneSecondary: "", category: "plumbing", status: "approved", demo: true },
+    { id: "f", name: "مصطفى الكهربائي", phone: "01000000000", phoneSecondary: "", category: "electricity", status: "approved" },
+  ];
+  const hits = findServiceDuplicates(services);
+  assert.deepEqual([...(hits.get("a") ?? [])].map((h) => `${h.id}:${h.reason}`).sort(), ["b:phone", "c:name", "d:phone"]);
+  assert.deepEqual((hits.get("b") ?? []).map((h) => h.id).sort(), ["a", "d"]);
+  assert.deepEqual((hits.get("c") ?? []).map((h) => `${h.id}:${h.reason}`), ["a:name"]);
+  assert.equal(hits.has("e"), false, "demo services are ignored");
+  assert.equal(hits.has("f"), false);
 });

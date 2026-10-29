@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }],
       },
       {
+        // ملفات عائلات الثيمات تُحمَّل عند الطلب؛ تخزين قصير مع إعادة تحقق حتى تصل أي تعديلات بسرعة.
+        source: "/themes/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=600, stale-while-revalidate=86400" }],
+      },
+      {
         source: "/fonts/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },

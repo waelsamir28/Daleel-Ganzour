@@ -3,9 +3,28 @@
 import { useEffect } from "react";
 import { defaultDesignSettings, designThemePresets, type DesignSettings, hexToRgba, readableTextOn, shadeHex } from "@/lib/catalog";
 
+/** عائلة الثيم التي تحتاج ملف CSS خاصًا بها (يُقدَّم من /themes/<family>.css عند الطلب فقط). */
+export function themeCssFamily(preset: string): "vista" | "win11" | "win10" | "" {
+  if (preset.startsWith("vista-")) return "vista";
+  if (preset.startsWith("win11-")) return "win11";
+  if (preset.startsWith("win10-")) return "win10";
+  return "";
+}
+/** يحمّل ملف عائلة الثيم النشطة إن لم يكن محمَّلًا (السكربت الحاجب في <head> يحمّل آخر عائلة معروفة مبكرًا من localStorage). */
+function ensureThemeStylesheet(preset: string) {
+  const family = themeCssFamily(preset);
+  try { localStorage.setItem("janzour-theme-family", family); } catch { /* تجاهل مشاكل التخزين */ }
+  if (!family || document.head.querySelector(`link[data-theme-family="${family}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = `/themes/${family}.css`;
+  link.setAttribute("data-theme-family", family);
+  document.head.appendChild(link);
+}
 export function applyDesignSettingsToDocument(design: DesignSettings = defaultDesignSettings) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  ensureThemeStylesheet(design.themePreset);
 
   const presetEntry = design.themePreset !== "custom" ? designThemePresets[design.themePreset] : undefined;
   const headingGradient =
