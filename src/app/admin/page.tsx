@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import "./admin-panel.css";
 import "./admin-mobile.css";
+import "./admin-palette.css";
 import AdminPanel from "@/components/admin-panel";
 import { getViewer } from "@/lib/auth";
 import { getAdminDirectory } from "@/lib/directory";
