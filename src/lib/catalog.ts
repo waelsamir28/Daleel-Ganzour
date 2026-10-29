@@ -3479,6 +3479,76 @@ const laborTradeExclusions = /نقاش|دهان|صبغ|سيراميك|بلاط|�
 export function isOutsideLaborScope(...values: string[]) {
   return values.some((value) => laborTradeExclusions.test(normalizeSearch(value)));
 }
+/* ===== فحص المكررات (طلبات وخدمات بنفس الرقم أو باسم شديد الشبه) ===== */
+const NAME_TITLE_WORDS = new Set(["د", "دكتور", "دكتوره", "الدكتور", "الدكتوره", "م", "مهندس", "المهندس", "أ", "ا", "استاذ", "الاستاذ", "استاذه", "الحاج", "الحاجه", "حاج", "الشيخ", "شيخ", "الاسطى", "اسطى", "الاسطي", "اسطي", "معلم", "المعلم", "عم", "ابو", "ام", "بن", "كابتن", "الكابتن", "صيدليه", "عياده", "مركز", "محل", "مكتب", "شركه", "ورشه", "معمل", "مدرسه", "جمعيه", "مؤسسه", "سوبر", "ماركت", "سنتر"]);
+/** يوحّد اسم مقدم الخدمة للمقارنة: يحذف الألقاب والكلمات العامة وأل التعريف والرموز، ويوحّد الهمزات والتاء المربوطة. */
+export function normalizeNameForMatch(name: string): string {
+  return normalizeSearch(name || "")
+    .replace(/[^\u0600-\u06FFa-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .map((word) => word.replace(/^(ال|و|لل)/, ""))
+    .filter((word) => word.length > 1 && !NAME_TITLE_WORDS.has(word))
+    .join(" ")
+    .trim();
+}
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i += 1) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j += 1) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = row;
+  }
+  return prev[b.length];
+}
+/** هل الاسمان متشابهان لدرجة الشك في التكرار؟ (تطابق بعد التوحيد، أو احتواء بكلمتين فأكثر، أو فرق حرفين على الأكثر). */
+export function namesLookDuplicate(a: string, b: string): boolean {
+  const x = normalizeNameForMatch(a), y = normalizeNameForMatch(b);
+  if (!x || !y) return false;
+  if (x === y) return true;
+  const tx = x.split(" "), ty = y.split(" ");
+  const shorter = tx.length <= ty.length ? tx : ty, longer = shorter === tx ? ty : tx;
+  if (shorter.length >= 2 && shorter.every((word) => longer.includes(word))) return true;
+  const compactX = x.replace(/\s+/g, ""), compactY = y.replace(/\s+/g, "");
+  const maxLen = Math.max(compactX.length, compactY.length);
+  if (maxLen < 6) return compactX === compactY;
+  return levenshtein(compactX, compactY) <= (maxLen >= 12 ? 2 : 1);
+}
+export type DuplicateHit = { id: string; name: string; status: string; reason: "phone" | "name"; detail: string };
+type DuplicateCandidate = Pick<ServiceRecord, "id" | "name" | "phone" | "phoneSecondary" | "category" | "status"> & { demo?: boolean };
+/** يرجع لكل خدمة قائمة الخدمات الأخرى المشتبه بتكرارها: نفس الهاتف (أي من الرقمين) أو اسم شديد الشبه في نفس التخصص. */
+export function findServiceDuplicates(services: readonly DuplicateCandidate[]): Map<string, DuplicateHit[]> {
+  const hits = new Map<string, DuplicateHit[]>();
+  const push = (from: DuplicateCandidate, to: DuplicateCandidate, reason: DuplicateHit["reason"], detail: string) => {
+    const list = hits.get(from.id) ?? [];
+    if (!list.some((hit) => hit.id === to.id)) { list.push({ id: to.id, name: to.name, status: to.status, reason, detail }); hits.set(from.id, list); }
+  };
+  const real = services.filter((service) => !service.demo);
+  const byPhone = new Map<string, DuplicateCandidate[]>();
+  for (const service of real) {
+    for (const raw of [service.phone, service.phoneSecondary]) {
+      const digits = normalizePhoneForMatch(raw || "");
+      if (digits.length < 7) continue;
+      const list = byPhone.get(digits) ?? [];
+      if (!list.includes(service)) list.push(service);
+      byPhone.set(digits, list);
+    }
+  }
+  for (const [digits, list] of byPhone) {
+    if (list.length < 2) continue;
+    for (const a of list) for (const b of list) if (a !== b) push(a, b, "phone", digits);
+  }
+  const byCategory = new Map<string, DuplicateCandidate[]>();
+  for (const service of real) { const list = byCategory.get(service.category) ?? []; list.push(service); byCategory.set(service.category, list); }
+  for (const list of byCategory.values()) {
+    for (let i = 0; i < list.length; i += 1) for (let j = i + 1; j < list.length; j += 1) {
+      if (namesLookDuplicate(list[i].name, list[j].name)) { push(list[i], list[j], "name", list[j].name); push(list[j], list[i], "name", list[i].name); }
+    }
+  }
+  return hits;
+}
 export function whatsappUrl(phone: string, message?: string) {
   const digits = phone.replace(/\D/g, "");
   const number = digits.startsWith("0") ? `20${digits.slice(1)}` : digits;
