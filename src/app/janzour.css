@@ -12349,3 +12349,27 @@ html.dark .my-offer-renew-text span { color: #c8d8ea; }
   .stats-page .stats-bar i { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .stats-page a { text-decoration: none !important; color: inherit !important; }
 }
+
+/* ===== تعديلات: جملة المميزين برتقالية موسطنة، عنوان العروض أقصر، كارت العرض (أيقونة شمال + بيانات يمين موسطنة + عدّاد لا يخرج) ===== */
+.featured-strip-hint, .featured-strip.is-open .featured-strip-hint, html.dark .featured-strip-hint, html.dark .featured-strip.is-open .featured-strip-hint { padding-inline-start: 0 !important; text-align: center; color: #e8792f !important; font-weight: 900; }
+.offers-section { margin-top: 36px; }
+.offers-head { top: -22px; margin-bottom: -12px; padding: 6px 18px 7px; border-radius: 14px; }
+.offers-head h2 { font-size: 16.5px; gap: 6px; line-height: 1.3; }
+.offers-head .offers-count { min-width: 22px; height: 22px; font-size: 12px; }
+.offers-head p { margin-top: 1px; font-size: 11.5px; font-weight: 800; }
+.offer-card { grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 16px 12px 12px; }
+.offer-card-body { order: 1; justify-items: center; text-align: center; gap: 4px; }
+.offer-card-icon { order: 2; }
+.offer-card-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.offer-card-name { overflow-wrap: anywhere; }
+.offer-card-meta { flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; }
+.offer-card-cat { color: var(--cat, #4b6584); font-weight: 800; }
+.offer-card-meta em.offer-countdown { max-width: 100%; padding: 3px 10px; border-radius: 999px; background: #e7f8f1; border: 1px solid #b7e8d3; white-space: normal; text-align: center; line-height: 1.4; }
+.offer-card-meta em.is-soon { background: #fff4e0; border-color: #f7cf8d; }
+.offer-card-meta em.is-urgent { background: #fee9e9; border-color: #f5b5b5; }
+html.dark .offer-card-meta em.offer-countdown { background: rgba(22, 163, 122, .16); border-color: rgba(22, 163, 122, .4); }
+html.dark .offer-card-meta em.is-soon { background: rgba(217, 119, 6, .16); border-color: rgba(217, 119, 6, .4); }
+html.dark .offer-card-meta em.is-urgent { background: rgba(220, 38, 38, .16); border-color: rgba(220, 38, 38, .4); }
+.offer-card::before { inset-inline-end: auto; inset-inline-start: 50%; transform: translateX(50%); }
+.profile-brand-credit { margin-top: 6px; padding: 3px 12px; border-radius: 999px; background: #eef4fb; color: #0f5bb5; font-size: 11px; font-weight: 900; }
+html.dark .profile-brand-credit { background: #1b2d47; color: #bcd6f7; }

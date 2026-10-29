@@ -140,6 +140,7 @@ export default function ProfileView({ profile, settings, design, origin }: Props
         <img src={theme.headerLogoUrl || "/images/logo-daleel-transparent.png"} alt="" className="profile-brand-logo"/>
         <strong>{settings.siteName}</strong>
         <small>{settings.tagline}</small>
+        <span className="profile-brand-credit">تصميم وتنفيذ م.وائل الجمال</span>
       </footer>
     </main>
 
