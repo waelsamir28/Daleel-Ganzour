@@ -2849,7 +2849,7 @@ export type FollowFeedItem = { id: string; createdAt: string };
 export type FollowState = { followed: string[]; feed: FollowFeedItem[] };
 export type ActivityLogRecord = { id: string; actorRole: string; actorName: string; actorUsername: string; action: string; entityKind: string; entityId: string; entityLabel: string; detail: string; createdAt: string };
 /** لوحات ألوان لوحة الإدارة (اختيار مشترك لكل الأدمنز والمشرفين يُحفظ في الإعدادات). */
-export const ADMIN_PALETTE_IDS = ["indigo", "teal", "graphite", "maroon", "midnight", "copper"] as const;
+export const ADMIN_PALETTE_IDS = ["indigo", "teal", "graphite", "maroon", "midnight", "copper", "forest", "ocean", "plum", "cocoa", "rose", "steel", "royal"] as const;
 export type AdminPaletteId = (typeof ADMIN_PALETTE_IDS)[number];
 export const DEFAULT_ADMIN_PALETTE: AdminPaletteId = "indigo";
 export function sanitizeAdminPalette(value: unknown): AdminPaletteId {

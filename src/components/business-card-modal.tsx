@@ -86,31 +86,33 @@ export default function BusinessCardModal({
             </span>
           </div>
 
-          <div className="provider-business-card-body">
-            <div className="provider-business-card-info">
-              <div className="provider-business-card-title-row">
-                <span className={`provider-business-card-avatar ${servicePhotoUrl(service) ? "has-photo" : ""}`} aria-hidden="true">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {servicePhotoUrl(service) ? <img src={servicePhotoUrl(service)} alt="" /> : <CategoryIcon icon={category.icon} size={22} />}
-                </span>
+          <div className="provider-business-card-body provider-business-card-body-v3">
+            {/* الصف العلوي: الصورة الكبيرة على الشمال، والاسم + موثّق + النجوم موسطنين على اليمين */}
+            <div className="provider-business-card-identity-row">
+              <div className="provider-business-card-identity">
                 <h3>{service.name}</h3>
                 {service.verified && (
                   <span className="provider-business-card-verified">
                     <ShieldCheck size={14} /> موثّق
                   </span>
                 )}
+                <div className="provider-business-card-rating">
+                  <span className="stars">
+                    {[1, 2, 3, 4, 5].map((step) => (
+                      <Star key={step} size={14} fill={step <= Math.round(score || 5) ? "currentColor" : "none"} />
+                    ))}
+                  </span>
+                  <strong>{score > 0 ? score.toFixed(1) : "جديد"}</strong>
+                  {service.reviews > 0 && <small>({service.reviews} تقييم)</small>}
+                </div>
               </div>
+              <span className={`provider-business-card-avatar provider-business-card-avatar-lg ${servicePhotoUrl(service) ? "has-photo" : ""}`} aria-hidden="true">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {servicePhotoUrl(service) ? <img src={servicePhotoUrl(service)} alt="" /> : <CategoryIcon icon={category.icon} size={40} />}
+              </span>
+            </div>
 
-              <div className="provider-business-card-rating">
-                <span className="stars">
-                  {[1, 2, 3, 4, 5].map((step) => (
-                    <Star key={step} size={13} fill={step <= Math.round(score || 5) ? "currentColor" : "none"} />
-                  ))}
-                </span>
-                <strong>{score > 0 ? score.toFixed(1) : "جديد"}</strong>
-                {service.reviews > 0 && <small>({service.reviews} تقييم)</small>}
-              </div>
-
+            <div className="provider-business-card-info">
               {service.description && (
                 <p className="provider-business-card-desc">{service.description}</p>
               )}
@@ -120,10 +122,17 @@ export default function BusinessCardModal({
                   <MapPin size={15} />
                   <span>{service.address || service.area}</span>
                 </div>
-                <div className="provider-business-card-contact-item is-phone">
-                  <Phone size={15} />
-                  <strong dir="ltr">{service.phone}</strong>
-                  {service.phoneSecondary && <span dir="ltr">/ {service.phoneSecondary}</span>}
+                <div className="provider-business-card-phones">
+                  <div className="provider-business-card-phone">
+                    <small><Phone size={12} /> الهاتف</small>
+                    <strong dir="ltr">{service.phone}</strong>
+                  </div>
+                  {service.phoneSecondary && (
+                    <div className="provider-business-card-phone is-secondary">
+                      <small><Phone size={12} /> هاتف إضافي</small>
+                      <strong dir="ltr">{service.phoneSecondary}</strong>
+                    </div>
+                  )}
                 </div>
               </div>
 

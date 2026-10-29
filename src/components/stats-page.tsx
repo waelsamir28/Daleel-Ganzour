@@ -20,7 +20,7 @@ async function renderStatsImage(stats: VillageStats, siteName: string, host: str
   const grad = ctx.createLinearGradient(0, 0, W, H); grad.addColorStop(0, "#0d8ee0"); grad.addColorStop(0.55, "#0765bd"); grad.addColorStop(1, "#0d3f7d");
   ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
   ctx.direction = "rtl"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillStyle = "#ffe066"; ctx.font = font(900, 40); ctx.fillText("📊 جنزور في أرقام", W / 2, 90);
+  ctx.fillStyle = "#ffe066"; ctx.font = font(900, 40); ctx.fillText("📊 تقرير الدليل", W / 2, 90);
   ctx.fillStyle = "#fff"; ctx.font = font(900, 54); ctx.fillText(siteName, W / 2, 165, W - 120);
   ctx.fillStyle = "#cfe6ff"; ctx.font = font(700, 26); ctx.fillText(new Date(stats.generatedAt).toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" }), W / 2, 220);
   const tiles: [string, string][] = [
@@ -64,7 +64,7 @@ export default function StatsPage({ stats, settings, design }: { stats: VillageS
       const blob = await renderStatsImage(stats, settings.siteName, host);
       const file = new File([blob], "جنزور-في-أرقام.png", { type: "image/png" });
       if (!download && typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "جنزور في أرقام", text: shareText });
+        await navigator.share({ files: [file], title: "تقرير الدليل", text: shareText });
         return;
       }
       const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
@@ -92,7 +92,7 @@ export default function StatsPage({ stats, settings, design }: { stats: VillageS
     <main className="container events-main">
       <section className="events-hero stats-hero">
         <span className="adv-eyebrow"><BarChart3 size={14}/> إحصائيات حية</span>
-        <h1>جنزور في أرقام</h1>
+        <h1>تقرير الدليل</h1>
         <p>كل ما يحدث في دليل القرية بالأرقام: المهنيون، الأقسام، التقييمات، وأكثر المهن طلبًا — يتحدّث تلقائيًا.</p>
         <div className="stats-share">
           <button type="button" className="button button-primary" onClick={() => void shareImage(false)} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Share2 size={16}/>} مشاركة كصورة</button>
