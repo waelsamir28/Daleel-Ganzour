@@ -10268,103 +10268,6 @@ html.dark .art-picker-option.is-selected { background: rgba(16, 121, 255, .16); 
 .quick-modal-grid .share-app-quick-link:hover { border-color: #19945f; }
 html.dark .quick-modal-grid .share-app-quick-link { background: rgba(25, 148, 95, 0.1); border-color: rgba(25, 148, 95, 0.4); }
 
-/* =========================================================================
-   31. جرس إشعارات الإدارة العائم على الصفحة الرئيسية (طلبات المهن + صوت تنبيه)
-   ========================================================================= */
-.admin-alerts-fab {
-  position: fixed;
-  bottom: calc(86px + env(safe-area-inset-bottom));
-  inset-inline-start: 18px;
-  z-index: 46;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-}
-.admin-alerts-fab-main {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  border: 0;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #ff9f1c, #f2551e);
-  color: #fff;
-  box-shadow: 0 12px 26px -10px rgba(242, 85, 30, .75);
-  cursor: pointer;
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-.admin-alerts-fab-main:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -10px rgba(242, 85, 30, .85); }
-.admin-alerts-fab.is-pulsing .admin-alerts-fab-main { animation: adminBellShake 1.1s ease-in-out infinite; }
-.admin-alerts-fab.is-pulsing .admin-alerts-fab-main::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid rgba(255, 159, 28, .6); animation: adminBellRing 1.1s ease-out infinite; }
-@keyframes adminBellShake { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-14deg); } 30% { transform: rotate(12deg); } 45% { transform: rotate(-8deg); } 60% { transform: rotate(6deg); } 75% { transform: rotate(0); } }
-@keyframes adminBellRing { 0% { transform: scale(.9); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }
-.admin-alerts-badge {
-  position: absolute;
-  top: -4px;
-  inset-inline-end: -4px;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 999px;
-  border: 2px solid #fff;
-  background: #e11d48;
-  color: #fff;
-  font-size: .72rem;
-  font-weight: 900;
-  line-height: 18px;
-  text-align: center;
-}
-.admin-alerts-panel {
-  width: min(360px, calc(100vw - 36px));
-  max-height: min(70vh, 560px);
-  display: flex;
-  flex-direction: column;
-  border-radius: 18px;
-  border: 1.5px solid #dbe7f3;
-  background: #fff;
-  box-shadow: 0 24px 50px -22px rgba(15, 48, 92, .55);
-  overflow: hidden;
-  animation: featuredPanelIn .25s ease both;
-}
-.admin-alerts-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e6eef7; background: #f6faff; }
-.admin-alerts-panel-head strong { display: inline-flex; align-items: center; gap: 6px; color: #0f2f55; font-size: .92rem; }
-.admin-alerts-count { padding: 1px 8px; border-radius: 999px; background: #e11d48; color: #fff; font-size: .7rem; }
-.admin-alerts-panel-tools { display: inline-flex; gap: 4px; }
-.admin-alerts-panel-tools .icon-button { width: 32px; height: 32px; }
-.admin-alerts-pending { display: flex; align-items: center; gap: 8px; margin: 10px 12px 0; padding: 9px 12px; border-radius: 12px; background: linear-gradient(135deg, #fff4e5, #ffe9d6); border: 1px solid #ffd3a6; color: #9a3c0a; font-weight: 900; font-size: .84rem; text-decoration: none; }
-.admin-alerts-pending span { flex: 1; }
-.admin-alerts-sound-hint { margin: 8px 12px 0; padding: 7px 10px; border-radius: 10px; border: 1px dashed #9cc3f0; background: #eaf3ff; color: #0f5bb5; font: inherit; font-size: .74rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-.admin-alerts-list { flex: 1; overflow-y: auto; padding: 8px 8px 4px; display: flex; flex-direction: column; gap: 6px; }
-.admin-alerts-item { display: flex; gap: 10px; padding: 9px 10px; border-radius: 12px; border: 1px solid #edf2f8; background: #fff; color: inherit; text-decoration: none; transition: background .2s ease; }
-.admin-alerts-item:hover { background: #f4f8fd; }
-.admin-alerts-item.is-unread { border-color: #c7ddf5; background: #f3f8ff; }
-.admin-alerts-item-icon { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: #eaf3ff; color: #0f5bb5; }
-.admin-alerts-item.is-unread .admin-alerts-item-icon { background: #fff0e6; color: #e4571e; }
-.admin-alerts-item-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.admin-alerts-item-body strong { font-size: .82rem; color: #0f2f55; }
-.admin-alerts-item-body span { font-size: .74rem; color: #5a6f8c; line-height: 1.45; }
-.admin-alerts-item-body small { font-size: .66rem; color: #93a7c2; }
-.admin-alerts-empty { margin: 0; padding: 18px 12px; text-align: center; color: #6b7f99; font-size: .8rem; }
-.admin-alerts-panel-foot { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; border-top: 1px solid #e6eef7; background: #f6faff; }
-.admin-alerts-panel-foot .button-primary { margin-inline-start: auto; }
-html.dark .admin-alerts-panel { background: var(--design-dark-card, #10233a); border-color: rgba(148, 163, 184, .28); }
-html.dark .admin-alerts-panel-head, html.dark .admin-alerts-panel-foot { background: rgba(255, 255, 255, .03); border-color: rgba(148, 163, 184, .2); }
-html.dark .admin-alerts-panel-head strong, html.dark .admin-alerts-item-body strong { color: #f1f7ff; }
-html.dark .admin-alerts-item { background: transparent; border-color: rgba(148, 163, 184, .18); }
-html.dark .admin-alerts-item.is-unread { background: rgba(80, 180, 255, .1); border-color: rgba(80, 180, 255, .3); }
-html.dark .admin-alerts-item-icon { background: rgba(80, 180, 255, .14); color: #bfe0ff; }
-html.dark .admin-alerts-item-body span { color: #a7bbd6; }
-html.dark .admin-alerts-pending { background: rgba(255, 159, 28, .14); border-color: rgba(255, 159, 28, .4); color: #ffd4a6; }
-html.dark .admin-alerts-sound-hint { background: rgba(80, 180, 255, .1); border-color: rgba(80, 180, 255, .4); color: #bfe0ff; }
-html.dark .admin-alerts-badge { border-color: #10233a; }
-@media (max-width: 520px) {
-  .admin-alerts-fab { inset-inline-start: 12px; bottom: calc(80px + env(safe-area-inset-bottom)); }
-  .admin-alerts-fab-main { width: 50px; height: 50px; }
-  .admin-alerts-panel { width: calc(100vw - 24px); max-height: 62vh; }
-}
-@media (prefers-reduced-motion: reduce) { .admin-alerts-fab.is-pulsing .admin-alerts-fab-main, .admin-alerts-fab.is-pulsing .admin-alerts-fab-main::after { animation: none; } }
 
 /* 32. Members-only gate notice on the login / registration screens */
 .form-notice.members-only-notice {
@@ -11468,10 +11371,6 @@ html.dark .whatsapp-alert-kinds { background: #0d1f1a; border-color: #1f5a47; }
 html.dark .whatsapp-alert-kind { background: #0f1a26; border-color: #243447; }
 html.dark .whatsapp-alert-kind.is-on { background: #113b33; border-color: #25a07a; }
 html.dark .whatsapp-alert-kind small { color: #9fb3c8; }
-.admin-alerts-item { align-items: stretch; }
-.admin-alerts-item-link { display: flex; gap: 10px; flex: 1; min-width: 0; color: inherit; text-decoration: none; }
-.admin-alerts-whatsapp { display: inline-grid; place-items: center; align-self: center; width: 34px; height: 34px; border-radius: 50%; background: #e3f7ec; color: #128c5a; border: 1px solid #9fdcbd; flex: none; transition: transform .15s, background .15s; }
-.admin-alerts-whatsapp:hover { background: #25d366; color: #fff; transform: scale(1.06); }
 .notification-row-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .notification-whatsapp { color: #128c5a !important; }
 .notification-whatsapp:hover { background: #25d366 !important; color: #fff !important; }
@@ -12009,6 +11908,13 @@ html.dark .avatar-crop-zoom .icon-button { background: rgba(255, 255, 255, .06);
 .admin-shell[data-palette="midnight"] { --ap-bg: #f3f6fb; --ap-glow: #dde8f8; --ap-sb-a: #0b1a33; --ap-sb-b: #102a56; --ap-sb-c: #0a1730; --ap-nav: #b9c8e4; --ap-nav-active-bg: #dbeafe; --ap-nav-active: #0b1a33; --ap-nav-bar: #38bdf8; --ap-accent: #2563eb; --ap-accent-dark: #1e40af; --ap-btn-a: #0ea5e9; --ap-btn-b: #2563eb; --ap-btn-shadow: rgba(37, 99, 235, .26); --ap-soft: #e8f0fb; --ap-soft-border: #d3e0f3; --ap-soft-text: #1d4ed8; --ap-pill: #dbe7fa; --ap-border: #dfe6f1; --ap-ring: rgba(37, 99, 235, .16); }
 .admin-shell[data-palette="copper"] { --ap-bg: #f7f5f2; --ap-glow: #f1e6dc; --ap-sb-a: #1c1917; --ap-sb-b: #292524; --ap-sb-c: #171412; --ap-nav: #d6cfc7; --ap-nav-active-bg: #fde8d7; --ap-nav-active: #7c2d12; --ap-nav-bar: #f97316; --ap-accent: #c2703d; --ap-accent-dark: #9a4b1e; --ap-btn-a: #d97706; --ap-btn-b: #b45309; --ap-btn-shadow: rgba(217, 119, 6, .28); --ap-soft: #f5ece4; --ap-soft-border: #e8d8c8; --ap-soft-text: #9a4b1e; --ap-pill: #f6e4d6; --ap-border: #e9e1d8; --ap-ring: rgba(194, 112, 61, .18); }
 
+.admin-shell[data-palette="forest"] { --ap-bg: #f3f8f3; --ap-glow: #dcefdc; --ap-sb-a: #052e16; --ap-sb-b: #14532d; --ap-sb-c: #042412; --ap-nav: #bfe3c6; --ap-nav-active-bg: #dcfce7; --ap-nav-active: #14532d; --ap-nav-bar: #84cc16; --ap-accent: #16a34a; --ap-accent-dark: #15803d; --ap-btn-a: #22c55e; --ap-btn-b: #15803d; --ap-btn-shadow: rgba(22, 163, 74, .25); --ap-soft: #ecf8ee; --ap-soft-border: #c9ebd1; --ap-soft-text: #166534; --ap-pill: #dcfce7; --ap-border: #dcebdf; --ap-ring: rgba(34, 197, 94, .18); }
+.admin-shell[data-palette="ocean"] { --ap-bg: #f1f7fb; --ap-glow: #d9ecf7; --ap-sb-a: #082f49; --ap-sb-b: #0c4a6e; --ap-sb-c: #07263a; --ap-nav: #b6dcee; --ap-nav-active-bg: #e0f2fe; --ap-nav-active: #0c4a6e; --ap-nav-bar: #22d3ee; --ap-accent: #0284c7; --ap-accent-dark: #075985; --ap-btn-a: #0ea5e9; --ap-btn-b: #0369a1; --ap-btn-shadow: rgba(14, 165, 233, .25); --ap-soft: #e9f5fc; --ap-soft-border: #c4e3f4; --ap-soft-text: #075985; --ap-pill: #e0f2fe; --ap-border: #dbe9f3; --ap-ring: rgba(14, 165, 233, .18); }
+.admin-shell[data-palette="plum"] { --ap-bg: #f8f4fb; --ap-glow: #eadcf7; --ap-sb-a: #2e1065; --ap-sb-b: #4a1d96; --ap-sb-c: #240b52; --ap-nav: #d6c2f2; --ap-nav-active-bg: #f3e8ff; --ap-nav-active: #4a1d96; --ap-nav-bar: #ec4899; --ap-accent: #7c3aed; --ap-accent-dark: #5b21b6; --ap-btn-a: #a855f7; --ap-btn-b: #6d28d9; --ap-btn-shadow: rgba(168, 85, 247, .25); --ap-soft: #f4ebfd; --ap-soft-border: #e2cef8; --ap-soft-text: #6b21a8; --ap-pill: #f3e8ff; --ap-border: #e9ddf5; --ap-ring: rgba(168, 85, 247, .18); }
+.admin-shell[data-palette="cocoa"] { --ap-bg: #f9f6f2; --ap-glow: #f0e4d6; --ap-sb-a: #2a1a10; --ap-sb-b: #3f2a1d; --ap-sb-c: #1f120a; --ap-nav: #e2cdb8; --ap-nav-active-bg: #fdf0dc; --ap-nav-active: #3f2a1d; --ap-nav-bar: #f59e0b; --ap-accent: #b45309; --ap-accent-dark: #92400e; --ap-btn-a: #d97706; --ap-btn-b: #92400e; --ap-btn-shadow: rgba(217, 119, 6, .25); --ap-soft: #fbf1e4; --ap-soft-border: #f1dcbf; --ap-soft-text: #92400e; --ap-pill: #fdf0dc; --ap-border: #eee1d1; --ap-ring: rgba(217, 119, 6, .18); }
+.admin-shell[data-palette="rose"] { --ap-bg: #fcf4f6; --ap-glow: #fbe0e7; --ap-sb-a: #4c0519; --ap-sb-b: #881337; --ap-sb-c: #3b0313; --ap-nav: #f5c0cf; --ap-nav-active-bg: #ffe4e6; --ap-nav-active: #881337; --ap-nav-bar: #fb7185; --ap-accent: #e11d48; --ap-accent-dark: #be123c; --ap-btn-a: #f43f5e; --ap-btn-b: #be123c; --ap-btn-shadow: rgba(244, 63, 94, .25); --ap-soft: #fdeef1; --ap-soft-border: #f8d0d9; --ap-soft-text: #9f1239; --ap-pill: #ffe4e6; --ap-border: #f3dde2; --ap-ring: rgba(244, 63, 94, .18); }
+.admin-shell[data-palette="steel"] { --ap-bg: #f3f5f7; --ap-glow: #e1e7ee; --ap-sb-a: #1e293b; --ap-sb-b: #334155; --ap-sb-c: #0f172a; --ap-nav: #cbd5e1; --ap-nav-active-bg: #d1fae5; --ap-nav-active: #064e3b; --ap-nav-bar: #10b981; --ap-accent: #059669; --ap-accent-dark: #047857; --ap-btn-a: #10b981; --ap-btn-b: #047857; --ap-btn-shadow: rgba(16, 185, 129, .25); --ap-soft: #eaf7f2; --ap-soft-border: #c6ebdc; --ap-soft-text: #065f46; --ap-pill: #d1fae5; --ap-border: #dfe6ee; --ap-ring: rgba(16, 185, 129, .18); }
+.admin-shell[data-palette="royal"] { --ap-bg: #f3f5fc; --ap-glow: #dfe5fb; --ap-sb-a: #172554; --ap-sb-b: #1e3a8a; --ap-sb-c: #111c45; --ap-nav: #c3d0f3; --ap-nav-active-bg: #fef3c7; --ap-nav-active: #1e3a8a; --ap-nav-bar: #fbbf24; --ap-accent: #2563eb; --ap-accent-dark: #1d4ed8; --ap-btn-a: #3b82f6; --ap-btn-b: #1d4ed8; --ap-btn-shadow: rgba(59, 130, 246, .25); --ap-soft: #eaf0fd; --ap-soft-border: #cad8f8; --ap-soft-text: #1e40af; --ap-pill: #fef3c7; --ap-border: #dde4f6; --ap-ring: rgba(59, 130, 246, .18); }
 .admin-shell[data-palette] { --admin-accent: var(--ap-accent); --admin-border: var(--ap-border); background: radial-gradient(ellipse at 82% 0%, var(--ap-glow) 0, transparent 34%), var(--ap-bg); }
 .admin-shell[data-palette] .admin-sidebar { background: linear-gradient(165deg, var(--ap-sb-a) 0%, var(--ap-sb-b) 54%, var(--ap-sb-c) 100%); }
 .admin-shell[data-palette] .admin-sidebar .brand-copy > span, .admin-shell[data-palette] .admin-sidebar-label { color: var(--ap-nav); opacity: .85; }
@@ -12246,3 +12152,126 @@ html.dark .profile-editor .field > span { color: #c9dbef; }
 html.dark .profile-editor .field input, html.dark .profile-editor .field textarea { background: #132743; border-color: #2c4668; color: #e6f0fb; }
 html.dark .profile-editor .field input:disabled { background: #0f1f36; color: #8aa0b8; }
 html.dark .profile-editor-qr { background: #132743; border-color: #27405f; }
+
+/* ===== تقرير الدليل (الإحصائيات): نسخة مضغوطة قليلًا للأدمن والمشرف ===== */
+.stats-page .events-main { max-width: 860px; }
+.stats-page .stats-hero { padding: 18px 16px 16px; border-radius: 18px; }
+.stats-page .stats-hero h1 { font-size: clamp(20px, 3.6vw, 26px); margin: 4px 0; }
+.stats-page .stats-hero p { font-size: 12.5px; line-height: 1.8; max-width: 560px; margin: 0 auto 10px; }
+.stats-page .stats-share .button { padding: 7px 12px; font-size: 12px; min-height: 0; }
+.stats-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 9px; margin-top: 12px; }
+.stats-tile { padding: 11px 8px; border-radius: 14px; gap: 3px; }
+.stats-tile-icon { width: 34px; height: 34px; border-radius: 11px; }
+.stats-tile-icon svg { width: 17px; height: 17px; }
+.stats-tile strong { font-size: 23px; }
+.stats-tile span:last-child { font-size: 11px; }
+.stats-columns { gap: 10px; margin-top: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.stats-card { padding: 12px; border-radius: 16px; }
+.stats-card h2 { font-size: 14.5px; margin-bottom: 9px; }
+.stats-bars { gap: 7px; }
+.stats-bars li { grid-template-columns: 100px 1fr auto; gap: 8px; }
+.stats-bar-label, .stats-bars b { font-size: 12px; }
+.stats-bar { height: 11px; }
+.stats-ranked, .stats-newest { gap: 6px; }
+.stats-ranked li, .stats-newest li { padding: 6px 8px; gap: 8px; }
+.stats-rank { width: 26px; height: 26px; border-radius: 8px; font-size: 12px; }
+.stats-ranked strong, .stats-newest strong { font-size: 12.5px; }
+.stats-ranked small, .stats-newest small { font-size: 10.5px; }
+.stats-ranked b, .stats-newest time { font-size: 12px; }
+.stats-cta { margin: 14px 0 22px; padding: 12px 14px; }
+.stats-cta p { font-size: 13px; }
+
+/* ===== الصورة الشخصية الكبيرة (ضعف السابق) على الكارت وصفحة التفاصيل ===== */
+.provider-card-photo.profile-photo-circle { width: 100px !important; height: 100px !important; border-width: 3px; }
+.provider-card-photo.profile-photo-circle .profile-photo-empty small { font-size: 11px; }
+.provider-card-photo.profile-photo-circle .profile-photo-empty svg { width: 36px; height: 36px; }
+.provider-card-photo.profile-photo-circle .profile-photo-owner-badge { width: 24px; height: 24px; inset-inline-end: 2px; bottom: 2px; }
+.provider-card-photo.profile-photo-circle .profile-photo-owner-badge svg { width: 14px; height: 14px; }
+@media (max-width: 380px) { .provider-card-photo.profile-photo-circle { width: 84px !important; height: 84px !important; } }
+.detail-v2-photo.profile-photo-circle { width: 120px !important; height: 120px !important; border-width: 4px; }
+.detail-v2-photo.profile-photo-circle .profile-photo-empty small { font-size: 12px; }
+.detail-v2-photo.profile-photo-circle .profile-photo-empty svg { width: 44px; height: 44px; }
+.detail-v2-photo.profile-photo-circle .profile-photo-owner-badge { width: 26px; height: 26px; inset-inline-end: 4px; bottom: 4px; }
+@media (max-width: 420px) { .detail-v2-photo.profile-photo-circle { width: 100px !important; height: 100px !important; } }
+/* صندوق الاسم في التفاصيل: الاسم + موثّق + النجوم موسطنون على اليمين، والصورة الكبيرة على الشمال */
+.detail-v2-hero-row { align-items: center; gap: 12px; }
+.detail-v2-identity { justify-items: center; text-align: center; gap: 7px; }
+.detail-v2-identity-pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.detail-v2-verified { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: #dcfce7; border: 1px solid #a7f3d0; color: #15803d; font-size: .76rem; font-weight: 900; }
+html.dark .detail-v2-verified { background: rgba(34, 197, 94, .16); border-color: rgba(34, 197, 94, .35); color: #86efac; }
+.detail-v2-stars { display: flex; justify-content: center; }
+@media (max-width: 420px) { .detail-v2-avatar, .detail-v2-avatar.detail-v2-avatar { display: none; } }
+
+/* ===== بطاقة العمل v3: الصورة كبيرة على الشمال، الاسم/موثّق/النجوم موسطنون على اليمين، QR موسطن ===== */
+.provider-business-card-body-v3, .provider-business-card-v2 .provider-business-card-body.provider-business-card-body-v3 { display: grid; grid-template-columns: 1fr; justify-items: stretch; text-align: start; gap: 14px; padding: 16px 18px 18px; }
+.provider-business-card-identity-row { display: flex; align-items: center; gap: 14px; }
+.provider-business-card-identity { flex: 1; min-width: 0; display: grid; justify-items: center; text-align: center; gap: 6px; }
+.provider-business-card-identity h3 { margin: 0; font-size: 1.22rem; font-weight: 900; color: #0e2e4f; line-height: 1.35; overflow-wrap: anywhere; }
+.provider-business-card-identity .provider-business-card-rating { justify-content: center; font-size: .9rem; }
+.provider-business-card-avatar-lg, .provider-business-card-v2 .provider-business-card-avatar-lg { flex: none; width: 100px; height: 100px; border: 3px solid #fff; box-shadow: 0 0 0 3px var(--cat-light, #dbeafe), 0 12px 24px -12px rgba(15, 48, 92, .55); }
+.provider-business-card-v2 .provider-business-card-info { gap: 10px; }
+.provider-business-card-v2 .provider-business-card-desc { text-align: center; }
+.provider-business-card-phones { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 4px; padding-top: 10px; border-top: 1px dashed #d8e3ef; }
+.provider-business-card-phones:has(.is-secondary) { grid-template-columns: 1fr 1fr; }
+.provider-business-card-phone { display: grid; justify-items: center; gap: 2px; padding: 8px 6px; border-radius: 12px; background: #f6f9fd; border: 1px solid #e3ebf5; }
+.provider-business-card-phone.is-secondary { border-inline-start: 1px solid #e3ebf5; }
+.provider-business-card-phone small { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; font-weight: 800; color: #5b7894; }
+.provider-business-card-phone strong { font-size: 1.05rem; font-weight: 900; color: var(--cat, #0878c9); letter-spacing: .3px; }
+.provider-business-card-v2 .provider-business-card-contact-item { justify-content: center; text-align: center; }
+.provider-business-card-v2 .provider-business-card-badges { justify-content: center; }
+.provider-business-card-body-v3 .provider-business-card-qr-box { justify-self: center; display: grid; justify-items: center; gap: 6px; width: min(100%, 220px); padding: 12px; }
+.provider-business-card-v2 .provider-business-card-qr-frame { width: auto; height: auto; padding: 8px; display: grid; place-items: center; }
+.business-card-qr-svg { width: 132px; height: 132px; display: block; }
+@media (max-width: 420px) {
+  .provider-business-card-avatar-lg, .provider-business-card-v2 .provider-business-card-avatar-lg { width: 84px; height: 84px; }
+  .provider-business-card-identity h3 { font-size: 1.08rem; }
+  .provider-business-card-phones:has(.is-secondary) { grid-template-columns: 1fr; }
+}
+
+/* ===== عروض الأسبوع: إطار ذهبي يضم العروض + مستطيل عنوان ذهبي لامع راكب على الإطار العلوي ===== */
+.offers-section { position: relative; gap: 0; margin-top: 44px; padding: 0 12px 6px; border: 2px solid #e4b43a; border-radius: 24px; background: linear-gradient(180deg, #fffdf6, #fff); box-shadow: 0 16px 36px -26px rgba(180, 120, 0, .5), inset 0 0 0 1px #fff3cf; }
+.offers-head { position: relative; top: -26px; z-index: 2; width: fit-content; max-width: min(92%, 560px); margin: 0 auto -14px; padding: 10px 22px 11px; border-radius: 18px; text-align: center; color: #3b1d00; background: linear-gradient(135deg, #f7d774 0%, #e6b231 45%, #f9e27e 70%, #d9a21c 100%); border: 1px solid #fff2bf; box-shadow: 0 10px 24px -10px rgba(190, 130, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .7); overflow: hidden; }
+.offers-head::after { content: ""; position: absolute; top: -40%; bottom: -40%; width: 46px; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .75), transparent); transform: skewX(-18deg); animation: offers-shine 3.4s ease-in-out infinite; pointer-events: none; }
+@keyframes offers-shine { 0% { inset-inline-start: -30%; } 45%, 100% { inset-inline-start: 120%; } }
+.offers-head h2 { justify-content: center; color: #3b1d00; font-size: 20px; }
+.offers-head h2 svg { color: #7a4500; }
+.offers-head .offers-count { background: rgba(255, 255, 255, .75); color: #7a4500; }
+.offers-head p { color: #5a3a08; font-size: 12.5px; }
+.offers-strip { padding: 14px 4px 14px; }
+.offer-card { border-color: #ecc46a; }
+html.dark .offers-section { background: linear-gradient(180deg, #1b2237, #141c2f); border-color: #c9a03a; box-shadow: none; }
+html.dark .offers-head { color: #3b1d00; }
+@media (prefers-reduced-motion: reduce) { .offers-head::after { animation: none; display: none; } }
+
+/* ===== برواز مقدمي الخدمات المميزين: الكلام موسطن والأيقونة ذهبية ===== */
+.featured-strip-main { justify-content: center; }
+.featured-strip-text { align-items: center; text-align: center; }
+.featured-strip-title-row { justify-content: center; }
+.featured-strip-icon { background: linear-gradient(145deg, #f7d774, #d9a21c 60%, #b8860b); color: #3b1d00; box-shadow: 0 10px 18px -10px rgba(190, 130, 0, .8); }
+.featured-strip-hint { width: 100%; text-align: center; }
+
+/* ===== إشعارات الإدارة من قائمة ☰ (بدل الجرس العائم) ===== */
+.admin-notif-modal { display: grid; gap: 12px; }
+.admin-notif-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.admin-notif-count { font-size: 12.5px; font-weight: 900; color: #b35a00; }
+.admin-notif-toolbar-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-notif-empty { margin: 0; padding: 20px; text-align: center; color: #5b7894; font-weight: 700; }
+.admin-notif-list { display: grid; gap: 8px; max-height: min(60dvh, 520px); overflow-y: auto; padding-inline-end: 2px; }
+.admin-notif-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid #e3ecf5; background: #fff; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+.admin-notif-item:hover { border-color: #9cc3ec; transform: translateY(-1px); }
+.admin-notif-item.is-unread { background: #fffaf0; border-color: #f6d9a6; }
+.admin-notif-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: #e8f1fb; color: #2b6cb0; }
+.admin-notif-item.tone-orange .admin-notif-icon { background: #fff1e0; color: #c2570b; }
+.admin-notif-item.tone-gold .admin-notif-icon { background: #fff7d6; color: #b7791f; }
+.admin-notif-item.tone-purple .admin-notif-icon { background: #f1e9ff; color: #6d28d9; }
+.admin-notif-item.tone-red .admin-notif-icon { background: #fde8e8; color: #b91c1c; }
+.admin-notif-item.tone-green .admin-notif-icon { background: #e4f7ec; color: #0b7a4b; }
+.admin-notif-copy { display: grid; gap: 1px; min-width: 0; }
+.admin-notif-kind { font-size: 10.5px; font-weight: 900; color: #7a90a8; }
+.admin-notif-copy strong { font-size: 13px; color: #11345a; overflow-wrap: anywhere; }
+.admin-notif-copy span { font-size: 11.5px; color: #4b6584; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.admin-notif-item time { font-size: 10.5px; color: #7a90a8; white-space: nowrap; font-weight: 700; }
+html.dark .admin-notif-item { background: #132743; border-color: #27405f; }
+html.dark .admin-notif-item.is-unread { background: #1d2a44; border-color: #6b5a2a; }
+html.dark .admin-notif-copy strong { color: #e6f0fb; }
+html.dark .admin-notif-copy span { color: #b7c9df; }

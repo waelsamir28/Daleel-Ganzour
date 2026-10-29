@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata() {
   const settings = await getSettings();
   return {
-    title: `جنزور في أرقام | ${settings.siteName}`,
+    title: `تقرير الدليل | ${settings.siteName}`,
     description: "إحصائيات حية عن دليل قرية جنزور: عدد المهنيين والأقسام والتخصصات والتقييمات وأكثر المهن طلبًا — بتصميم قابل للمشاركة.",
     alternates: { canonical: "/stats" },
   };

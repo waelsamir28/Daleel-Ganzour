@@ -15,6 +15,7 @@ import DesignApplicator from "@/components/design-applicator";
 import SelectField from "@/components/select-field";
 import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
 import ProfilePhotoCircle from "@/components/profile-photo-circle";
+import AdminNotificationsModal, { fetchAdminFeed, type AdminFeed } from "@/components/admin-notifications-modal";
 import { saveVCard, serviceVCard } from "@/lib/vcard";
 import { withViewTransition } from "@/lib/motion";
 import { useIsDark } from "@/lib/use-is-dark";
@@ -25,7 +26,6 @@ import QrSvg from "@/components/qr-svg";
 
 // تحميل كسول للمكوّنات التي لا تظهر إلا عند فتحها (نوافذ وأدوات الإدارة) لتخفيف الحزمة الأولى للصفحة الرئيسية.
 const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr: false });
-const AdminAlertsFab = dynamic(() => import("@/components/admin-alerts-fab"), { ssr: false });
 const BusinessCardModal = dynamic(() => import("@/components/business-card-modal"), { ssr: false });
 const ServiceForm = dynamic(() => import("@/components/request-forms").then((m) => m.ServiceForm), { ssr: false, loading: () => <p className="muted" style={{ padding: 16, textAlign: "center" }}>جارٍ تجهيز النموذج…</p> });
 const LocationPicker = dynamic(() => import("@/components/request-forms").then((m) => m.LocationPicker), { ssr: false });
@@ -404,6 +404,19 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   const dutyServices = useMemo(() => getOnDutyServices(services, categories, dutyFilter, now), [services, categories, dutyFilter, now]);
   const utilityNumbers = data.utilityNumbers && data.utilityNumbers.length > 0 ? data.utilityNumbers : publicUtilityNumbers;
   const isAdmin = viewer.role === "admin";
+  // إشعارات الإدارة في قائمة ☰ (بدل الجرس العائم): نجلب العدد عند الفتح ثم كل 30 ثانية.
+  const [adminFeed, setAdminFeed] = useState<AdminFeed>({ notifications: [], unread: 0 });
+  const [adminFeedOpen, setAdminFeedOpen] = useState(false);
+  useEffect(() => {
+    if (!isAdmin || data.previewMode) return;
+    let disposed = false;
+    const load = () => { if (document.hidden) return; void fetchAdminFeed().then((next) => { if (next && !disposed) setAdminFeed(next); }); };
+    load();
+    const timer = window.setInterval(load, 30000);
+    window.addEventListener("focus", load);
+    return () => { disposed = true; window.clearInterval(timer); window.removeEventListener("focus", load); };
+  }, [isAdmin, data.previewMode]);
+  const menuUnread = isAdmin ? adminFeed.unread : feedUnread;
   async function copyUtilityNumber(id: string, number: string) {
     try { await navigator.clipboard.writeText(number); setCopiedUtilityId(id); window.setTimeout(() => setCopiedUtilityId(""), 1600); } catch { /* Clipboard permissions may be unavailable. */ }
   }
@@ -582,7 +595,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             aria-expanded={menuOpen}
           >
             {menuOpen ? <X size={21}/> : <Menu size={21}/>}
-            {!menuOpen && feedUnread > 0 && <span className="header-menu-unread-dot" aria-hidden="true"/>}
+            {!menuOpen && menuUnread > 0 && <span className="header-menu-unread-dot" aria-hidden="true"/>}
           </button>
         </div>
         {menuOpen && (
@@ -620,7 +633,14 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
           </Link>
           <div className="header-menu-divider" role="separator"/>
           <div className="header-menu-section-title">الأدوات</div>
-          {design.showHeaderBell && viewer.role !== "guest" && (
+          {isAdmin && (
+            <button type="button" onClick={() => { setMenuOpen(false); setAdminFeedOpen(true); }}>
+              <BellRing size={17}/>
+              <span>إشعارات الإدارة</span>
+              {adminFeed.unread > 0 && <span className="nav-count is-alert">{adminFeed.unread > 99 ? "99+" : adminFeed.unread}</span>}
+            </button>
+          )}
+          {design.showHeaderBell && viewer.role !== "guest" && !isAdmin && (
             <button type="button" onClick={() => { setMenuOpen(false); openFeed(); }}>
               <BellRing size={17}/>
               <span>إشعاراتي</span>
@@ -921,8 +941,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title" style={!scoped ? { order: sectionOrderIndex("professionBanner", 5) } : undefined}><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
       </>)}
     </main></div>
-    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/events"><CalendarDays size={15}/> مناسبات القرية</Link><Link href="/stats"><BarChart3 size={15}/> جنزور في أرقام</Link><Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
-    {isAdmin && !modal && !detail && <AdminAlertsFab/>}
+    <footer className="site-footer"><div className="container footer-main"><div className="footer-brand-group">{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/admin" className="footer-admin-link"><ShieldCheck size={14}/><span>{viewer.role === "moderator" ? "لوحة المشرف" : "لوحة التحكم"}</span></Link>}<div className="footer-brand-lockup"><div className="footer-brand-copy"><strong>جنزور في مكان واحد</strong><span>{design.footerDescription || "دليل المهن والخدمات.. من أهل القرية لأهلها"}</span></div></div></div>{design.showFooterStats && <div className="footer-stats-strip" aria-label="إحصائيات دليل جنزور"><span><strong>+{services.length}</strong> خدمة ومهنة</span><span><strong>{roots.length}</strong> أقسام رئيسية</span><span><strong>{data.areas.length}</strong> مناطق في جنزور</span></div>}<nav aria-label="روابط تذييل الصفحة"><Link href="/"><Search size={15}/> الرئيسية</Link>{design.showHeaderFavorites && <button onClick={showFavorites}><Heart size={15}/> المفضلة</button>}<button onClick={() => setModal("contact")}><MessageCircle size={15}/> اتصل بنا</button><Link href="/events"><CalendarDays size={15}/> مناسبات القرية</Link>{(viewer.role === "admin" || viewer.role === "moderator") && <Link href="/stats"><BarChart3 size={15}/> تقرير الدليل</Link>}<Link href="/advertise"><Megaphone size={15}/> أعلن معنا</Link>{design.footerFacebookUrl && <a href={design.footerFacebookUrl} target="_blank" rel="noopener noreferrer">صفحة فيسبوك</a>}{design.footerWhatsappGroupUrl && <a href={design.footerWhatsappGroupUrl} target="_blank" rel="noopener noreferrer">جروب واتساب جنزور</a>}</nav><p className="footer-copyright">{settings.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").trim()}</p>{design.showFooterWhatsapp && <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="التواصل مع الإدارة عبر واتساب" className="footer-whatsapp"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.85 11.85 0 0 0 12.08 0C5.52 0 .19 5.34.19 11.9c0 2.1.55 4.14 1.59 5.95L.08 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.45-8.43ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.03-1.37l-.36-.22-3.74.98.99-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.27c0-5.45 4.44-9.89 9.9-9.89 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.89-9.88 9.89Zm5.42-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.08-.3-.15-1.25-.47-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></svg></span><div><small>التواصل مع الإدارة</small><strong dir="ltr">{settings.phone}</strong></div></a>}</div></footer>
     {!aboutFabHidden && !modal && !detail && (
       <div className="floating-about-fab" role="group" aria-label="عن التطبيق">
         <button type="button" className="floating-about-fab-main" onClick={() => setModal("about")} aria-label="عن التطبيق وطريقة الاستخدام" title="شرح التطبيق">
@@ -1085,6 +1104,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
     {modal === "emergency" && <Modal floating title="أرقام الطوارئ والمرافق في جنزور ومصر" subtitle="اتصل بالجهة المختصة مباشرة من هاتفك" onClose={closeModal}><div className="emergency-contact-list">{utilityNumbers.map((contact) => <a className="emergency-contact-link" key={contact.id} href={`tel:${contact.number}`}><span className="emergency-contact-icon"><PhoneCall size={20}/></span><span className="emergency-contact-copy"><strong>{contact.name}</strong><small>{contact.detail}</small></span><b dir="ltr">{contact.number}</b></a>)}<p className="emergency-contact-note">للحالات الطبية المهددة للحياة اتصل بالإسعاف على 123. أرقام الخدمات قد تختلف حسب المنطقة.</p></div></Modal>}
     {modal === "service" && <Modal floating title="أضف مهنتك لدليل جنزور" subtitle="طلب إضافة خدمة.. بعد مراجعة الإدارة" onClose={closeModal} wide><ServiceForm catalog={categories} areaOptions={data.areas} initialCategory={specialtyId || rootFilter} initialArea={area} onClose={closeModal}/></Modal>}
     {modal === "location" && <Modal floating title="اختار عنوانك في جنزور" subtitle="الخدمة في ناحيتك.. في خطوات بسيطة" onClose={closeModal}><LocationPicker areaOptions={data.areas} selected={area} onSelect={selectLocation}/></Modal>}
+    {adminFeedOpen && <AdminNotificationsModal feed={adminFeed} onRefresh={setAdminFeed} onClose={() => setAdminFeedOpen(false)}/>}
     {feedOpen && (
       <Modal floating title="إشعاراتي" subtitle="تنبيهات تخصك أنت فقط: بيانات مهنتك ورسائل الإدارة لك والجديد في التخصصات التي تتابعها" onClose={() => setFeedOpen(false)}>
         {completionAlerts.length > 0 || providerAlerts.length > 0 || feedServices.length > 0 ? (
@@ -1177,16 +1197,19 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
           </span>
           <div className="detail-v2-identity">
             <h3>{detail.name}</h3>
-            <span className="detail-v2-specialty">
-              <CategoryIcon icon={getCategory(detail.category, categories).icon} size={13}/>
-              {getCategory(detail.category, categories).name}
-            </span>
+            <div className="detail-v2-identity-pills">
+              <span className="detail-v2-specialty">
+                <CategoryIcon icon={getCategory(detail.category, categories).icon} size={13}/>
+                {getCategory(detail.category, categories).name}
+              </span>
+              {detail.verified && <span className="detail-v2-verified"><ShieldCheck size={13}/> موثّق</span>}
+            </div>
             <div className="detail-v2-stars">
               <ProviderRating value={detail.rating} reviews={detail.reviews}/>
             </div>
           </div>
-          {/* دائرة الصورة: تفتح الملف الشخصي للزائر، ورفع الصورة لصاحب المهنة */}
-          <ProfilePhotoCircle service={liveDetail ?? detail} size={64} className="detail-v2-photo" />
+          {/* دائرة الصورة الكبيرة على الشمال: تفتح الملف الشخصي للزائر، ورفع الصورة لصاحب المهنة */}
+          <ProfilePhotoCircle service={liveDetail ?? detail} size={120} className="detail-v2-photo" />
         </div>
         <button
           type="button"

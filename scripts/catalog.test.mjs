@@ -1245,7 +1245,7 @@ test("provider photo url carries the version for cache busting and demolition sp
 
 test("shared admin palette accepts only the known palette ids and falls back to the default", () => {
   assert.equal(catalog.DEFAULT_ADMIN_PALETTE, "indigo");
-  assert.equal(catalog.ADMIN_PALETTE_IDS.length, 6);
+  assert.equal(catalog.ADMIN_PALETTE_IDS.length, 13);
   assert.equal(catalog.sanitizeAdminPalette("maroon"), "maroon");
   assert.equal(catalog.sanitizeAdminPalette("neon"), "indigo");
   assert.equal(catalog.sanitizeAdminPalette(undefined), "indigo");

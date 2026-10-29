@@ -108,7 +108,7 @@ export default function ProviderCard({ service, category, categories, favorite, 
           )}
         </div>
         {/* دائرة الصورة الشخصية: تظهر دائمًا؛ تفتح الملف الشخصي للزائر، ورفع الصورة لصاحب الكارت */}
-        <ProfilePhotoCircle service={service} className="provider-card-photo" preview={preview} />
+        <ProfilePhotoCircle service={service} size={100} className="provider-card-photo" preview={preview} />
       </div>
       {/* Edge tools: flat icons in translucent circles on the card edge, revealed on hover/focus
           (always faintly visible on touch screens). Order/visibility/position come from استوديو المظهر.
