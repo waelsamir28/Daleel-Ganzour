@@ -32,6 +32,7 @@ import {
 import { TICKER_COLOR_NAMES, announcementTextLight, HERO_BANNER_DEFAULTS, AUTH_BANNER_DEFAULTS,
   defaultDesignSettings,
   designThemePresets,
+  PAGE_BACKGROUND_LIBRARY,
   parseAnnouncementItems,
   parseColorScaleOrThemeJson,
   sanitizeDesignSettings,
@@ -691,6 +692,26 @@ export default function DesignCustomizer({
                 </div>
 
                 <InnerDivider title="خلفية التطبيق بالكامل (صورة خلف كل الصفحات)" subtitle="ارفع صورة لتصبح خلفية الموقع كله — خلف الأقسام والكروت والمتميزين وكل الصفحات، وليس خلف البانر الترحيبي فقط. اتركها فارغة ليبقى لون الخلفية وحده." />
+                <div className="design-bg-library" role="radiogroup" aria-label="مكتبة خلفيات جاهزة">
+                  <button type="button" role="radio" aria-checked={!draft.pageBackgroundImage} className={`design-bg-tile design-bg-tile-none ${!draft.pageBackgroundImage ? "is-active" : ""}`} onClick={() => { updateField("pageBackgroundImage", ""); updateField("pageBackgroundImageDark", ""); }}>
+                    <span className="design-bg-thumb" aria-hidden="true">✕</span>
+                    <b>بدون صورة</b>
+                    <small>لون الخلفية فقط</small>
+                  </button>
+                  {PAGE_BACKGROUND_LIBRARY.map((preset) => {
+                    const active = draft.pageBackgroundImage === preset.light;
+                    return (
+                      <button key={preset.id} type="button" role="radio" aria-checked={active} className={`design-bg-tile ${active ? "is-active" : ""}`} title={preset.hint}
+                        onClick={() => { updateField("pageBackgroundImage", preset.light); updateField("pageBackgroundImageDark", preset.dark); updateField("pageBackgroundMode", preset.mode); updateField("pageBackgroundOverlay", preset.overlay); }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element -- مصغّرات ثابتة صغيرة من public */}
+                        <img className="design-bg-thumb" src={preset.thumb} alt="" width={90} height={160} loading="lazy" decoding="async"/>
+                        <b>{preset.name}</b>
+                        <small>{preset.hint}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                <small className="input-help">اختر خلفية جاهزة بضغطة (تضبط نسختي النهار والليل ودرجة التهدئة تلقائيًا)، أو ارفع صورتك الخاصة من الأسفل.</small>
                 <ImageUploadField imageKey="page-bg" label="صورة خلفية التطبيق (الوضع النهاري — رفع من الجهاز)" value={draft.pageBackgroundImage} onChange={(url) => updateField("pageBackgroundImage", url)} wide/>
                 <ImageUploadField imageKey="page-bg-dark" label="نسخة الوضع الليلي من الخلفية (اختياري؛ فارغ = نفس صورة النهار)" value={draft.pageBackgroundImageDark} onChange={(url) => updateField("pageBackgroundImageDark", url)} wide/>
                 <div className="form-row design-two-col">
