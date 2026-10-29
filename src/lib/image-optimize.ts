@@ -14,6 +14,7 @@ export function designImageLimits(key: string): Limits {
     case "header-logo": return { maxWidth: 400, maxHeight: 400, quality: 86 };
     case "splash": return { maxWidth: 700, maxHeight: 700, quality: 86 };
     case "auth-banner": case "auth-banner-dark": case "register-banner": case "register-banner-dark": return { maxWidth: 1400, maxHeight: 900, quality: 82 };
+    case "page-bg": case "page-bg-dark": return { maxWidth: 1600, maxHeight: 2600, quality: 78 };
     default: return { maxWidth: 1600, maxHeight: 900, quality: 82 };
   }
 }

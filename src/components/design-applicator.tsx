@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { defaultDesignSettings, designThemePresets, type DesignSettings, readableTextOn, shadeHex } from "@/lib/catalog";
+import { defaultDesignSettings, designThemePresets, type DesignSettings, hexToRgba, readableTextOn, shadeHex } from "@/lib/catalog";
 
 export function applyDesignSettingsToDocument(design: DesignSettings = defaultDesignSettings) {
   if (typeof document === "undefined") return;
@@ -15,6 +15,22 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.style.setProperty("--design-primary", design.primaryColor);
   root.style.setProperty("--design-heading-gradient", headingGradient);
   root.style.setProperty("--design-page-bg", design.pageBgColor);
+  // خلفية التطبيق بالكامل (صورة خلف كل الصفحات): نضع نسختي النهار والليل ليختار CSS المناسبة حسب html.dark.
+  const pageBgLight = (design.pageBackgroundImage || "").trim();
+  const pageBgDark = (design.pageBackgroundImageDark || "").trim() || pageBgLight;
+  if (pageBgLight) {
+    root.style.setProperty("--design-page-bg-image", `url("${pageBgLight.replace(/"/g, "%22")}")`);
+    root.style.setProperty("--design-page-bg-image-dark", `url("${pageBgDark.replace(/"/g, "%22")}")`);
+    root.style.setProperty("--design-page-bg-veil", hexToRgba(design.pageBgColor, design.pageBackgroundOverlay / 100));
+    root.style.setProperty("--design-page-bg-veil-dark", hexToRgba(design.darkPageBgColor || "#202020", design.pageBackgroundOverlay / 100, "rgba(32, 32, 32, 0.3)"));
+    root.setAttribute("data-design-page-bg", design.pageBackgroundMode);
+  } else {
+    root.style.removeProperty("--design-page-bg-image");
+    root.style.removeProperty("--design-page-bg-image-dark");
+    root.style.removeProperty("--design-page-bg-veil");
+    root.style.removeProperty("--design-page-bg-veil-dark");
+    root.removeAttribute("data-design-page-bg");
+  }
   root.style.setProperty("--design-modal-header-bg", design.modalHeaderBg);
   root.style.setProperty("--design-button-color", design.buttonColor);
   root.style.setProperty("--design-border-color", design.borderColor);

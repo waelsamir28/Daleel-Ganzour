@@ -1356,6 +1356,13 @@ export type DesignSettings = {
   /** نسخة الوضع الداكن من بانر العضوية. */
   registerBannerImageDark: string;
   /** صورة البانر الترحيبي أعلى الرئيسية (فارغ = صورة سماء جنزور الافتراضية). */
+  /** صورة خلفية التطبيق بالكامل (خلف كل الصفحات) — فارغ = لون الخلفية فقط. */
+  pageBackgroundImage: string;
+  pageBackgroundImageDark: string;
+  /** طريقة عرض خلفية التطبيق: ثابتة أثناء التمرير، تتحرك مع الصفحة، أو تتكرر كنقشة. */
+  pageBackgroundMode: "cover-fixed" | "cover-scroll" | "tile";
+  /** طبقة بلون الخلفية فوق الصورة لتحسين قراءة النص (0–90%). */
+  pageBackgroundOverlay: number;
   heroBannerImage: string;
   /** نسخة الوضع الداكن من البانر الترحيبي (فارغ = المخصص الفاتح إن وُجد، وإلا النسخة الليلية الافتراضية). */
   heroBannerImageDark: string;
@@ -1721,6 +1728,10 @@ export const defaultDesignSettings: DesignSettings = {
   authBannerImageDark: "",
   registerBannerImage: "",
   registerBannerImageDark: "",
+  pageBackgroundImage: "",
+  pageBackgroundImageDark: "",
+  pageBackgroundMode: "cover-fixed",
+  pageBackgroundOverlay: 30,
   heroBannerImage: "",
   heroBannerImageDark: "",
   heroBannerOverlay: 0,
@@ -2333,6 +2344,11 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.authBannerImageDark = pickText(record.authBannerImageDark, defaultDesignSettings.authBannerImageDark, 300, true);
   next.registerBannerImage = pickText(record.registerBannerImage, defaultDesignSettings.registerBannerImage, 300, true);
   next.registerBannerImageDark = pickText(record.registerBannerImageDark, defaultDesignSettings.registerBannerImageDark, 300, true);
+  next.pageBackgroundImage = pickText(record.pageBackgroundImage, defaultDesignSettings.pageBackgroundImage, 300, true);
+  next.pageBackgroundImageDark = pickText(record.pageBackgroundImageDark, defaultDesignSettings.pageBackgroundImageDark, 300, true);
+  next.pageBackgroundMode = pickEnum(record.pageBackgroundMode, ["cover-fixed", "cover-scroll", "tile"] as const, defaultDesignSettings.pageBackgroundMode);
+  const rawPageOverlay = typeof record.pageBackgroundOverlay === "number" ? record.pageBackgroundOverlay : Number(record.pageBackgroundOverlay);
+  next.pageBackgroundOverlay = Number.isFinite(rawPageOverlay) && rawPageOverlay >= 0 && rawPageOverlay <= 90 ? Math.round(rawPageOverlay / 10) * 10 : defaultDesignSettings.pageBackgroundOverlay;
   next.heroBannerImage = pickText(record.heroBannerImage, defaultDesignSettings.heroBannerImage, 300, true);
   next.heroBannerImageDark = pickText(record.heroBannerImageDark, defaultDesignSettings.heroBannerImageDark, 300, true);
   const rawOverlay = typeof record.heroBannerOverlay === "number" ? record.heroBannerOverlay : Number(record.heroBannerOverlay);
@@ -2607,6 +2623,14 @@ export function isAdTransition(value: unknown): value is AdTransition { return t
 export function isAdMotion(value: unknown): value is AdMotion { return typeof value === "string" && AD_MOTIONS.some((item) => item.id === value); }
 export function isHexColor(value: unknown): value is string { return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value); }
 /** Lightens/darkens a hex colour by mixing with white (positive) or black (negative). */
+/** يحوّل لون hex (#rgb أو #rrggbb) إلى rgba بشفافية محددة؛ يرجع اللون الاحتياطي لو كانت الصيغة غير صالحة. */
+export function hexToRgba(hex: string, alpha: number, fallback = "rgba(243, 246, 251, 0.3)"): string {
+  const clean = (hex || "").trim().replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return fallback;
+  const r = parseInt(full.slice(0, 2), 16), g = parseInt(full.slice(2, 4), 16), b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${Math.min(1, Math.max(0, alpha)).toFixed(2)})`;
+}
 export function shadeHex(hex: string, amount: number) {
   if (!isHexColor(hex)) return hex;
   const channel = (offset: number) => {
@@ -2829,7 +2853,7 @@ export function parseCategoryIconDataUrl(value: unknown): { mime: string; base64
   return { mime: match[1], base64 };
 }
 /** صور المظهر القابلة للرفع من استوديو التصميم. */
-export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark"] as const;
+export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark", "page-bg", "page-bg-dark"] as const;
 export type DesignImageKey = (typeof DESIGN_IMAGE_KEYS)[number];
 export function isDesignImageKey(value: unknown): value is DesignImageKey { return typeof value === "string" && (DESIGN_IMAGE_KEYS as readonly string[]).includes(value); }
 export const DESIGN_IMAGE_MAX_BYTES = 2 * 1024 * 1024;
@@ -2849,6 +2873,8 @@ export const DESIGN_IMAGE_GUIDE: Record<DesignImageKey, { label: string; width: 
   "register-banner-dark": { label: "بانر العضوية (الوضع الداكن)", width: 1200, height: 500, hint: "نفس المقاس؛ يظهر بدل الفاتح عند تفعيل الوضع الليلي" },
   "hero-banner": { label: "البانر الترحيبي الرئيسي", width: 2048, height: 768, hint: "عريض 8:3 مثل صورة سماء جنزور الافتراضية؛ يظهر أعلى الصفحة الرئيسية فوق مربع البحث" },
   "hero-banner-dark": { label: "البانر الترحيبي الرئيسي (الوضع الداكن)", width: 2048, height: 768, hint: "نفس المقاس 8:3؛ يظهر بدل الفاتح عند تفعيل الوضع الليلي (فارغ = النسخة الليلية الافتراضية)" },
+  "page-bg": { label: "خلفية التطبيق بالكامل (الوضع الفاتح)", width: 1440, height: 2560, hint: "طولي 9:16 يناسب الهاتف؛ تغطي الصفحة كلها خلف كل المحتوى وتُقصّ تلقائيًا على الشاشات العريضة. يُفضَّل صورة هادئة قليلة التفاصيل" },
+  "page-bg-dark": { label: "خلفية التطبيق بالكامل (الوضع الداكن)", width: 1440, height: 2560, hint: "نفس المقاس؛ تظهر بدل الفاتحة عند تفعيل الوضع الليلي (فارغ = نفس صورة الوضع الفاتح)" },
 };
 /** البانرات الافتراضية المصممة للتطبيق (WebP خفيفة ≈ 100 ك.ب). */
 export const AUTH_BANNER_DEFAULTS = {

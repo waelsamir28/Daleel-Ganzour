@@ -690,6 +690,26 @@ export default function DesignCustomizer({
                   )}
                 </div>
 
+                <InnerDivider title="خلفية التطبيق بالكامل (صورة خلف كل الصفحات)" subtitle="ارفع صورة لتصبح خلفية الموقع كله — خلف الأقسام والكروت والمتميزين وكل الصفحات، وليس خلف البانر الترحيبي فقط. اتركها فارغة ليبقى لون الخلفية وحده." />
+                <ImageUploadField imageKey="page-bg" label="صورة خلفية التطبيق (الوضع النهاري — رفع من الجهاز)" value={draft.pageBackgroundImage} onChange={(url) => updateField("pageBackgroundImage", url)} wide/>
+                <ImageUploadField imageKey="page-bg-dark" label="نسخة الوضع الليلي من الخلفية (اختياري؛ فارغ = نفس صورة النهار)" value={draft.pageBackgroundImageDark} onChange={(url) => updateField("pageBackgroundImageDark", url)} wide/>
+                <div className="form-row design-two-col">
+                  <label className="field">
+                    طريقة عرض الخلفية
+                    <SelectField value={draft.pageBackgroundMode} onChange={(e) => updateField("pageBackgroundMode", e.target.value as DesignSettings["pageBackgroundMode"])}>
+                      <option value="cover-fixed">ثابتة تملأ الشاشة والمحتوى يتحرك فوقها (الافتراضي)</option>
+                      <option value="cover-scroll">تملأ الصفحة وتتحرك مع التمرير</option>
+                      <option value="tile">تتكرر كنقشة صغيرة (مناسبة للزخارف)</option>
+                    </SelectField>
+                  </label>
+                  <label className="field">
+                    طبقة تهدئة بلون الخلفية فوق الصورة: <b>{draft.pageBackgroundOverlay}%</b>
+                    <input type="range" min={0} max={90} step={10} value={draft.pageBackgroundOverlay} onChange={(e) => updateField("pageBackgroundOverlay", Number(e.target.value))} aria-label="درجة تهدئة خلفية التطبيق"/>
+                    <small className="input-help">0 = الصورة بكامل قوتها. ارفع النسبة لو الكلام والكروت صعب قراءتها فوق الصورة (30–50% مناسبة غالبًا).</small>
+                  </label>
+                </div>
+                <small className="input-help">المعاينة الحقيقية على الموقع نفسه بعد الحفظ؛ داخل لوحة الإدارة لا تظهر الخلفية لأن اللوحة لها خلفيتها الخاصة.</small>
+
                 <InnerDivider title="تخصيص الألوان الأساسية والخلفية (الوضع النهاري ☀️)" subtitle="اضغط على أي دائرة ملونة للاختيار السريع من الموبايل" />
                 <div className="form-row design-two-col">
                   <ColorPickerField

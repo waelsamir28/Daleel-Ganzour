@@ -36,7 +36,9 @@ export default function ImageUploadField({ imageKey, value, onChange, fallbackSr
     setBusy(true);
     try {
       // تصغير داخل المتصفح أولًا: صور الهاتف الكبيرة تصبح بضع مئات من الكيلوبايت قبل الرفع.
-      const shrunk = await shrinkImageFile(file, { maxWidth: Math.min(guide.width, 1600), maxHeight: Math.min(guide.height, 900), quality: 86, preferAlpha: imageKey === "header-logo" || imageKey === "splash" });
+      // خلفية التطبيق طولية (تملأ شاشة الهاتف) فنسمح لها بارتفاع أكبر حتى لا تظهر مشوشة.
+      const tall = imageKey === "page-bg" || imageKey === "page-bg-dark";
+      const shrunk = await shrinkImageFile(file, { maxWidth: Math.min(guide.width, 1600), maxHeight: Math.min(guide.height, tall ? 2400 : 900), quality: tall ? 82 : 86, preferAlpha: imageKey === "header-logo" || imageKey === "splash" });
       if (shrunk.bytes > DESIGN_IMAGE_MAX_BYTES) throw new Error("الصورة ما زالت أكبر من 2 ميجابايت بعد التصغير — جرّب صورة أبسط أو PNG/JPG بدل GIF.");
       const dataUrl = shrunk.dataUrl;
       const dims = { width: shrunk.width, height: shrunk.height };
