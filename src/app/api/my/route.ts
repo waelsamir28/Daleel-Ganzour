@@ -8,6 +8,7 @@ import { sameOrigin } from "@/lib/auth";
 import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseCenterSchedule, parseServiceOffer, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { parsePhotoInput, saveServicePhoto } from "@/lib/service-photo";
+import { mirrorServicePhotoToMember } from "@/lib/member-profile";
 import { serviceDescriptionVariant } from "@/lib/service-description";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +89,8 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
     if (body.action === "photo") {
       const photo = parsePhotoInput(body.photo ?? null);
       await saveServicePhoto(db, service.id, photo);
+      // صورة واحدة مشتركة: تنعكس على الملف الشخصي للعضو الذي يحمل نفس الرقم (إن وُجد).
+      await mirrorServicePhotoToMember(service.phone, photo);
       await db.update(services).set({ confirmedAt: new Date() }).where(eq(services.id, service.id));
       const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
       return Response.json({ ok: true, service: serializeService(updated), message: photo ? "تم حفظ صورتك وظهورها على بطاقتك فورًا." : "تم حذف الصورة الشخصية." });

@@ -10,6 +10,7 @@ import CenterScheduleView from "@/components/center-schedule-view";
 import { SpecialtyIcon, StickerIcon } from "@/components/ui";
 import RatingStickerModal from "@/components/rating-sticker-modal";
 import AvatarPicker from "@/components/avatar-picker";
+import { rememberMyToken } from "@/lib/viewer-ownership";
 
 type Props = { token: string; initial: ServiceRecord; categories: CategoryRecord[]; areas: string[] };
 type Notice = { text: string; error: boolean } | null;
@@ -32,6 +33,8 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
     const timer = window.setInterval(tick, 20000);
     return () => clearInterval(timer);
   }, []);
+  // يتذكر هذا الجهاز أن صاحبه يملك المهنة → يستطيع تغيير صورته من دائرة الكارت في الدليل مباشرة.
+  useEffect(() => { rememberMyToken(initial.id, token); }, [initial.id, token]);
 
   const category = getCategory(service.category, categories);
   const root = category.parentId ? getCategory(category.parentId, categories) : category;

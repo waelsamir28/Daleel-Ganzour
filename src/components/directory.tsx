@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import { BadgePercent, BarChart3, Minus, Plus as PlusIcon, ListChecks, PackageOpen, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
-import { buildShopWhatsappOrderMessage, categoryStickerSrc, servicePhotoUrl, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerDaysLeft, servicesWithOffers } from "@/lib/catalog";
+import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerDaysLeft, servicesWithOffers } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
@@ -14,6 +14,8 @@ import AdRotator from "@/components/ad-rotator";
 import DesignApplicator from "@/components/design-applicator";
 import SelectField from "@/components/select-field";
 import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
+import ProfilePhotoCircle from "@/components/profile-photo-circle";
+import { saveVCard, serviceVCard } from "@/lib/vcard";
 import { withViewTransition } from "@/lib/motion";
 import { useIsDark } from "@/lib/use-is-dark";
 import { TickerText } from "@/components/ticker-text";
@@ -133,6 +135,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   const [detailItemsOpen, setDetailItemsOpen] = useState(false);
   const [detailOfferOpen, setDetailOfferOpen] = useState(false);
   const [detailCopied, setDetailCopied] = useState(false);
+  const [detailContactSaved, setDetailContactSaved] = useState(false);
   async function copyDetailPhone(phone: string) {
     try { await navigator.clipboard.writeText(phone); setDetailCopied(true); window.setTimeout(() => setDetailCopied(false), 1600); } catch { window.prompt("انسخ الرقم:", phone); }
   }
@@ -179,6 +182,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
     });
   }
   const { settings, categories, services } = data;
+  async function saveDetailContact(service: ServiceRecord) {
+    const origin = window.location.origin;
+    await saveVCard(serviceVCard(service, getCategory(service.category, categories), settings.siteName, origin), service.name);
+    setDetailContactSaved(true); window.setTimeout(() => setDetailContactSaved(false), 1800);
+  }
   const roots = categories.filter((category) => !category.parentId);
   const root = rootId ? getCategory(rootId, categories) : null, specialty = specialtyId ? getCategory(specialtyId, categories) : null;
   const scoped = Boolean(rootId), isHome = !scoped;
@@ -1177,12 +1185,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
               <ProviderRating value={detail.rating} reviews={detail.reviews}/>
             </div>
           </div>
-          {servicePhotoUrl(liveDetail ?? detail) && (
-            <span className="detail-v2-photo" aria-hidden="true">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={servicePhotoUrl(liveDetail ?? detail)} alt="" loading="lazy" decoding="async"/>
-            </span>
-          )}
+          {/* دائرة الصورة: تفتح الملف الشخصي للزائر، ورفع الصورة لصاحب المهنة */}
+          <ProfilePhotoCircle service={liveDetail ?? detail} size={64} className="detail-v2-photo" />
         </div>
         <button
           type="button"
@@ -1471,6 +1475,15 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             aria-label={detailCopied ? "تم نسخ الرقم" : `نسخ رقم ${detail.name}`}
           >
             {detailCopied ? <Check size={16}/> : <Copy size={16}/>}
+          </button>
+          <button
+            type="button"
+            className={`circle-tool is-contact ${detailContactSaved ? "is-active" : ""}`}
+            data-tip={detailContactSaved ? "تم تجهيز جهة الاتصال ✓" : "احفظ في جهات الاتصال"}
+            onClick={() => void saveDetailContact(liveDetail ?? detail)}
+            aria-label={`احفظ رقم ${detail.name} في جهات الاتصال`}
+          >
+            {detailContactSaved ? <Check size={16}/> : <UserPlus size={16}/>}
           </button>
           <button
             type="button"

@@ -174,6 +174,25 @@ export const appointmentRequests = pgTable("directory_appointment_requests", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * الملف الشخصي للعضو (مستقل تمامًا عن بيانات المهنة): صورة شخصية مشتركة مع كارت المهنة إن كان الرقم متطابقًا،
+ * وخانات اختيارية (إيميل، تاريخ ميلاد، عنوان، نبذة، فيسبوك، واتساب بديل، المؤهل/الوظيفة).
+ */
+export const memberProfiles = pgTable("directory_member_profiles", {
+  memberId: uuid("member_id").primaryKey().references(() => members.id, { onDelete: "cascade" }),
+  photoVersion: integer("photo_version").notNull().default(0),
+  photoMime: varchar("photo_mime", { length: 60 }).notNull().default("image/webp"),
+  photoData: text("photo_data").notNull().default(""),
+  email: varchar("email", { length: 160 }).notNull().default(""),
+  birthDate: varchar("birth_date", { length: 10 }).notNull().default(""),
+  address: varchar("address", { length: 200 }).notNull().default(""),
+  bio: text("bio").notNull().default(""),
+  facebook: varchar("facebook", { length: 300 }).notNull().default(""),
+  whatsapp: varchar("whatsapp", { length: 24 }).notNull().default(""),
+  jobTitle: varchar("job_title", { length: 120 }).notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** أيقونة مرفوعة من الإدارة لقسم أو تخصص (تُخزَّن داخل القاعدة لأن Vercel بلا قرص دائم). */
 /** الصورة الشخصية للمهني/المحل (دائرة صغيرة مقصوصة ومضغوطة في المتصفح) — داخل القاعدة لأن Vercel بلا قرص دائم. */
 export const servicePhotos = pgTable("directory_service_photos", {

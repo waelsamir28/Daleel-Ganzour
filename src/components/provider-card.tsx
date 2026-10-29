@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
-import { activeOffer, categoryStickerSrc, servicePhotoUrl, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
+import { activeOffer, categoryStickerSrc, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, SpecialtyIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
+import ProfilePhotoCircle from "@/components/profile-photo-circle";
 
 // Category colours reach the card icon through CSS custom properties.
 export function categoryTheme(item: CategoryRecord) {
@@ -106,12 +107,8 @@ export default function ProviderCard({ service, category, categories, favorite, 
             </span>
           )}
         </div>
-        {servicePhotoUrl(service) && (
-          <span className="provider-card-photo" aria-hidden="true">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={servicePhotoUrl(service)} alt="" loading="lazy" decoding="async"/>
-          </span>
-        )}
+        {/* دائرة الصورة الشخصية: تظهر دائمًا؛ تفتح الملف الشخصي للزائر، ورفع الصورة لصاحب الكارت */}
+        <ProfilePhotoCircle service={service} className="provider-card-photo" preview={preview} />
       </div>
       {/* Edge tools: flat icons in translucent circles on the card edge, revealed on hover/focus
           (always faintly visible on touch screens). Order/visibility/position come from استوديو المظهر.
