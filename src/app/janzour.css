@@ -1746,6 +1746,31 @@ html.dark .member-notif-item.is-completion.is-rejected { background: rgba(220, 5
 }
 .floating-quick-whatsapp:hover { transform: translateY(-2px); }
 
+/* ===== خلفية التطبيق بالكامل (صورة مرفوعة من استوديو المظهر) =====
+   تُرسم في طبقة ثابتة خلف كل المحتوى (body::before) حتى لا تتأثر بقواعد الثيمات التي تضبط خلفية body بـ !important،
+   ويُجعل body شفافًا ويحمل html لون الخلفية الأصلي ليظهر تحت الصورة أثناء تحميلها. تكرار السمة يرفع الأولوية عمدًا. */
+html[data-design-page-bg][data-design-page-bg][data-design-page-bg][data-design-page-bg] { background-color: var(--design-page-bg, #f3f6fb) !important; }
+html.dark[data-design-page-bg][data-design-page-bg][data-design-page-bg][data-design-page-bg] { background-color: var(--design-dark-bg, #202020) !important; }
+html[data-design-page-bg][data-design-page-bg][data-design-page-bg][data-design-page-bg] body { background: transparent !important; }
+html[data-design-page-bg] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(var(--design-page-bg-veil, rgba(243, 246, 251, .3)), var(--design-page-bg-veil, rgba(243, 246, 251, .3))), var(--design-page-bg-image);
+  background-size: cover, cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+html.dark[data-design-page-bg] body::before {
+  background-image: linear-gradient(var(--design-page-bg-veil-dark, rgba(32, 32, 32, .3)), var(--design-page-bg-veil-dark, rgba(32, 32, 32, .3))), var(--design-page-bg-image-dark, var(--design-page-bg-image));
+}
+html[data-design-page-bg="tile"] body::before { background-size: auto, 360px auto; background-repeat: no-repeat, repeat; }
+html[data-design-page-bg="cover-scroll"] body { position: relative; }
+html[data-design-page-bg="cover-scroll"] body::before { position: absolute; inset: 0; height: 100%; min-height: 100vh; }
+/* الفوتر والهيدر يظلان كما هما؛ الصورة خلف الصفحة فقط. لوحة الإدارة لا تتأثر لأن غلافها يحمل خلفيته الخاصة. */
+
 /* ===== تطبيق إعدادات المظهر والهيكل على الموقع بالكامل ===== */
 html[data-design-active="true"]:not(.dark) body {
   background-color: var(--design-page-bg, #f3f7fa);

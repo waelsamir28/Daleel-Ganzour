@@ -1047,7 +1047,7 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
 
 test("design images: upload keys, centimetre size guide and data-URL validation", () => {
   const { AUTH_BANNER_DEFAULTS, resolveAuthBanner, parseTickerItem, TICKER_COLOR_NAMES, announcementTextLight, HERO_BANNER_DEFAULTS, resolveHeroBanner, DESIGN_IMAGE_KEYS, DESIGN_IMAGE_GUIDE, DESIGN_IMAGE_MAX_BYTES, isDesignImageKey, pxToCm, designImageSizeText, designImageUrl, parseDesignImageDataUrl, defaultDesignSettings: d, sanitizeDesignSettings: sanitize } = catalog;
-  assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark"]);
+  assert.deepEqual([...DESIGN_IMAGE_KEYS], ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark", "page-bg", "page-bg-dark"]);
   assert.equal(resolveHeroBanner(d, false), HERO_BANNER_DEFAULTS.light);
   // تلوين الشريط: [لون] في البداية و**كلمة** للإبراز
   assert.deepEqual(parseTickerItem("[أحمر] عاجل: **صيدلية** مناوبة"), { color: "#ff6b6b", plain: "عاجل: صيدلية مناوبة", segments: [{ text: "عاجل: ", highlight: false }, { text: "صيدلية", highlight: true }, { text: " مناوبة", highlight: false }] });
