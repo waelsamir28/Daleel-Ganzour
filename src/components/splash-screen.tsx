@@ -11,7 +11,7 @@ const FADE_MS = 480;
 export const SPLASH_PREVIEW_EVENT = "janzour-splash-preview";
 /** ملصقات تمثّل أشهر أقسام الدليل؛ تتجمع حول الشعار من أطراف الشاشة. */
 const SPLASH_STICKERS = ["electricity", "dentistry", "pharmacies", "groceries", "teachers", "plumbing", "barbers", "charities"] as const;
-const DEFAULT_LOGO = "/images/logo-daleel-transparent.png";
+const DEFAULT_LOGO = "/images/logo-app.webp";
 
 function readConfig() {
   const root = document.documentElement;

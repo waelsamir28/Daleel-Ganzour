@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { Check, Copy, ExternalLink, LoaderCircle, QrCode, ShieldCheck, UserRound, UserRoundPen, X } from "lucide-react";
+import { Check, Copy, ExternalLink, LoaderCircle, QrCode, ShieldCheck, UserRoundPen, X } from "lucide-react";
 import AvatarPicker from "@/components/avatar-picker";
+import AvatarPlaceholder from "@/components/avatar-placeholder";
 import QrSvg from "@/components/qr-svg";
 import { MEMBER_PROFILE_FIELDS, profileUrl, type MemberProfileValues } from "@/lib/catalog";
 import { refreshOwnership } from "@/lib/viewer-ownership";
@@ -64,7 +65,7 @@ export default function ProfileEditor({ member, profile, photoUrl, ownedCount }:
   const avatar = currentPhoto
     // eslint-disable-next-line @next/next/no-img-element
     ? <img src={currentPhoto} alt="" />
-    : <UserRound size={43}/>;
+    : <AvatarPlaceholder />;
 
   return <>
     <div className="profile-head-stack">
