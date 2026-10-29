@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import { Timer, BadgePercent, BarChart3, Minus, Plus as PlusIcon, ListChecks, PackageOpen, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning } from "lucide-react";
-import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerTimeLeft, servicesWithOffers } from "@/lib/catalog";
+import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerTimeLeft, OFFICE_WHATSAPP, isNewOffer, servicesWithOffers } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
@@ -134,6 +134,27 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   const [detailBadgesOpen, setDetailBadgesOpen] = useState(() => Boolean(initialData.designSettings?.badgesDefaultOpen));
   const [detailItemsOpen, setDetailItemsOpen] = useState(false);
   const [detailOfferOpen, setDetailOfferOpen] = useState(false);
+  // صف العروض: نقاط أسفل الصف تبيّن عدد العروض وموقعك فيها (تتبع التمرير + نقر للانتقال).
+  const offersStripRef = useRef<HTMLDivElement>(null);
+  const [offerIndex, setOfferIndex] = useState(0);
+  function syncOfferIndex() {
+    const strip = offersStripRef.current;
+    if (!strip) return;
+    const center = strip.getBoundingClientRect().left + strip.clientWidth / 2;
+    let best = 0, bestDistance = Number.POSITIVE_INFINITY;
+    Array.from(strip.children).forEach((child, index) => {
+      const rect = child.getBoundingClientRect();
+      const distance = Math.abs(rect.left + rect.width / 2 - center);
+      if (distance < bestDistance) { bestDistance = distance; best = index; }
+    });
+    setOfferIndex((current) => (current === best ? current : best));
+  }
+  function scrollToOffer(index: number) {
+    const strip = offersStripRef.current, child = strip?.children[index] as HTMLElement | undefined;
+    if (!strip || !child) return;
+    const stripRect = strip.getBoundingClientRect(), rect = child.getBoundingClientRect();
+    strip.scrollBy({ left: (rect.left + rect.width / 2) - (stripRect.left + stripRect.width / 2), behavior: "smooth" });
+  }
   const [detailCopied, setDetailCopied] = useState(false);
   const [detailContactSaved, setDetailContactSaved] = useState(false);
   async function copyDetailPhone(phone: string) {
@@ -167,9 +188,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       setDetailOfferOpen(false);
     }, () => source?.style.removeProperty("view-transition-name"));
   }, [detail]);
-  function openDetail(service: ServiceRecord) {
+  function openDetail(service: ServiceRecord, options?: { offer?: boolean }) {
     trackDirectoryEvent({ kind: "view", label: service.name, serviceId: service.id, categoryId: service.category });
-    setDetailItemsOpen(false); setDetailOfferOpen(false);
+    setDetailItemsOpen(false); setDetailOfferOpen(Boolean(options?.offer));
+    // فتح من العدّاد التنازلي: نُظهر قسم العرض مفتوحًا ونمرّر إليه بعد انتهاء الانتقال.
+    if (options?.offer) window.setTimeout(() => document.querySelector(".detail-modal .detail-offer")?.scrollIntoView({ behavior: "smooth", block: "center" }), 420);
     const source = Array.from(document.querySelectorAll<HTMLElement>(".provider-card")).find((card) => card.dataset.serviceId === service.id);
     source?.style.setProperty("view-transition-name", "provider-detail");
     withViewTransition(() => {
@@ -869,23 +892,32 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             <h2 id="offers-title"><BadgePercent size={20}/>عروض وخصومات محدودة المدة<span className="offers-count">{offerServices.length}</span></h2>
             <p>اضغط على العرض لفتح بطاقة مقدم العرض</p>
           </div>
-          <div className="offers-strip" role="list">
+          <div className="offers-strip" role="list" ref={offersStripRef} onScroll={syncOfferIndex}>
             {offerServices.slice(0, 12).map((service) => {
               const cat = getCategory(service.category, categories);
               const offer = activeOffer(service, now || undefined)!;
               const left = offerTimeLeft(offer, now || undefined);
               return (
                 <button type="button" key={service.id} role="listitem" className="offer-card" style={categoryTheme(cat)} onClick={() => openDetail(service)} aria-label={`عرض ${service.name}: ${offer.title}`}>
+                  {isNewOffer(service, now || undefined) && <span className="offer-card-new"><Sparkles size={11} aria-hidden="true"/>جديد</span>}
                   <span className="offer-card-icon"><SpecialtyIcon category={cat} size={44} art3d sticker/></span>
                   <span className="offer-card-body">
                     <strong className="offer-card-title">{offer.title}</strong>
                     <span className="offer-card-name">{service.name}</span>
-                    <span className="offer-card-meta"><span className="offer-card-cat">{cat.name}</span><em className={`offer-countdown ${left.urgent ? "is-urgent" : left.days <= 3 ? "is-soon" : ""}`}><Timer size={12} aria-hidden="true"/>{left.label}</em></span>
+                    <span className="offer-card-meta"><span className="offer-card-cat">{cat.name}</span><em className={`offer-countdown ${left.urgent ? "is-urgent" : left.days <= 3 ? "is-soon" : ""}`} role="button" tabIndex={0} title="اضغط لفتح تفاصيل العرض" onClick={(event) => { event.stopPropagation(); openDetail(service, { offer: true }); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); openDetail(service, { offer: true }); } }}><Timer size={12} aria-hidden="true"/>{left.label}</em></span>
                   </span>
                 </button>
               );
             })}
           </div>
+          {offerServices.length > 1 && (
+            <div className="offers-dots" role="tablist" aria-label={`${Math.min(offerServices.length, 12)} عروض — اسحب يمينًا ويسارًا`}>
+              {offerServices.slice(0, 12).map((service, index) => (
+                <button type="button" key={service.id} role="tab" aria-selected={index === offerIndex} aria-label={`العرض ${index + 1} من ${Math.min(offerServices.length, 12)}: ${service.name}`} className={`offers-dot ${index === offerIndex ? "is-active" : ""}`} onClick={() => scrollToOffer(index)} data-no-feedback/>
+              ))}
+              <span className="offers-dots-count" aria-hidden="true">{offerIndex + 1} / {Math.min(offerServices.length, 12)}</span>
+            </div>
+          )}
         </section>
       )}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
@@ -1516,6 +1548,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
         <small className="detail-v2-tools-hint" dir="ltr">{detail.phone}</small>
       </div>
       )}
+      <a className="detail-credit" href={OFFICE_WHATSAPP} target="_blank" rel="noopener noreferrer" title="تواصل مع مكتب الجمال للدعاية والإعلان على واتساب">تصميم وتنفيذ م.وائل الجمال</a>
     </div></Modal>}
     {detail && detailScheduleOpen && (
       <Modal floating wide className="modal-quiet-scroll" title="جدول الحصص الأسبوعي" subtitle={`${detail.name} — سنتر تعليمي`} onClose={() => setDetailScheduleOpen(false)}>

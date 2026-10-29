@@ -41,7 +41,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-10-26.1";
+export const SCHEMA_VERSION = "2026-10-29.1";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -87,6 +87,7 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS offer_title varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS offer_details text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS offer_ends_at timestamptz`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS offer_started_at timestamptz`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS confirmed_at timestamptz`);
       await tx.execute(sql`UPDATE directory_services SET confirmed_at = created_at WHERE confirmed_at IS NULL`);
       await tx.execute(sql`ALTER TABLE directory_services ALTER COLUMN confirmed_at SET DEFAULT now()`);
@@ -252,7 +253,7 @@ export async function getDesignSettings(): Promise<DesignSettings> {
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
   const { reviewNote: _privateNote, availabilityToken: _privateToken, accountToken: _privateAccountToken, ...publicItem } = item;
   const completionStatus = (["none", "requested", "submitted", "rejected"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
-  return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString(), offerEndsAt: item.offerEndsAt?.toISOString() ?? null, confirmedAt: (item.confirmedAt ?? item.createdAt).toISOString() };
+  return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString(), offerEndsAt: item.offerEndsAt?.toISOString() ?? null, offerStartedAt: item.offerStartedAt?.toISOString() ?? null, confirmedAt: (item.confirmedAt ?? item.createdAt).toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect, imageVersion = 0): CategoryRecord { return { ...item, light: `${item.color}12`, ...(imageVersion ? { imageVersion } : {}) }; }
 const adColumns = { id: adBanners.id, template: adBanners.template, transition: adBanners.transition, motion: adBanners.motion, accentColor: adBanners.accentColor, title: adBanners.title, caption: adBanners.caption, serviceId: adBanners.serviceId, whatsapp: adBanners.whatsapp, active: adBanners.active, startsAt: adBanners.startsAt, endsAt: adBanners.endsAt, sortOrder: adBanners.sortOrder, durationSeconds: adBanners.durationSeconds, imageMime: adBanners.imageMime, imageVersion: adBanners.imageVersion, hasImage: sql<boolean>`length(${adBanners.imageData}) > 0`, createdAt: adBanners.createdAt };

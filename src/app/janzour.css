@@ -12373,3 +12373,21 @@ html.dark .offer-card-meta em.is-urgent { background: rgba(220, 38, 38, .16); bo
 .offer-card::before { inset-inline-end: auto; inset-inline-start: 50%; transform: translateX(50%); }
 .profile-brand-credit { margin-top: 6px; padding: 3px 12px; border-radius: 999px; background: #eef4fb; color: #0f5bb5; font-size: 11px; font-weight: 900; }
 html.dark .profile-brand-credit { background: #1b2d47; color: #bcd6f7; }
+
+/* ===== العروض: نقاط التمرير، شارة «جديد»، عدّاد قابل للنقر — وتوقيع المصمم في صفحة التفاصيل ===== */
+.offers-dots { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 0 10px; }
+.offers-dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: #e3c56b; opacity: .55; cursor: pointer; transition: width .25s ease, opacity .25s ease, background .25s ease; }
+.offers-dot.is-active { width: 22px; opacity: 1; background: linear-gradient(90deg, #d9a21c, #f7d774); box-shadow: 0 2px 8px -2px rgba(190, 130, 0, .7); }
+.offers-dot:focus-visible { outline: 2px solid #d9a21c; outline-offset: 2px; }
+.offers-dots-count { margin-inline-start: 8px; font-size: 11px; font-weight: 900; color: #a16207; font-variant-numeric: tabular-nums; direction: ltr; }
+html.dark .offers-dot { background: #8a6a1e; }
+html.dark .offers-dots-count { color: #f7d774; }
+.offer-card-new { position: absolute; top: -10px; inset-inline-start: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 3px; padding: 2px 9px; border-radius: 999px; background: linear-gradient(135deg, #22c55e, #15803d); color: #fff; font-size: 10.5px; font-weight: 900; box-shadow: 0 6px 14px -6px rgba(21, 128, 61, .8); animation: offer-new-pop 1.8s ease-in-out infinite; }
+@keyframes offer-new-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .offer-card-new { animation: none; } }
+.offer-card-meta em.offer-countdown[role="button"] { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+.offer-card-meta em.offer-countdown[role="button"]:hover, .offer-card-meta em.offer-countdown[role="button"]:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 14px -8px rgba(15, 48, 92, .5); outline: none; text-decoration: underline; text-underline-offset: 3px; }
+.detail-credit { display: block; width: fit-content; margin: 14px auto 4px; padding: 4px 14px; border-radius: 999px; background: #eef4fb; color: #0f5bb5; font-size: 11.5px; font-weight: 900; text-decoration: none; transition: background .15s, color .15s; }
+.detail-credit:hover { background: #0f5bb5; color: #fff; }
+html.dark .detail-credit { background: #1b2d47; color: #bcd6f7; }
+@media print { .detail-credit { display: none; } }
