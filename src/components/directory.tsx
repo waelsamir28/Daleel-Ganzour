@@ -47,7 +47,10 @@ function utilityIcon(item: { id: string; name: string; category: string; tone: s
 }
 type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | "about" | null;
 
-export default function Directory({ initialData, viewer, rootId, specialtyId, stageId, initialFavorites = false, guestLocked = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; stageId?: string; initialFavorites?: boolean; guestLocked?: boolean }) {
+export default function Directory({ initialData, viewer, rootId, specialtyId, stageId, initialFavorites = false, guestLocked = false, onData, refreshOnMount = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; stageId?: string; initialFavorites?: boolean; guestLocked?: boolean; onData?: (data: PublicDirectory) => void; refreshOnMount?: boolean }) {
+  // الغلاف (DirectoryShell) يحتفظ بأحدث نسخة من البيانات حتى يفتح القسم التالي فورًا بها.
+  const onDataRef = useRef(onData);
+  useEffect(() => { onDataRef.current = onData; }, [onData]);
   const [data, setData] = useState(initialData), [modal, setModal] = useState<ModalName>(null), [detail, setDetail] = useState<ServiceRecord | null>(null);
   const [updatePhone, setUpdatePhone] = useState(""), [updateNote, setUpdateNote] = useState(""), [updateMessage, setUpdateMessage] = useState("");
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
@@ -77,7 +80,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   useEffect(() => {
     const tick = () => setNow(Date.now());
     const initial = window.setTimeout(tick, 0);
-    const timer = window.setInterval(tick, 1000);
+    // كل 30 ثانية تكفي (العدّادات بالدقائق/الساعات) — كل ثانية كانت تعيد رسم الصفحة كاملة 60 مرة في الدقيقة.
+    const timer = window.setInterval(tick, 30000);
     window.addEventListener("focus", tick);
     return () => { clearTimeout(initial); clearInterval(timer); window.removeEventListener("focus", tick); };
   }, []);
@@ -252,10 +256,12 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
     try { const stored: unknown = JSON.parse(localStorage.getItem("elgamal-favorites") ?? "[]"); if (Array.isArray(stored)) setFavorites(stored.filter((id): id is string => typeof id === "string")); } catch { /* Use session-only favorites if storage is unavailable. */ }
     try { const storedOwned: unknown = JSON.parse(localStorage.getItem("janzour-owned-services") ?? "[]"); if (Array.isArray(storedOwned)) setOwnedServiceIds(storedOwned.filter((id): id is string => typeof id === "string")); } catch { /* Ignore storage issues. */ }
     let disposed = false;
-    const refresh = async () => { if (document.hidden) return; try { const response = await fetch("/api/services", { cache: "no-store" }); if (response.ok && !disposed) setData(await response.json()); } catch { /* Preserve the directory on temporary network failures. */ } };
+    const refresh = async () => { if (document.hidden) return; try { const response = await fetch("/api/services", { cache: "no-store" }); if (response.ok && !disposed) { const fresh = await response.json(); setData(fresh); onDataRef.current?.(fresh); } } catch { /* Preserve the directory on temporary network failures. */ } };
+    // عند الفتح الفوري من بيانات الجهاز (تنقّل داخلي) نحدّث بهدوء في الخلفية فورًا.
+    if (refreshOnMount) void refresh();
     const timer = setInterval(refresh, 30000); window.addEventListener("focus", refresh);
     return () => { disposed = true; clearInterval(timer); window.removeEventListener("focus", refresh); };
-  }, []);
+  }, [refreshOnMount]);
   useEffect(() => {
     if (viewer.role === "guest" || data.previewMode) return;
     let disposed = false;
@@ -319,7 +325,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   }
   function toggleFavorite(id: string) { setFavorites((current) => { const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id]; try { localStorage.setItem("elgamal-favorites", JSON.stringify(next)); } catch { /* Favorites still work during this visit. */ } return next; }); }
   function scrollToProviders() { setTimeout(() => document.getElementById("providers")?.scrollIntoView({ behavior: "smooth", block: "start" }), 30); }
-  function showFavorites() { if (scoped) { window.location.assign("/?favorites=1"); return; } setView("favorites"); setRootFilter(""); setArea(""); setCustomAddress(""); setEmergency(false); setQuery(""); setQueryDraft(""); setMenuOpen(false); scrollToProviders(); }
+  function showFavorites() { if (scoped) { window.history.pushState(null, "", "/?favorites=1"); window.dispatchEvent(new PopStateEvent("popstate")); return; } setView("favorites"); setRootFilter(""); setArea(""); setCustomAddress(""); setEmergency(false); setQuery(""); setQueryDraft(""); setMenuOpen(false); scrollToProviders(); }
   function search(event: FormEvent) {
     event.preventDefault();
     const trimmed = queryDraft.trim();

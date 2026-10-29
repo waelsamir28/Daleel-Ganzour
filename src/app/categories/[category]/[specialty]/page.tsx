@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Directory from "@/components/directory";
+import DirectoryShell from "@/components/directory-shell";
 import { getViewer } from "@/lib/auth";
 import { categoryOgImage } from "@/lib/catalog";
 import { getPublicDirectory } from "@/lib/directory";
@@ -17,5 +17,5 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
 export default async function SpecialtyPage({ params, searchParams }: { params: Promise<{ category: string; specialty: string }>; searchParams: Promise<{ stage?: string }> }) {
   const [data, viewer, { category, specialty }, { stage }] = await Promise.all([getPublicDirectory(), getViewer(), params, searchParams]);
   if (!data.categories.some((item) => item.id === category && !item.parentId) || !data.categories.some((item) => item.id === specialty && item.parentId === category)) notFound();
-  return <Directory key={`${category}/${specialty}`} initialData={directoryForViewer(data, viewer)} viewer={viewer} rootId={category} specialtyId={specialty} stageId={stage} guestLocked={guestLocked(viewer, data.designSettings)}/>;
+  return <DirectoryShell key={`${category}/${specialty}`} initialData={directoryForViewer(data, viewer)} viewer={viewer} rootId={category} specialtyId={specialty} stageId={stage} guestLocked={guestLocked(viewer, data.designSettings)}/>;
 }
