@@ -2865,6 +2865,11 @@ export const PAGE_BACKGROUND_LIBRARY: readonly PageBackgroundPreset[] = [
   { id: "gold", name: "كريمي ذهبي", hint: "أركان مزخرفة ووسط فاضي", light: "/images/backgrounds/gold.webp", dark: "/images/backgrounds/gold-dark.webp", thumb: "/images/backgrounds/gold-thumb.webp", overlay: 0, mode: "cover-fixed" },
   { id: "mesh", name: "أزرق حديث", hint: "تدرج ناعم بأسلوب Windows 11", light: "/images/backgrounds/mesh.webp", dark: "/images/backgrounds/mesh-dark.webp", thumb: "/images/backgrounds/mesh-thumb.webp", overlay: 20, mode: "cover-fixed" },
   { id: "night", name: "ليل القرية", hint: "هلال ونجوم فوق المئذنة (داكن)", light: "/images/backgrounds/night.webp", dark: "/images/backgrounds/night.webp", thumb: "/images/backgrounds/night-thumb.webp", overlay: 20, mode: "cover-fixed" },
+  // خلفيات الشعار المكرر (6 أعمدة × 10 صفوف = 60 شعارًا) — تُولَّد من scripts/make-logo-backgrounds.py
+  { id: "logo-white", name: "شعار مكرر — أبيض", hint: "60 شعارًا باهتًا على خلفية بيضاء كريمية", light: "/images/backgrounds/logo-white.webp", dark: "/images/backgrounds/logo-white-dark.webp", thumb: "/images/backgrounds/logo-white-thumb.webp", overlay: 0, mode: "cover-fixed" },
+  { id: "logo-navy", name: "شعار مكرر — كحلي", hint: "60 شعارًا على خلفية كحلية داكنة", light: "/images/backgrounds/logo-navy.webp", dark: "/images/backgrounds/logo-navy-dark.webp", thumb: "/images/backgrounds/logo-navy-thumb.webp", overlay: 20, mode: "cover-fixed" },
+  { id: "logo-orange", name: "شعار مكرر — برتقالي", hint: "60 شعارًا على تدرج برتقالي بلون الشعار", light: "/images/backgrounds/logo-orange.webp", dark: "/images/backgrounds/logo-orange-dark.webp", thumb: "/images/backgrounds/logo-orange-thumb.webp", overlay: 20, mode: "cover-fixed" },
+  { id: "logo-green", name: "شعار مكرر — أخضر", hint: "60 شعارًا على تدرج أخضر زمردي", light: "/images/backgrounds/logo-green.webp", dark: "/images/backgrounds/logo-green-dark.webp", thumb: "/images/backgrounds/logo-green-thumb.webp", overlay: 20, mode: "cover-fixed" },
 ];
 /** صور المظهر القابلة للرفع من استوديو التصميم. */
 export const DESIGN_IMAGE_KEYS = ["header-logo", "splash", "auth-banner", "auth-banner-dark", "register-banner", "register-banner-dark", "hero-banner", "hero-banner-dark", "page-bg", "page-bg-dark"] as const;
