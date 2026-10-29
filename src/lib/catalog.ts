@@ -485,6 +485,41 @@ export type ServiceRecord = {
 export function servicePhotoUrl(service: Pick<ServiceRecord, "id" | "photoVersion">): string {
   return service.photoVersion ? `/api/service-photo/${service.id}?v=${service.photoVersion}` : "";
 }
+/** رابط الصورة الشخصية لعضو الموقع (تحمل رقم الإصدار لتتجدد فورًا). */
+export function memberPhotoUrl(memberId: string, photoVersion: number): string {
+  return photoVersion > 0 ? `/api/member-photo/${memberId}?v=${photoVersion}` : "";
+}
+/** رابط الملف الشخصي العام (يقبل معرّف عضو أو معرّف مهنة). */
+export function profileUrl(id: string): string { return `/profile/${encodeURIComponent(id)}`; }
+/** أرقام الهاتف فقط بصيغة محلية موحدة للمقارنة (+20 → 0). */
+export function phoneDigits(value: string): string {
+  const digits = (value || "").replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit))).replace(/\D/g, "");
+  return digits.startsWith("20") && digits.length === 12 ? `0${digits.slice(2)}` : digits;
+}
+/** خانات الملف الشخصي الاختيارية (كلها يمكن تركها فارغة). */
+export const MEMBER_PROFILE_FIELDS = [
+  { key: "jobTitle", label: "المؤهل / الوظيفة", placeholder: "مثال: بكالوريوس تجارة — محاسب", type: "text", max: 120 },
+  { key: "email", label: "البريد الإلكتروني", placeholder: "name@example.com", type: "email", max: 160 },
+  { key: "birthDate", label: "تاريخ الميلاد", placeholder: "", type: "date", max: 10 },
+  { key: "address", label: "العنوان / المنطقة", placeholder: "مثال: جنزور — شارع المدارس", type: "text", max: 200 },
+  { key: "whatsapp", label: "رقم واتساب بديل", placeholder: "01xxxxxxxxx", type: "tel", max: 24 },
+  { key: "facebook", label: "رابط فيسبوك", placeholder: "https://facebook.com/...", type: "url", max: 300 },
+  { key: "bio", label: "نبذة عني", placeholder: "اكتب سطرين عنك، هواياتك، أو ما تحب أن يعرفه أهل جنزور عنك", type: "textarea", max: 600 },
+] as const;
+export type MemberProfileFieldKey = (typeof MEMBER_PROFILE_FIELDS)[number]["key"];
+export type MemberProfileValues = Record<MemberProfileFieldKey, string>;
+export const emptyMemberProfile: MemberProfileValues = { jobTitle: "", email: "", birthDate: "", address: "", whatsapp: "", facebook: "", bio: "" };
+/** ما يراه أي زائر في صفحة الملف الشخصي (بيانات العضو إن وُجد + مهنه المنشورة بنفس الرقم). */
+export type PublicProfile = {
+  id: string;
+  kind: "member" | "service";
+  name: string;
+  photoUrl: string;
+  phone: string;
+  memberSince: string;
+  profile: MemberProfileValues;
+  services: { id: string; name: string; categoryId: string; categoryName: string; address: string; description: string; photoUrl: string; rating: string; reviews: number; verified: boolean }[];
+};
 /** الحد الأقصى لملف الصورة الشخصية قبل الضغط في المتصفح. */
 export const SERVICE_PHOTO_MAX_FILE = 3 * 1024 * 1024;
 

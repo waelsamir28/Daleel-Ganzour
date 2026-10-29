@@ -12041,11 +12041,21 @@ html.dark .avatar-crop-zoom .icon-button { background: rgba(255, 255, 255, .06);
 .admin-shell[data-palette] .admin-select-check input, .admin-shell[data-palette] .admin-select-all input { accent-color: var(--ap-accent); }
 .admin-shell[data-palette] .status-badge.status-approved { background: var(--ap-pill); color: var(--ap-soft-text); }
 .admin-shell[data-palette] .design-studio-badge, .admin-shell[data-palette] .design-section-tabs button.is-active { background: linear-gradient(135deg, var(--ap-btn-a), var(--ap-btn-b)); color: #fff; border-color: transparent; }
-.admin-palette-picker { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid var(--ap-soft-border, #dce8eb); border-radius: 999px; background: rgba(255, 255, 255, .9); color: var(--ap-accent, #087f8c); }
-.admin-palette-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(15, 48, 92, .18); cursor: pointer; padding: 0; transition: transform .15s, box-shadow .15s; }
+/* منتقي لون اللوحة: داخل قائمة الأقسام (الجانبية على الكمبيوتر / المنسدلة على الموبايل) حتى لا يخرج عن الشاشة */
+.admin-palette-picker { display: flex; flex-direction: column; gap: 7px; margin: 10px 0 4px; padding: 9px 10px; border: 1px solid rgba(255, 255, 255, .14); border-radius: 12px; background: rgba(255, 255, 255, .06); color: var(--ap-nav, #c7c5ee); }
+.admin-palette-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; opacity: .9; }
+.admin-palette-dots { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-palette-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .85); box-shadow: 0 1px 4px rgba(0, 0, 0, .35); cursor: pointer; padding: 0; transition: transform .15s, box-shadow .15s; }
 .admin-palette-dot:hover { transform: scale(1.12); }
-.admin-palette-dot.is-active { transform: scale(1.15); box-shadow: 0 0 0 2px var(--ap-accent, #087f8c); }
-@media (max-width: 760px) { .admin-palette-picker { order: 9; width: 100%; justify-content: center; } }
+.admin-palette-dot.is-active { transform: scale(1.15); box-shadow: 0 0 0 2px var(--ap-nav-bar, #8b7cf6), 0 1px 4px rgba(0, 0, 0, .35); }
+.admin-palette-dot:disabled { cursor: progress; opacity: .7; }
+/* القائمة المنسدلة على الموبايل وأزرار الأقسام تأخذ لون اللوحة المختار */
+.admin-shell[data-palette] .admin-sidebar-open .admin-sidebar-menu { background: linear-gradient(165deg, var(--ap-sb-b) 0%, var(--ap-sb-c) 100%) !important; border-color: rgba(255, 255, 255, .14) !important; }
+.admin-shell[data-palette] .admin-sidebar nav button { background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .08); }
+.admin-shell[data-palette] .admin-sidebar nav button:hover:not(.active) { background: rgba(255, 255, 255, .14); color: #fff; }
+.admin-shell[data-palette] .admin-sidebar nav button.active { background: var(--ap-nav-active-bg) !important; color: var(--ap-nav-active) !important; border-color: transparent; box-shadow: 0 8px 20px rgba(0, 0, 0, .22); }
+.admin-shell[data-palette] .admin-mobile-menu-toggle { background: linear-gradient(135deg, var(--ap-btn-a), var(--ap-btn-b)) !important; border-color: rgba(255, 255, 255, .28) !important; color: #fff !important; }
+.admin-shell[data-palette] .admin-mobile-toggle-pill { background: rgba(255, 255, 255, .22); color: #fff; }
 
 /* ===== التصنيفات والتخصصات: أقسام منطوية (قسم واحد مفتوح) بلون كل قسم ===== */
 .category-management-group { position: relative; border-inline-start: 4px solid var(--group-color, #0876ce) !important; transition: box-shadow .18s; }
@@ -12104,3 +12114,135 @@ html.dark .avatar-crop-zoom .icon-button { background: rgba(255, 255, 255, .06);
 /* ===== بطاقة العمل: زر «احفظ في جهات الاتصال» (vCard) ===== */
 .circle-tool.is-contact { --tool: #0b8f57; }
 .circle-tool.is-contact.is-active { --tool: #047857; background: rgba(209, 250, 229, .95); border-color: #34d399; }
+
+/* ===== دائرة الصورة الشخصية على الكارت وصفحة التفاصيل (تظهر دائمًا) ===== */
+.profile-photo-circle { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; overflow: visible; cursor: pointer; font: inherit; color: #3b6a9a; border: 2px solid #fff; background: linear-gradient(160deg, #f3f8ff, #e3eefb); box-shadow: 0 0 0 2px var(--cat-light, #dbeafe), 0 6px 14px -6px rgba(15, 48, 92, .45); transition: transform .18s ease, box-shadow .18s ease; }
+.profile-photo-circle img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+.profile-photo-circle:hover, .profile-photo-circle:focus-visible { transform: scale(1.06); box-shadow: 0 0 0 3px var(--cat, #0878c9), 0 10px 20px -8px rgba(15, 48, 92, .5); outline: none; }
+.profile-photo-circle.is-empty { border-style: dashed; border-color: #9fbbdc; }
+.profile-photo-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; line-height: 1; }
+.profile-photo-empty small { font-size: 8px; font-weight: 900; color: #2f67a8; white-space: nowrap; }
+.profile-photo-owner-badge { position: absolute; inset-inline-end: -3px; bottom: -3px; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #0b8f57; color: #fff; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
+.provider-card-photo.profile-photo-circle { flex: none; align-self: center; margin-inline-start: auto; }
+.detail-v2-photo.profile-photo-circle { border-width: 3px; }
+.detail-v2-photo.profile-photo-circle .profile-photo-empty small { font-size: 9px; }
+html.dark .profile-photo-circle { border-color: #1b2b44; background: linear-gradient(160deg, #1f3351, #172842); color: #bcd6f3; box-shadow: 0 0 0 2px rgba(148, 163, 184, .25); }
+html.dark .profile-photo-circle.is-empty { border-color: #4b6a92; }
+html.dark .profile-photo-empty small { color: #bcd6f3; }
+/* نافذة رفع الصورة من الكارت */
+.profile-photo-modal { width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 18px; border-radius: 18px; background: #fff; box-shadow: 0 24px 60px rgba(7, 25, 40, .35); display: grid; gap: 12px; }
+.profile-photo-modal header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.profile-photo-modal header strong { font-size: 16px; font-weight: 900; color: #11345a; }
+.profile-photo-modal > p { margin: 0; font-size: 12px; color: #5b7894; line-height: 1.9; }
+.profile-photo-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.profile-photo-modal .form-error { color: #b91c1c; font-weight: 800; }
+html.dark .profile-photo-modal { background: #10203a; }
+html.dark .profile-photo-modal header strong { color: #e6f0fb; }
+html.dark .profile-photo-modal > p { color: #a9bdd6; }
+
+/* ===== صفحة الملف الشخصي العامة ===== */
+.profile-page { padding-bottom: 40px; }
+.profile-main { display: grid; gap: 14px; width: 100%; max-width: 680px; }
+.profile-hero-card { position: relative; overflow: hidden; display: grid; justify-items: center; gap: 8px; padding: 34px 20px 24px; border-radius: 24px; background: #fff; border: 1px solid #dde8f3; box-shadow: 0 18px 44px -24px rgba(15, 48, 92, .35); text-align: center; }
+.profile-hero-glow { position: absolute; inset: 0 0 auto 0; height: 118px; background: linear-gradient(135deg, var(--primary, #0878c9), #0d3f7d); }
+.profile-hero-glow::after { content: ""; position: absolute; inset: auto -20% -40px -20%; height: 80px; border-radius: 50%; background: #fff; }
+.profile-big-photo { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; width: 164px; height: 164px; padding: 0; border-radius: 50%; border: 5px solid #fff; background: linear-gradient(160deg, #eaf3ff, #d7e7fa); color: #3b6a9a; box-shadow: 0 16px 34px -14px rgba(15, 48, 92, .55), 0 0 0 2px #cfe0f5; overflow: hidden; cursor: zoom-in; transition: transform .2s ease; }
+.profile-big-photo:disabled { cursor: default; }
+.profile-big-photo.has-photo:hover { transform: scale(1.03); }
+.profile-big-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-name { position: relative; z-index: 1; margin: 8px 0 0; font-size: 24px; font-weight: 900; color: #0f2f52; }
+.profile-headline { margin: 0; font-size: 14px; font-weight: 800; color: #3a86d8; }
+.profile-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.profile-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: #eef5fd; color: #2f5f93; font-size: 11px; font-weight: 800; }
+.profile-badge.is-verified { background: #e6f7ee; color: #0b7a4b; }
+.profile-tools { margin-top: 8px; }
+.profile-page .circle-tool { opacity: 1; }
+.profile-edit-link { font-size: 12px; font-weight: 800; color: #0b8f57; text-decoration: none; }
+.profile-section { padding: 16px 18px; border-radius: 18px; background: #fff; border: 1px solid #e3ecf5; box-shadow: 0 10px 30px -22px rgba(15, 48, 92, .35); }
+.profile-section h2 { margin: 0 0 10px; font-size: 15px; font-weight: 900; color: #11345a; display: flex; align-items: center; gap: 6px; }
+.profile-bio p { margin: 0; font-size: 13.5px; line-height: 2; color: #3f5f80; white-space: pre-line; }
+.profile-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.profile-fact { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: #f6f9fd; border: 1px solid #e6eef7; min-width: 0; color: inherit; text-decoration: none; }
+.profile-fact.is-link:hover { border-color: #9cc3ec; background: #eef5fd; }
+.profile-fact-icon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 10px; background: #e3effc; color: #2b6cb0; }
+.profile-fact-copy { display: grid; gap: 1px; min-width: 0; }
+.profile-fact-copy small { font-size: 10.5px; color: #7a90a8; font-weight: 700; }
+.profile-fact-copy strong { font-size: 12.5px; color: #1d3f63; overflow-wrap: anywhere; }
+.profile-services { display: grid; gap: 8px; }
+.profile-service { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid #e6eef7; background: #fbfdff; text-decoration: none; color: inherit; transition: border-color .15s, transform .15s; }
+.profile-service:hover { border-color: #9cc3ec; transform: translateY(-1px); }
+.profile-service-avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #e9f1fb; color: #3b6a9a; border: 2px solid #fff; box-shadow: 0 0 0 1px #d6e4f3; }
+.profile-service-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-service-copy { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.profile-service-copy strong { font-size: 13.5px; color: #11345a; }
+.profile-service-copy small { font-size: 11px; color: #6c849d; }
+.profile-service-rating { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: #d97706; font-weight: 800; }
+.profile-service-arrow { color: #8aa4c0; flex: none; }
+.profile-qr-section { display: flex; align-items: center; gap: 14px; }
+.profile-qr-box { flex: none; padding: 8px; border-radius: 14px; background: #fff; border: 1px solid #e3ecf5; }
+.profile-qr-copy h2 { margin-bottom: 4px; }
+.profile-qr-copy p { margin: 0; font-size: 12px; color: #5b7894; line-height: 1.9; }
+.profile-brand { display: grid; justify-items: center; gap: 2px; padding: 18px 10px 6px; text-align: center; }
+.profile-brand-logo { width: 74px; height: 74px; object-fit: contain; background: transparent; filter: drop-shadow(0 6px 14px rgba(15, 48, 92, .18)); }
+.profile-brand strong { margin-top: 6px; font-size: 14px; font-weight: 900; color: #11345a; }
+.profile-brand small { font-size: 11px; color: #7a90a8; font-weight: 700; }
+/* الصورة بالحجم الكامل داخل دائرة عائمة — تُغلق بالضغط في أي مكان */
+.profile-lightbox { position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; gap: 14px; grid-auto-rows: max-content; align-content: center; padding: 20px; background: rgba(5, 16, 30, .82); backdrop-filter: blur(6px); cursor: zoom-out; animation: profile-fade .18s ease; }
+.profile-lightbox-circle { width: min(86vw, 86vh, 560px); height: min(86vw, 86vh, 560px); border-radius: 50%; overflow: hidden; border: 6px solid #fff; box-shadow: 0 30px 80px rgba(0, 0, 0, .55); animation: profile-pop .22s ease; }
+.profile-lightbox-circle img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-lightbox-caption { color: #e6f0fb; font-size: 13px; font-weight: 800; }
+.profile-lightbox-close { position: fixed; top: 14px; inset-inline-start: 14px; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer; }
+body.profile-lightbox-open { overflow: hidden; }
+@keyframes profile-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes profile-pop { from { transform: scale(.86); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (max-width: 560px) { .profile-facts { grid-template-columns: 1fr; } .profile-big-photo { width: 140px; height: 140px; } .profile-qr-section { flex-direction: column; text-align: center; } }
+html.dark .profile-hero-card, html.dark .profile-section, html.dark .profile-qr-box { background: #0f1f36; border-color: #22395a; }
+html.dark .profile-hero-glow::after { background: #0f1f36; }
+html.dark .profile-name, html.dark .profile-section h2, html.dark .profile-service-copy strong, html.dark .profile-brand strong, html.dark .profile-fact-copy strong { color: #e6f0fb; }
+html.dark .profile-bio p, html.dark .profile-qr-copy p { color: #b7c9df; }
+html.dark .profile-fact, html.dark .profile-service { background: #132743; border-color: #27405f; }
+html.dark .profile-fact-icon { background: #1d3a5e; color: #9ccafc; }
+html.dark .profile-badge { background: #1b3454; color: #bcd6f3; }
+html.dark .profile-big-photo { border-color: #0f1f36; }
+
+/* ===== «حسابي»: الصورة + زر تعديل الملف الشخصي + نافذة التعديل ===== */
+.profile-head-stack { display: grid; justify-items: center; gap: 8px; margin-bottom: 14px; }
+.profile-avatar-button { margin: 0; padding: 0; cursor: pointer; overflow: hidden; transition: transform .18s, box-shadow .18s; }
+.profile-avatar-button:hover { transform: scale(1.04); box-shadow: 0 0 0 4px #dbeafe; }
+.profile-avatar-button img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile-edit-button { border-radius: 999px; }
+.profile-editor { width: min(720px, 100%); max-height: calc(100dvh - 32px); display: grid; grid-template-rows: auto 1fr auto; border-radius: 20px; background: #fff; box-shadow: 0 24px 60px rgba(7, 25, 40, .35); overflow: hidden; text-align: right; }
+.profile-editor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 16px 18px 12px; border-bottom: 1px solid #e6eef7; }
+.profile-editor-head strong { display: block; font-size: 16px; font-weight: 900; color: #11345a; }
+.profile-editor-head small { display: block; margin-top: 2px; font-size: 11.5px; color: #6c849d; line-height: 1.8; }
+.profile-editor-body { overflow-y: auto; padding: 14px 18px; display: grid; gap: 14px; }
+.profile-editor-photo { display: grid; justify-items: center; }
+.profile-editor-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.profile-editor .field { display: grid; gap: 4px; min-width: 0; }
+.profile-editor .field.is-wide { grid-column: 1 / -1; }
+.profile-editor .field > span { font-size: 11.5px; font-weight: 800; color: #2f4f70; }
+.profile-editor .field > span em { font-style: normal; font-weight: 700; color: #8aa0b8; font-size: 10.5px; }
+.profile-editor .field input, .profile-editor .field textarea { width: 100%; padding: 9px 11px; border: 1px solid #cfdceb; border-radius: 10px; background: #fff; color: #10233a; font: inherit; font-size: 13px; }
+.profile-editor .field input:focus, .profile-editor .field textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, .18); }
+.profile-editor .field input:disabled { background: #f3f6fa; color: #6c849d; }
+.profile-editor .field small { font-size: 10.5px; color: #7a90a8; line-height: 1.7; }
+.profile-editor-qr { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: #f6f9fd; border: 1px solid #e3ecf5; }
+.profile-editor-qr svg { flex: none; background: #fff; border-radius: 10px; padding: 4px; }
+.profile-editor-qr strong { display: flex; align-items: center; gap: 5px; font-size: 13px; color: #11345a; }
+.profile-editor-qr small { display: block; margin: 3px 0 8px; font-size: 11px; color: #6c849d; line-height: 1.8; }
+.profile-editor-qr-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.profile-editor-note { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11.5px; color: #5b7894; }
+.profile-editor .form-notice { display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; }
+.profile-editor .form-notice.is-success { background: #e6f7ee; color: #0b7a4b; border: 1px solid #bfe8d1; }
+.profile-editor .form-notice.is-error { background: #fdecec; color: #b91c1c; border: 1px solid #f5c2c2; }
+.profile-editor-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid #e6eef7; background: #fbfdff; }
+.member-profile-card .form-notice.is-success { background: #e6f7ee; border-color: #bfe8d1; color: #0b7a4b; }
+@media (max-width: 560px) { .profile-editor-grid { grid-template-columns: 1fr; } .profile-editor-qr { flex-direction: column; text-align: center; } .profile-editor-qr strong { justify-content: center; } }
+html.dark .profile-editor { background: #0f1f36; }
+html.dark .profile-editor-head, html.dark .profile-editor-foot { border-color: #22395a; }
+html.dark .profile-editor-foot { background: #0c192c; }
+html.dark .profile-editor-head strong, html.dark .profile-editor-qr strong { color: #e6f0fb; }
+html.dark .profile-editor .field > span { color: #c9dbef; }
+html.dark .profile-editor .field input, html.dark .profile-editor .field textarea { background: #132743; border-color: #2c4668; color: #e6f0fb; }
+html.dark .profile-editor .field input:disabled { background: #0f1f36; color: #8aa0b8; }
+html.dark .profile-editor-qr { background: #132743; border-color: #27405f; }

@@ -1204,7 +1204,7 @@ test("data-confirmation reminder triggers after six months since the last confir
 });
 
 test("village stats count only approved non-demo services and never expose phone numbers", async () => {
-  const statsSource = readFileSync(new URL("../src/lib/stats.ts", import.meta.url), "utf8").replace('from "@/lib/catalog"', `from "${catalogModuleUrl}"`);
+  const statsSource = readFileSync(new URL("../src/lib/stats.ts", import.meta.url), "utf8").replaceAll('from "@/lib/catalog"', `from "${catalogModuleUrl}"`);
   const compiled = ts.transpileModule(statsSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText;
   const { computeVillageStats, villageStatsShareText } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
   const cats = catalog.initialCategories;
@@ -1250,4 +1250,27 @@ test("shared admin palette accepts only the known palette ids and falls back to 
   assert.equal(catalog.sanitizeAdminPalette("neon"), "indigo");
   assert.equal(catalog.sanitizeAdminPalette(undefined), "indigo");
   assert.equal(catalog.sanitizeAdminPalette(42), "indigo");
+});
+
+test("profile helpers: phone normalisation, profile/photo urls and vCard output", async () => {
+  assert.equal(catalog.phoneDigits("+20 109 999-8888"), "01099998888");
+  assert.equal(catalog.phoneDigits("٠١٠٩٩٩٩٨٨٨٨"), "01099998888");
+  assert.equal(catalog.memberPhotoUrl("abc", 0), "");
+  assert.equal(catalog.memberPhotoUrl("abc", 2), "/api/member-photo/abc?v=2");
+  assert.equal(catalog.profileUrl("x-1"), "/profile/x-1");
+  assert.equal(catalog.MEMBER_PROFILE_FIELDS.length, 7);
+  const vcardSource = readFileSync(new URL("../src/lib/vcard.ts", import.meta.url), "utf8").replaceAll('from "@/lib/catalog"', `from "${catalogModuleUrl}"`);
+  const vcardOut = ts.transpileModule(vcardSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText;
+  const vcard = await import(`data:text/javascript;base64,${Buffer.from(vcardOut).toString("base64")}`);
+  assert.equal(vcard.vcardPhone("01099998888"), "+201099998888");
+  assert.equal(vcard.vcardPhone("+20 109 999 8888"), "+201099998888");
+  const card = vcard.buildVCard({ name: "أحمد, السباك", phones: ["01099998888", "01011112222"], title: "سباكة", address: "شارع المدارس", url: "https://x.test/?service=1", email: "a@b.co" });
+  assert.ok(card.startsWith("BEGIN:VCARD\r\nVERSION:3.0"));
+  assert.ok(card.includes("FN:أحمد\\, السباك — دليل جنزور"));
+  assert.ok(card.includes("TEL;TYPE=CELL,VOICE,PREF:+201099998888"));
+  assert.ok(card.includes("TEL;TYPE=CELL,VOICE:+201011112222"));
+  assert.ok(card.includes("EMAIL;TYPE=INTERNET:a@b.co"));
+  assert.ok(card.includes("URL:https://x.test/?service=1"));
+  assert.ok(card.trim().endsWith("END:VCARD"));
+  assert.equal(vcard.vcardFileName('أحمد/السباك: "1"'), "أحمد السباك 1.vcf");
 });
