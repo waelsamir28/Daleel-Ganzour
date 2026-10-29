@@ -866,8 +866,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       {!scoped && !isFiltering && design.showOffersSection && offerServices.length > 0 && (
         <section className="container offers-section" aria-labelledby="offers-title" style={{ order: sectionOrderIndex("offers", 3) }}>
           <div className="offers-head">
-            <h2 id="offers-title"><BadgePercent size={22}/>عروض الأسبوع<span className="offers-count">{offerServices.length}</span></h2>
-            <p>خصومات وعروض محدودة المدة من مهنيي ومحلات جنزور — اضغط العرض لفتح البطاقة.</p>
+            <h2 id="offers-title"><BadgePercent size={20}/>عروض وخصومات محدودة المدة<span className="offers-count">{offerServices.length}</span></h2>
+            <p>اضغط على العرض لفتح بطاقة مقدم العرض</p>
           </div>
           <div className="offers-strip" role="list">
             {offerServices.slice(0, 12).map((service) => {
@@ -880,7 +880,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
                   <span className="offer-card-body">
                     <strong className="offer-card-title">{offer.title}</strong>
                     <span className="offer-card-name">{service.name}</span>
-                    <span className="offer-card-meta"><span>{cat.name}</span><em className={`offer-countdown ${left.urgent ? "is-urgent" : left.days <= 3 ? "is-soon" : ""}`}><Timer size={12} aria-hidden="true"/>{left.label}</em></span>
+                    <span className="offer-card-meta"><span className="offer-card-cat">{cat.name}</span><em className={`offer-countdown ${left.urgent ? "is-urgent" : left.days <= 3 ? "is-soon" : ""}`}><Timer size={12} aria-hidden="true"/>{left.label}</em></span>
                   </span>
                 </button>
               );
