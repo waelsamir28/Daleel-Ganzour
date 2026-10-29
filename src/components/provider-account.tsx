@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
-import { activeOffer, servicePhotoUrl, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerDaysLeft, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
+import { BellRing, RefreshCw, BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
+import { activeOffer, servicePhotoUrl, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerTimeLeft, recentlyExpiredOffer, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
 import CenterScheduleEditor from "@/components/center-schedule-editor";
@@ -94,6 +94,10 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
     void call("offer", { offer: { title: offerTitle, details: offerDetails, days: offerDays } });
   }
   const currentOffer = activeOffer(service, now || undefined);
+  const expiredOffer = currentOffer ? null : recentlyExpiredOffer(service, now || undefined);
+  const offerEndingSoon = currentOffer ? offerTimeLeft(currentOffer, now || undefined).days < 3 : false;
+  /** «جدّد العرض» بضغطة واحدة: نفس العنوان والتفاصيل، بمدة جديدة. */
+  function renewOffer(offer: { title: string; details: string }, days: number) { void call("offer", { offer: { title: offer.title, details: offer.details, days } }); }
   const stale = needsDataConfirmation(service, now || undefined);
   const sinceDays = daysSinceConfirmed(service, now || undefined);
 
@@ -152,10 +156,25 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
 
     <form className="availability-card my-form my-offer" onSubmit={submitOffer}>
       <header className="my-section-head"><BadgePercent size={18}/><div><h2>عرض أو خصم مؤقت</h2><span>يظهر وسم «عرض» على بطاقتك ويدخل صف «عروض الأسبوع» في الصفحة الرئيسية، وينتهي تلقائيًا (حتى {OFFER_MAX_DAYS} يومًا).</span></div></header>
+      {(expiredOffer || (currentOffer && offerEndingSoon)) && (() => {
+        const target = (expiredOffer ?? currentOffer)!;
+        return <div className={`my-offer-renew ${expiredOffer ? "is-expired" : ""}`} role="status">
+          <div className="my-offer-renew-text">
+            <BellRing size={18} aria-hidden="true"/>
+            <div>
+              <strong>{expiredOffer ? "انتهى عرضك «" + target.title + "»" : `عرضك «${target.title}» ينتهي قريبًا — ${offerTimeLeft(currentOffer!, now || undefined).label}`}</strong>
+              <span>جدّده بضغطة واحدة بنفس العنوان والتفاصيل:</span>
+            </div>
+          </div>
+          <div className="my-offer-renew-actions">
+            {[7, 14, 30].map((days) => <button type="button" key={days} className="my-offer-renew-btn" disabled={busy !== ""} onClick={() => renewOffer(target, days)}><RefreshCw size={14}/> جدّد {days} يوم</button>)}
+          </div>
+        </div>;
+      })()}
       {currentOffer && (
         <div className="my-offer-current">
           <BadgePercent size={18}/>
-          <div><strong>{currentOffer.title}</strong>{currentOffer.details && <span>{currentOffer.details}</span>}<small>{offerDaysLeft(currentOffer, now || undefined) === 1 ? "ينتهي اليوم" : `باقي ${offerDaysLeft(currentOffer, now || undefined)} يوم`}</small></div>
+          <div><strong>{currentOffer.title}</strong>{currentOffer.details && <span>{currentOffer.details}</span>}<small className={offerTimeLeft(currentOffer, now || undefined).urgent ? "is-urgent" : ""}>{offerTimeLeft(currentOffer, now || undefined).label}</small></div>
           <button type="button" className="my-offer-remove" onClick={() => void call("offer", { offer: null })} disabled={busy !== ""} aria-label="إلغاء العرض"><Trash2 size={16}/> إلغاء</button>
         </div>
       )}

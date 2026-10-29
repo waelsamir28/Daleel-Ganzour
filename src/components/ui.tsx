@@ -77,7 +77,7 @@ export function ServiceArt({ category, item }: { category: string; item?: Catego
   if (category === "mechanics") return <div className={"service-art mechanic-art"}><Cog size={78} strokeWidth={2.8} className="art-cog"/><Wrench size={64} strokeWidth={2} className="art-wrench"/></div>;
   return <div className={"service-art"} style={{ background: `radial-gradient(circle, ${info.light} 48%, transparent 72%)` }}><span className="service-art-disc" style={{ background: `linear-gradient(135deg, ${info.color}, ${info.color}d0)` }}><CategoryIcon icon={info.icon} size={48}/></span></div>;
 }
-export function Modal({ title, subtitle, children, onClose, wide = false, floating = false, className = "" }: { title: string; subtitle?: string; children: ReactNode; onClose: () => void; wide?: boolean; floating?: boolean; className?: string }) {
+export function Modal({ title, subtitle, children, onClose, wide = false, floating = false, className = "", autoFocus = true }: { title: string; subtitle?: string; children: ReactNode; onClose: () => void; wide?: boolean; floating?: boolean; className?: string; autoFocus?: boolean }) {
   const titleId = useId(); const panel = useRef<HTMLDivElement>(null); const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
   useEffect(() => {
@@ -90,9 +90,12 @@ export function Modal({ title, subtitle, children, onClose, wide = false, floati
     }
     const elements = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]') ?? []);
     const isDetailView = Boolean(panel.current?.querySelector(".service-details"));
-    const targetFocus = isDetailView
-      ? elements()[0]
-      : (panel.current?.querySelector<HTMLElement>("input:not([type=hidden]), select, textarea") ?? elements()[0]);
+    // autoFocus=false: لا نضع المؤشر داخل أي حقل تلقائيًا (مثل نافذة البحث) — المستخدم هو من يختار متى يكتب.
+    const targetFocus = !autoFocus
+      ? panel.current
+      : isDetailView
+        ? elements()[0]
+        : (panel.current?.querySelector<HTMLElement>("input:not([type=hidden]), select, textarea") ?? elements()[0]);
     targetFocus?.focus({ preventScroll: true });
     const handler = (event: KeyboardEvent) => {
       const panels = document.querySelectorAll(".modal-panel");
@@ -102,6 +105,6 @@ export function Modal({ title, subtitle, children, onClose, wide = false, floati
     };
     document.addEventListener("keydown", handler);
     return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", handler); previousFocus?.focus(); };
-  }, []);
-  return <div className={`modal-overlay ${floating ? "modal-overlay-floating" : ""}`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><div className={`modal-panel ${wide ? "modal-wide" : ""} ${floating ? "modal-floating" : ""} ${className}`} role="dialog" aria-modal="true" aria-labelledby={titleId} ref={panel}><div className="modal-heading"><div><h2 id={titleId}>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><button type="button" className="icon-button modal-close" onClick={onClose} aria-label="إغلاق"><X size={21}/></button></div><div className="modal-body">{children}</div></div></div>;
+  }, [autoFocus]);
+  return <div className={`modal-overlay ${floating ? "modal-overlay-floating" : ""}`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><div className={`modal-panel ${wide ? "modal-wide" : ""} ${floating ? "modal-floating" : ""} ${className}`} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} ref={panel}><div className="modal-heading"><div><h2 id={titleId}>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><button type="button" className="icon-button modal-close" onClick={onClose} aria-label="إغلاق"><X size={21}/></button></div><div className="modal-body">{children}</div></div></div>;
 }
