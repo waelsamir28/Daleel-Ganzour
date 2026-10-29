@@ -146,7 +146,7 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-outer-card", design.outerCardStyle || "modern");
   root.setAttribute("data-design-search-trigger", design.searchTriggerStyle || "pill-gradient");
   root.setAttribute("data-design-splash-enabled", design.splashEnabled ? "true" : "false");
-  root.setAttribute("data-design-splash-image", design.splashImageUrl || "/images/logo-daleel-transparent.png");
+  root.setAttribute("data-design-splash-image", design.splashImageUrl || "/images/logo-app.webp");
   root.setAttribute("data-design-splash-duration", design.splashDuration || "900");
   root.setAttribute("data-design-splash-audience", design.splashAudience || "installed");
   root.setAttribute("data-design-splash-stickers", design.splashStickers === false ? "false" : "true");

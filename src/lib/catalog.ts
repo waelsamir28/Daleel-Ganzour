@@ -1719,7 +1719,7 @@ export const defaultDesignSettings: DesignSettings = {
   footerBgColor: "#1b2a3d",
   showFooterWhatsapp: true,
   splashEnabled: true,
-  splashImageUrl: "/images/logo-daleel-transparent.png",
+  splashImageUrl: "/images/logo-app.webp",
   splashDuration: "900",
   splashAudience: "installed",
   splashStickers: true,
@@ -2335,6 +2335,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.showFooterWhatsapp = pickBool(record.showFooterWhatsapp, defaultDesignSettings.showFooterWhatsapp);
   next.splashEnabled = pickBool(record.splashEnabled, defaultDesignSettings.splashEnabled);
   next.splashImageUrl = pickText(record.splashImageUrl, defaultDesignSettings.splashImageUrl, 300);
+  // الشعار الافتراضي القديم المحفوظ في الإعدادات → شعار التطبيق الجديد.
+  if (next.splashImageUrl === "/images/logo-daleel-transparent.png") next.splashImageUrl = defaultDesignSettings.splashImageUrl;
   next.splashDuration = pickEnum(record.splashDuration, ["900", "1500", "2500"] as const, defaultDesignSettings.splashDuration);
   next.splashAudience = pickEnum(record.splashAudience, ["installed", "all"] as const, defaultDesignSettings.splashAudience);
   next.splashStickers = pickBool(record.splashStickers, defaultDesignSettings.splashStickers);

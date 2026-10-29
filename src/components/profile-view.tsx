@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, BadgeCheck, Cake, Check, Copy, Globe, GraduationCap, Mail, MapPin, MessageCircle, Phone, QrCode, Share2, Star, UserPlus, UserRound, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Cake, Check, Copy, Globe, GraduationCap, Mail, MapPin, MessageCircle, Phone, QrCode, Share2, Star, UserPlus, X } from "lucide-react";
+import AvatarPlaceholder from "@/components/avatar-placeholder";
 import DesignApplicator from "@/components/design-applicator";
 import QrSvg from "@/components/qr-svg";
 import { Logo } from "@/components/ui";
@@ -79,7 +80,7 @@ export default function ProfileView({ profile, settings, design, origin }: Props
         <div className="profile-hero-glow" aria-hidden="true"/>
         <button type="button" className={`profile-big-photo ${profile.photoUrl ? "has-photo" : ""}`} onClick={() => profile.photoUrl && setLightbox(true)} aria-label={profile.photoUrl ? "عرض الصورة بالحجم الكامل" : "لا توجد صورة شخصية"} disabled={!profile.photoUrl}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {profile.photoUrl ? <img src={profile.photoUrl} alt={`صورة ${profile.name}`} /> : <UserRound size={88} strokeWidth={1.4}/>}
+          {profile.photoUrl ? <img src={profile.photoUrl} alt={`صورة ${profile.name}`} /> : <AvatarPlaceholder />}
         </button>
         <h1 className="profile-name">{profile.name}</h1>
         <p className="profile-headline">{headline}</p>
@@ -118,7 +119,7 @@ export default function ProfileView({ profile, settings, design, origin }: Props
           {profile.services.map((item) => <Link key={item.id} href={`/?service=${encodeURIComponent(item.id)}`} className="profile-service">
             <span className="profile-service-avatar">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {item.photoUrl ? <img src={item.photoUrl} alt=""/> : <UserRound size={22}/>}
+              {item.photoUrl ? <img src={item.photoUrl} alt=""/> : <AvatarPlaceholder />}
             </span>
             <span className="profile-service-copy">
               <strong>{item.name}</strong>

@@ -3,14 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import { Camera, Check, UserRound, X } from "lucide-react";
+import { Camera, Check, X } from "lucide-react";
 import { profileUrl, servicePhotoUrl, type ServiceRecord } from "@/lib/catalog";
 import { ownsService, refreshOwnership, useOwnership } from "@/lib/viewer-ownership";
 import AvatarPicker from "@/components/avatar-picker";
+import AvatarPlaceholder from "@/components/avatar-placeholder";
 
 /**
  * دائرة الصورة الشخصية على كارت المهني (تظهر دائمًا حتى بلا صورة):
- * - بلا صورة: شكل صورة شخصية + كلمة «أضف صورة».
+ * - بلا صورة: شعار التطبيق كصورة بديلة (+ شارة «أضف صورة» لصاحب الكارت فقط).
  * - الضغط من الزائر → يفتح الملف الشخصي لصاحب الكارت.
  * - الضغط من صاحب الكارت (عضو بنفس الرقم أو دخل على رابط «حسابي») → يفتح رفع/تغيير الصورة فورًا.
  */
@@ -45,7 +46,7 @@ export default function ProfilePhotoCircle({ service, size = 54, className = "",
       {url
         // eslint-disable-next-line @next/next/no-img-element
         ? <img src={url} alt="" loading="lazy" decoding="async" />
-        : <span className="profile-photo-empty"><UserRound size={Math.round(size * 0.4)} strokeWidth={1.8} /><small>أضف صورة</small></span>}
+        : <span className="profile-photo-empty"><AvatarPlaceholder />{owner && <small>أضف صورة</small>}</span>}
       {owner && <span className="profile-photo-owner-badge" aria-hidden="true"><Camera size={11} /></span>}
     </button>
     {open && <PhotoUploadModal service={service} currentUrl={url} token={ownership.tokens[service.id]} onClose={() => setOpen(false)} onSaved={(nextVersion) => { setLocalVersion(nextVersion); setOpen(false); router.refresh(); }} />}

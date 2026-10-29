@@ -9463,3 +9463,13 @@ html.dark .offers-dots-count { color: #f7d774; }
 .detail-credit:hover { background: #0f5bb5; color: #fff; }
 html.dark .detail-credit { background: #1b2d47; color: #bcd6f7; }
 @media print { .detail-credit { display: none; } }
+
+/* ===== الصورة البديلة (شعار التطبيق) لمن لم يضف صورة شخصية ===== */
+.avatar-placeholder { width: 100%; height: 100%; display: block; border-radius: 50%; object-fit: contain; padding: 7%; box-sizing: border-box; background: radial-gradient(circle at 50% 35%, #fff 0%, #fff4e0 70%, #ffe4b8 100%); pointer-events: none; user-select: none; }
+.profile-photo-circle.is-empty { border-style: solid; border-color: #ffd58a; }
+.profile-photo-circle .profile-photo-empty { position: absolute; inset: 0; display: block; }
+.profile-photo-circle .profile-photo-empty .avatar-placeholder { position: absolute; inset: 0; }
+.profile-photo-circle .profile-photo-empty small { position: absolute; inset-inline: 0; bottom: 0; padding: 2px 0 3px; border-radius: 0 0 999px 999px; background: rgba(15, 48, 92, .78); color: #fff; font-size: 7px; font-weight: 900; text-align: center; line-height: 1; }
+.profile-big-photo .avatar-placeholder { padding: 9%; }
+.profile-avatar-button .avatar-placeholder { padding: 8%; }
+html.dark .avatar-placeholder { background: radial-gradient(circle at 50% 35%, #ffffff 0%, #f6e9d2 70%, #e8cf9f 100%); }
