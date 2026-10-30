@@ -1565,6 +1565,100 @@ html.dark .telecom-all-link { color: #8ac8ff; }
 .codes-qr strong { display: block; color: #12344f; font-size: 12px; font-weight: 900; }
 .codes-qr span { display: block; margin-top: 2px; color: #7b93a9; font-size: 10.5px; font-weight: 600; line-height: 1.7; }
 
+/* ===== أرقام البنوك وتطبيقات الدفع ===== */
+.payments-section { display: grid; gap: 8px; padding: 14px 15px; border: 1px solid #e2ecf6; border-radius: 18px; background: #fff; }
+.payments-section > h2 { display: flex; align-items: center; gap: 7px; margin: 0; color: #12344f; font-size: 14px; font-weight: 900; }
+.payments-section > h2 svg { color: #0a8f54; }
+.payments-section > p { margin: 0; color: #7b93a9; font-size: 11px; font-weight: 600; line-height: 1.8; }
+.payments-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.payments-controls .codes-search { flex: 1 1 220px; }
+.payments-tabs { display: inline-flex; gap: 5px; }
+.payments-tabs button { display: inline-flex; align-items: center; gap: 5px; padding: 7px 11px; border: 1px solid #e0eaf4; border-radius: 11px; background: #fff; color: #52708b; font-size: 11px; font-weight: 800; }
+.payments-tabs button.is-active { border-color: #9ed3b2; background: #eefbf3; color: #0a8f54; }
+.payments-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.payment-card { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 11px; border: 1px solid #e6eef7; border-radius: 12px; background: #fbfdff; transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; }
+.payment-card:hover { transform: translateY(-1px); border-color: #bfe0cd; box-shadow: 0 6px 14px #0b3d6b12; }
+.payment-card.is-app { border-color: #d3ecdd; background: #f7fdfa; }
+.payment-card-copy { display: grid; gap: 1px; min-width: 0; }
+.payment-card-copy strong { color: #22445f; font-size: 11.5px; font-weight: 800; line-height: 1.5; }
+.payment-card-copy small { color: #8298ae; font-size: 9.5px; font-weight: 600; line-height: 1.5; }
+.payment-card > b { flex: none; color: #0a8f54; font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.payment-card.is-bank > b { color: #0b5f9e; }
+html.dark .payments-section { border-color: #22384e; background: #0f2133; }
+html.dark .payments-section > h2 { color: #eef6ff; }
+html.dark .payments-section > p { color: #93aec6; }
+html.dark .payments-tabs button { border-color: #23394f; background: #0f2133; color: #a7c4dd; }
+html.dark .payments-tabs button.is-active { border-color: #2c7a52; background: #10281d; color: #6fe0a5; }
+html.dark .payment-card { border-color: #1e3448; background: #0b1a29; }
+html.dark .payment-card.is-app { border-color: #244a37; background: #0d2218; }
+html.dark .payment-card-copy strong { color: #dcebf9; }
+html.dark .payment-card-copy small { color: #8fa9c2; }
+html.dark .payment-card > b { color: #6fe0a5; }
+html.dark .payment-card.is-bank > b { color: #9fd2ff; }
+@media (max-width: 600px) { .payments-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* بطاقة «ملصق الطباعة» */
+.telecom-extras { display: grid; gap: 8px; }
+.telecom-extra-card { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border: 1px solid #e2ecf6; border-radius: 14px; background: #fff; transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; }
+.telecom-extra-card:hover { transform: translateY(-1px); border-color: #bfd8ee; box-shadow: 0 8px 18px #0b3d6b12; }
+.telecom-extra-icon { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 11px; background: #eef5fc; color: #0b7fd4; }
+.telecom-extra-card > span:nth-child(2) { display: grid; gap: 1px; flex: 1; min-width: 0; }
+.telecom-extra-card strong { color: #12344f; font-size: 12px; font-weight: 900; }
+.telecom-extra-card small { color: #7b93a9; font-size: 10px; font-weight: 600; line-height: 1.6; }
+.telecom-extra-card > svg { flex: none; color: #93aec6; }
+html.dark .telecom-extra-card { border-color: #22384e; background: #0f2133; }
+html.dark .telecom-extra-card strong { color: #eef6ff; }
+html.dark .telecom-extra-card small { color: #93aec6; }
+html.dark .telecom-extra-icon { background: #14293f; color: #8ac8ff; }
+
+/* ===== ملصق الأكواد للطباعة (A4) ===== */
+.poster-page { min-height: 100vh; background: #eef3f9; padding: 14px; display: grid; gap: 12px; justify-items: center; }
+.poster-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 780px; }
+.poster-toolbar > span { flex: 1 1 100%; color: #6b8298; font-size: 10.5px; font-weight: 600; }
+.poster { width: 100%; max-width: 780px; padding: 22px 24px; border-radius: 16px; background: #fff; color: #14304a; box-shadow: 0 12px 34px #0b3d6b1a; display: grid; gap: 14px; }
+.poster-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding-bottom: 12px; border-bottom: 2px solid #e6eef7; }
+.poster-eyebrow { display: inline-flex; align-items: center; gap: 5px; color: #0a6fc2; font-size: 10.5px; font-weight: 900; }
+.poster-head h1 { margin: 4px 0 3px; color: #10314d; font-size: 25px; font-weight: 900; line-height: 1.25; }
+.poster-head p { margin: 0; max-width: 46ch; color: #5c7791; font-size: 11px; font-weight: 600; line-height: 1.8; }
+.poster-qr { display: grid; justify-items: center; gap: 5px; flex: none; }
+.poster-qr svg { border: 6px solid #f4f8fd; border-radius: 12px; }
+.poster-qr small { color: #6b8298; font-size: 8.5px; font-weight: 700; line-height: 1.5; text-align: center; }
+.poster-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.poster-card { display: grid; gap: 8px; padding: 11px 12px; border: 1px solid #e2ecf6; border-radius: 13px; background: #fbfdff; border-top: 4px solid var(--category-color, #0878c9); }
+.poster-card header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.poster-card header strong { color: #10314d; font-size: 14px; font-weight: 900; }
+.poster-card header small { color: #8298ae; font-size: 9px; font-weight: 700; }
+.poster-card ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.poster-card li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 8px; background: #fff; border: 1px solid #eef3f9; }
+.poster-card li span { color: #3f6079; font-size: 10.5px; font-weight: 700; }
+.poster-card li b { color: var(--brand-deep, #0a5fa8); font-size: 12.5px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.poster-strip { display: grid; gap: 6px; padding-top: 6px; border-top: 1px dashed #dbe7f2; }
+.poster-strip h2 { margin: 0; color: #10314d; font-size: 12px; font-weight: 900; }
+.poster-strip-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.poster-strip-grid a { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border: 1px solid #e6eef7; border-radius: 9px; background: #fff; }
+.poster-strip-grid a span { color: #3f6079; font-size: 10px; font-weight: 700; }
+.poster-strip-grid a b { color: #d6334b; font-size: 12.5px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.poster-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 10px; border-top: 2px solid #e6eef7; }
+.poster-foot strong { display: block; color: #10314d; font-size: 12.5px; font-weight: 900; }
+.poster-foot span { color: #6b8298; font-size: 10px; font-weight: 700; }
+.poster-foot-note { max-width: 32ch; text-align: left; font-size: 8.5px !important; font-weight: 600 !important; line-height: 1.6; }
+@media print {
+  @page { size: A4; margin: 8mm; }
+  html, body { background: #fff !important; }
+  .poster-toolbar, .site-footer, .floating-about-fab, .floating-quick-whatsapp, .app-info-fab { display: none !important; }
+  .poster-page { padding: 0; background: #fff; }
+  .poster { max-width: none; width: 100%; padding: 0; border-radius: 0; box-shadow: none; }
+  .poster-card, .poster-strip-grid a { break-inside: avoid; }
+}
+@media (max-width: 620px) {
+  .poster { padding: 16px; }
+  .poster-head { flex-direction: column; }
+  .poster-head h1 { font-size: 20px; }
+  .poster-grid { grid-template-columns: minmax(0, 1fr); }
+  .poster-strip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .poster-foot { flex-direction: column; align-items: flex-start; }
+}
+
 /* ===== صفحة الأكواد الكاملة /telecom ===== */
 .telecom-page { min-height: 100vh; background: #f2f6fb; }
 .telecom-page-main { display: grid; gap: 14px; padding-block: 12px 30px; }

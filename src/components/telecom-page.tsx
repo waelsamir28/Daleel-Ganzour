@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, CloudOff, MessageCircle, PhoneCall, Smartphone, Siren } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CloudOff, MessageCircle, PhoneCall, QrCode, Smartphone, Siren } from "lucide-react";
 import DesignApplicator from "@/components/design-applicator";
 import { Logo } from "@/components/ui";
 import QrSvg from "@/components/qr-svg";
 import { TelecomLogo } from "@/components/telecom-logos";
+import PaymentNumbers from "@/components/payment-numbers";
 import TelecomCodes from "@/components/telecom-codes";
 import { defaultDesignSettings, type PublicDirectory, type PublicUtilityContact } from "@/lib/catalog";
 import { telecomOperators, telecomPageUrl, type TelecomOperator } from "@/lib/telecom";
@@ -124,6 +125,19 @@ export default function TelecomPage({ data, utilities }: Props) {
           ))}
         </div>
       </section>
+
+      <PaymentNumbers/>
+
+      <div className="telecom-extras">
+        <Link href="/telecom/poster" className="telecom-extra-card">
+          <span className="telecom-extra-icon"><QrCode size={18}/></span>
+          <span>
+            <strong>ملصق جاهز للطباعة (A4)</strong>
+            <small>أهم الأكواد + QR للصفحة — علّقه في المحل أو المكتب</small>
+          </span>
+          <ArrowLeft size={15}/>
+        </Link>
+      </div>
 
       <p className="telecom-page-note">
         الأكواد والأرقام مأخوذة من أدلة الشركات وقد تُحدّثها من وقت لآخر. لو كود ما اشتغلش، اتصل بخدمة العملاء: فودافون 888 · أورنج 110 · اتصالات 333 · وي 111.
