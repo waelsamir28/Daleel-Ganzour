@@ -36,7 +36,7 @@ export type TelecomOperator = {
   colorDeep: string;
   /** جملة قصيرة تظهر في نافذة الشركة. */
   summary: string;
-  /** أهم رقمين يظهران داخل الزر نفسه. */
+  /** أهم ثلاثة أرقام/أكواد تظهر على الزر نفسه: العملاء، الرصيد، الشحن. */
   quick: { label: string; row: TelecomRow }[];
   groups: TelecomGroup[];
 };
@@ -54,6 +54,7 @@ export const telecomOperators: TelecomOperator[] = [
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء فودافون", code: "888", kind: "number" } },
       { label: "الرصيد", row: { label: "الاستعلام عن الرصيد", code: "*888#", kind: "ussd" } },
+      { label: "الشحن", row: { label: "شحن كارت الرصيد", code: "*858*", kind: "ussd" } },
     ],
     groups: [
       {
@@ -110,6 +111,7 @@ export const telecomOperators: TelecomOperator[] = [
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء أورنج", code: "110", kind: "number" } },
       { label: "الرصيد", row: { label: "قائمة الرصيد والخدمات", code: "#100#", kind: "ussd" } },
+      { label: "الشحن", row: { label: "شحن كارت الرصيد", code: "*102*", kind: "ussd" } },
     ],
     groups: [
       {
@@ -163,6 +165,7 @@ export const telecomOperators: TelecomOperator[] = [
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء اتصالات", code: "333", kind: "number" } },
       { label: "الرصيد", row: { label: "الاستعلام عن الرصيد", code: "*555#", kind: "ussd" } },
+      { label: "الشحن", row: { label: "شحن كارت الرصيد", code: "*556*", kind: "ussd" } },
     ],
     groups: [
       {
@@ -218,6 +221,7 @@ export const telecomOperators: TelecomOperator[] = [
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء وي", code: "111", kind: "number" } },
       { label: "الرصيد", row: { label: "الاستعلام عن الرصيد", code: "*550#", kind: "ussd" } },
+      { label: "الشحن", row: { label: "شحن كارت الرصيد", code: "*555*", kind: "ussd" } },
     ],
     groups: [
       {
@@ -233,6 +237,7 @@ export const telecomOperators: TelecomOperator[] = [
         icon: "wallet",
         rows: [
           { label: "الاستعلام عن الرصيد", code: "*550#", kind: "ussd" },
+          { label: "شحن كارت الرصيد", code: "*555*", kind: "ussd", note: "ثم أدخل رقم الكارت" },
           { label: "تحويل الرصيد", code: "*551#", kind: "ussd", note: "ثم اتبع القائمة: رقم المستلم ثم المبلغ" },
           { label: "سلفني", code: "*504#", kind: "ussd" },
           { label: "كلمني", code: "*515*", kind: "ussd", note: "ثم رقم الهاتف المطلوب" },
