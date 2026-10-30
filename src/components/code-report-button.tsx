@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, Flag, Loader2 } from "lucide-react";
 
 type Props = {
-  /** نطاق الكود: شركة المحمول أو landline/gov. */
+  /** نطاق الكود: شركة محمول أو landline أو banks. */
   scope: string;
   code: string;
   label: string;

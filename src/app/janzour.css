@@ -9806,3 +9806,217 @@ html.dark .code-report.is-sent { border-color: #2c7a52; background: #10281d; col
 html.dark .code-report.is-error { border-color: #6b4a1f; background: #241a0d; color: #f0b979; }
 html.dark .number-section-highlight { border-color: #244a3f; background: #0d201c; color: #a7e3d4; }
 @media (max-width: 600px) { .number-section .codes-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ===== /telecom الجديد: كروت مربّعة + شاشات شركات ===== */
+.telecom-home { display: grid; gap: 10px; }
+.telecom-home-head { display: grid; gap: 2px; }
+.telecom-home-head h2 { margin: 0; color: #12344f; font-size: 16px; font-weight: 900; }
+.telecom-home-head p { margin: 0; color: #7b93a9; font-size: 11px; font-weight: 600; }
+.telecom-home-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 900px) { .telecom-home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.telecom-home-card {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  aspect-ratio: 1 / 1; padding: 12px 8px;
+  border: 1px solid #e2ecf6; border-radius: 20px; background: #fff;
+  box-shadow: 0 2px 6px #0b3d6b0a;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.telecom-home-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--screen-color) 38%, #e2ecf6); box-shadow: 0 12px 22px #0b3d6b14; }
+.telecom-home-card.is-active {
+  border-color: var(--screen-color);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--screen-color) 9%, #fff), #fff 70%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--screen-color) 14%, #fff), 0 12px 22px color-mix(in srgb, var(--screen-color) 16%, transparent);
+}
+.telecom-home-logo { display: grid; place-items: center; width: 100%; min-height: 52px; }
+.telecom-home-logo svg, .telecom-home-logo img { max-width: 100%; }
+.telecom-home-glyph {
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px;
+  background: color-mix(in srgb, var(--screen-color) 12%, #fff); color: var(--screen-color);
+}
+.telecom-home-card strong { color: #17324c; font-size: 13px; font-weight: 900; text-align: center; line-height: 1.4; }
+.telecom-home-card small { color: #8aa0b5; font-size: 10px; font-weight: 700; }
+.telecom-home-card.is-active strong { color: var(--screen-color); }
+
+/* شاشة الشركة: عنوان سطرين بلون الشركة + وصف متوسّط */
+.telecom-screen-body { display: grid; gap: 10px; }
+/* بطاقات الأكواد: 3 أعمدة على الشاشات الكبيرة حتى تبقى قريبة من المربّع */
+.telecom-screen-body .codes-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .telecom-screen-body .codes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.telecom-screen-head { display: grid; gap: 6px; text-align: center; padding: 2px 0 4px; }
+.telecom-screen-title {
+  display: grid; gap: 0; margin: 0;
+  color: var(--screen-color); font-size: 22px; font-weight: 900; line-height: 1.35;
+  text-align: center;
+}
+.telecom-screen-title span { display: block; }
+.telecom-screen-title span:first-child { font-size: 14px; letter-spacing: .2px; opacity: .78; }
+.telecom-screen-summary { max-width: 560px; margin: 0 auto; color: #52708b; font-size: 12px; font-weight: 700; line-height: 1.85; }
+.telecom-screen-help { max-width: 620px; margin: 0 auto; color: #8298ae; font-size: 10.5px; font-weight: 600; line-height: 1.85; }
+
+/* زر «كل الأكواد» البارز */
+.all-codes-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 11px 13px; border: 0; border-radius: 16px;
+  background: linear-gradient(135deg, var(--screen-color), var(--screen-deep));
+  color: #fff; text-align: start;
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--screen-color) 30%, transparent);
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.all-codes-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 26px color-mix(in srgb, var(--screen-color) 36%, transparent); }
+.all-codes-btn.is-open { filter: saturate(1.05); }
+.all-codes-icon { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 12px; background: #ffffff26; }
+.all-codes-copy { display: grid; gap: 1px; min-width: 0; }
+.all-codes-copy strong { font-size: 13.5px; font-weight: 900; }
+.all-codes-copy small { font-size: 10.5px; font-weight: 600; opacity: .88; }
+
+/* أزرار الأقسام: مربّعات ملوّنة (صفّان) */
+.group-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 430px; margin-inline: auto; }
+.group-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  aspect-ratio: 1 / 1; padding: 10px;
+  border: 0; border-radius: 20px;
+  background: linear-gradient(150deg, var(--tile-from), var(--tile-to));
+  color: #fff; text-align: center;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--tile-from) 28%, transparent);
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.group-tile:hover { transform: translateY(-2px); }
+.group-tile:not(.is-active) { filter: saturate(.72) opacity(.9); }
+.group-tile.is-active {
+  filter: none;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px color-mix(in srgb, var(--tile-from) 55%, #fff), 0 12px 22px color-mix(in srgb, var(--tile-from) 32%, transparent);
+}
+.group-tile-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: #ffffff2b; }
+.group-tile-name { font-size: 13px; font-weight: 900; line-height: 1.35; }
+.group-tile-count { font-size: 10px; font-weight: 700; opacity: .9; }
+
+/* بطاقات الأكواد المربّعة */
+.code-square {
+  display: flex; flex-direction: column; align-items: stretch; gap: 7px;
+  min-height: 148px; padding: 10px;
+  border: 1px solid #e6eef7; border-radius: 16px; background: #fff;
+  box-shadow: 0 1px 2px #0b3d6b0a;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.code-square:hover { border-color: color-mix(in srgb, var(--screen-color) 30%, #e6eef7); box-shadow: 0 8px 18px #0b3d6b12; transform: translateY(-1px); }
+.code-square-head { display: grid; gap: 1px; flex: 1; }
+.code-square-label { color: #22445f; font-size: 11.5px; font-weight: 800; line-height: 1.55; }
+.code-square-note { color: #8298ae; font-size: 9.5px; font-weight: 600; line-height: 1.55; }
+.code-square-key {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 46px; padding: 4px 8px; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--screen-color) 24%, #e2ecf6);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--screen-color) 11%, #fff), color-mix(in srgb, var(--screen-color) 4%, #fff));
+  color: var(--screen-deep); font-size: 16px; font-weight: 900; letter-spacing: .5px;
+  direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums;
+  transition: background .16s ease, transform .16s ease;
+}
+.code-square-key span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.code-square-key svg { flex: none; opacity: .55; }
+.code-square-key:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--screen-color) 16%, #fff); }
+.code-square-tools { display: flex; gap: 6px; }
+.code-square-copy {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  width: 100%; min-height: 30px; padding: 3px 8px;
+  border: 1px solid #e2ecf6; border-radius: 10px; background: #fff; color: #5b7791;
+  font-size: 10px; font-weight: 800;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.code-square-copy:hover { color: var(--screen-color); border-color: color-mix(in srgb, var(--screen-color) 36%, #e2ecf6); }
+.code-square-copy.is-copied { color: #0a9d5b; border-color: #b7e8cd; background: #f1fbf5; }
+.codes-result-group h4 em { margin-inline-start: 5px; padding: 1px 6px; border-radius: 6px; background: #eef5fc; color: #7b93a9; font-size: 9.5px; font-style: normal; font-weight: 900; }
+
+/* أكواد جاهزة برقمك — شرح خطوة بخطوة */
+.ready-panel {
+  display: grid; gap: 10px; padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--screen-color) 22%, #e2ecf6);
+  border-radius: 18px;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--screen-color) 7%, #fff), #fff 72%);
+}
+.ready-panel-head { display: flex; align-items: flex-start; gap: 9px; }
+.ready-panel-icon { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 11px; background: color-mix(in srgb, var(--screen-color) 14%, #fff); color: var(--screen-color); }
+.ready-panel-head h4 { margin: 0; color: #12344f; font-size: 13.5px; font-weight: 900; }
+.ready-panel-head p { margin: 2px 0 0; color: #7b93a9; font-size: 10.5px; font-weight: 600; line-height: 1.8; }
+.ready-choices { display: flex; flex-wrap: wrap; gap: 7px; }
+.ready-choices button {
+  padding: 7px 13px; border: 1px solid #e0eaf4; border-radius: 999px; background: #fff;
+  color: #52708b; font-size: 11.5px; font-weight: 800;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.ready-choices button.is-active { border-color: var(--screen-color); background: var(--screen-color); color: #fff; box-shadow: 0 6px 14px color-mix(in srgb, var(--screen-color) 28%, transparent); }
+.ready-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.ready-field {
+  display: grid; gap: 3px; position: relative;
+  padding: 9px 11px 9px; border: 1px solid #e2ecf6; border-radius: 13px; background: #fff;
+}
+.ready-field-label { color: #52708b; font-size: 10.5px; font-weight: 800; }
+.ready-field input { height: 34px; padding: 0 9px; border: 1px solid #e2ecf6; border-radius: 9px; background: #f9fcff; color: #163a63; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ready-field input:focus { outline: 2px solid color-mix(in srgb, var(--screen-color) 35%, #fff); outline-offset: 1px; }
+.ready-field small { font-size: 9.5px; font-weight: 700; line-height: 1.6; }
+.ready-field small.is-ok { color: #0a9d5b; }
+.ready-field small.is-warn { color: #b54708; }
+.ready-step {
+  position: absolute; top: -8px; inset-inline-start: 10px;
+  display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--screen-color); color: #fff; font-size: 10px; font-weight: 900;
+}
+.ready-result {
+  display: grid; gap: 5px; justify-items: center; text-align: center;
+  padding: 11px 12px; border: 1px dashed color-mix(in srgb, var(--screen-color) 34%, #d9e6f2);
+  border-radius: 14px; background: #fff;
+}
+.ready-result-label { color: #8298ae; font-size: 9.5px; font-weight: 800; letter-spacing: .3px; }
+.ready-result > b { color: var(--screen-deep); font-size: 19px; font-weight: 900; letter-spacing: .6px; font-variant-numeric: tabular-nums; line-height: 1.5; }
+.ready-result.is-ready { border-style: solid; border-color: color-mix(in srgb, var(--screen-color) 45%, #d9e6f2); background: color-mix(in srgb, var(--screen-color) 4%, #fff); }
+.ready-result-actions { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.ready-result-actions .is-disabled { opacity: .45; pointer-events: none; }
+.ready-hint { margin: 0; color: #8298ae; font-size: 10px; font-weight: 600; line-height: 1.75; text-align: center; }
+
+html.dark .telecom-home-head h2 { color: #eef6ff; }
+html.dark .telecom-home-head p { color: #93aec6; }
+html.dark .telecom-home-card { border-color: #22384e; background: #0f2133; }
+html.dark .telecom-home-card.is-active { border-color: var(--screen-color); background: linear-gradient(160deg, #14283c, #0f2133); }
+html.dark .telecom-home-card strong { color: #dcebf9; }
+html.dark .telecom-home-card.is-active strong { color: color-mix(in srgb, var(--screen-color) 55%, #fff); }
+html.dark .telecom-screen-summary { color: #a7c4dd; }
+html.dark .telecom-screen-help { color: #8fa9c2; }
+html.dark .code-square { border-color: #1e3448; background: #0f2133; }
+html.dark .code-square-label { color: #eef6ff; }
+html.dark .code-square-note { color: #93aec6; }
+html.dark .code-square-key { color: #eef6ff; border-color: #274056; background: linear-gradient(150deg, #17293b, #12202e); }
+html.dark .code-square-copy { border-color: #23394f; background: #0f2133; color: #a7c4dd; }
+html.dark .code-square-copy.is-copied { border-color: #2c7a52; background: #10281d; color: #6fe0a5; }
+html.dark .ready-panel { border-color: #24445a; background: linear-gradient(150deg, #14283c, #0f2133 75%); }
+html.dark .ready-panel-head h4 { color: #eef6ff; }
+html.dark .ready-panel-head p { color: #93aec6; }
+html.dark .ready-choices button { border-color: #23394f; background: #0f2133; color: #a7c4dd; }
+html.dark .ready-choices button.is-active { background: var(--screen-color); color: #fff; }
+html.dark .ready-field { border-color: #23394f; background: #0f2133; }
+html.dark .ready-field-label { color: #a7c4dd; }
+html.dark .ready-field input { border-color: #22384e; background: #0b1a29; color: #eef6ff; }
+html.dark .ready-result { border-color: #274056; background: #0f2133; }
+html.dark .ready-result > b { color: #eef6ff; }
+html.dark .ready-result.is-ready { background: #12293a; }
+html.dark .ready-hint { color: #8fa9c2; }
+html.dark .codes-result-group h4 em { background: #1b3247; color: #a7c4dd; }
+
+@media (max-width: 720px) {
+  .telecom-home-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .telecom-home-card { border-radius: 16px; padding: 8px 6px; }
+  .telecom-home-card strong { font-size: 11.5px; }
+  .telecom-screen-title { font-size: 19px; }
+  .telecom-screen-title span:first-child { font-size: 12.5px; }
+  .group-tile { border-radius: 17px; }
+  .group-tile-name { font-size: 12px; }
+  .code-square { min-height: 132px; padding: 9px; }
+  .ready-result > b { font-size: 16px; }
+}
+@media (max-width: 420px) {
+  .telecom-home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .telecom-screen-body .codes-grid, .codes-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .telecom-home-card, .group-tile, .code-square, .all-codes-btn { transition: none; }
+  .telecom-home-card:hover, .group-tile:hover, .code-square:hover, .all-codes-btn:hover { transform: none; }
+}

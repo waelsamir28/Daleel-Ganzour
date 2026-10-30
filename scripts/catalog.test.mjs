@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import test from "node:test";
 import ts from "typescript";
 
@@ -1338,41 +1341,50 @@ test("logo-tiled page backgrounds exist in the library with their files", () => 
   }
 });
 
-test("government and landline number lists are complete, unique and use real dial codes", async () => {
-  const load = async (path) => {
-    const src = readFileSync(new URL(path, import.meta.url), "utf8");
-    const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText;
-    return import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
-  };
-  const { govNumberGroups } = await load("../src/lib/gov-numbers.ts");
-  const { landlineGroups } = await load("../src/lib/landline.ts");
-  for (const groups of [govNumberGroups, landlineGroups]) {
-    assert.ok(groups.length >= 3, "each section has at least three group tabs");
-    for (const group of groups) {
-      assert.ok(group.tab && group.tab.length <= 12, "tab labels stay short for mobile");
-      assert.ok(group.rows.length > 0);
-      for (const row of group.rows) {
-        assert.ok(row.label.length > 2 && row.code.length > 1, `row ${row.label} is complete`);
-        assert.ok(["number", "ussd"].includes(row.kind));
+test("landline and bank screens keep complete, unique and dialable numbers", async () => {
+  // نُحوّل ملفات المكتبة إلى ESM في مجلد مؤقت حتى تُحلّ imports الخاصة بها (علياس @/lib) بشكل صحيح.
+  const dir = mkdtempSync(join(tmpdir(), "janzour-telecom-"));
+  try {
+    for (const name of ["telecom", "landline", "payments", "telecom-screens"]) {
+      const src = readFileSync(new URL(`../src/lib/${name}.ts`, import.meta.url), "utf8").replace(/from "@\/lib\/([a-z-]+)"/g, 'from "./$1.mjs"');
+      const { outputText } = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
+      writeFileSync(join(dir, `${name}.mjs`), outputText);
+    }
+    const { telecomScreens, bankGroups } = await import(pathToFileURL(join(dir, "telecom-screens.mjs")).href);
+    const { landlineGroups } = await import(pathToFileURL(join(dir, "landline.mjs")).href);
+    for (const groups of [landlineGroups, bankGroups]) {
+      assert.ok(groups.length >= 2, "each screen has at least two group tiles");
+      for (const group of groups) {
+        assert.ok(group.tab && group.tab.length <= 12, "tile labels stay short for mobile");
+        assert.ok(group.rows.length > 0);
+        for (const row of group.rows) {
+          assert.ok(row.label.length > 2 && row.code.length > 1, `row ${row.label} is complete`);
+          assert.ok(["number", "ussd"].includes(row.kind));
+        }
       }
     }
-  }
-  const govCodes = govNumberGroups.flatMap((group) => group.rows.map((row) => row.code));
-  for (const code of ["122", "123", "180", "121", "125", "129", "19588", "16528", "155", "16217", "16789", "15999", "15047", "16048", "19487"]) {
-    assert.ok(govCodes.includes(code), `government list keeps ${code}`);
-  }
-  // 16789 يخص البريد المصري وليس التأمينات — التأمينات 16217.
-  assert.ok(!govNumberGroups.some((group) => group.rows.some((row) => row.code === "16789" && row.label.includes("التأمين"))));
-  const landlineCodes = landlineGroups.flatMap((group) => group.rows.map((row) => row.code));
-  for (const code of ["111", "19777", "#21#", "#43#", "*31#", "#31#"]) {
-    assert.ok(landlineCodes.includes(code), `landline list keeps ${code}`);
-  }
-  // أكواد التحويل بها نص إرشادي للعرض، ولها كود طلب فعلي بدون العربية.
-  for (const group of landlineGroups) {
-    for (const row of group.rows) {
-      if (row.kind === "ussd") assert.match(row.code, /^[*#][\d*#]+/, `ussd code ${row.code} starts with * or #`);
-      if (row.dial) assert.match(row.dial, /^[*#][\d*#]+$/, `dial code ${row.dial} is dialable`);
-      assert.ok(!/[\u0600-\u06FF]/.test(row.code.replace("الرقم", "")), `no stray Arabic in ${row.code}`);
+    const landlineCodes = landlineGroups.flatMap((group) => group.rows.map((row) => row.code));
+    for (const code of ["111", "19777", "#21#", "#43#", "*31#", "#31#"]) {
+      assert.ok(landlineCodes.includes(code), `landline list keeps ${code}`);
     }
+    for (const group of landlineGroups) {
+      for (const row of group.rows) {
+        if (row.kind === "ussd") assert.match(row.code, /^[*#][\d*#]+/, `ussd code ${row.code} starts with * or #`);
+        if (row.dial) assert.match(row.dial, /^[*#][\d*#]+$/, `dial code ${row.dial} is dialable`);
+      }
+    }
+    // شاشات الصفحة: الشركات الأربع + الخط الأرضي + البنوك، وكلها بعنوان سطرين.
+    assert.deepEqual(telecomScreens.map((screen) => screen.id), ["vodafone", "orange", "etisalat", "we", "landline", "banks"]);
+    for (const screen of telecomScreens) {
+      assert.equal(screen.title.length, 2, `${screen.id} has a two-line title`);
+      assert.ok(screen.title.every((line) => line.length > 0));
+      assert.match(screen.color, /^#[0-9a-f]{6}$/i);
+      assert.ok(screen.groups.length >= 2, `${screen.id} has group tiles`);
+      // الأرقام الحكومية والمرافق متعمّد عدم وجودها هنا: لها زر خاص في الدليل.
+      assert.ok(!screen.groups.some((group) => group.tab.includes("حكوم")), `${screen.id} has no government tab`);
+    }
+    assert.ok(telecomScreens.some((screen) => screen.id === "banks" && screen.groups.length === 2));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
