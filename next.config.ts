@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // جودة إضافية 92 لصور البانر الكبيرة (نص واضح) بجانب الجودة الافتراضية 75.
+    qualities: [75, 92],
     // صور المظهر المرفوعة تُخدم من /api/design-image/<key>?v=N ويُحسّنها next/image (مقاسات متعددة + WebP/AVIF).
     localPatterns: [{ pathname: "/api/design-image/**" }, { pathname: "/**", search: "" }],
   },

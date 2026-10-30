@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { stickerIconUrl } from "@/lib/catalog";
 
-const VISIBLE_MS = 1000;
-const FADE_MS = 480;
+/** المدة الافتراضية: 12 ثانية كي تكتمل حركة التجمع ثم حركة الدوران حول الشعار. */
+const VISIBLE_MS = 12000;
+const FADE_MS = 520;
 /** الحدث الذي يطلقه استوديو التصميم لمعاينة شاشة البداية فورًا (من أي صفحة). */
 export const SPLASH_PREVIEW_EVENT = "janzour-splash-preview";
-/** ملصقات تمثّل أشهر أقسام الدليل؛ تتجمع حول الشعار من أطراف الشاشة. */
+/** ملصقات تمثّل أشهر أقسام الدليل؛ تتجمع حول الشعار من أطراف الشاشة ثم تدور في مدار حوله. */
 const SPLASH_STICKERS = ["electricity", "dentistry", "pharmacies", "groceries", "teachers", "plumbing", "barbers", "charities"] as const;
 const DEFAULT_LOGO = "/images/logo-app.webp";
 
@@ -20,23 +21,40 @@ function readConfig() {
     image: root.getAttribute("data-design-splash-image") || DEFAULT_LOGO,
     duration: Number(root.getAttribute("data-design-splash-duration") || VISIBLE_MS) || VISIBLE_MS,
     stickers: root.getAttribute("data-design-splash-stickers") !== "false",
+    orbit: root.getAttribute("data-design-splash-orbit") !== "false",
   };
 }
 
 export default function SplashScreen({ tagline = "دليل المهن والخدمات.. من أهل القرية لأهلها" }: { tagline?: string }) {
   const pathname = usePathname();
   const [leaving, setLeaving] = useState(false);
-  const [preview, setPreview] = useState(0);
+  const [preview, setPreview] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    // معاينة عبر الرابط: /?splash=1 تعرض الشاشة دائمًا (مفيدة لتجربتها من المتصفح أو لمشاركتها مع المسؤول).
+    return /(?:\?|&)splash=1(?:&|$)/.test(window.location.search) ? 1 : 0;
+  });
+  const [skipped, setSkipped] = useState(false);
   const [hidden, setHidden] = useState(() => {
     if (typeof window === "undefined") return false;
+    if (/(?:\?|&)splash=1(?:&|$)/.test(window.location.search)) return false;
     return document.documentElement.classList.contains("skip-splash") || window.location.pathname !== "/";
   });
   const [splashImage, setSplashImage] = useState(DEFAULT_LOGO);
   const [withStickers, setWithStickers] = useState(true);
+  const [withOrbit, setWithOrbit] = useState(true);
+
+  // الضغط في أي مكان على الشاشة (أو زر Esc) يتخطى شاشة البداية فورًا — مهم لأن المدة الافتراضية 12 ثانية.
+  const skip = useCallback(() => setSkipped(true), []);
+  useEffect(() => {
+    if (hidden) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setSkipped(true); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hidden]);
 
   // المعاينة من استوديو التصميم: تُظهر الشاشة من جديد على أي صفحة حتى لو سبق عرضها.
   useEffect(() => {
-    const onPreview = () => { setLeaving(false); setHidden(false); setPreview((n) => n + 1); };
+    const onPreview = () => { setLeaving(false); setSkipped(false); setHidden(false); setPreview((n) => n + 1); };
     window.addEventListener(SPLASH_PREVIEW_EVENT, onPreview);
     return () => window.removeEventListener(SPLASH_PREVIEW_EVENT, onPreview);
   }, []);
@@ -55,8 +73,9 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
     const config = readConfig();
     setSplashImage(config.image);
     setWithStickers(config.stickers);
+    setWithOrbit(config.orbit);
     try { sessionStorage.setItem("janzour-splash-shown", "1"); } catch { /* Ignore storage issues. */ }
-    const duration = previewing ? Math.max(config.duration, 1500) : config.duration;
+    const duration = skipped ? 0 : previewing ? Math.max(config.duration, 1500) : config.duration;
     const fade = window.setTimeout(() => setLeaving(true), duration);
     const remove = window.setTimeout(() => {
       setHidden(true);
@@ -65,20 +84,31 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
       window.dispatchEvent(new CustomEvent("janzour-splash-finished"));
     }, duration + FADE_MS);
     return () => { window.clearTimeout(fade); window.clearTimeout(remove); };
-  }, [pathname, preview]);
+  }, [pathname, preview, skipped]);
 
   if (hidden || (pathname !== "/" && preview === 0)) return null;
-  return <div key={preview} className={`splash-screen ${leaving ? "is-leaving" : ""} ${withStickers ? "has-stickers" : ""}`} aria-hidden="true">
+  return <div
+    key={preview}
+    className={`splash-screen ${leaving ? "is-leaving" : ""} ${withStickers ? "has-stickers" : ""} ${withOrbit ? "has-orbit" : ""}`}
+    onPointerDown={skip}
+    role="presentation"
+    title="اضغط لتخطي شاشة البداية"
+  >
     <div className="splash-stage">
-      {withStickers && SPLASH_STICKERS.map((id, index) => (
-        /* eslint-disable-next-line @next/next/no-img-element -- ملصقات صغيرة ثابتة؛ لا تحتاج تحسين next/image */
-        <img key={id} className="splash-sticker" style={{ "--i": index } as React.CSSProperties} src={stickerIconUrl(id)} alt="" width={64} height={64} decoding="async" draggable={false}/>
-      ))}
+      <span className="splash-halo" aria-hidden="true"/>
+      <div className="splash-orbit" aria-hidden="true">
+        {withStickers && SPLASH_STICKERS.map((id, index) => (
+          <span key={id} className="splash-sticker" style={{ "--i": index } as React.CSSProperties}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- ملصقات صغيرة ثابتة؛ لا تحتاج تحسين next/image */}
+            <img className="splash-sticker-art" src={stickerIconUrl(id)} alt="" width={64} height={64} decoding="async" draggable={false}/>
+          </span>
+        ))}
+      </div>
       {splashImage === DEFAULT_LOGO ? (
-        <Image className="splash-icon" src={DEFAULT_LOGO} alt="" width={250} height={250} priority sizes="(max-width: 420px) 54vw, 250px"/>
+        <Image className="splash-icon" src={DEFAULT_LOGO} alt="" width={320} height={320} priority sizes="(max-width: 420px) 46vw, 214px"/>
       ) : (
         /* eslint-disable-next-line @next/next/no-img-element -- Custom admin-configured splash image URL */
-        <img className="splash-icon" src={splashImage} alt="" width={250} height={250}/>
+        <img className="splash-icon" src={splashImage} alt="" width={320} height={320}/>
       )}
     </div>
     <span className="splash-tagline">{tagline}</span>

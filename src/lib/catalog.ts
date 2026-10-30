@@ -1340,11 +1340,14 @@ export type DesignSettings = {
   showFooterWhatsapp: boolean;
   splashEnabled: boolean;
   splashImageUrl: string;
-  splashDuration: "900" | "1500" | "2500";
+  /** مدة ظهور شاشة البداية بالمللي ثانية (القيمة الافتراضية 12 ثانية لتكتمل حركتا الظهور والدوران). */
+  splashDuration: "900" | "1500" | "2500" | "6000" | "12000";
   /** لمن تظهر شاشة البداية: التطبيق المثبّت على الهاتف فقط، أو كل الزوار (مرة في الجلسة). */
   splashAudience: "installed" | "all";
-  /** الملصقات 3D تتجمع حول الشعار في شاشة البداية. */
+  /** الملصقات 3D تتجمع حول الشعار في شاشة البداية (الحركة الأولى). */
   splashStickers: boolean;
+  /** الحركة الثانية: دوران الملصقات في مدار دائري حول الشعار بعد اكتمال التجمع. */
+  splashOrbit: boolean;
   // 7. Login & Register Customizer
   authShowBanner: boolean;
   /** بانر شاشة الدخول (فارغ = البانر الافتراضي المصمم للتطبيق). */
@@ -1434,6 +1437,8 @@ export type DesignSettings = {
   // 9. Seasonal Ribbon, Footer & Social Customizer, Mobile Bottom Nav & Community Widgets
   seasonalRibbon: "none" | "ramadan" | "eid" | "schools" | "winter";
   footerDescription: string;
+  /** سطر الحقوق أسفل الفوتر: «تصميم وتنفيذ م.وائل الجمال» بحركة كتابة متدرجة (فارغ = إخفاؤه). */
+  footerCredit: string;
   footerFacebookUrl: string;
   footerWhatsappGroupUrl: string;
   showFooterStats: boolean;
@@ -1720,9 +1725,10 @@ export const defaultDesignSettings: DesignSettings = {
   showFooterWhatsapp: true,
   splashEnabled: true,
   splashImageUrl: "/images/logo-app.webp",
-  splashDuration: "900",
+  splashDuration: "12000",
   splashAudience: "installed",
   splashStickers: true,
+  splashOrbit: true,
   authShowBanner: true,
   authBannerImage: "",
   authBannerImageDark: "",
@@ -1776,6 +1782,7 @@ export const defaultDesignSettings: DesignSettings = {
   floatingWhatsappEnabled: false,
   seasonalRibbon: "none",
   footerDescription: "دليل المهن والخدمات.. من أهل القرية لأهلها",
+  footerCredit: "تصميم وتنفيذ م.وائل الجمال",
   footerFacebookUrl: "",
   footerWhatsappGroupUrl: "",
   showFooterStats: true,
@@ -2337,9 +2344,13 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.splashImageUrl = pickText(record.splashImageUrl, defaultDesignSettings.splashImageUrl, 300);
   // الشعار الافتراضي القديم المحفوظ في الإعدادات → شعار التطبيق الجديد.
   if (next.splashImageUrl === "/images/logo-daleel-transparent.png") next.splashImageUrl = defaultDesignSettings.splashImageUrl;
-  next.splashDuration = pickEnum(record.splashDuration, ["900", "1500", "2500"] as const, defaultDesignSettings.splashDuration);
+  next.splashDuration = pickEnum(record.splashDuration, ["900", "1500", "2500", "6000", "12000"] as const, defaultDesignSettings.splashDuration);
   next.splashAudience = pickEnum(record.splashAudience, ["installed", "all"] as const, defaultDesignSettings.splashAudience);
   next.splashStickers = pickBool(record.splashStickers, defaultDesignSettings.splashStickers);
+  next.splashOrbit = pickBool(record.splashOrbit, defaultDesignSettings.splashOrbit);
+  // إعدادات قديمة (قبل إضافة حركة الدوران) كانت تحمل المدة الافتراضية القديمة 0.9 ثانية → تُرقّى إلى المدة الجديدة 12 ثانية
+  // كي تظهر الحركتان كاملتين، مع احترام أي مدة اختارها المسؤول صراحةً بعد إضافة الخيار الجديد.
+  if (typeof record.splashOrbit !== "boolean" && next.splashDuration === "900") next.splashDuration = defaultDesignSettings.splashDuration;
 
   next.authShowBanner = pickBool(record.authShowBanner, defaultDesignSettings.authShowBanner);
   next.authBannerImage = pickText(record.authBannerImage, defaultDesignSettings.authBannerImage, 300, true);
@@ -2418,6 +2429,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
 
   next.seasonalRibbon = pickEnum(record.seasonalRibbon, ["none", "ramadan", "eid", "schools", "winter"] as const, defaultDesignSettings.seasonalRibbon);
   next.footerDescription = pickText(record.footerDescription, defaultDesignSettings.footerDescription, 260, true);
+  next.footerCredit = pickText(record.footerCredit, defaultDesignSettings.footerCredit, 120, true);
   next.footerFacebookUrl = pickText(record.footerFacebookUrl, defaultDesignSettings.footerFacebookUrl, 300, true);
   next.footerWhatsappGroupUrl = pickText(record.footerWhatsappGroupUrl, defaultDesignSettings.footerWhatsappGroupUrl, 300, true);
   next.showFooterStats = pickBool(record.showFooterStats, defaultDesignSettings.showFooterStats);
