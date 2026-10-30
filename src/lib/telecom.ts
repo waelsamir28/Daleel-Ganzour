@@ -14,9 +14,11 @@ export type TelecomRow = {
   code: string;
   kind: TelecomRowKind;
   note?: string;
+  /** كود بديل للطلب لو الكود المعروض يحتوي نصًا إرشاديًا (مثل *21*الرقم#). */
+  dial?: string;
 };
 
-export type TelecomGroupIcon = "phone" | "wallet" | "wifi" | "sim" | "card" | "support";
+export type TelecomGroupIcon = "phone" | "wallet" | "wifi" | "sim" | "card" | "support" | "siren" | "train";
 
 export type TelecomGroup = {
   title: string;
@@ -319,9 +321,10 @@ export function telecomOperatorById(id: string) {
 }
 
 /** رابط الطلب من الهاتف: الأرقام كما هي، وأكواد USSD مع ترميز # إلى %23. */
-export function telecomDialHref(row: Pick<TelecomRow, "code" | "kind">) {
-  if (row.kind === "number") return `tel:${row.code.replace(/[^\d+]/g, "")}`;
-  return `tel:${encodeURIComponent(row.code)}`;
+export function telecomDialHref(row: Pick<TelecomRow, "code" | "kind" | "dial">) {
+  const target = row.dial || row.code;
+  if (row.kind === "number") return `tel:${target.replace(/[^\d+]/g, "")}`;
+  return `tel:${encodeURIComponent(target)}`;
 }
 
 /** يُولّد كودًا جاهزًا بعد إدخال رقم المستلم (والمبلغ عند الحاجة). */

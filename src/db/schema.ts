@@ -287,3 +287,12 @@ export const activityLog = pgTable("directory_activity_log", {
   detail: varchar("detail", { length: 300 }).notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("directory_activity_log_created_idx").on(table.createdAt)]);
+
+/** بلاغات مجهولة عن أكواد المحمول/الأرضي/الأرقام الحكومية اللي اتغيّرت (إحصاءات الإدارة). */
+export const telecomReports = pgTable("directory_telecom_reports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  scope: varchar("scope", { length: 20 }).notNull(),
+  code: varchar("code", { length: 60 }).notNull(),
+  label: varchar("label", { length: 160 }).notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("directory_telecom_reports_created_idx").on(table.createdAt)]);

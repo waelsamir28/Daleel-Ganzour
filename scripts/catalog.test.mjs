@@ -988,7 +988,8 @@ test("whatsapp alert helpers normalize Egyptian numbers, extract phones and sani
   assert.equal(extractEgyptPhone("للتواصل: +201155554444 شكرًا"), "201155554444");
   assert.equal(extractEgyptPhone("الرقم ٠١٢٢٢٣٥٥٧٦٩"), "201222355769");
   assert.equal(extractEgyptPhone("بدون رقم هنا 12345"), "");
-  assert.equal(allWhatsappAlertKinds.length, 6);
+  assert.equal(allWhatsappAlertKinds.length, 7);
+  assert.equal(allWhatsappAlertKinds.includes("code-report"), true);
   assert.deepEqual(sanitizeWhatsappAlertKinds(undefined), allWhatsappAlertKinds, "missing setting means every event");
   assert.deepEqual(sanitizeWhatsappAlertKinds(["rating", "bogus", "service", "rating"]), ["service", "rating"]);
   assert.deepEqual(sanitizeWhatsappAlertKinds("member,ad-request"), ["ad-request", "member"]);
@@ -1333,6 +1334,45 @@ test("logo-tiled page backgrounds exist in the library with their files", () => 
     assert.ok(preset, `${id} missing from library`);
     for (const key of ["light", "dark", "thumb"]) {
       assert.ok(existsSync(new URL(`../public${preset[key]}`, import.meta.url)), `${id}.${key} file missing`);
+    }
+  }
+});
+
+test("government and landline number lists are complete, unique and use real dial codes", async () => {
+  const load = async (path) => {
+    const src = readFileSync(new URL(path, import.meta.url), "utf8");
+    const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } }).outputText;
+    return import(`data:text/javascript;base64,${Buffer.from(js).toString("base64")}`);
+  };
+  const { govNumberGroups } = await load("../src/lib/gov-numbers.ts");
+  const { landlineGroups } = await load("../src/lib/landline.ts");
+  for (const groups of [govNumberGroups, landlineGroups]) {
+    assert.ok(groups.length >= 3, "each section has at least three group tabs");
+    for (const group of groups) {
+      assert.ok(group.tab && group.tab.length <= 12, "tab labels stay short for mobile");
+      assert.ok(group.rows.length > 0);
+      for (const row of group.rows) {
+        assert.ok(row.label.length > 2 && row.code.length > 1, `row ${row.label} is complete`);
+        assert.ok(["number", "ussd"].includes(row.kind));
+      }
+    }
+  }
+  const govCodes = govNumberGroups.flatMap((group) => group.rows.map((row) => row.code));
+  for (const code of ["122", "123", "180", "121", "125", "129", "19588", "16528", "155", "16217", "16789", "15999", "15047", "16048", "19487"]) {
+    assert.ok(govCodes.includes(code), `government list keeps ${code}`);
+  }
+  // 16789 يخص البريد المصري وليس التأمينات — التأمينات 16217.
+  assert.ok(!govNumberGroups.some((group) => group.rows.some((row) => row.code === "16789" && row.label.includes("التأمين"))));
+  const landlineCodes = landlineGroups.flatMap((group) => group.rows.map((row) => row.code));
+  for (const code of ["111", "19777", "#21#", "#43#", "*31#", "#31#"]) {
+    assert.ok(landlineCodes.includes(code), `landline list keeps ${code}`);
+  }
+  // أكواد التحويل بها نص إرشادي للعرض، ولها كود طلب فعلي بدون العربية.
+  for (const group of landlineGroups) {
+    for (const row of group.rows) {
+      if (row.kind === "ussd") assert.match(row.code, /^[*#][\d*#]+/, `ussd code ${row.code} starts with * or #`);
+      if (row.dial) assert.match(row.dial, /^[*#][\d*#]+$/, `dial code ${row.dial} is dialable`);
+      assert.ok(!/[\u0600-\u06FF]/.test(row.code.replace("الرقم", "")), `no stray Arabic in ${row.code}`);
     }
   }
 });

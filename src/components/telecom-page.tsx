@@ -8,6 +8,9 @@ import { Logo } from "@/components/ui";
 import QrSvg from "@/components/qr-svg";
 import { TelecomLogo } from "@/components/telecom-logos";
 import PaymentNumbers from "@/components/payment-numbers";
+import CodeGroupList from "@/components/code-group-list";
+import { govNumberGroups } from "@/lib/gov-numbers";
+import { landlineGroups, landlineSummary } from "@/lib/landline";
 import TelecomCodes from "@/components/telecom-codes";
 import { defaultDesignSettings, type PublicDirectory, type PublicUtilityContact } from "@/lib/catalog";
 import { telecomOperators, telecomPageUrl, type TelecomOperator } from "@/lib/telecom";
@@ -69,7 +72,7 @@ export default function TelecomPage({ data, utilities }: Props) {
       <section className="telecom-hero">
         <span className="adv-eyebrow"><Smartphone size={14}/> أرقام وأكواد المحمول</span>
         <h1>كل أكواد فودافون وأورنج واتصالات ووي في مكان واحد</h1>
-        <p>رصيد، شحن، باقات إنترنت، سلفني، كلمني، وتحويل رصيد — بضغطة واحدة أو نسخة واحدة. الصفحة تتخزن على موبايلك بعد أول زيارة وتشتغل بدون إنترنت.</p>
+        <p>رصيد، شحن، باقات إنترنت، سلفني، كلمني، وتحويل رصيد — ومعاها أكواد الخط الأرضي والفايبر وأرقام الطوارئ والشكاوى الحكومية. الصفحة تتخزن على موبايلك بعد أول زيارة وتشتغل بدون إنترنت، ولو لقيت كود اتغيّر دوس «الكود ده اتغيّر؟» وهيتبعت للإدارة.</p>
         <div className="telecom-hero-chips">
           <span><CheckCircle2 size={14}/> تعمل بدون إنترنت</span>
           <span><PhoneCall size={14}/> طلب الكود بضغطة</span>
@@ -109,6 +112,31 @@ export default function TelecomPage({ data, utilities }: Props) {
         <TelecomCodes key={active.id} operator={active} link={pageLink} siteName={settings.siteName}/>
       </section>
 
+      <CodeGroupList
+        groups={landlineGroups}
+        accent="#6d2077"
+        accentDeep="#430f4a"
+        scope="landline"
+        icon="phone"
+        title="أرقام الخط الأرضي والإنترنت المنزلي"
+        intro={landlineSummary}
+        highlight="تحويل المكالمات وانتظار المكالمة أكواد موحّدة: *21*الرقم# للتحويل و#21# للإلغاء."
+        searchPlaceholder="ابحث في أكواد الأرضي… مثال: تحويل، انتظار، فايبر"
+        emptyText="مفيش كود مطابق — جرّب «تحويل» أو «فايبر» أو «111»."
+      />
+
+      <CodeGroupList
+        groups={govNumberGroups}
+        accent="#0f766e"
+        accentDeep="#0b4f4a"
+        scope="gov"
+        icon="siren"
+        title="دليل الأرقام الحكومية والخدمية"
+        intro="طوارئ، شكاوى، مصالح ومواصلات — أرقام قصيرة تُطلب من أي هاتف، وأرقام الطوارئ تعمل حتى بدون رصيد."
+        searchPlaceholder="ابحث باسم الجهة… مثال: إسعاف، حماية المستهلك، الشهر العقاري"
+        emptyText="مفيش جهة بالاسم ده — جرّب «إسعاف» أو «شكاوى» أو «بريد»."
+      />
+
       <section className="telecom-utilities">
         <h2><Siren size={18}/> أرقام حكومية ومرافق عامة</h2>
         <p>أرقام الطوارئ والمرافق الأساسية في مصر — تُطلب مباشرة من أي هاتف حتى لو الخط مفيهوش رصيد.</p>
@@ -140,7 +168,7 @@ export default function TelecomPage({ data, utilities }: Props) {
       </div>
 
       <p className="telecom-page-note">
-        الأكواد والأرقام مأخوذة من أدلة الشركات وقد تُحدّثها من وقت لآخر. لو كود ما اشتغلش، اتصل بخدمة العملاء: فودافون 888 · أورنج 110 · اتصالات 333 · وي 111.
+        الأكواد والأرقام مأخوذة من أدلة الشركات وقد تُحدّثها من وقت لآخر — وكل كود فيه زر «الكود ده اتغيّر؟» يوصّل بلاغك للإدارة من غير ما تكتب اسمك. لو الكود ما اشتغلش، اتصل بخدمة العملاء: فودافون 888 · أورنج 110 · اتصالات 333 · وي 111.
       </p>
 
       <p className="telecom-page-credit">من {settings.siteName} — مكتب الجمال للدعاية والإعلان · {settings.phone}</p>
