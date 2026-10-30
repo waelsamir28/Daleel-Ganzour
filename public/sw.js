@@ -1,11 +1,14 @@
 const CACHE_PREFIX = "daleel-janzour-shell";
-const CACHE_NAME = `${CACHE_PREFIX}-v1`;
+const CACHE_NAME = `${CACHE_PREFIX}-v2`;
 const OFFLINE_PAGE = "/offline.html";
+/** صفحة أكواد المحمول تُحفظ مسبقًا لأنها الأكثر احتياجًا وقت نفاد الرصيد/انقطاع الإنترنت. */
+const TELECOM_PAGE = "/telecom";
+const PRECACHE = [OFFLINE_PAGE, TELECOM_PAGE];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.add(OFFLINE_PAGE))
+      .then((cache) => Promise.allSettled(PRECACHE.map((path) => cache.add(path))))
       .then(() => self.skipWaiting()),
   );
 });
@@ -37,10 +40,24 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  const isTelecom = url.pathname === TELECOM_PAGE || url.pathname === `${TELECOM_PAGE}/`;
   event.respondWith(
-    fetch(request).catch(async () => {
-      const cache = await caches.open(CACHE_NAME);
-      return (await cache.match(OFFLINE_PAGE)) || Response.error();
-    }),
+    fetch(request)
+      .then((response) => {
+        // نحدّث نسخة الأكواد المحفوظة كل ما نجح الاتصال حتى تظل متاحة دون إنترنت.
+        if (isTelecom && response.ok) {
+          const copy = response.clone();
+          void caches.open(CACHE_NAME).then((cache) => cache.put(TELECOM_PAGE, copy)).catch(() => undefined);
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        if (isTelecom) {
+          const cached = await cache.match(TELECOM_PAGE);
+          if (cached) return cached;
+        }
+        return (await cache.match(OFFLINE_PAGE)) || Response.error();
+      }),
   );
 });

@@ -20,8 +20,21 @@ export type TelecomGroupIcon = "phone" | "wallet" | "wifi" | "sim" | "card" | "s
 
 export type TelecomGroup = {
   title: string;
+  /** اسم مختصر يظهر في تبويب المجموعة داخل شاشة الأكواد. */
+  tab: string;
   icon: TelecomGroupIcon;
   rows: TelecomRow[];
+};
+
+/** خدمة يمكن توليد كودها تلقائيًا بعد إدخال رقم الزائر (تحويل رصيد / كلمني شكرًا…). */
+export type TelecomReadyAction = {
+  id: "transfer" | "callme";
+  label: string;
+  /** هل يحتاج مبلغًا بجانب الرقم؟ */
+  needsAmount: boolean;
+  /** القالب: {number} رقم المستلم و{amount} المبلغ. */
+  template: string;
+  note?: string;
 };
 
 export type TelecomOperator = {
@@ -36,6 +49,8 @@ export type TelecomOperator = {
   colorDeep: string;
   /** جملة قصيرة تظهر في نافذة الشركة. */
   summary: string;
+  /** الخدمات التي تُولَّد أكوادها من رقم المستخدم داخل «أكواد جاهزة برقمك». */
+  ready: TelecomReadyAction[];
   /** أهم ثلاثة أرقام/أكواد تظهر على الزر نفسه: العملاء، الرصيد، الشحن. */
   quick: { label: string; row: TelecomRow }[];
   groups: TelecomGroup[];
@@ -51,6 +66,10 @@ export const telecomOperators: TelecomOperator[] = [
     color: "#e60000",
     colorDeep: "#a80000",
     summary: "أرقام وأكواد فودافون المهمة في مكان واحد: الكول سنتر، الرصيد، الشحن، الباقات، وفودافون كاش.",
+    ready: [
+      { id: "transfer", label: "تحويل رصيد", needsAmount: true, template: "*868*2*{number}*{amount}#" },
+      { id: "callme", label: "كلمني شكرًا", needsAmount: false, template: "*505*{number}#" },
+    ],
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء فودافون", code: "888", kind: "number" } },
       { label: "الرصيد", row: { label: "الاستعلام عن الرصيد", code: "*888#", kind: "ussd" } },
@@ -59,6 +78,7 @@ export const telecomOperators: TelecomOperator[] = [
     groups: [
       {
         title: "خدمة العملاء والدعم",
+        tab: "الدعم",
         icon: "support",
         rows: [
           { label: "خدمة العملاء من خط فودافون", code: "888", kind: "number", note: HOTLINE_NOTE },
@@ -68,6 +88,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الرصيد والشحن والتحويل",
+        tab: "الرصيد والشحن",
         icon: "wallet",
         rows: [
           { label: "الاستعلام عن الرصيد", code: "*888#", kind: "ussd" },
@@ -81,6 +102,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الإنترنت والباقات",
+        tab: "الإنترنت",
         icon: "wifi",
         rows: [
           { label: "خدمات الموبايل إنترنت", code: "*888*4#", kind: "ussd" },
@@ -91,6 +113,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "فودافون كاش",
+        tab: "المحفظة",
         icon: "card",
         rows: [
           { label: "القائمة الرئيسية للمحفظة", code: "*9#", kind: "ussd" },
@@ -108,6 +131,10 @@ export const telecomOperators: TelecomOperator[] = [
     color: "#ff7900",
     colorDeep: "#d95a00",
     summary: "أرقام وأكواد أورنج: الكول سنتر، الرصيد، باقات الإنترنت، سلفني وكلمني، وأورنج كاش.",
+    ready: [
+      { id: "transfer", label: "تحويل رصيد (من القائمة)", needsAmount: false, template: "*100#", note: "أورنج بتحوّل الرصيد من قائمة الخدمات: اطلب الكود واختر «تحويل الرصيد»." },
+      { id: "callme", label: "كلمني شكرًا", needsAmount: false, template: "*121*{number}#" },
+    ],
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء أورنج", code: "110", kind: "number" } },
       { label: "الرصيد", row: { label: "قائمة الرصيد والخدمات", code: "#100#", kind: "ussd" } },
@@ -116,6 +143,7 @@ export const telecomOperators: TelecomOperator[] = [
     groups: [
       {
         title: "خدمة العملاء والدعم",
+        tab: "الدعم",
         icon: "support",
         rows: [
           { label: "خدمة العملاء من خط أورنج", code: "110", kind: "number", note: HOTLINE_NOTE },
@@ -125,6 +153,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الرصيد والشحن",
+        tab: "الرصيد والشحن",
         icon: "wallet",
         rows: [
           { label: "قائمة أورنج الرئيسية", code: "#100#", kind: "ussd" },
@@ -137,6 +166,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الإنترنت والباقات",
+        tab: "الإنترنت",
         icon: "wifi",
         rows: [
           { label: "إدارة باقات الإنترنت GO", code: "#222#", kind: "ussd" },
@@ -147,6 +177,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "أورنج كاش",
+        tab: "المحفظة",
         icon: "card",
         rows: [
           { label: "رصيد محفظة أورنج كاش", code: "#115*1#", kind: "ussd" },
@@ -162,6 +193,10 @@ export const telecomOperators: TelecomOperator[] = [
     color: "#00a651",
     colorDeep: "#007a3d",
     summary: "أرقام وأكواد اتصالات (e&): الكول سنتر، الرصيد، باقات حكاية، سلفني، واتصالات كاش.",
+    ready: [
+      { id: "transfer", label: "تحويل رصيد", needsAmount: true, template: "*557*{number}*{amount}#" },
+      { id: "callme", label: "كلمني شكرًا", needsAmount: false, template: "*111*{number}#" },
+    ],
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء اتصالات", code: "333", kind: "number" } },
       { label: "الرصيد", row: { label: "الاستعلام عن الرصيد", code: "*555#", kind: "ussd" } },
@@ -170,6 +205,7 @@ export const telecomOperators: TelecomOperator[] = [
     groups: [
       {
         title: "خدمة العملاء والدعم",
+        tab: "الدعم",
         icon: "support",
         rows: [
           { label: "خدمة العملاء من خط اتصالات", code: "333", kind: "number", note: HOTLINE_NOTE },
@@ -179,6 +215,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الرصيد والشحن والتحويل",
+        tab: "الرصيد والشحن",
         icon: "wallet",
         rows: [
           { label: "الاستعلام عن الرصيد", code: "*555#", kind: "ussd" },
@@ -192,6 +229,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الإنترنت والباقات",
+        tab: "الإنترنت",
         icon: "wifi",
         rows: [
           { label: "باقات الإنترنت", code: "*566#", kind: "ussd" },
@@ -203,6 +241,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "اتصالات كاش",
+        tab: "المحفظة",
         icon: "card",
         rows: [
           { label: "القائمة الرئيسية للمحفظة", code: "*777#", kind: "ussd" },
@@ -218,6 +257,10 @@ export const telecomOperators: TelecomOperator[] = [
     color: "#6d2077",
     colorDeep: "#430f4a",
     summary: "أرقام وأكواد وي (المصرية للاتصالات): الكول سنتر، الرصيد، باقات نيترو، سلفني، ووي باي.",
+    ready: [
+      { id: "transfer", label: "تحويل رصيد", needsAmount: true, template: "*551*{number}*{amount}#" },
+      { id: "callme", label: "كلمني", needsAmount: false, template: "*515*{number}#" },
+    ],
     quick: [
       { label: "العملاء", row: { label: "خدمة عملاء وي", code: "111", kind: "number" } },
       { label: "الرصيد", row: { label: "الاستعلام عن الرصيد", code: "*550#", kind: "ussd" } },
@@ -226,6 +269,7 @@ export const telecomOperators: TelecomOperator[] = [
     groups: [
       {
         title: "خدمة العملاء والدعم",
+        tab: "الدعم",
         icon: "support",
         rows: [
           { label: "خدمة العملاء من خط وي", code: "111", kind: "number", note: HOTLINE_NOTE },
@@ -234,6 +278,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الرصيد والشحن والتحويل",
+        tab: "الرصيد والشحن",
         icon: "wallet",
         rows: [
           { label: "الاستعلام عن الرصيد", code: "*550#", kind: "ussd" },
@@ -246,6 +291,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "الإنترنت والباقات",
+        tab: "الإنترنت",
         icon: "wifi",
         rows: [
           { label: "المتبقي من الباقة", code: "*414#", kind: "ussd" },
@@ -256,6 +302,7 @@ export const telecomOperators: TelecomOperator[] = [
       },
       {
         title: "وي باي والخدمات",
+        tab: "المحفظة",
         icon: "card",
         rows: [
           { label: "خدمة عملاء وي باي", code: "565", kind: "number" },
@@ -275,4 +322,30 @@ export function telecomOperatorById(id: string) {
 export function telecomDialHref(row: Pick<TelecomRow, "code" | "kind">) {
   if (row.kind === "number") return `tel:${row.code.replace(/[^\d+]/g, "")}`;
   return `tel:${encodeURIComponent(row.code)}`;
+}
+
+/** يُولّد كودًا جاهزًا بعد إدخال رقم المستلم (والمبلغ عند الحاجة). */
+export function buildReadyCode(action: TelecomReadyAction, number: string, amount: string) {
+  const cleanNumber = number.replace(/[^0-9]/g, "");
+  const cleanAmount = amount.replace(/[^0-9]/g, "");
+  if (!cleanNumber) return "";
+  if (action.needsAmount && !cleanAmount) return "";
+  return action.template.replace("{number}", cleanNumber).replace("{amount}", cleanAmount);
+}
+
+/** مسار صفحة الأكواد الكاملة (تعمل دون إنترنت بعد أول زيارة). */
+export const TELECOM_PAGE_PATH = "/telecom";
+export function telecomPageUrl(id?: string) {
+  return id ? `${TELECOM_PAGE_PATH}#${id}` : TELECOM_PAGE_PATH;
+}
+
+/** نص المشاركة على واتساب: كل أرقام وأكواد شركة واحدة في رسالة مرتبة. */
+export function telecomShareText(operator: TelecomOperator, link = "") {
+  const lines: string[] = [`📱 أرقام وأكواد ${operator.name} (${operator.latin})`];
+  for (const group of operator.groups) {
+    lines.push("", `— ${group.title}:`);
+    for (const row of group.rows) lines.push(`• ${row.label}: ${row.code}`);
+  }
+  if (link) lines.push("", `من دليل المهن والخدمات بقرية جنزور: ${link}`);
+  return lines.join("\n");
 }
