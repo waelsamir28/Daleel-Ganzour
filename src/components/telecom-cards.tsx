@@ -5,10 +5,12 @@ import Link from "next/link";
 import { ArrowLeft, Clock, Smartphone } from "lucide-react";
 import { Modal } from "@/components/ui";
 import { TelecomLogo } from "@/components/telecom-logos";
-import TelecomCodes from "@/components/telecom-codes";
-import { telecomOperators, TELECOM_PAGE_PATH, type TelecomOperator } from "@/lib/telecom";
+import TelecomScreenView from "@/components/telecom-screen";
+import { telecomOperators, telecomPageUrl, TELECOM_PAGE_PATH, type TelecomOperator } from "@/lib/telecom";
+import { telecomScreenById } from "@/lib/telecom-screens";
 
 const LAST_OPERATOR_KEY = "janzour-telecom-last";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app";
 
 /**
  * صفّ أزرار شركات المحمول أسفل الكروت الثلاثة.
@@ -83,14 +85,10 @@ export default function TelecomCards({ operators = telecomOperators, order }: { 
           onClose={() => setActiveId("")}
         >
           <div className="telecom-modal">
-            <div className="telecom-modal-brand" style={{ "--category-color": active.color, "--brand-deep": active.colorDeep } as CSSProperties}>
-              <TelecomLogo id={active.id} size={58}/>
-              <div className="telecom-modal-brand-copy">
-                <strong>{active.name}</strong>
-                <span>كل الأرقام والأكواد — تُطلب بضغطة أو تُنسخ، وتشتغل من صفحة الأكواد حتى بدون إنترنت.</span>
-              </div>
-            </div>
-            <TelecomCodes key={active.id} operator={active}/>
+            {(() => {
+              const screen = telecomScreenById(active.id);
+              return screen ? <TelecomScreenView key={screen.id} screen={screen} link={`${SITE_URL}${telecomPageUrl(screen.id)}`}/> : null;
+            })()}
           </div>
         </Modal>
       )}

@@ -2,39 +2,40 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, CloudOff, MessageCircle, PhoneCall, QrCode, Smartphone, Siren } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CloudOff, Landmark, MessageCircle, PhoneCall, QrCode, Smartphone } from "lucide-react";
 import DesignApplicator from "@/components/design-applicator";
 import { Logo } from "@/components/ui";
 import QrSvg from "@/components/qr-svg";
 import { TelecomLogo } from "@/components/telecom-logos";
-import PaymentNumbers from "@/components/payment-numbers";
-import CodeGroupList from "@/components/code-group-list";
-import { govNumberGroups } from "@/lib/gov-numbers";
-import { landlineGroups, landlineSummary } from "@/lib/landline";
-import TelecomCodes from "@/components/telecom-codes";
-import { defaultDesignSettings, type PublicDirectory, type PublicUtilityContact } from "@/lib/catalog";
-import { telecomOperators, telecomPageUrl, type TelecomOperator } from "@/lib/telecom";
+import TelecomScreenView from "@/components/telecom-screen";
+import { defaultDesignSettings, type PublicDirectory } from "@/lib/catalog";
+import { telecomPageUrl } from "@/lib/telecom";
+import { telecomScreens, telecomScreenById, type TelecomScreen } from "@/lib/telecom-screens";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app";
 
-type Props = { data: PublicDirectory; utilities: PublicUtilityContact[] };
+type Props = { data: PublicDirectory };
 
-/** صفحة «أرقام وأكواد شركات المحمول» الكاملة: تعمل بدون إنترنت بعد أول زيارة (Service Worker). */
-export default function TelecomPage({ data, utilities }: Props) {
+/**
+ * صفحة «أرقام وأكواد المحمول والأرضي والبنوك»: كروت مربّعة لكل شركة/قسم،
+ * وكل شاشة فيها عنوان على سطرين بلون الشركة وأزرار أقسام مربّعة ملوّنة.
+ * الأرقام الحكومية والمرافق لها زر خاص في الدليل، فمش موجودة هنا.
+ */
+export default function TelecomPage({ data }: Props) {
   const design = { ...defaultDesignSettings, ...(data.designSettings ?? {}) };
   const settings = data.settings;
-  const [activeId, setActiveId] = useState<TelecomOperator["id"]>(telecomOperators[0].id);
+  const [activeId, setActiveId] = useState(telecomScreens[0].id);
   const [offlineReady, setOfflineReady] = useState(false);
 
-  // الرابط المباشر #vodafone يفتح الشركة فورًا، وإلا نفتح آخر شركة استخدمها الزائر.
+  // الرابط المباشر #landline يفتح القسم فورًا، وإلا نفتح آخر قسم استخدمه الزائر.
   useEffect(() => {
     const fromHash = window.location.hash.replace("#", "");
     const fromStore = (() => { try { return localStorage.getItem("janzour-telecom-last") ?? ""; } catch { return ""; } })();
-    const candidate = telecomOperators.find((operator) => operator.id === (fromHash || fromStore));
+    const candidate = telecomScreenById(fromHash) ?? telecomScreenById(fromStore);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- الرابط/التفضيل المحفوظ لا يُقرأ على الخادم.
     if (candidate) setActiveId(candidate.id);
     const onHash = () => {
-      const next = telecomOperators.find((operator) => operator.id === window.location.hash.replace("#", ""));
+      const next = telecomScreenById(window.location.hash.replace("#", ""));
       if (next) setActiveId(next.id);
     };
     window.addEventListener("hashchange", onHash);
@@ -55,13 +56,14 @@ export default function TelecomPage({ data, utilities }: Props) {
     return () => { disposed = true; };
   }, []);
 
-  const active = useMemo(() => telecomOperators.find((operator) => operator.id === activeId) ?? telecomOperators[0], [activeId]);
-  const pageLink = `${SITE_URL}/telecom#${active.id}`;
+  const active = useMemo(() => telecomScreenById(activeId) ?? telecomScreens[0], [activeId]);
+  const pageLink = `${SITE_URL}${telecomPageUrl(active.id)}`;
 
-  function choose(operator: TelecomOperator) {
-    setActiveId(operator.id);
-    try { localStorage.setItem("janzour-telecom-last", operator.id); } catch { /* ignore */ }
-    if (typeof window !== "undefined") history.replaceState(null, "", teleconPath(operator.id));
+  function choose(screen: TelecomScreen) {
+    setActiveId(screen.id);
+    try { localStorage.setItem("janzour-telecom-last", screen.id); } catch { /* ignore */ }
+    if (typeof window !== "undefined") history.replaceState(null, "", teleconPath(screen.id));
+    if (typeof document !== "undefined") document.getElementById("telecom-codes")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return <div className="telecom-page">
@@ -70,9 +72,9 @@ export default function TelecomPage({ data, utilities }: Props) {
 
     <main className="container telecom-page-main">
       <section className="telecom-hero">
-        <span className="adv-eyebrow"><Smartphone size={14}/> أرقام وأكواد المحمول</span>
-        <h1>كل أكواد فودافون وأورنج واتصالات ووي في مكان واحد</h1>
-        <p>رصيد، شحن، باقات إنترنت، سلفني، كلمني، وتحويل رصيد — ومعاها أكواد الخط الأرضي والفايبر وأرقام الطوارئ والشكاوى الحكومية. الصفحة تتخزن على موبايلك بعد أول زيارة وتشتغل بدون إنترنت، ولو لقيت كود اتغيّر دوس «الكود ده اتغيّر؟» وهيتبعت للإدارة.</p>
+        <span className="adv-eyebrow"><Smartphone size={14}/> أرقام وأكواد المحمول والأرضي والبنوك</span>
+        <h1>كل الأرقام والأكواد اللي تحتاجها في مكان واحد</h1>
+        <p>فودافون وأورنج واتصالات ووي، والخط الأرضي والفايبر، والبنوك وتطبيقات الدفع — اختار القسم من الكروت، وكل حاجة تظهر بشكل واضح وتشتغل بضغطة. الصفحة تتخزن على موبايلك بعد أول زيارة وتعمل بدون إنترنت.</p>
         <div className="telecom-hero-chips">
           <span><CheckCircle2 size={14}/> تعمل بدون إنترنت</span>
           <span><PhoneCall size={14}/> طلب الكود بضغطة</span>
@@ -85,76 +87,41 @@ export default function TelecomPage({ data, utilities }: Props) {
         </div>
       </section>
 
-      <div className="telecom-operator-tabs" role="tablist" aria-label="اختر الشبكة">
-        {telecomOperators.map((operator) => (
-          <button
-            key={operator.id}
-            type="button"
-            role="tab"
-            aria-selected={operator.id === active.id}
-            className={`telecom-operator-tab ${operator.id === active.id ? "is-active" : ""}`}
-            style={{ "--category-color": operator.color, "--brand-deep": operator.colorDeep } as CSSProperties}
-            onClick={() => choose(operator)}
-          >
-            <TelecomLogo id={operator.id} size={44}/>
-            <span>{operator.name}</span>
-          </button>
-        ))}
-      </div>
-
-      <section className="telecom-panel" style={{ "--category-color": active.color, "--brand-deep": active.colorDeep } as CSSProperties}>
-        <header className="telecom-panel-head">
-          <div>
-            <h2>أرقام وأكواد {active.name}</h2>
-            <p>{active.summary}</p>
-          </div>
-        </header>
-        <TelecomCodes key={active.id} operator={active} link={pageLink} siteName={settings.siteName}/>
-      </section>
-
-      <CodeGroupList
-        groups={landlineGroups}
-        accent="#6d2077"
-        accentDeep="#430f4a"
-        scope="landline"
-        icon="phone"
-        title="أرقام الخط الأرضي والإنترنت المنزلي"
-        intro={landlineSummary}
-        highlight="تحويل المكالمات وانتظار المكالمة أكواد موحّدة: *21*الرقم# للتحويل و#21# للإلغاء."
-        searchPlaceholder="ابحث في أكواد الأرضي… مثال: تحويل، انتظار، فايبر"
-        emptyText="مفيش كود مطابق — جرّب «تحويل» أو «فايبر» أو «111»."
-      />
-
-      <CodeGroupList
-        groups={govNumberGroups}
-        accent="#0f766e"
-        accentDeep="#0b4f4a"
-        scope="gov"
-        icon="siren"
-        title="دليل الأرقام الحكومية والخدمية"
-        intro="طوارئ، شكاوى، مصالح ومواصلات — أرقام قصيرة تُطلب من أي هاتف، وأرقام الطوارئ تعمل حتى بدون رصيد."
-        searchPlaceholder="ابحث باسم الجهة… مثال: إسعاف، حماية المستهلك، الشهر العقاري"
-        emptyText="مفيش جهة بالاسم ده — جرّب «إسعاف» أو «شكاوى» أو «بريد»."
-      />
-
-      <section className="telecom-utilities">
-        <h2><Siren size={18}/> أرقام حكومية ومرافق عامة</h2>
-        <p>أرقام الطوارئ والمرافق الأساسية في مصر — تُطلب مباشرة من أي هاتف حتى لو الخط مفيهوش رصيد.</p>
-        <div className="telecom-utils-grid">
-          {utilities.map((item) => (
-            <a key={item.id} className={`telecom-util-card is-${item.tone}`} href={`tel:${item.number.replace(/[^\d+]/g, "")}`}>
-              <span className="telecom-util-icon"><PhoneCall size={15}/></span>
-              <span className="telecom-util-copy">
-                <strong>{item.name}</strong>
-                <small>{item.detail || item.category}</small>
-              </span>
-              <b dir="ltr">{item.number}</b>
-            </a>
-          ))}
+      <section className="telecom-home" aria-label="اختار الشركة أو القسم">
+        <div className="telecom-home-head">
+          <h2>اختار من الكروت</h2>
+          <p>كل كارت يفتح شاشة كاملة بأكواد الشركة وأقسامها.</p>
+        </div>
+        <div className="telecom-home-grid" role="tablist" aria-label="الشركات والأقسام">
+          {telecomScreens.map((screen) => {
+            const isActive = screen.id === active.id;
+            const count = screen.groups.reduce((sum, group) => sum + group.rows.length, 0);
+            return (
+              <button
+                key={screen.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`telecom-home-card is-${screen.icon} ${isActive ? "is-active" : ""}`}
+                style={{ "--screen-color": screen.color, "--screen-deep": screen.colorDeep } as CSSProperties}
+                onClick={() => choose(screen)}
+              >
+                <span className="telecom-home-logo">
+                  {screen.operator
+                    ? <TelecomLogo id={screen.operator.id} size={46}/>
+                    : <span className="telecom-home-glyph">{screen.icon === "bank" ? <Landmark size={26}/> : <PhoneCall size={26}/>}</span>}
+                </span>
+                <strong>{screen.name}</strong>
+                <small>{count} رقمًا</small>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      <PaymentNumbers/>
+      <section className="telecom-panel" id="telecom-codes" style={{ "--screen-color": active.color, "--screen-deep": active.colorDeep } as CSSProperties}>
+        <TelecomScreenView key={active.id} screen={active} link={pageLink} siteName={settings.siteName}/>
+      </section>
 
       <div className="telecom-extras">
         <Link href="/telecom/poster" className="telecom-extra-card">
@@ -168,7 +135,8 @@ export default function TelecomPage({ data, utilities }: Props) {
       </div>
 
       <p className="telecom-page-note">
-        الأكواد والأرقام مأخوذة من أدلة الشركات وقد تُحدّثها من وقت لآخر — وكل كود فيه زر «الكود ده اتغيّر؟» يوصّل بلاغك للإدارة من غير ما تكتب اسمك. لو الكود ما اشتغلش، اتصل بخدمة العملاء: فودافون 888 · أورنج 110 · اتصالات 333 · وي 111.
+        الأكواد والأرقام مأخوذة من أدلة الشركات وقد تُحدّثها من وقت لآخر — وكل كود فيه زر «الكود ده اتغيّر؟» يوصّل بلاغك للإدارة من غير ما تكتب اسمك.
+        أرقام الطوارئ والمرافق العامة موجودة في زر «الطوارئ» على الصفحة الرئيسية للدليل، فمش مكررة هنا.
       </p>
 
       <p className="telecom-page-credit">من {settings.siteName} — مكتب الجمال للدعاية والإعلان · {settings.phone}</p>
