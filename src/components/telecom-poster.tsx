@@ -6,26 +6,21 @@ import QrSvg from "@/components/qr-svg";
 import { TelecomLogo } from "@/components/telecom-logos";
 import { telecomOperators, telecomPageUrl } from "@/lib/telecom";
 import { paymentDialHref, paymentServices } from "@/lib/payments";
+import { govNumberGroups } from "@/lib/gov-numbers";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app";
 const QUICK_LABELS = ["خدمة العملاء", "الرصيد", "الشحن"];
 
 /**
- * ملصق الأكواد للطباعة (A4): أهم أكواد الشبكات الأربع + أرقام الطوارئ + QR لصفحة الأكواد
- * و QR لواتساب المكتب. التصميم أبيض/أسود-ألوان قوية ليطبع بوضوح على أي طابعة.
+ * ملصق الأكواد للطباعة (A4): أهم أكواد الشبكات الأربع + أرقام الطوارئ والحكومة + الخط الأرضي
+ * + QR لصفحة الأكواد و QR لواتساب المكتب. التصميم أبيض/أسود-ألوان قوية ليطبع بوضوح على أي طابعة.
  */
 export default function TelecomPoster({ siteName, officePhone }: { siteName: string; officePhone: string }) {
   const pageUrl = `${SITE_URL}${telecomPageUrl()}`;
-  const utilities = [
-    { name: "الإسعاف", number: "123" },
-    { name: "الشرطة", number: "122" },
-    { name: "المطافئ", number: "180" },
-    { name: "الكهرباء", number: "121" },
-    { name: "المياه", number: "125" },
-    { name: "الغاز", number: "129" },
-    { name: "انستاباي", number: "15989" },
-    { name: "فودافون كاش", number: "7000" },
-  ];
+  // أرقام الطوارئ والحكومة مصدرها واحد: src/lib/gov-numbers.ts (نفس القسم في /telecom).
+  const emergency = govNumberGroups.find((group) => group.icon === "siren")?.rows ?? [];
+  // نشيل مجموعة النقل من الملصق حتى تفضل الورقة صفحة واحدة مرتبة (متاحة كاملة في /telecom#gov).
+  const services = govNumberGroups.filter((group) => group.icon !== "siren" && group.icon !== "train").flatMap((group) => group.rows);
   const bankNumbers = paymentServices.filter((service) => ["nbe", "banquemisr", "cib", "banquecairo"].includes(service.id));
 
   return (
@@ -75,11 +70,20 @@ export default function TelecomPoster({ siteName, officePhone }: { siteName: str
           ))}
         </div>
 
-        <section className="poster-strip">
-          <h2>أرقام الطوارئ والمرافق</h2>
+        <section className="poster-strip poster-strip-emergency">
+          <h2>طوارئ فورية</h2>
           <div className="poster-strip-grid">
-            {utilities.map((item) => (
-              <a key={item.name} href={paymentDialHref(item.number)}><span>{item.name}</span><b dir="ltr">{item.number}</b></a>
+            {emergency.map((item) => (
+              <a key={item.code} href={paymentDialHref(item.code)}><span>{item.label}</span><b dir="ltr">{item.code}</b></a>
+            ))}
+          </div>
+        </section>
+
+        <section className="poster-strip">
+          <h2>أرقام حكومية مهمة</h2>
+          <div className="poster-strip-grid">
+            {services.map((item) => (
+              <a key={item.code + item.label} href={paymentDialHref(item.code)}><span>{item.label}</span><b dir="ltr">{item.code}</b></a>
             ))}
           </div>
         </section>

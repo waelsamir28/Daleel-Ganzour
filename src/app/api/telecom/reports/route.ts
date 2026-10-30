@@ -11,8 +11,8 @@ import { sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 export const dynamic = "force-dynamic";
 
 /** نطاقات الأكواد المسموح بها في البلاغ. */
-const SCOPES = new Set(["vodafone", "orange", "etisalat", "we", "landline", "banks"]);
-const SCOPE_LABELS: Record<string, string> = { vodafone: "فودافون", orange: "أورنج", etisalat: "اتصالات", we: "وي", landline: "الخط الأرضي", banks: "البنوك وتطبيقات الدفع" };
+const SCOPES = new Set(["vodafone", "orange", "etisalat", "we", "landline", "banks", "gov"]);
+const SCOPE_LABELS: Record<string, string> = { vodafone: "فودافون", orange: "أورنج", etisalat: "اتصالات", we: "وي", landline: "الخط الأرضي", banks: "البنوك وتطبيقات الدفع", gov: "الأرقام الحكومية والطوارئ" };
 
 /**
  * زر «الكود ده اتغيّر؟» في صفحة /telecom: بلاغ مجهول تمامًا (بدون اسم أو رقم أو IP مخزَّن)،

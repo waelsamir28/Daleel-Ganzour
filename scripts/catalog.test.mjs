@@ -1345,7 +1345,7 @@ test("landline and bank screens keep complete, unique and dialable numbers", asy
   // نُحوّل ملفات المكتبة إلى ESM في مجلد مؤقت حتى تُحلّ imports الخاصة بها (علياس @/lib) بشكل صحيح.
   const dir = mkdtempSync(join(tmpdir(), "janzour-telecom-"));
   try {
-    for (const name of ["telecom", "landline", "payments", "telecom-screens"]) {
+    for (const name of ["telecom", "landline", "gov-numbers", "payments", "telecom-screens"]) {
       const src = readFileSync(new URL(`../src/lib/${name}.ts`, import.meta.url), "utf8").replace(/from "@\/lib\/([a-z-]+)"/g, 'from "./$1.mjs"');
       const { outputText } = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
       writeFileSync(join(dir, `${name}.mjs`), outputText);
@@ -1373,18 +1373,79 @@ test("landline and bank screens keep complete, unique and dialable numbers", asy
         if (row.dial) assert.match(row.dial, /^[*#][\d*#]+$/, `dial code ${row.dial} is dialable`);
       }
     }
-    // شاشات الصفحة: الشركات الأربع + الخط الأرضي + البنوك، وكلها بعنوان سطرين.
-    assert.deepEqual(telecomScreens.map((screen) => screen.id), ["vodafone", "orange", "etisalat", "we", "landline", "banks"]);
+    // شاشات الصفحة: الشركات الأربع + الخط الأرضي + الأرقام الحكومية + البنوك، وكلها بعنوان سطرين.
+    assert.deepEqual(telecomScreens.map((screen) => screen.id), ["vodafone", "orange", "etisalat", "we", "landline", "gov", "banks"]);
     for (const screen of telecomScreens) {
       assert.equal(screen.title.length, 2, `${screen.id} has a two-line title`);
       assert.ok(screen.title.every((line) => line.length > 0));
       assert.match(screen.color, /^#[0-9a-f]{6}$/i);
       assert.ok(screen.groups.length >= 2, `${screen.id} has group tiles`);
-      // الأرقام الحكومية والمرافق متعمّد عدم وجودها هنا: لها زر خاص في الدليل.
-      assert.ok(!screen.groups.some((group) => group.tab.includes("حكوم")), `${screen.id} has no government tab`);
+      assert.ok(screen.scope === screen.id, `${screen.id} reports under its own scope`);
     }
     assert.ok(telecomScreens.some((screen) => screen.id === "banks" && screen.groups.length === 2));
+
+    // قسم الأرقام الحكومية: أرقام قصيرة صحيحة، بدون تكرار، وكلها قابلة للطلب مباشرة.
+    const gov = telecomScreens.find((screen) => screen.id === "gov");
+    assert.ok(gov, "government screen is present in the codes page");
+    assert.equal(gov.groups.length, 4);
+    const govRows = gov.groups.flatMap((group) => group.rows);
+    assert.ok(govRows.length >= 14, "government section keeps a useful number of hotlines");
+    for (const row of govRows) {
+      assert.equal(row.kind, "number", `gov row ${row.label} is a plain dialable number`);
+      assert.match(row.code, /^\d{3,6}$/, `gov number ${row.code} is short and numeric`);
+    }
+    const govCodes = govRows.map((row) => row.code);
+    assert.equal(new Set(govCodes).size, govCodes.length, "government numbers are unique");
+    for (const code of ["123", "122", "180", "121", "125", "129", "16528", "19588", "155", "15999", "16217", "16789", "15047", "16048"]) {
+      assert.ok(govCodes.includes(code), `government section keeps ${code}`);
+    }
+    // كل مجموعة حكومية لها أيقونة مربّع معروفة في إعدادات الأدمن (اسم/لون قابل للتعديل).
+    assert.deepEqual(gov.groups.map((group) => group.icon), ["siren", "support", "card", "train"]);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("telecom page settings sanitize safely, keep defaults and drive tile labels/colors", async () => {
+  const src = readFileSync(new URL("../src/lib/telecom-settings.ts", import.meta.url), "utf8");
+  const { outputText } = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
+  const mod = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
+  const { defaultTelecomSettings, sanitizeTelecomSettings, darkenHex, tileStyleFor, TELECOM_TILE_KEYS } = mod;
+
+  // أي شكل محفوظ (فاضي/غريب) يرجّع إعدادات صحيحة كاملة.
+  assert.equal(sanitizeTelecomSettings(undefined).title, defaultTelecomSettings.title);
+  assert.equal(sanitizeTelecomSettings({ title: "   " }).title, defaultTelecomSettings.title);
+  assert.equal(sanitizeTelecomSettings("نص غير متوقع").homeHeading, defaultTelecomSettings.homeHeading);
+
+  const custom = sanitizeTelecomSettings({
+    title: "عنوان مخصص لصفحة الأكواد",
+    eyebrow: "شارة",
+    groupStyles: { support: { label: "المساعدة", color: "#123456" }, wallet: { color: "bad", label: "" } },
+    showQr: false,
+  });
+  assert.equal(custom.title, "عنوان مخصص لصفحة الأكواد");
+  assert.equal(custom.eyebrow, "شارة");
+  assert.equal(custom.groupStyles.support.label, "المساعدة");
+  assert.equal(custom.groupStyles.support.color, "#123456");
+  // اللون غير الصحيح والاسم الفاضي يرجعوا للافتراضي بدل ما يكسروا الصفحة.
+  assert.equal(custom.groupStyles.wallet.color, defaultTelecomSettings.groupStyles.wallet.color);
+  assert.equal(custom.groupStyles.wallet.label, defaultTelecomSettings.groupStyles.wallet.label);
+  assert.equal(custom.showQr, false);
+  assert.equal(custom.showHeroChips, true);
+
+  assert.equal(TELECOM_TILE_KEYS.length, 8);
+  // الأقسام الجديدة (طوارئ/نقل) بتيجي بلون واسم افتراضي صالحين.
+  assert.equal(defaultTelecomSettings.groupStyles.siren.label, "طوارئ");
+  assert.match(defaultTelecomSettings.groupStyles.siren.color, /^#[0-9a-f]{6}$/);
+  assert.match(defaultTelecomSettings.groupStyles.train.color, /^#[0-9a-f]{6}$/);
+  assert.match(darkenHex("#808080"), /^#[0-9a-f]{6}$/);
+  assert.equal(tileStyleFor(custom, "support", "الدعم").label, "المساعدة");
+  assert.equal(tileStyleFor(custom, "wallet", "الرصيد والشحن").label, defaultTelecomSettings.groupStyles.wallet.label);
+  // أي أيقونة غير معروفة (زي أيقونة جديدة مستقبلًا) ترجع اسم المجموعة الأصلي وبلون القسم الافتراضي.
+  assert.equal(tileStyleFor(custom, "sparkles", "قسم غريب").label, "قسم غريب");
+  assert.equal(tileStyleFor(custom, "siren", "طوارئ").label, "طوارئ");
+
+  const govStyle = sanitizeTelecomSettings({ groupStyles: { siren: { label: "نجدة", color: "#aa1122" } } });
+  assert.equal(govStyle.groupStyles.siren.label, "نجدة");
+  assert.equal(govStyle.groupStyles.siren.color, "#aa1122");
 });

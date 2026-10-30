@@ -1,15 +1,17 @@
 /**
- * شاشات صفحة /telecom: كل شاشة = زر مربّع في الصفحة الرئيسية (4 شركات محمول + الخط الأرضي + البنوك).
+ * شاشات صفحة /telecom: كل شاشة = زر مربّع في الصفحة الرئيسية
+ * (4 شركات محمول + الخط الأرضي والإنترنت المنزلي + البنوك + الأرقام الحكومية والطوارئ).
  *
  * كل شاشة عندها عنوان على سطرين بلون الشركة، ووصف مختصر، ومجموعات (الدعم/الرصيد/الإنترنت/المحفظة)
- * تظهر كأزرار مربّعة ملوّنة. الأرقام الحكومية والمرافق العامة **مش** هنا لأن لها زر خاص بها في الدليل.
+ * تظهر كأزرار مربّعة ملوّنة.
  */
 import type { TelecomGroup, TelecomGroupIcon, TelecomOperator, TelecomReadyAction, TelecomRow } from "@/lib/telecom";
 import { telecomOperators } from "@/lib/telecom";
 import { landlineGroups } from "@/lib/landline";
+import { govNote, govNumberGroups } from "@/lib/gov-numbers";
 import { paymentServices } from "@/lib/payments";
 
-export type TelecomScreenIcon = "company" | "landline" | "bank";
+export type TelecomScreenIcon = "company" | "landline" | "bank" | "gov";
 
 export type TelecomScreen = {
   id: string;
@@ -100,7 +102,22 @@ const bankScreen: TelecomScreen = {
   ready: [],
 };
 
-export const telecomScreens: TelecomScreen[] = [...operatorScreens, landlineScreen, bankScreen];
+const govScreen: TelecomScreen = {
+  id: "gov",
+  name: "أرقام حكومية",
+  latin: "Government & Emergency",
+  title: ["أرقام الطوارئ", "والخدمات الحكومية"],
+  summary: "الإسعاف والشرطة والمطافئ والمرافق، وأرقام الشكاوى والمستندات الحكومية — كلها في مكان واحد.",
+  help: govNote,
+  color: "#0f766e",
+  colorDeep: "#0b5751",
+  icon: "gov",
+  scope: "gov",
+  groups: govNumberGroups,
+  ready: [],
+};
+
+export const telecomScreens: TelecomScreen[] = [...operatorScreens, landlineScreen, govScreen, bankScreen];
 
 export function telecomScreenById(id: string) {
   return telecomScreens.find((screen) => screen.id === id);

@@ -12,6 +12,7 @@ import {
   type TelecomGroup, type TelecomGroupIcon, type TelecomReadyAction, type TelecomRow,
 } from "@/lib/telecom";
 import type { TelecomScreen as Screen } from "@/lib/telecom-screens";
+import { defaultTelecomSettings, tileStyleFor, type TelecomSettings } from "@/lib/telecom-settings";
 
 const GROUP_ICONS: Record<TelecomGroupIcon, typeof PhoneCall> = {
   support: Headphones,
@@ -24,21 +25,13 @@ const GROUP_ICONS: Record<TelecomGroupIcon, typeof PhoneCall> = {
   train: PhoneCall,
 };
 
-/** ألوان أزرار الأقسام: كل مربّع بلون مختلف حتى يميّزها العميل بسرعة. */
-const GROUP_COLORS = [
-  { from: "#1d6fdc", to: "#0b3f8f" },
-  { from: "#0f9d58", to: "#0a6b3c" },
-  { from: "#e88a16", to: "#b25c05" },
-  { from: "#7c3aed", to: "#4f1fa0" },
-  { from: "#0e8f95", to: "#08666b" },
-  { from: "#d94a4a", to: "#992020" },
-];
-
 type Props = {
   screen: Screen;
   /** رابط الصفحة الكامل (يُستخدم في QR والمشاركة). */
   link?: string;
   siteName?: string;
+  /** إعدادات الأدمن: أسماء وألوان أقسام الأكواد. */
+  codes?: TelecomSettings;
 };
 
 /**
@@ -46,7 +39,8 @@ type Props = {
  * عنوان على سطرين بلون الشاشة + وصف، ثم أزرار الأقسام كمربّعات ملوّنة في صفين،
  * وزر بارز «كل الأكواد»، وبطاقات أكواد مربّعة، وأكواد جاهزة برقم الزائر.
  */
-export default function TelecomScreenView({ screen, link = "", siteName = "دليل جنزور" }: Props) {
+export default function TelecomScreenView({ screen, link = "", siteName = "دليل جنزور", codes }: Props) {
+  const codesSettings = codes ?? defaultTelecomSettings;
   const [selected, setSelected] = useState(0);
   const [showAll, setShowAll] = useState(false);
   const [query, setQuery] = useState("");
@@ -127,7 +121,7 @@ export default function TelecomScreenView({ screen, link = "", siteName = "دل�
             <div className="group-tiles" role="tablist" aria-label={`أقسام أكواد ${screen.name}`}>
               {screen.groups.map((group, index) => {
                 const GroupIcon = GROUP_ICONS[group.icon] ?? PhoneCall;
-                const palette = GROUP_COLORS[index % GROUP_COLORS.length];
+                const palette = tileStyleFor(codesSettings, group.icon, group.tab);
                 return (
                   <button
                     key={group.title}
@@ -135,11 +129,11 @@ export default function TelecomScreenView({ screen, link = "", siteName = "دل�
                     role="tab"
                     aria-selected={index === Math.min(selected, screen.groups.length - 1)}
                     className={`group-tile ${index === Math.min(selected, screen.groups.length - 1) ? "is-active" : ""}`}
-                    style={{ "--tile-from": palette.from, "--tile-to": palette.to } as CSSProperties}
+                    style={{ "--tile-from": palette.color, "--tile-to": palette.deep } as CSSProperties}
                     onClick={() => setSelected(index)}
                   >
                     <span className="group-tile-icon"><GroupIcon size={24} aria-hidden="true"/></span>
-                    <strong className="group-tile-name">{group.tab}</strong>
+                    <strong className="group-tile-name">{palette.label}</strong>
                     <small className="group-tile-count">{group.rows.length} كود</small>
                   </button>
                 );

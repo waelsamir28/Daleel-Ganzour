@@ -2964,7 +2964,7 @@ export const DEFAULT_ADMIN_PALETTE: AdminPaletteId = "indigo";
 export function sanitizeAdminPalette(value: unknown): AdminPaletteId {
   return typeof value === "string" && (ADMIN_PALETTE_IDS as readonly string[]).includes(value) ? (value as AdminPaletteId) : DEFAULT_ADMIN_PALETTE;
 }
-export type AdminDirectory = PublicDirectory & { adminPalette?: AdminPaletteId; activityLog?: ActivityLogRecord[]; ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[]; whatsappAlertKinds?: string[]; whatsappAlertStatus?: { lastSentAt: string | null; lastResult: string; lastKind: string } };
+export type AdminDirectory = PublicDirectory & { adminPalette?: AdminPaletteId; telecomSettings?: import("@/lib/telecom-settings").TelecomSettings; activityLog?: ActivityLogRecord[]; ads: AdBannerRecord[]; adRequests: AdRequestRecord[]; greetingSettings: GreetingSettings; members: MemberRecord[]; communityListings: CommunityListingRecord[]; notifications: NotificationRecord[]; notificationUnread: number; ratings: RatingRecord[]; whatsappAlertKinds?: string[]; whatsappAlertStatus?: { lastSentAt: string | null; lastResult: string; lastKind: string } };
 
 export const defaultSettings: SiteSettings = {
   siteName: "دليل المهن والخدمات بقرية جنزور",

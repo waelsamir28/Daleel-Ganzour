@@ -12,6 +12,7 @@ const SCOPE_LABELS: Record<string, string> = {
   we: "وي",
   landline: "الخط الأرضي",
   banks: "البنوك وتطبيقات الدفع",
+  gov: "الأرقام الحكومية والطوارئ",
 };
 
 const ARABIC_DATE = new Intl.DateTimeFormat("ar-EG", { dateStyle: "medium", timeStyle: "short" });
@@ -52,7 +53,7 @@ export default function AdminCodeReports() {
       <div className="analytics-panel-head">
         <div>
           <h3><Siren size={18}/> بلاغات الأكواد اللي اتغيّرت ({total})</h3>
-          <p>بلاغات مجهولة من صفحة الأكواد — راجع الكود وحدّثه في <b>src/lib/telecom.ts</b> أو <b>landline.ts</b> أو <b>payments.ts</b>.</p>
+          <p>بلاغات مجهولة من صفحة الأكواد — راجع الكود وحدّثه في <b>src/lib/telecom.ts</b> أو <b>landline.ts</b> أو <b>gov-numbers.ts</b> أو <b>payments.ts</b>.</p>
         </div>
         <button type="button" className="button button-soft button-small" onClick={refresh} disabled={state === "loading"}>
           <RefreshCw size={15} className={state === "loading" ? "code-report-spin" : ""}/> تحديث

@@ -5,6 +5,7 @@ import { databaseConfigured, db } from "@/db";
 import { activityLog, adBanners, adRequests, categoryHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
 import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type parsePinnedProfessions, DEFAULT_ADMIN_PALETTE, sanitizeAdminPalette, type AdminPaletteId } from "@/lib/catalog";
 import { getWhatsappAlertKinds, getWhatsappAlertStatus } from "@/lib/whatsapp-alert";
+import { defaultTelecomSettings, sanitizeTelecomSettings, type TelecomSettings } from "@/lib/telecom-settings";
 
 let seedPromise: Promise<void> | undefined;
 export const DELETED_CATEGORIES_KEY = "deleted_categories";
@@ -209,6 +210,14 @@ export async function getSettings(): Promise<SiteSettings> {
   if (!row) return defaultSettings;
   try { return sanitizeSettings(JSON.parse(row.value) as Record<string, unknown>); } catch { return defaultSettings; }
 }
+/** إعدادات صفحة الأكواد (/telecom) التي يضبطها الأدمن من لوحة التحكم. */
+export async function getTelecomSettings(): Promise<TelecomSettings> {
+  if (!databaseConfigured) return defaultTelecomSettings;
+  await ensureSeed();
+  const [row] = await db.select().from(directorySettings).where(eq(directorySettings.key, "telecom_config"));
+  if (!row) return defaultTelecomSettings;
+  try { return sanitizeTelecomSettings(JSON.parse(row.value)); } catch { return defaultTelecomSettings; }
+}
 export async function getUtilityNumbers(): Promise<PublicUtilityContact[]> {
   if (!databaseConfigured) return publicUtilityNumbers;
   await ensureSeed();
@@ -398,5 +407,6 @@ export async function getAdminDirectory(role: "admin" | "moderator" = "admin"): 
   const [whatsappAlertKinds, whatsappAlertStatus] = role === "admin" ? await Promise.all([getWhatsappAlertKinds(), getWhatsappAlertStatus()]) : [undefined, undefined];
   const activityRows = role === "admin" ? await db.select().from(activityLog).orderBy(desc(activityLog.createdAt)).limit(300) : [];
   const adminPalette = await getAdminPalette();
-  return { ...catalog, adminPalette, whatsappAlertKinds, whatsappAlertStatus, activityLog: activityRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0, adRequests: adRequestRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))};
+  const telecomSettings = role === "admin" ? await getTelecomSettings() : undefined;
+  return { ...catalog, adminPalette, telecomSettings, whatsappAlertKinds, whatsappAlertStatus, activityLog: activityRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), memberCount: role === "admin" ? catalog.memberCount : 0, services: providers.map((row) => ({ ...serializeService(row), availabilityToken: row.availabilityToken || undefined })), ratings: ratingRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })), communityListings: communityRows.map((listing) => ({ ...listing, type: listing.type as CommunityListingType, createdAt: listing.createdAt.toISOString() })), members: memberRows.map((member) => ({ ...member, role: member.role === "moderator" ? "moderator" : "member", createdAt: member.createdAt.toISOString() })), notifications: notificationRows.map((notification) => ({ ...notification, createdAt: notification.createdAt.toISOString() })), notificationUnread: unreadTotal[0]?.total ?? 0, adRequests: adRequestRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))};
 }
