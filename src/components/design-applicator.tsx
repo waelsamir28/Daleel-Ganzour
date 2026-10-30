@@ -147,9 +147,10 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-search-trigger", design.searchTriggerStyle || "pill-gradient");
   root.setAttribute("data-design-splash-enabled", design.splashEnabled ? "true" : "false");
   root.setAttribute("data-design-splash-image", design.splashImageUrl || "/images/logo-app.webp");
-  root.setAttribute("data-design-splash-duration", design.splashDuration || "900");
+  root.setAttribute("data-design-splash-duration", design.splashDuration || "12000");
   root.setAttribute("data-design-splash-audience", design.splashAudience || "installed");
   root.setAttribute("data-design-splash-stickers", design.splashStickers === false ? "false" : "true");
+  root.setAttribute("data-design-splash-orbit", design.splashOrbit === false ? "false" : "true");
   // يُحفظ محليًا كي يقرأه السكربت الحاجب في <head> قبل أول رسم (لتفادي وميض الشاشة لزوار المتصفح حين تكون للتطبيق المثبّت فقط).
   try { localStorage.setItem("janzour-splash-audience", design.splashEnabled ? (design.splashAudience || "installed") : "off"); } catch { /* ignore */ }
   if (!design.splashEnabled) {

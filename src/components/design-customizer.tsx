@@ -1628,6 +1628,18 @@ export default function DesignCustomizer({
                   />
                 </label>
 
+                <label className="field">
+                  سطر «تصميم وتنفيذ» أسفل الفوتر (بحركة لمعان ذهبية — اتركه فارغًا لإخفائه)
+                  <input
+                    type="text"
+                    value={draft.footerCredit}
+                    onChange={(e) => updateField("footerCredit", e.target.value)}
+                    placeholder="تصميم وتنفيذ م.وائل الجمال"
+                    maxLength={120}
+                  />
+                  <small className="input-help">يظهر تحت سطر الحقوق مباشرة بخط ذهبي متحرك.</small>
+                </label>
+
                 <div className="form-row design-two-col">
                   <label className="field">
                     رابط صفحة أو جروب فيسبوك الرسمي للدليل (اختياري)
@@ -1688,9 +1700,11 @@ export default function DesignCustomizer({
                   <label className="field">
                     مدة ظهور شاشة البداية (Splash Screen)
                     <SelectField value={draft.splashDuration} onChange={(e) => updateField("splashDuration", e.target.value as DesignSettings["splashDuration"])}>
-                      <option value="900">سريعة (0.9 ثانية - الافتراضي)</option>
-                      <option value="1500">متوسطة (1.5 ثانية)</option>
-                      <option value="2500">طويلة (2.5 ثانية)</option>
+                      <option value="12000">كاملة — 12 ثانية (الافتراضي: تجمّع + دوران كامل)</option>
+                      <option value="6000">متوسطة — 6 ثوانٍ (تجمّع + نصف دورة)</option>
+                      <option value="2500">قصيرة — 2.5 ثانية</option>
+                      <option value="1500">سريعة — 1.5 ثانية</option>
+                      <option value="900">سريعة جدًا — 0.9 ثانية</option>
                     </SelectField>
                   </label>
                   <ImageUploadField imageKey="splash" transparentTool label="صورة شاشة البداية (رفع من الجهاز — بخلفية شفافة)" value={draft.splashImageUrl === defaultDesignSettings.splashImageUrl ? "" : draft.splashImageUrl} onChange={(url) => updateField("splashImageUrl", url || defaultDesignSettings.splashImageUrl)} fallbackSrc={defaultDesignSettings.splashImageUrl}/>
@@ -1706,13 +1720,15 @@ export default function DesignCustomizer({
                   </label>
                   <div className="field">
                     معاينة فورية
-                    <button type="button" className="button button-soft" onClick={() => { localStorage.setItem("janzour-splash-audience", draft.splashEnabled ? draft.splashAudience : "off"); document.documentElement.setAttribute("data-design-splash-stickers", draft.splashStickers ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-image", draft.splashImageUrl || "/images/logo-daleel-transparent.png"); document.documentElement.setAttribute("data-design-splash-duration", draft.splashDuration); window.dispatchEvent(new CustomEvent(SPLASH_PREVIEW_EVENT)); }}>
+                    <button type="button" className="button button-soft" onClick={() => { localStorage.setItem("janzour-splash-audience", draft.splashEnabled ? draft.splashAudience : "off"); document.documentElement.setAttribute("data-design-splash-stickers", draft.splashStickers ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-image", draft.splashImageUrl || defaultDesignSettings.splashImageUrl); document.documentElement.setAttribute("data-design-splash-duration", draft.splashDuration); document.documentElement.setAttribute("data-design-splash-orbit", draft.splashOrbit ? "true" : "false"); window.dispatchEvent(new CustomEvent(SPLASH_PREVIEW_EVENT)); }}>
                       <Sparkles size={16}/> معاينة شاشة البداية
                     </button>
                     <small className="input-help">تعرض الشاشة بالإعدادات الحالية (قبل الحفظ) لمدة ثانية ونصف على الأقل.</small>
                   </div>
                 </div>
-                <label className="checkbox-field"><input type="checkbox" checked={draft.splashStickers} onChange={(e) => updateField("splashStickers", e.target.checked)}/>ملصقات الأقسام 3D تتجمع حول الشعار في شاشة البداية</label>
+                <label className="checkbox-field"><input type="checkbox" checked={draft.splashStickers} onChange={(e) => updateField("splashStickers", e.target.checked)}/>الحركة الأولى: ملصقات الأقسام 3D تتجمع حول الشعار في شاشة البداية</label>
+                <label className="checkbox-field"><input type="checkbox" checked={draft.splashOrbit} onChange={(e) => updateField("splashOrbit", e.target.checked)}/>الحركة الثانية: الملصقات تدور في مدار دائري حول الشعار بعد اكتمال التجمع</label>
+                <small className="input-help">المسافة بين الشعار والملصقات محسوبة تلقائيًا حتى لا تتراكب معه على أي مقاس شاشة. أي ضغطة على شاشة البداية تتخطاها فورًا.</small>
 
                 <InnerDivider title="عناوين ونصوص شاشة تسجيل الدخول والعضوية" />
                 <div className="form-row design-two-col">
