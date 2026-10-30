@@ -11,6 +11,7 @@ import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provid
 import { openInstallAppModal } from "@/components/install-app-modal";
 import dynamic from "next/dynamic";
 import AdRotator from "@/components/ad-rotator";
+import TelecomCards from "@/components/telecom-cards";
 import DesignApplicator from "@/components/design-applicator";
 import SelectField from "@/components/select-field";
 import { trackDirectoryEvent, sendCategoryHit } from "@/lib/analytics-tracker";
@@ -987,6 +988,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
           </button>
         </div>
       </section>}
+      {(scoped || design.showFeatureCards) && design.showTelecomCards !== false && <TelecomCards order={scoped ? 5 : sectionOrderIndex("features", 1)}/>}
       {settings.showEmergency && <section className="emergency-strip" aria-labelledby="emergency-strip-title" style={!scoped ? { order: sectionOrderIndex("professionBanner", 5) } : undefined}><span className="emergency-strip-icon"><Siren size={24}/></span><div className="emergency-strip-copy"><h2 id="emergency-strip-title">الخدمات والطوارئ</h2><p>لأن بعض المواقف.. ما تستحملش انتظار</p></div><button type="button" className="emergency-strip-button" onClick={showEmergency}><PhoneCall size={16}/>عرض الأرقام</button></section>}
       </>)}
     </main></div>

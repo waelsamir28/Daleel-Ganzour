@@ -1434,6 +1434,9 @@ export default function DesignCustomizer({
                   </label>
                 </div>
 
+                <InnerDivider title="صف أرقام شركات المحمول" subtitle="يظهر أسفل الكروت الثلاثة بنفس ارتفاعها: فودافون / أورنج / اتصالات / وي" />
+                <label className="checkbox-field"><input type="checkbox" checked={draft.showTelecomCards} onChange={(e) => updateField("showTelecomCards", e.target.checked)}/>إظهار صف شركات المحمول (كل شركة بنافذتها وأرقامها وأكوادها)</label>
+
                 <InnerDivider title="ترتيب وإظهار أقسام الصفحة الرئيسية" subtitle="حرك أي قسم لأعلى أو لأسفل أو أخفِه بضغطة واحدة" />
                 <div className="design-order-box">
                   <div className="design-order-list">

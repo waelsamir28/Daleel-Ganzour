@@ -1322,6 +1322,8 @@ export type DesignSettings = {
   sectionOrder: string;
   showHero: boolean;
   showFeatureCards: boolean;
+  /** صف أزرار شركات المحمول (فودافون/أورنج/اتصالات/وي) أسفل الكروت الثلاثة. */
+  showTelecomCards: boolean;
   showFeaturedSection: boolean;
   /** صف «عروض الأسبوع» (الخدمات التي لديها عرض نشط) في الصفحة الرئيسية. */
   showOffersSection: boolean;
@@ -1709,6 +1711,7 @@ export const defaultDesignSettings: DesignSettings = {
   sectionOrder: "hero,features,featured,offers,categories,transit,professionBanner",
   showHero: true,
   showFeatureCards: true,
+  showTelecomCards: true,
   showFeaturedSection: true,
   showOffersSection: true,
   showCategoriesSection: true,
@@ -2325,6 +2328,7 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.sectionOrder = pickText(record.sectionOrder, defaultDesignSettings.sectionOrder, 120);
   next.showHero = pickBool(record.showHero, defaultDesignSettings.showHero);
   next.showFeatureCards = pickBool(record.showFeatureCards, defaultDesignSettings.showFeatureCards);
+  next.showTelecomCards = pickBool(record.showTelecomCards, defaultDesignSettings.showTelecomCards);
   next.showFeaturedSection = pickBool(record.showFeaturedSection, defaultDesignSettings.showFeaturedSection);
   next.showOffersSection = pickBool(record.showOffersSection, defaultDesignSettings.showOffersSection);
   next.showCategoriesSection = pickBool(record.showCategoriesSection, defaultDesignSettings.showCategoriesSection);

@@ -1460,7 +1460,7 @@ html.dark .featured-banner-status { background: #142b44; border-color: #274a6e; 
 /* ===== الكروت الثلاثة (الصيدلية والعيادة المناوبة الآن + أرقام تهمك في جنزور + الخدمات السريعة) ===== */
 .feature-cards-section { margin-top: 26px; }
 .feature-cards-grid.main-category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 14px; }
-.feature-card-tile.category-tile { display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 162px; padding: 18px 10px 15px; border-radius: 18px; cursor: pointer; font-family: inherit; text-align: center; }
+.feature-card-tile.category-tile { display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 184px; padding: 16px 10px 14px; border-radius: 18px; cursor: pointer; font-family: inherit; text-align: center; }
 .feature-card-tile.category-tile .category-icon { margin-block: auto; }
 .feature-card-title { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 100%; margin-top: 6px; text-align: center; white-space: normal !important; line-height: 1.45 !important; }
 .feature-card-title > span { display: block; width: 100%; text-align: center; }
@@ -1468,7 +1468,7 @@ html.dark .featured-banner-status { background: #142b44; border-color: #274a6e; 
 .feature-card-title > span:last-child { font-size: 13.5px; font-weight: 800; color: var(--category-color, #0878c9); }
 @media(max-width:600px) {
   .feature-cards-grid.main-category-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px; }
-  .feature-card-tile.category-tile { min-height: 136px; padding: 13px 6px 11px; border-radius: 15px; gap: 8px; }
+  .feature-card-tile.category-tile { min-height: 140px; padding: 13px 6px 11px; border-radius: 15px; gap: 8px; }
   .feature-card-tile.category-tile .category-icon { width: 58px; height: 58px; border-radius: 18px; }
   .feature-card-tile.category-tile .main-category-art { width: 58px; height: 58px; }
   .feature-card-title > span:first-child { font-size: 12px; }
@@ -1476,6 +1476,91 @@ html.dark .featured-banner-status { background: #142b44; border-color: #274a6e; 
 }
 html.dark .feature-card-title > span:first-child { color: #eef6ff; }
 html.dark .feature-card-title > span:last-child { color: #8ac8ff; }
+
+/* ===== صفّ أرقام وأكواد شركات المحمول (فودافون / أورنج / اتصالات / وي) ===== */
+/* نفس ارتفاع وستايل الكروت الثلاثة فوقه: ٤ أزرار في صف واحد على الكمبيوتر، و٢×٢ على الموبايل. */
+.telecom-section { margin-top: 16px; }
+.telecom-section-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 9px; }
+.telecom-section-head h2 { display: inline-flex; align-items: center; gap: 7px; margin: 0; color: #163a63; font-size: 14px; font-weight: 900; }
+.telecom-section-head h2 svg { color: #0b7fd4; }
+.telecom-section-head p { margin: 0; color: #7d94ac; font-size: 11px; font-weight: 600; }
+.telecom-cards-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.telecom-tile.category-tile { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 7px; min-height: 184px; padding: 14px 9px 12px; border-radius: 18px; cursor: pointer; font-family: inherit; text-align: center; }
+.telecom-logo-wrap { display: grid; place-items: center; margin-top: 2px; filter: drop-shadow(0 6px 12px #0b2b4a1f); }
+.telecom-logo { position: relative; display: grid; place-items: center; flex: none; width: var(--logo-size, 56px); height: var(--logo-size, 56px); overflow: hidden; border-radius: calc(var(--logo-size, 56px) * .26); background: linear-gradient(150deg, var(--category-color, #0878c9) 0%, var(--brand-deep, #075db7) 100%); box-shadow: 0 8px 18px #0b2b4a29, inset 0 1px 0 #ffffff4d; color: #fff; }
+.telecom-logo::after { content: ""; position: absolute; inset: 0 0 auto; height: 45%; background: linear-gradient(180deg, #ffffff38, transparent); pointer-events: none; }
+.telecom-logo svg { width: 66%; height: 66%; color: #fff; }
+.telecom-logo .telecom-wordmark { font-family: "Cairo", Tahoma, Arial, sans-serif; font-size: calc(var(--logo-size, 56px) * .30); font-weight: 900; line-height: 1; letter-spacing: -.4px; color: #fff; }
+.telecom-logo.is-orange .telecom-wordmark { font-size: calc(var(--logo-size, 56px) * .24); letter-spacing: -.6px; }
+.telecom-logo.is-we .telecom-wordmark { font-size: calc(var(--logo-size, 56px) * .38); letter-spacing: -1px; }
+.telecom-logo.is-etisalat .telecom-wordmark { font-size: calc(var(--logo-size, 56px) * .38); letter-spacing: -1px; }
+.telecom-title { margin-top: 0 !important; }
+.telecom-title > span:first-child { font-size: 14.5px !important; color: #163a63; }
+.telecom-quick { display: grid; gap: 3px; width: 100%; margin-top: auto; }
+.telecom-quick-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 7px; border: 1px solid #e6eff8; border-radius: 8px; background: #f7fbff; }
+.telecom-quick-row small { color: #7087a1; font-size: 10px; font-weight: 700; }
+.telecom-quick-row b { color: var(--category-color, #0878c9); font-size: 11.5px; font-weight: 900; letter-spacing: .2px; direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
+.telecom-tile:hover .telecom-quick-row { border-color: color-mix(in srgb, var(--category-color) 30%, #e6eff8); background: #fff; }
+html.dark .telecom-section-head h2 { color: #eef6ff; }
+html.dark .telecom-section-head p { color: #8fa9c2; }
+html.dark .telecom-title > span:first-child { color: #eef6ff; }
+html.dark .telecom-quick-row { border-color: #23394f; background: #102133; }
+html.dark .telecom-quick-row small { color: #8fa9c2; }
+html.dark .telecom-tile:hover .telecom-quick-row { background: #14293f; }
+
+/* ===== نافذة الشركة: كل الأرقام والأكواد مرتبة في مجموعات ===== */
+.telecom-modal { display: grid; gap: 14px; }
+.telecom-modal-brand { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border: 1px solid color-mix(in srgb, var(--category-color) 26%, #e2ecf6); border-radius: 15px; background: linear-gradient(120deg, color-mix(in srgb, var(--category-color) 10%, #fff), #fff 78%); }
+.telecom-modal-brand-copy { display: grid; gap: 2px; min-width: 0; }
+.telecom-modal-brand-copy strong { color: #12344f; font-size: 15px; font-weight: 900; }
+.telecom-modal-brand-copy span { color: #5c7791; font-size: 11.5px; font-weight: 600; line-height: 1.7; }
+.telecom-group { display: grid; gap: 7px; }
+.telecom-group h3 { display: flex; align-items: center; gap: 7px; margin: 0; color: #12344f; font-size: 12.5px; font-weight: 900; }
+.telecom-group-icon { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 9px; background: color-mix(in srgb, var(--category-color) 13%, #fff); color: var(--category-color); border: 1px solid color-mix(in srgb, var(--category-color) 22%, #fff); }
+.telecom-group ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.telecom-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; border: 1px solid #e6eef7; border-radius: 11px; background: #fbfdff; }
+.telecom-row:hover { border-color: color-mix(in srgb, var(--category-color) 28%, #e6eef7); background: #fff; }
+.telecom-row-label { display: grid; gap: 1px; min-width: 0; }
+.telecom-row-label > span { color: #24455f; font-size: 12px; font-weight: 800; line-height: 1.5; }
+.telecom-row-label small { color: #8298ae; font-size: 10px; font-weight: 600; }
+.telecom-row-actions { display: inline-flex; align-items: center; gap: 5px; flex: none; }
+.telecom-code { display: inline-flex; align-items: center; justify-content: center; min-width: 62px; padding: 5px 10px; border: 1px solid color-mix(in srgb, var(--category-color) 30%, #dfe9f4); border-radius: 9px; background: #fff; color: var(--category-color); font-size: 12.5px; font-weight: 900; letter-spacing: .3px; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+.telecom-code:hover { background: color-mix(in srgb, var(--category-color) 8%, #fff); transform: translateY(-1px); box-shadow: 0 5px 12px #0b2b4a14; }
+.telecom-copy { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px solid #e2ecf6; border-radius: 8px; background: #fff; color: #5b7791; transition: color .16s ease, border-color .16s ease, background .16s ease; }
+.telecom-copy:hover { color: var(--category-color); border-color: color-mix(in srgb, var(--category-color) 35%, #e2ecf6); }
+.telecom-copy.is-copied { color: #0a9d5b; border-color: #b7e8cd; background: #f1fbf5; }
+.telecom-note { display: flex; align-items: flex-start; gap: 7px; margin: 0; padding: 9px 11px; border: 1px dashed #d9e6f2; border-radius: 11px; background: #f8fbff; color: #6b8298; font-size: 10.5px; font-weight: 600; line-height: 1.8; }
+.telecom-note svg { flex: none; margin-top: 3px; color: #0b7fd4; }
+html.dark .telecom-modal-brand { border-color: #23394f; background: linear-gradient(120deg, #12283e, #0d1a2b 78%); }
+html.dark .telecom-modal-brand-copy strong, html.dark .telecom-group h3 { color: #eef6ff; }
+html.dark .telecom-modal-brand-copy span { color: #93aec6; }
+html.dark .telecom-group-icon { background: #14293f; border-color: #24405c; }
+html.dark .telecom-row { border-color: #1e3448; background: #0f2133; }
+html.dark .telecom-row:hover { border-color: #2f537a; background: #14293f; }
+html.dark .telecom-row-label > span { color: #dcebf9; }
+html.dark .telecom-row-label small { color: #8fa9c2; }
+html.dark .telecom-code { border-color: #27455f; background: #0b1a29; }
+html.dark .telecom-copy { border-color: #27455f; background: #0b1a29; color: #9fc3e2; }
+html.dark .telecom-note { border-color: #24405c; background: #0f2133; color: #93aec6; }
+@media (max-width: 900px) {
+  .telecom-cards-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .telecom-logo { --logo-size: 52px; }
+  .telecom-quick-row { padding: 2px 5px; }
+  .telecom-quick-row small { font-size: 9px; }
+  .telecom-quick-row b { font-size: 10.5px; }
+}
+@media (max-width: 600px) {
+  .telecom-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .telecom-tile.category-tile { min-height: 152px; padding: 11px 8px 10px; border-radius: 15px; gap: 6px; }
+  .telecom-logo { --logo-size: 48px; }
+  .telecom-title > span:first-child { font-size: 13px !important; }
+  .telecom-section-head h2 { font-size: 13px; }
+  .telecom-section-head p { font-size: 10px; }
+  .telecom-row { padding: 6px 8px; }
+  .telecom-row-label > span { font-size: 11.5px; }
+  .telecom-code { min-width: 56px; font-size: 12px; padding: 4px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .telecom-code { transition: none; } }
 
 /* ===== تنسيق هيدر جميع الشاشات العائمة في التطبيق (توسيط السطور + خلفية لبني متناسقة مع لون زر الاتصال) ===== */
 .modal-panel { overflow: hidden; }
