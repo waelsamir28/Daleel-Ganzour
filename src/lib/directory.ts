@@ -41,7 +41,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-10-29.1";
+export const SCHEMA_VERSION = "2026-10-31.1";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -67,6 +67,8 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_note text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_draft jsonb`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_submission_tracking (token_hash varchar(64) PRIMARY KEY, service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE)`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_telecom_reports (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), scope varchar(20) NOT NULL, code varchar(60) NOT NULL, label varchar(160) NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_telecom_reports_created_idx ON directory_telecom_reports (created_at)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_appointment_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, name varchar(120) NOT NULL, phone varchar(24) NOT NULL, preference varchar(240) NOT NULL, status varchar(20) NOT NULL DEFAULT 'waiting', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_url text NOT NULL DEFAULT ''`);

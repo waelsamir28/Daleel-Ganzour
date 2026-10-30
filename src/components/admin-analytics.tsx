@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, Award, BarChart3, Eye, Grid2X2, MapPin, MessageCircle, Pencil, PhoneCall, Plus, Search, Share2, Siren, Star, Trash2, TrendingUp } from "lucide-react";
 import { getCategory, type AdminDirectory, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon } from "@/components/ui";
+import AdminCodeReports from "@/components/admin-code-reports";
 import { clearAnalyticsEvents, readAnalyticsEvents, type AnalyticsEventRecord } from "@/lib/analytics-tracker";
 
 export default function AdminAnalytics({
@@ -222,6 +223,8 @@ export default function AdminAnalytics({
           </div>
         </section>
       </div>
+
+      <AdminCodeReports/>
 
       {/* Underserved Specialties needing recruitment */}
       <section className="analytics-panel-card">

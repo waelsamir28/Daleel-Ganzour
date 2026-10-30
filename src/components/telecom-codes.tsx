@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState, type CSSProperties } from "react";
-import { Clipboard, ClipboardCheck, Copy, Headphones, MessageCircle, PhoneCall, QrCode, Search, Sparkles, Wallet, Wifi, CreditCard, Smartphone, X } from "lucide-react";
+import { Clipboard, ClipboardCheck, Copy, Headphones, MessageCircle, PhoneCall, QrCode, Search, Siren, Sparkles, TrainFront, Wallet, Wifi, CreditCard, Smartphone, X } from "lucide-react";
 import QrSvg from "@/components/qr-svg";
+import CodeReportButton from "@/components/code-report-button";
 import { buildReadyCode, telecomDialHref, telecomPageUrl, telecomShareText, type TelecomGroupIcon, type TelecomOperator, type TelecomRow } from "@/lib/telecom";
 
 const GROUP_ICONS: Record<TelecomGroupIcon, typeof PhoneCall> = {
@@ -12,6 +13,8 @@ const GROUP_ICONS: Record<TelecomGroupIcon, typeof PhoneCall> = {
   card: CreditCard,
   sim: Smartphone,
   phone: PhoneCall,
+  siren: Siren,
+  train: TrainFront,
 };
 
 type Props = {
@@ -83,6 +86,7 @@ export default function TelecomCodes({ operator, link = "", siteName = "دليل
             {copied === key ? <ClipboardCheck size={16}/> : <Clipboard size={16}/>}
           </button>
         </div>
+        <CodeReportButton scope={operator.id} code={row.code} label={row.label}/>
       </article>
     );
   }

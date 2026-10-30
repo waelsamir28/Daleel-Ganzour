@@ -3216,3 +3216,18 @@ html.dark .design-bg-thumb { background: #0d1b2d; }
 html.dark .admin-dup-warning { background: #3a2e10; border-color: #6b531c; color: #ffe7b0; }
 html.dark .admin-dup-link { background: #4a3a14; border-color: #b98a1c; color: #ffe7b0; }
 html.dark .admin-dup-link:hover { background: #5b4718; }
+
+/* ===== إحصاءات بلاغات الأكواد (صفحة الأكواد) ===== */
+.analytics-code-reports { display: grid; gap: 7px; }
+.analytics-code-report-row { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border: 1px solid #e2ecf6; border-radius: 12px; background: #fbfdff; }
+.analytics-code-report-flag { display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 9px; background: #fef3c7; color: #b45309; }
+.analytics-code-report-row > div { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.analytics-code-report-row strong { color: #103252; font-size: .8rem; font-weight: 800; }
+.analytics-code-report-row small { color: #647f98; font-size: .7rem; font-weight: 600; }
+.analytics-code-report-row > b { flex: none; color: #0b5f9e; font-size: .85rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.analytics-code-report-row > em { flex: none; min-width: 26px; padding: 2px 7px; border-radius: 999px; background: #e8f1fb; color: #0b5f9e; font-size: .72rem; font-style: normal; font-weight: 900; text-align: center; }
+html.dark .analytics-code-report-row { border-color: #22384e; background: #0f2133; }
+html.dark .analytics-code-report-row strong { color: #eef6ff; }
+html.dark .analytics-code-report-row small { color: #93aec6; }
+html.dark .analytics-code-report-row > b { color: #9fd2ff; }
+html.dark .analytics-code-report-row > em { background: #1b3247; color: #9fd2ff; }

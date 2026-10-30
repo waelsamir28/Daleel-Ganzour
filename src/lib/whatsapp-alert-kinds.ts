@@ -6,6 +6,7 @@ export const whatsappAlertKinds = [
   { id: "community", label: "منشور مجتمع جديد", hint: "عمالة أو عقارات أو وظائف" },
   { id: "ad-request", label: "طلب إعلان", hint: "طلبات الإعلان من صفحة «أعلن معنا»" },
   { id: "member", label: "عضو جديد", hint: "تسجيل عضوية جديدة في الموقع" },
+  { id: "code-report", label: "بلاغ كود اتغيّر", hint: "بلاغات الزوار من صفحة الأكواد: «الكود ده اتغيّر؟»" },
 ] as const;
 export type WhatsappAlertKind = (typeof whatsappAlertKinds)[number]["id"];
 export const allWhatsappAlertKinds: WhatsappAlertKind[] = whatsappAlertKinds.map((kind) => kind.id);

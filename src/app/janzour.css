@@ -9773,3 +9773,36 @@ html.dark .detail-credit { background: #1b2d47; color: #bcd6f7; }
 .profile-big-photo .avatar-placeholder { padding: 9%; }
 .profile-avatar-button .avatar-placeholder { padding: 8%; }
 html.dark .avatar-placeholder { background: radial-gradient(circle at 50% 35%, #ffffff 0%, #f6e9d2 70%, #e8cf9f 100%); }
+
+/* ===== زر «الكود ده اتغيّر؟» ===== */
+.code-report {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  width: 100%; min-height: 26px; padding: 3px 8px;
+  border: 1px dashed #e2ecf6; border-radius: 9px;
+  background: #fbfdff; color: #8aa0b5;
+  font-size: 9.5px; font-weight: 800; line-height: 1.5;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.code-report:hover { color: var(--category-color, #0a5fa8); border-color: color-mix(in srgb, var(--category-color) 34%, #e2ecf6); background: color-mix(in srgb, var(--category-color) 5%, #fff); }
+.code-report.is-sent { color: #0a9d5b; border-style: solid; border-color: #b7e8cd; background: #f1fbf5; }
+.code-report.is-error { color: #b54708; border-style: solid; border-color: #f3d3a8; background: #fffaf2; }
+.code-report:disabled { cursor: default; }
+.code-report-spin { animation: code-report-spin .9s linear infinite; }
+@keyframes code-report-spin { to { transform: rotate(360deg); } }
+
+/* ===== أقسام الأرقام (الخط الأرضي والأرقام الحكومية) ===== */
+.number-section > h2 svg { color: var(--category-color); }
+.number-section .codes-tabs { flex-wrap: wrap; }
+.number-section-highlight {
+  display: flex; align-items: center; gap: 6px; margin: 0;
+  padding: 7px 10px; border: 1px solid color-mix(in srgb, var(--category-color) 22%, #e2ecf6);
+  border-radius: 11px; background: color-mix(in srgb, var(--category-color) 6%, #fff);
+  color: color-mix(in srgb, var(--category-color) 75%, #12344f);
+  font-size: 10.5px; font-weight: 800; line-height: 1.7;
+}
+.number-section-highlight svg { flex: none; opacity: .75; }
+html.dark .code-report { border-color: #23394f; background: #0f2133; color: #8fa9c2; }
+html.dark .code-report.is-sent { border-color: #2c7a52; background: #10281d; color: #6fe0a5; }
+html.dark .code-report.is-error { border-color: #6b4a1f; background: #241a0d; color: #f0b979; }
+html.dark .number-section-highlight { border-color: #244a3f; background: #0d201c; color: #a7e3d4; }
+@media (max-width: 600px) { .number-section .codes-grid { grid-template-columns: minmax(0, 1fr); } }
