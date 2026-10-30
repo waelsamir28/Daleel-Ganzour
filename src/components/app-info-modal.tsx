@@ -34,7 +34,7 @@ export default function AppInfoModal({ siteName, logoUrl, memberCount, onClose, 
         <div className="app-info-hero">
           <span className="app-info-logo">
             {/* eslint-disable-next-line @next/next/no-img-element -- Admin-configurable logo */}
-            <img src={logoUrl || "/app-icon.png"} alt={siteName} width={92} height={92}/>
+            <img src={logoUrl || "/app-icon.png?v=6"} alt={siteName} width={92} height={92}/>
           </span>
           <h3>{siteName}</h3>
           <p>دليل رقمي مجاني يجمع كل مهنيي وخدمات ومحلات قرية جنزور في مكان واحد.. من أهل القرية لأهل القرية.</p>

@@ -42,7 +42,7 @@ export default function AdTemplateArt({ template, title = "", caption = "", site
   const heading = title.trim() || meta.title || siteName;
   const line = caption.trim() || meta.caption;
   const cheapest = pricing?.enabled ? cheapestAdTier(pricing) : null;
-  const logo = logoUrl || "/app-icon.png";
+  const logo = logoUrl || "/app-icon.png?v=6";
   const autoKind = meta.auto ? "ad-art-auto" : "";
   const cls = `ad-art ad-art-${template} ${autoKind} ${compact ? "is-compact" : ""} ${animated ? "is-animated" : ""} ${backgroundUrl ? "has-bg" : ""}`;
   const bgStyle = backgroundUrl ? ({ "--ad-bg": `url("${backgroundUrl}")` } as CSSProperties) : undefined;

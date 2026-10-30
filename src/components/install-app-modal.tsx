@@ -162,7 +162,7 @@ export default function InstallAppModal() {
         <div className="install-modal-head">
           <span className="install-modal-logo">
             {/* eslint-disable-next-line @next/next/no-img-element -- Static app icon */}
-            <img src="/app-icon.png" alt="" width={64} height={64}/>
+            <img src="/app-icon.png?v=6" alt="" width={64} height={64}/>
           </span>
           <h2 id="install-modal-title">ثبّت تطبيق دليل جنزور</h2>
           <p>كل مهنيي وخدمات ومحلات القرية في جيبك.. بدون متجر تطبيقات وبدون مساحة تُذكر، ويعمل على كل الموبايلات.</p>
