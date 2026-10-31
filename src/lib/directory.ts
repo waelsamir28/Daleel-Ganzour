@@ -42,7 +42,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-10-31.7";
+export const SCHEMA_VERSION = "2026-10-31.8";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -76,6 +76,8 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_error_log_fingerprint_idx ON directory_error_log (fingerprint)`);
       // وقت آخر تغيير حالة لكل مهنة — لتظهر رسالة الترحيب/الموافقة للمهني أول ما يفتح الموقع.
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS status_updated_at timestamptz NOT NULL DEFAULT now()`);
+      // سجل الرسائل الترحيبية اللي اتشافت (على الخادم: مرة واحدة فقط لكل عضو/مهنة).
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_welcome_seen (key varchar(80) PRIMARY KEY, seen_at timestamptz NOT NULL DEFAULT now())`);
       // طلبات «مهنة ناقصة» من الزوار (الدليل بيتبني من احتياج الناس).
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_missing_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), need text NOT NULL, name varchar(120) NOT NULL DEFAULT '', phone varchar(24) NOT NULL DEFAULT '', category_id varchar(60) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'open', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_missing_requests_created_idx ON directory_missing_requests (created_at)`);

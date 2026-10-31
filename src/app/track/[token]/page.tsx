@@ -3,11 +3,12 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db, databaseConfigured } from "@/db";
-import { services, submissionTracking } from "@/db/schema";
+import { services, submissionTracking, welcomeSeen } from "@/db/schema";
 import { ensureSeed } from "@/lib/directory";
 import { Logo } from "@/components/ui";
 import SubmissionCompletion from "@/components/submission-completion";
 import { ProviderStatusWelcome } from "@/components/welcome-center";
+import { providerStatusKey } from "@/lib/welcome-messages";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "متابعة طلب إضافة المهنة", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -19,6 +20,9 @@ export default async function TrackPage({ params }: { params: Promise<{ token: s
     .from(submissionTracking).innerJoin(services, eq(submissionTracking.serviceId, services.id))
     .where(eq(submissionTracking.tokenHash, createHash("sha256").update(token).digest("hex")));
   if (!request) notFound();
+  // نفس القاعدة: الرسالة تظهر مرة واحدة فقط لكل حالة.
+  const statusKey = providerStatusKey(request.id, request.status as never);
+  const [seenRow] = await db.select({ key: welcomeSeen.key }).from(welcomeSeen).where(eq(welcomeSeen.key, statusKey)).limit(1);
   const labels: Record<string, string> = { pending: "قيد مراجعة الإدارة", approved: "تمت الموافقة والنشر", rejected: "لم تتم الموافقة / تم إيقاف النشر", "needs-info": "مطلوب استكمال بيانات" };
   return (
     <div className="admin-login-page">
@@ -30,6 +34,7 @@ export default async function TrackPage({ params }: { params: Promise<{ token: s
         reviewNote={request.reviewNote}
         accountHref="/"
         publicHref={`/?service=${request.id}`}
+        seenKeys={seenRow ? [seenRow.key] : []}
       />
       <header className="admin-public-header container">
         <Logo name="دليل المهن والخدمات بقرية جنزور"/>

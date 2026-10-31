@@ -171,6 +171,15 @@ export const categoryHits = pgTable("directory_category_hits", {
 });
 
 /**
+ * سجل «الرسالة الترحيبية اتشافت» — على الخادم مش المتصفح،
+ * فالرسالة بتظهر مرة واحدة للعضو/المهني مهما فتح من جهاز، ومش بترجع تاني خالص.
+ */
+export const welcomeSeen = pgTable("directory_welcome_seen", {
+  key: varchar("key", { length: 80 }).primaryKey(),
+  seenAt: timestamp("seen_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * «مهنة ناقصة»: الزائر يكتب اللي محتاجه ومش لاقيه في الدليل، والإدارة تتابعه
  * وتجهّز له رسالة واتساب أول ما يتضاف — فالدليل بيتبني من احتياج الناس الحقيقي.
  */
