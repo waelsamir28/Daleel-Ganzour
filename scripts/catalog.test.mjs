@@ -1039,7 +1039,10 @@ test("share preview (OG) images: every sticker category has a 1200×630 JPG and 
   for (const id of stickerIconIds) assert.ok(existsSync(new URL(`../public/images/og/${id}.jpg`, import.meta.url)), `og/${id}.jpg exists`);
   const [image] = categoryOgImage("electricity", "الكهرباء");
   assert.equal(image.width, 1200); assert.equal(image.height, 630); assert.match(image.url, /^\/images\/og\/electricity\.jpg\?v=\d+$/);
-  assert.equal(categoryOgImage("no-such-category", "x"), undefined);
+  // القسم الجديد (من غير صورة جاهزة) بياخد بطاقة مولّدة بلونه واسمه، فمفيش رابط بدون صورة.
+  const [fallback] = categoryOgImage("no-such-category", "قسم جديد");
+  assert.match(fallback.url, /^\/api\/og\/category\?name=/);
+  assert.equal(fallback.width, 1200);
   // شاشة البداية: للتطبيق المثبّت افتراضيًا مع الملصقات، والقيم الغريبة ترجع للافتراضي.
   assert.equal(defaultDesignSettings.specialtyIconStyle, "3d");
   assert.equal(sanitizeDesignSettings({ specialtyIconStyle: "flat" }).specialtyIconStyle, "flat");

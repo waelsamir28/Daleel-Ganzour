@@ -134,6 +134,8 @@ export const pushSubscriptions = pgTable("directory_push_subscriptions", {
   id: uuid("id").defaultRandom().primaryKey(),
   endpoint: text("endpoint").notNull().unique(),
   subscription: text("subscription").notNull(),
+  /** الأقسام اللي الزائر عايز ينبّه لها (فاضية = كل الأقسام). */
+  topics: jsonb("topics").$type<string[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -308,6 +310,17 @@ export const errorLog = pgTable("directory_error_log", {
   index("directory_error_log_created_idx").on(table.createdAt),
   index("directory_error_log_fingerprint_idx").on(table.fingerprint),
 ]);
+
+/**
+ * تقييم سريع مجهول بعد الاتصال/الواتساب (نجوم فقط، بدون اسم أو رقم):
+ * مؤشر رضا يظهر في إحصاءات الإدارة، وللعضو المسجّل يدخل نظام التقييمات العادي.
+ */
+export const quickRatings = pgTable("directory_quick_ratings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  stars: integer("stars").notNull().default(5),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("directory_quick_ratings_created_idx").on(table.createdAt)]);
 
 /** بلاغات مجهولة عن أكواد المحمول/الأرضي/الأرقام الحكومية اللي اتغيّرت (إحصاءات الإدارة). */
 export const telecomReports = pgTable("directory_telecom_reports", {

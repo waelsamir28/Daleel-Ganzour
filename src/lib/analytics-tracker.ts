@@ -1,5 +1,7 @@
 "use client";
 
+import { CONTACT_EVENT } from "@/lib/quick-rating";
+
 export type AnalyticsEventRecord = {
   kind: "search" | "view" | "call" | "whatsapp" | "share";
   label: string;
@@ -49,6 +51,10 @@ export function sendCategoryHit(categoryId: string | undefined, kind: "view" | "
 
 export function trackDirectoryEvent(event: Omit<AnalyticsEventRecord, "timestamp">) {
   if (typeof window === "undefined") return;
+  // أي ضغطة «اتصال» أو «واتساب» على مقدم خدمة تُطلق حدثًا تسمعه بطاقة التقييم السريع.
+  if ((event.kind === "call" || event.kind === "whatsapp") && event.serviceId) {
+    window.dispatchEvent(new CustomEvent(CONTACT_EVENT, { detail: { serviceId: event.serviceId, label: event.label } }));
+  }
   if (event.kind === "view") sendCategoryHit(event.categoryId, "view", event.serviceId ?? event.categoryId);
   if (event.kind === "call" || event.kind === "whatsapp") sendCategoryHit(event.categoryId, "contact", `${event.kind}:${event.serviceId ?? event.categoryId}`);
   try {

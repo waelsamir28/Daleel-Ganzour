@@ -11,8 +11,33 @@ export function parseServiceItems(value: unknown): string[] {
   }))];
 }
 
-export function serviceWhatsappMessage(service: { name: string }, specialty: string, selectedArea = "", selectedService = "") {
-  return `مرحبًا ${service.name}، وصلت إليك من دليل جنزور. محتاج ${selectedService || specialty}${selectedArea ? ` في ${selectedArea}` : ""}. هل الخدمة متاحة؟`;
+/**
+ * رسالة واتساب جاهزة لمقدم الخدمة: توضّح مين المتصل ومن فين جاله (الدليل) ومحتاج إيه،
+ * ومعاها رابط صفحته لو المتصفح يقدر يبني الرابط — فالمهني يعرف الطلب جاي منين.
+ * كل أزرار الواتساب في الموقع بتستخدم نفس الصيغة.
+ */
+export function serviceWhatsappMessage(
+  service: { name: string },
+  specialty: string,
+  selectedArea = "",
+  selectedService = "",
+  extras: { siteName?: string; url?: string } = {},
+) {
+  const site = extras.siteName || "دليل جنزور";
+  const need = `${selectedService || specialty}${selectedArea ? ` في ${selectedArea}` : ""}`;
+  const lines = [
+    `السلام عليكم ${service.name} 👋`,
+    `وصلت لحضرتك من ${site} — دليل خدمات قرية جنزور.`,
+    `محتاج ${need}.`,
+    "هل الخدمة متاحة؟ ولو فيه مواعيد أو سعر تقديري ياريت توضحه.",
+  ];
+  if (extras.url) lines.push(`صفحتك على الدليل: ${extras.url}`);
+  return lines.join("\n");
+}
+
+/** رابط الصفحة المباشرة لمقدم الخدمة (يفتح الدليل على بطاقته) — يُستخدم في رسالة الواتساب. */
+export function serviceDirectUrl(id: string, siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app") {
+  return `${siteUrl.replace(/\/+$/, "")}/?service=${encodeURIComponent(id)}`;
 }
 
 export const specialtySynonyms: Record<string, string[]> = {
@@ -2852,10 +2877,33 @@ export function stickerIdForName(name: string): string {
   return "";
 }
 /** صورة معاينة المشاركة (واتساب/فيسبوك) للقسم أو التخصص: ملصقه + اسمه، تُولَّد بـ scripts/make-category-og.cjs (نفس هوية og-style.cjs). فارغ = تُستخدم صورة الدليل العامة. */
-export const OG_IMAGE_VERSION = 2;
-export function categoryOgImage(categoryId: string, name: string) {
-  if (!hasStickerIcon(categoryId)) return undefined;
-  return [{ url: `/images/og/${categoryId}.jpg?v=${OG_IMAGE_VERSION}`, width: 1200, height: 630, type: "image/jpeg", alt: `${name} — دليل المهن والخدمات بقرية جنزور` }];
+export const OG_IMAGE_VERSION = 3;
+/** لون كل قسم من أقسام الدليل — يُستخدم في بطاقة المشاركة وملصق الـQR والملصقات المطبوعة. */
+export const SECTION_ACCENTS: Record<string, string> = {
+  doctors: "#0e8f95", teachers: "#1d6fdc", maintenance: "#e88a16", "home-services": "#0f9d58",
+  beauty: "#d94a4a", "cars-services": "#6d2077", "food-supply": "#b45309", trade: "#0b5f9e",
+  "construction": "#a16207", "events": "#c026d3", technology: "#2563eb", "other-services": "#4b5563",
+  "agri-engineering": "#15803d", "tailors": "#be123c",
+};
+const FALLBACK_ACCENTS = ["#0877e6", "#0e8f95", "#0f9d58", "#e88a16", "#7c3aed", "#d94a4a", "#0b5f9e"];
+/** لون القسم: لون ثابت للأقسام المعروفة، وإلا لون مشتق من المعرّف (ثابت لنفس القسم دائمًا). */
+export function sectionAccent(categoryId: string) {
+  if (SECTION_ACCENTS[categoryId]) return SECTION_ACCENTS[categoryId];
+  let hash = 0;
+  for (let i = 0; i < categoryId.length; i += 1) hash = (hash * 31 + categoryId.charCodeAt(i)) % 100003;
+  return FALLBACK_ACCENTS[hash % FALLBACK_ACCENTS.length];
+}
+/**
+ * صورة معاينة المشاركة للقسم أو التخصص:
+ * - الأقسام المعروفة لها صورة جاهزة بهوية القسم (public/images/og) — أسرع وأجمل.
+ * - أي قسم/تخصص جديد من غير صورة جاهزة بياخد بطاقة مولّدة على الخادم بلونه واسمه
+ *   (‎/api/og/category)، فمفيش أي رابط في الدليل بيظهر بصورة عامة.
+ */
+export function categoryOgImage(categoryId: string, name: string, accent = sectionAccent(categoryId)) {
+  const alt = `${name} — دليل المهن والخدمات بقرية جنزور`;
+  if (hasStickerIcon(categoryId)) return [{ url: `/images/og/${categoryId}.jpg?v=${OG_IMAGE_VERSION}`, width: 1200, height: 630, type: "image/jpeg", alt }];
+  const query = new URLSearchParams({ name: name.slice(0, 80), color: accent });
+  return [{ url: `/api/og/category?${query.toString()}`, width: 1200, height: 630, type: "image/png", alt }];
 }
 export const CATEGORY_ICON_MAX_BYTES = 800 * 1024;
 /** يتحقق من صورة أيقونة مرفوعة (PNG/JPG/WebP/GIF حتى 800 كيلوبايت). */
