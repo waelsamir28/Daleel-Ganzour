@@ -29,7 +29,11 @@ export default function AuthForm({ mode, settings, designSettings, next = "/", m
       const response = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...Object.fromEntries(form), action: mode }) });
       const result = await response.json(); if (!response.ok) throw new Error(result.error ?? "تعذر تنفيذ الطلب.");
       // Members go back to the page they were trying to open (the hash survives redirects, e.g. /#add-service).
-      const destination = result.role === "admin" || result.role === "moderator" ? "/admin" : `${next}${next.includes("#") ? "" : window.location.hash}`;
+      const base = result.role === "admin" || result.role === "moderator" ? "/admin" : `${next}${next.includes("#") ? "" : window.location.hash}`;
+      // العضو الجديد بيشوف رسالة ترحيب عائمة أول ما يوصل الصفحة.
+      const destination = registering && result.role === "member"
+        ? `${base}${base.includes("?") ? "&" : "?"}welcome=member`
+        : base;
       window.location.assign(destination);
     } catch (err) { setBusy(false); setError(err instanceof Error ? err.message : "تعذر الاتصال. حاول مرة أخرى."); }
   }

@@ -5,6 +5,7 @@ import { ensureSeed, serializeCategory, serializeService } from "@/lib/directory
 import { OFFICE_WHATSAPP } from "@/lib/catalog";
 import { Logo } from "@/components/ui";
 import ProviderAccount from "@/components/provider-account";
+import { ProviderStatusWelcome } from "@/components/welcome-center";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "حسابي — دليل جنزور", robots: { index: false, follow: false } };
@@ -30,5 +31,16 @@ export default async function MyAccountPage({ params }: { params: Promise<{ toke
     db.select().from(directoryCategories).where(eq(directoryCategories.active, true)).orderBy(asc(directoryCategories.sortOrder)),
     db.select({ name: directoryAreas.name }).from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
   ]);
-  return <Shell><ProviderAccount token={token} initial={serializeService(row)} categories={categoryRows.map((item) => serializeCategory(item))} areas={areaRows.map((item) => item.name)}/></Shell>;
+  return <Shell>
+    <ProviderStatusWelcome
+      serviceId={row.id}
+      name={row.name}
+      status={row.status}
+      statusUpdatedAt={row.statusUpdatedAt?.toISOString?.() ?? new Date().toISOString()}
+      reviewNote={row.reviewNote}
+      accountHref={`/my/${token}`}
+      publicHref={`/?service=${row.id}`}
+    />
+    <ProviderAccount token={token} initial={serializeService(row)} categories={categoryRows.map((item) => serializeCategory(item))} areas={areaRows.map((item) => item.name)}/>
+  </Shell>;
 }
