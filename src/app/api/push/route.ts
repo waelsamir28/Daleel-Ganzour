@@ -20,7 +20,8 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(request: Request) {
   try {
-    const configured = pushConfigured();
+    // المفاتيح بتتولّد وتتحفظ على الخادم أول مرة، فالميزة بتشتغل بعد النشر بدون إعداد يدوي.
+    const configured = await pushConfigured();
     if (!configured) return Response.json({ configured: false, publicKey: "", subscribers: 0, topics: [] });
     let subscribers = 0;
     // مواضيع الجهاز الحالي (لأزرار «اختار أقسامك» في الفوتر).
@@ -37,14 +38,14 @@ export async function GET(request: Request) {
     if (databaseConfigured && (viewer.role === "admin" || viewer.role === "moderator")) {
       try { await ensureSeed(); subscribers = await countPushSubscribers(); } catch { subscribers = 0; }
     }
-    return Response.json({ configured, publicKey: pushPublicKey(), subscribers, topics });
+    return Response.json({ configured, publicKey: await pushPublicKey(), subscribers, topics });
   } catch (error) { return apiError(error); }
 }
 
 export async function POST(request: Request) {
   try {
     if (!sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
-    if (!pushConfigured()) throw new InputError("إشعارات المتصفح غير مفعّلة على الموقع حاليًا.", 503);
+    if (!(await pushConfigured())) throw new InputError("إشعارات المتصفح غير مفعّلة على الموقع حاليًا.", 503);
     if (rateLimit(request, "push-subscribe", 20)) throw new InputError("محاولات كتير — جرّب بعد شوية.", 429);
     const body = objectInput(await request.json());
     const clean = sanitizePushSubscription(body.subscription ?? body);
@@ -91,7 +92,7 @@ export async function PUT(request: Request) {
     if (!sameOrigin(request)) throw new InputError("طلب غير مسموح.", 403);
     const viewer = await getViewer();
     if (viewer.role !== "admin" && viewer.role !== "moderator") throw new InputError("غير مسموح.", 403);
-    if (!pushConfigured()) throw new InputError("أضف مفاتيح VAPID أولًا (NEXT_PUBLIC_VAPID_PUBLIC_KEY و VAPID_PRIVATE_KEY).", 400);
+    if (!(await pushConfigured())) throw new InputError("إشعارات المتصفح غير مفعّلة — تأكد من الاتصال بقاعدة البيانات.", 400);
     if (!databaseConfigured) throw new InputError("الحفظ غير متاح في وضع المعاينة.", 503);
     const body = objectInput(await request.json());
     const message = sanitizePushMessage(body);

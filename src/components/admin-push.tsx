@@ -67,8 +67,9 @@ export default function AdminPush({ sections = [] }: { sections?: { id: string; 
 
       {state === "off" ? (
         <p className="analytics-empty-hint">
-          الميزة متوقفة: أضف مفتاحين في متغيرات بيئة Vercel — <b>NEXT_PUBLIC_VAPID_PUBLIC_KEY</b> و<b>VAPID_PRIVATE_KEY</b>
-          (يُولَّدان بأمر <code dir="ltr">npx web-push generate-vapid-keys</code>) ثم أعد النشر.
+          الميزة متوقفة: محتاجة قاعدة بيانات متصلة حتى يولّد الموقع مفاتيح الإشعارات ويحفظها على الخادم تلقائيًا.
+          لو حبيت تتحكم في المفاتيح، ضيف <b>NEXT_PUBLIC_VAPID_PUBLIC_KEY</b> و<b>VAPID_PRIVATE_KEY</b> في متغيرات بيئة Vercel
+          (من <code dir="ltr">npx web-push generate-vapid-keys</code>) وهياخدهم بالأولوية.
         </p>
       ) : (
         <div className="admin-push-form">

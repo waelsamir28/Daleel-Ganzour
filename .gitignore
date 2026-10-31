@@ -7,3 +7,6 @@ node_modules/
 .env
 tsconfig.tsbuildinfo
 .qa/
+# أسرار البيئة المحلية (مفاتيح الإشعارات وغيرها) — لا تُرفع أبدًا
+.env.local
+.env*.local

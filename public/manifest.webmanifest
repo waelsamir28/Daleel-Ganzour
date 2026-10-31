@@ -40,5 +40,62 @@
       "purpose": "maskable"
     }
   ],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "shortcuts": [
+    {
+      "name": "أرقام الطوارئ",
+      "short_name": "طوارئ",
+      "description": "الإسعاف والشرطة والمطافئ وأرقام الحكومة",
+      "url": "/telecom",
+      "icons": [
+        {
+          "src": "/icon-192.png?v=7",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "العيادات والأطباء",
+      "short_name": "عيادات",
+      "description": "كل أطباء وعيادات جنزور بأرقامهم",
+      "url": "/categories/clinics",
+      "icons": [
+        {
+          "src": "/icon-192.png?v=7",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "الحرفيين والصيانة",
+      "short_name": "حرفيين",
+      "description": "سباكة وكهرباء ونجارة وتشطيبات",
+      "url": "/categories/crafts",
+      "icons": [
+        {
+          "src": "/icon-192.png?v=7",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "المدرسون والسناتر",
+      "short_name": "مدرسين",
+      "description": "دروس ومراجعات لكل المراحل",
+      "url": "/categories/teachers",
+      "icons": [
+        {
+          "src": "/icon-192.png?v=7",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }
