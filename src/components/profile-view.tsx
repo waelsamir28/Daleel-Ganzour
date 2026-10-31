@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, BadgeCheck, Cake, Check, Copy, Globe, GraduationCap, Mail, MapPin, MessageCircle, Phone, QrCode, Share2, Star, UserPlus, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Cake, Check, Copy, Globe, GraduationCap, IdCard, Mail, MapPin, MessageCircle, Phone, QrCode, Share2, Star, UserPlus, X } from "lucide-react";
 import AvatarPlaceholder from "@/components/avatar-placeholder";
 import DesignApplicator from "@/components/design-applicator";
 import QrSvg from "@/components/qr-svg";
+import ShareCardModal from "@/components/share-card-modal";
 import { Logo } from "@/components/ui";
 import { defaultDesignSettings, profileUrl, whatsappUrl, type DesignSettings, type PublicProfile, type SiteSettings } from "@/lib/catalog";
 import { buildVCard, saveVCard } from "@/lib/vcard";
@@ -29,6 +30,7 @@ export default function ProfileView({ profile, settings, design, origin }: Props
   const [lightbox, setLightbox] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
   const ownership = useOwnership();
   const mine = (ownership.viewer && profile.kind === "member" && ownership.viewer.memberId === profile.id) || profile.services.some((item) => ownsService(ownership, { id: item.id, phone: profile.phone, phoneSecondary: "" }));
   const url = `${origin}${profileUrl(profile.id)}`;
@@ -93,6 +95,7 @@ export default function ProfileView({ profile, settings, design, origin }: Props
           {profile.phone && <a className="circle-tool is-whatsapp" href={whatsappUrl(profile.phone, `السلام عليكم ${profile.name}، وصلت لك من ${settings.siteName}`)} target="_blank" rel="noopener noreferrer" data-tip="واتساب" aria-label={`واتساب ${profile.name}`}><MessageCircle size={16}/></a>}
           {profile.phone && <button type="button" className={`circle-tool is-contact ${saved ? "is-active" : ""}`} data-tip={saved ? "تم تجهيز جهة الاتصال ✓" : "احفظ في جهات الاتصال"} onClick={() => void saveContact()} aria-label="احفظ في جهات الاتصال">{saved ? <Check size={16}/> : <UserPlus size={16}/>}</button>}
           <button type="button" className="circle-tool is-share" data-tip="مشاركة الملف" onClick={() => void share()} aria-label="مشاركة الملف الشخصي"><Share2 size={16}/></button>
+          <button type="button" className="circle-tool is-card" data-tip="كارت جاهز كصورة" onClick={() => setCardOpen(true)} aria-label={`تجهيز كارت ${profile.name} كصورة جاهزة للمشاركة`}><IdCard size={16}/></button>
           <button type="button" className={`circle-tool is-copy ${copied ? "is-active" : ""}`} data-tip={copied ? "تم النسخ ✓" : "نسخ الرابط"} onClick={() => void copyLink()} aria-label="نسخ رابط الملف">{copied ? <Check size={16}/> : <Copy size={16}/>}</button>
         </div>
         {mine && <Link href="/account" className="profile-edit-link">✏️ هذا ملفك — عدّل بياناتك من «حسابي»</Link>}
@@ -144,6 +147,25 @@ export default function ProfileView({ profile, settings, design, origin }: Props
         <span className="profile-brand-credit">تصميم وتنفيذ م.وائل الجمال</span>
       </footer>
     </main>
+
+    {cardOpen && <ShareCardModal
+      data={{
+        name: profile.name,
+        headline: [headline, primary?.categoryName].filter((value, index, list) => value && list.indexOf(value) === index).join(" • "),
+        area: profile.profile.address || primary?.address || "",
+        phones: [profile.phone, profile.profile.whatsapp],
+        url,
+        siteName: settings.siteName,
+        officePhone: settings.phone,
+        accent: theme.primaryColor,
+        verified: profile.services.some((item) => item.verified),
+        rating: primary?.rating,
+        reviews: primary?.reviews,
+        photoUrl: profile.photoUrl || primary?.photoUrl || "",
+        logoUrl: theme.headerLogoUrl || "/images/logo-daleel-transparent.png",
+      }}
+      onClose={() => setCardOpen(false)}
+    />}
 
     {lightbox && profile.photoUrl && <div className="profile-lightbox" role="dialog" aria-modal="true" aria-label="الصورة الشخصية بالحجم الكامل" onClick={() => setLightbox(false)}>
       <button type="button" className="profile-lightbox-close" aria-label="إغلاق" onClick={() => setLightbox(false)}><X size={22}/></button>

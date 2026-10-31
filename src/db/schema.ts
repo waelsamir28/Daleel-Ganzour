@@ -288,6 +288,27 @@ export const activityLog = pgTable("directory_activity_log", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("directory_activity_log_created_idx").on(table.createdAt)]);
 
+/**
+ * سجل أخطاء المتصفح: أي خطأ JavaScript أو فشل تحميل عند الزائر/المهني بيوصل هنا مجهولًا
+ * (من غير بيانات شخصية) مع بصمة موحّدة، ويظهر في لوحة الإدارة مجمّعًا بعدد التكرار.
+ */
+export const errorLog = pgTable("directory_error_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  /** مكان الخطأ: client (متصفح) أو server (صفحة/طلب). */
+  kind: varchar("kind", { length: 12 }).notNull().default("client"),
+  /** بصمة مختصرة (نوع + أول سطر من الرسالة) لتجميع الأخطاء المتكررة. */
+  fingerprint: varchar("fingerprint", { length: 40 }).notNull().default(""),
+  message: varchar("message", { length: 400 }).notNull().default(""),
+  /** أول 1200 حرف من الـ stack (بدون بيانات شخصية). */
+  detail: text("detail").notNull().default(""),
+  path: varchar("path", { length: 200 }).notNull().default(""),
+  userAgent: varchar("user_agent", { length: 180 }).notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("directory_error_log_created_idx").on(table.createdAt),
+  index("directory_error_log_fingerprint_idx").on(table.fingerprint),
+]);
+
 /** بلاغات مجهولة عن أكواد المحمول/الأرضي/الأرقام الحكومية اللي اتغيّرت (إحصاءات الإدارة). */
 export const telecomReports = pgTable("directory_telecom_reports", {
   id: uuid("id").defaultRandom().primaryKey(),

@@ -5,6 +5,7 @@ import { AlertTriangle, Award, BarChart3, Eye, Grid2X2, MapPin, MessageCircle, P
 import { getCategory, type AdminDirectory, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon } from "@/components/ui";
 import AdminCodeReports from "@/components/admin-code-reports";
+import AdminErrorLog from "@/components/admin-error-log";
 import { clearAnalyticsEvents, readAnalyticsEvents, type AnalyticsEventRecord } from "@/lib/analytics-tracker";
 
 export default function AdminAnalytics({
@@ -225,6 +226,7 @@ export default function AdminAnalytics({
       </div>
 
       <AdminCodeReports/>
+      <AdminErrorLog/>
 
       {/* Underserved Specialties needing recruitment */}
       <section className="analytics-panel-card">
