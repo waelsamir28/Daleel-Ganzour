@@ -169,6 +169,23 @@ export const categoryHits = pgTable("directory_category_hits", {
 });
 
 /**
+ * طلبات عرض السعر («اطلب من ٣ مهنيين»): الزائر يكتب طلبه مرة واحدة،
+ * ويُخزَّن مع أرقام المهنيين اللي اتبعتلهم — للمتابعة في لوحة الإدارة.
+ */
+export const quoteRequests = pgTable("directory_quote_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  categoryId: varchar("category_id", { length: 60 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  phone: varchar("phone", { length: 24 }).notNull(),
+  details: text("details").notNull(),
+  area: varchar("area", { length: 80 }).notNull().default(""),
+  /** معرّفات المهنيين اللي اتبعتلهم الطلب (٣ كحد أقصى). */
+  serviceIds: jsonb("service_ids").$type<string[]>().notNull().default([]),
+  status: varchar("status", { length: 20 }).notNull().default("open"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("directory_quote_requests_created_idx").on(table.createdAt)]);
+
+/**
  * إحصاء حقيقي لكل مهني (فتح البطاقة مرة، ضغط اتصال/واتساب مرة) — مجهول بالكامل،
  * وبيُغذّي «الأكثر تفاعلًا» في إحصاءات الإدارة بدل أرقام المتصفح المحلية.
  */

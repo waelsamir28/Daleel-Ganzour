@@ -42,7 +42,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-10-31.4";
+export const SCHEMA_VERSION = "2026-10-31.5";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -74,6 +74,9 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_error_log (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), kind varchar(12) NOT NULL DEFAULT 'client', fingerprint varchar(40) NOT NULL DEFAULT '', message varchar(400) NOT NULL DEFAULT '', detail text NOT NULL DEFAULT '', path varchar(200) NOT NULL DEFAULT '', user_agent varchar(180) NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_error_log_created_idx ON directory_error_log (created_at)`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_error_log_fingerprint_idx ON directory_error_log (fingerprint)`);
+      // طلبات عرض السعر من الزوار (توصل لـ٣ مهنيين في نفس التخصص).
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_quote_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), category_id varchar(60) NOT NULL, name varchar(120) NOT NULL, phone varchar(24) NOT NULL, details text NOT NULL, area varchar(80) NOT NULL DEFAULT '', service_ids jsonb NOT NULL DEFAULT '[]'::jsonb, status varchar(20) NOT NULL DEFAULT 'open', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_quote_requests_created_idx ON directory_quote_requests (created_at)`);
       // إحصاء استخدام لكل مهني (مشاهدات + نقرات تواصل) — أرقام مجهولة للإدارة.
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_hits (service_id uuid PRIMARY KEY REFERENCES directory_services(id) ON DELETE CASCADE, views integer NOT NULL DEFAULT 0, contacts integer NOT NULL DEFAULT 0, updated_at timestamptz NOT NULL DEFAULT now())`);
       // مواضيع الإشعارات اللي اختارها الزائر (فاضية = كل الأقسام).
