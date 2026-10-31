@@ -185,21 +185,24 @@ def screen_categories(img, draw, x, y, w, h):
     rounded(draw, [cx, cy, cx + w, cy + 32], 12, fill="#f7fbff", outline="#dbe7f2")
     rtl(draw, (cx + w - 12, cy + 16), "ابحث في 14 قسمًا…", font(9.5), "#a3b6c8", anchor="rm")
     cy += 42
-    rows = [("الحرفيين", "نجارة • سباكة • كهرباء • نقاشة", "#ff941f", "38 مهنيًا"),
-            ("العيادات", "باطنة • أطفال • أسنان • جلدية", "#22b96d", "12 عيادة"),
-            ("الصيدليات", "صيدليات ٢٤ ساعة ومستلزمات طبية", "#15a37f", "9 صيدليات"),
-            ("المحلات", "بقالة • ملابس • أدوات منزلية", "#078cf0", "24 محلًا"),
-            ("المدرسين", "ابتدائي • إعدادي • ثانوي", "#9160df", "21 مدرسًا"),
-            ("النقل والتوصيل", "نقل عفش • بضائع • مشاوير", "#f2a900", "7 خدمات"),
-            ("الطباعة والدعاية", "مطابع • لافتات • تصميم", "#5b5fe8", "6 خدمات"),
-            ("الأفراح والمناسبات", "مصورين • دي جي • قاعات", "#ff5a36", "11 خدمة")]
+    rows = [("الحرفيين", "نجارة • سباكة • كهرباء • نقاشة", "#ff941f", "‹"),
+            ("العيادات", "باطنة • أطفال • أسنان • جلدية", "#22b96d", "‹"),
+            ("الصيدليات", "صيدليات ٢٤ ساعة ومستلزمات طبية", "#15a37f", "‹"),
+            ("المحلات", "بقالة • ملابس • أدوات منزلية", "#078cf0", "‹"),
+            ("المدرسين", "ابتدائي • إعدادي • ثانوي", "#9160df", "‹"),
+            ("النقل والتوصيل", "نقل عفش • بضائع • مشاوير", "#f2a900", "‹"),
+            ("الطباعة والدعاية", "مطابع • لافتات • تصميم", "#5b5fe8", "‹"),
+            ("الأفراح والمناسبات", "مصورين • دي جي • قاعات", "#ff5a36", "‹")]
     for label, sub, color, count in rows:
         rounded(draw, [cx, cy, cx + w, cy + 66], 14, fill="#ffffff", outline="#e8f0f8")
         draw.ellipse([cx + w - 54, cy + 15, cx + w - 18, cy + 51], fill=mix(color, 0.16))
         draw.ellipse([cx + w - 46, cy + 23, cx + w - 26, cy + 43], fill=mix(color, 0.55))
         rtl(draw, (cx + w - 64, cy + 15), label, font(11), NAVY)
         rtl(draw, (cx + w - 64, cy + 34), sub, font(8), MUTED)
-        pill(draw, [cx + 12, cy + 22, cx + 96, cy + 44], count, font(7.5), mix(color, 0.1), mix(color, 0.9, (20, 40, 60)), mix(color, 0.3))
+        rounded(draw, [cx + 12, cy + 21, cx + 46, cy + 45], 12, fill=mix(color, 0.1), outline=mix(color, 0.28))
+        # سهم «‹» مرسوم بالخطوط (خط GE SS Two مالوش رمز سهم)
+        ac = mix(color, 0.9, (20, 40, 60))
+        draw.line([cx + 32, cy + 27, cx + 26, cy + 33, cx + 32, cy + 39], fill=ac, width=2, joint="curve")
         cy += 70
     rounded(draw, [cx, cy + 4, cx + w, cy + 42], 12, fill="#eef6ff", outline="#d7e7f6")
     rtl(draw, (cx + w / 2, cy + 23), "اعرض كل الأقسام والتخصصات", font(9), BRAND, anchor="mm")
@@ -319,6 +322,174 @@ def screen_gov(img, draw, x, y, w, h):
     rtl(draw, (cx + w / 2, cy + 50), "ولو رقم اتغيّر — اضغط «الكود ده اتغيّر؟» وهيتبعت للإدارة", font(7), MUTED, anchor="mm")
 
 
+def screen_landline(img, draw, x, y, w, h):
+    """شاشة الخط الأرضي والإنترنت المنزلي — نفس أرقام src/lib/landline.ts."""
+    cx, cy = screen_shell(img, draw, x, y, w, h, "كل الأكواد / الخط الأرضي")
+    purple = "#6d2077"
+    rtl(draw, (cx + w / 2, cy + 4), "أرقام الخط الأرضي", font(9), mix(purple, 0.75), anchor="ma")
+    rtl(draw, (cx + w / 2, cy + 20), "والإنترنت المنزلي", font(15), purple, anchor="ma")
+    rtl(draw, (cx + w / 2, cy + 42), "وي (المصرية للاتصالات) — رقم واحد لكل الخدمات", font(8), MUTED, anchor="ma")
+    cy += 56
+    # زرا الرقمين المهمين
+    hw = (w - 8) / 2
+    for i, (label, code, note) in enumerate([("من الخط الأرضي", "111", "مجانًا — ٢٤ ساعة"), ("من الموبايل", "19777", "خدمة العملاء")]):
+        bx = cx + (1 - i) * (hw + 8)
+        rounded(draw, [bx, cy, bx + hw, cy + 78], 16, fill="#ffffff", outline=mix(purple, 0.25))
+        draw.text((bx + hw / 2, cy + 24), code, font=latin(20), fill=purple, anchor="mm")
+        rtl(draw, (bx + hw / 2, cy + 48), label, font(8.5), NAVY, anchor="mm")
+        rtl(draw, (bx + hw / 2, cy + 64), note, font(7), MUTED, anchor="mm")
+    cy += 90
+    # أزرار الأقسام
+    tiles = [("الدعم", "#1d6fdc"), ("الإنترنت", "#e88a16"), ("خدمات الخط", "#0e8f95")]
+    tw = (w - 2 * 8) / 3
+    for i, (label, color) in enumerate(tiles):
+        bx = cx + (2 - i) * (tw + 8)
+        active = i == 2
+        rounded(draw, [bx, cy, bx + tw, cy + 58], 14, fill=color, outline=None)
+        rtl(draw, (bx + tw / 2, cy + 29), label, font(9), "#ffffff", anchor="mm")
+        if active:
+            rounded(draw, [bx, cy, bx + tw, cy + 58], 14, fill=None, outline="#ffffff", width=2)
+    cy += 70
+    rtl(draw, (cx + w, cy), "خدمات الخط الأرضي", font(10), NAVY)
+    cy += 18
+    codes = [("تحويل كل المكالمات", "*21*رقمك#"), ("إلغاء تحويل المكالمات", "#21#"),
+             ("تحويل عند الانشغال", "*67*رقمك#"), ("تفعيل انتظار المكالمة", "*43#"),
+             ("إخفاء رقمك عند الاتصال", "*31#"), ("إظهار رقمك عند الاتصال", "#31#")]
+    cw = (w - 8) / 2
+    for i, (label, code) in enumerate(codes):
+        bx = cx + (1 - i % 2) * (cw + 8)
+        by = cy + (i // 2) * 74
+        rounded(draw, [bx, by, bx + cw, by + 64], 13, fill="#ffffff", outline="#e8f0f8")
+        rtl(draw, (bx + cw - 10, by + 10), label, font(8), "#37536d")
+        draw.text((bx + cw / 2, by + 38), code, font=latin(9), fill=purple, anchor="mm")
+        rounded(draw, [bx + 8, by + 48, bx + cw - 8, by + 60], 6, fill=mix(purple, 0.08))
+        rtl(draw, (bx + cw / 2, by + 54), "نسخ", font(6.5), mix(purple, 0.8), anchor="mm")
+    cy += 3 * 74 + 4
+    rounded(draw, [cx, cy, cx + w, cy + 52], 12, fill="#f7f2f9", outline="#e6d8ea")
+    rtl(draw, (cx + w - 12, cy + 12), "كل الأرقام التشغيلية من شركة وي", font(8), purple)
+    rtl(draw, (cx + w - 12, cy + 30), "ولو كود اتغيّر — اضغط «الكود ده اتغيّر؟» وهيتبعت للإدارة", font(7), MUTED)
+
+
+def screen_ready(img, draw, x, y, w, h):
+    """أكواد جاهزة برقم الزائر (تحويل رصيد / كلمني شكرًا) — نفس قوالب التطبيق."""
+    cx, cy = screen_shell(img, draw, x, y, w, h, "كل الأكواد / فودافون")
+    red = "#e60000"
+    rounded(draw, [cx, cy, cx + w, cy + 34], 12, fill=red)
+    rtl(draw, (cx + w / 2, cy + 17), "أرقام وأكواد فودافون", font(10), "#ffffff", anchor="mm")
+    cy += 44
+    rtl(draw, (cx + w, cy), "أكواد جاهزة برقمك", font(13), NAVY)
+    rtl(draw, (cx + w, cy + 18), "بدون ما تحفظ كود — اكتب الرقم وإحنا نجهّز الكود كامل", font(8), MUTED)
+    cy += 32
+    # اختيار الخدمة
+    chw = (w - 8) / 2
+    for i, label in enumerate(["تحويل رصيد", "كلمني شكرًا"]):
+        bx = cx + (1 - i) * (chw + 8)
+        active = i == 0
+        rounded(draw, [bx, cy, bx + chw, cy + 32], 11, fill=red if active else "#ffffff", outline=red if active else "#e8f0f8")
+        rtl(draw, (bx + chw / 2, cy + 16), label, font(9), "#ffffff" if active else "#37536d", anchor="mm")
+    cy += 44
+    # الحقول
+    for label, value, step in [("رقم المستلم", "0100 123 4567", "1"), ("المبلغ (جنيه)", "10", "2")]:
+        rounded(draw, [cx, cy, cx + w, cy + 44], 11, fill="#ffffff", outline="#e8f0f8")
+        rtl(draw, (cx + w - 10, cy + 10), label, font(8), "#37536d")
+        draw.text((cx + 14, cy + 28), value, font=latin(9), fill=NAVY, anchor="lm")
+        draw.ellipse([cx + w - 32, cy + 22, cx + w - 12, cy + 42], fill=mix(red, 0.12))
+        draw.text((cx + w - 22, cy + 32), step, font=latin(7), fill=red, anchor="mm")
+        cy += 52
+    cy += 2
+    # الكود الناتج
+    rounded(draw, [cx, cy, cx + w, cy + 92], 14, fill=mix(red, 0.05), outline=mix(red, 0.3))
+    rtl(draw, (cx + w - 12, cy + 10), "الكود الجاهز", font(8), MUTED)
+    draw.text((cx + w / 2, cy + 34), "*868*2*01001234567*10#", font=latin(11), fill=red, anchor="mm")
+    rounded(draw, [cx + w - 118, cy + 54, cx + w - 12, cy + 84], 12, fill=red)
+    rtl(draw, (cx + w - 65, cy + 69), "طلب الكود", font(9), "#ffffff", anchor="mm")
+    rounded(draw, [cx + 12, cy + 54, cx + 108, cy + 84], 12, fill="#ffffff", outline="#e8f0f8")
+    rtl(draw, (cx + 60, cy + 69), "نسخ", font(9), "#37536d", anchor="mm")
+    cy += 104
+    # خدمات أخرى
+    rtl(draw, (cx + w, cy), "أكواد فودافون السريعة", font(10), NAVY)
+    cy += 18
+    quick = [("الرصيد", "*888#"), ("الكول سنتر", "888"), ("الشحن", "*858*"), ("فودافون كاش", "7000")]
+    qw = (w - 3 * 6) / 4
+    for i, (label, code) in enumerate(quick):
+        bx = cx + (3 - i) * (qw + 6)
+        rounded(draw, [bx, cy, bx + qw, cy + 54], 12, fill="#ffffff", outline="#e8f0f8")
+        draw.text((bx + qw / 2, cy + 20), code, font=latin(8), fill=red, anchor="mm")
+        rtl(draw, (bx + qw / 2, cy + 40), label, font(7), "#37536d", anchor="mm")
+    cy += 66
+    rounded(draw, [cx, cy, cx + w, cy + 66], 12, fill="#f2f8ff", outline="#d7e7f6")
+    rtl(draw, (cx + w / 2, cy + 16), "نفس الفكرة لكل الشركات", font(9), BRAND, anchor="mm")
+    rtl(draw, (cx + w / 2, cy + 34), "أورنج • اتصالات • وي — تحويل رصيد وكلمني شكرًا بضغطة", font(7.5), MUTED, anchor="mm")
+    rtl(draw, (cx + w / 2, cy + 50), "بدون إنترنت — الصفحة بتتخزن على الموبايل", font(7.5), MUTED, anchor="mm")
+
+
+def screen_banks(img, draw, x, y, w, h):
+    """شاشة البنوك وتطبيقات الدفع — نفس src/lib/payments.ts."""
+    cx, cy = screen_shell(img, draw, x, y, w, h, "كل الأكواد / البنوك")
+    blue = "#0b5f9e"
+    rtl(draw, (cx + w / 2, cy + 4), "أرقام البنوك", font(9), mix(blue, 0.7), anchor="ma")
+    rtl(draw, (cx + w / 2, cy + 20), "وتطبيقات الدفع", font(15), blue, anchor="ma")
+    rtl(draw, (cx + w / 2, cy + 42), "خطوط خدمة العملاء — اضغط الرقم للاتصال مباشرة", font(8), MUTED, anchor="ma")
+    cy += 58
+    rtl(draw, (cx + w, cy), "تطبيقات الدفع والمحافظ", font(10), NAVY)
+    cy += 16
+    for name, number, color in [("انستاباي", "15989", "#0f9d58"), ("فودافون كاش", "7000", "#e60000")]:
+        rounded(draw, [cx, cy, cx + w, cy + 44], 12, fill=mix(color, 0.05), outline=mix(color, 0.22))
+        rtl(draw, (cx + w - 12, cy + 22), name, font(9.5), "#17324c", anchor="rm")
+        draw.text((cx + 14, cy + 22), number, font=latin(11), fill=color, anchor="lm")
+        cy += 50
+    cy += 6
+    rtl(draw, (cx + w, cy), "البنوك", font(10), NAVY)
+    cy += 16
+    banks = [("البنك الأهلي المصري", "19623"), ("بنك مصر", "19888"), ("البنك التجاري الدولي", "19666"),
+             ("بنك القاهرة", "16990"), ("بنك التعمير والإسكان", "19995"), ("التجاري وفا بنك", "16222"),
+             ("البنك العربي", "19100"), ("البنك الأهلي المتحد", "19072")]
+    for name, number in banks:
+        rounded(draw, [cx, cy, cx + w, cy + 40], 11, fill="#ffffff", outline="#e8f0f8")
+        rtl(draw, (cx + w - 12, cy + 20), name, font(8.5), "#17324c", anchor="rm")
+        draw.text((cx + 12, cy + 20), number, font=latin(10), fill=blue, anchor="lm")
+        cy += 46
+    cy += 4
+    rounded(draw, [cx, cy, cx + w, cy + 56], 12, fill="#eef6ff", outline="#d7e7f6")
+    rtl(draw, (cx + w - 12, cy + 12), "الأرقام قصيرة وتعمل من أي هاتف", font(8), "#2b4c6d")
+    rtl(draw, (cx + w - 12, cy + 30), "ولو رقم اتغيّر — بلّغنا من زر «الكود ده اتغيّر؟»", font(7), MUTED)
+
+
+def screen_duty(img, draw, x, y, w, h):
+    """شاشة «مناوب الآن» — أهم ميزة في الدليل."""
+    cx, cy = screen_shell(img, draw, x, y, w, h, "الرئيسية / مناوب الآن")
+    green = "#0e9f6e"
+    rtl(draw, (cx + w, cy + 4), "مناوب الآن", font(16), NAVY)
+    rtl(draw, (cx + w, cy + 26), "مقدمو الخدمة المتاحين دلوقتي في جنزور", font(8.5), MUTED)
+    cy += 40
+    pill(draw, [cx + w - 108, cy, cx + w, cy + 26], "متاح ٢٤ ساعة", font(8), "#eefbf3", "#0a8f54", "#b7e8cd")
+    pill(draw, [cx + w - 210, cy, cx + w - 118, cy + 26], "كشف منزلي", font(8), "#f7fbff", "#42678a", "#d7e7f6")
+    cy += 38
+    people = [("د. هالة منصور", "أسنان • جنزور الشرقية", "0100 555 7788", True),
+              ("صيدلية الرحمة", "صيدلية ٢٤ ساعة • وسط البلد", "0111 222 3344", True),
+              ("أسطى محمد الصاوي", "سباكة • طوارئ المياه", "0122 987 1234", True),
+              ("مستشفى جنزور المركزي", "استقبال وطوارئ", "045 333 4455", False)]
+    for name, sub, phone, verified in people:
+        rounded(draw, [cx, cy, cx + w, cy + 96], 14, fill="#ffffff", outline="#e8f0f8")
+        draw.ellipse([cx + w - 54, cy + 12, cx + w - 16, cy + 50], fill=mix(green, 0.14))
+        draw.ellipse([cx + w - 44, cy + 22, cx + w - 26, cy + 40], fill=mix(green, 0.45))
+        rtl(draw, (cx + w - 66, cy + 14), name, font(10.5), NAVY)
+        rtl(draw, (cx + w - 66, cy + 33), sub, font(8), MUTED)
+        if verified:
+            pill(draw, [cx + w - 66, cy + 48, cx + w - 14, cy + 66], "موثّق", font(7), "#eefbf3", "#0a8f54", "#b7e8cd")
+        draw.text((cx + 62, cy + 62), phone, font=latin(8), fill="#37536d", anchor="mm")
+        rounded(draw, [cx + 10, cy + 72, cx + 118, cy + 90], 9, fill="#0a9d5b")
+        rtl(draw, (cx + 64, cy + 81), "واتساب", font(7.5), "#ffffff", anchor="mm")
+        rounded(draw, [cx + 124, cy + 72, cx + 216, cy + 90], 9, fill="#eaf2fd")
+        rtl(draw, (cx + 170, cy + 81), "اتصال", font(7.5), "#0b5f9e", anchor="mm")
+        cy += 104
+    cy += 2
+    rounded(draw, [cx, cy, cx + w, cy + 72], 13, fill="#f1fbf6", outline="#c9ecd9")
+    rtl(draw, (cx + w / 2, cy + 16), "شوف مين مناوب دلوقتي قبل ما تنزل", font(9), "#0a7a49", anchor="mm")
+    rtl(draw, (cx + w / 2, cy + 34), "عيادات • صيدليات • حرفيين • طوارئ منزلية", font(7.5), "#3d7a5f", anchor="mm")
+    rtl(draw, (cx + w / 2, cy + 52), "كل الأرقام في الدليل — بضغطة واحدة", font(7.5), MUTED, anchor="mm")
+
+
 def bottom_nav(img, draw, x, y, w, h):
     """شريط التنقل السفلي داخل الشاشة (ثابت في كل الشاشات)."""
     bar = [x, y + h - 54, x + w, y + h]
@@ -333,10 +504,14 @@ def bottom_nav(img, draw, x, y, w, h):
 
 SCREENS = [
     ("01-home", "الرئيسية", "كل خدمات جنزور في مكان واحد", "ابحث عن أي مهنة، شوف المناوب الآن، ووصل لصاحب الخدمة بضغطة.", screen_home),
-    ("02-categories", "الأقسام والتخصصات", "١٤ قسمًا و١٠٠+ تخصص", "من الحرفيين والعيادات والصيدليات للنقل والمدرسين — كل قسم بتخصصاته.", screen_categories),
+    ("02-categories", "الأقسام والتخصصات", "١٤ قسمًا و١١٠+ تخصص", "من الحرفيين والعيادات والصيدليات للنقل والمدرسين — كل قسم بتخصصاته.", screen_categories),
     ("03-specialty", "التخصصات", "كل تخصص بمقدميه وأرقامهم", "بطاقة لكل مهني: التوثيق، المنطقة، واتساب، واتصال مباشر.", screen_specialty),
     ("04-telecom", "صفحة الأكواد", "كل الأكواد في جيبك بدون إنترنت", "المحمول والأرضي والبنوك — مسح ضوئي، نسخ، وطلب بضغطة.", screen_telecom),
     ("05-gov", "الأرقام الحكومية", "أرقام الطوارئ والحكومة في مكان واحد", "إسعاف وشرطة ومطافئ ومرافق، وشكاوى ومستندات — بدون بحث.", screen_gov),
+    ("06-landline", "الخط الأرضي", "أكواد الخط الأرضي والإنترنت المنزلي", "111 من الأرضي و19777 من الموبايل — تحويل المكالمات وإخفاء الرقم.", screen_landline),
+    ("07-ready", "أكواد جاهزة", "اكتب الرقم… وإحنا نجهّز الكود", "تحويل رصيد وكلمني شكرًا برقمك على فودافون وأورنج واتصالات ووي.", screen_ready),
+    ("08-banks", "البنوك والدفع", "أرقام البنوك وتطبيقات الدفع", "خدمة عملاء 8 بنوك + انستاباي وفودافون كاش — اضغط واتصل.", screen_banks),
+    ("09-duty", "مناوب الآن", "شوف مين مناوب دلوقتي", "عيادات وصيدليات وحرفيين متاحين الآن — واتساب واتصال مباشر.", screen_duty),
 ]
 
 

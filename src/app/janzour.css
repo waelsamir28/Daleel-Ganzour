@@ -10066,3 +10066,19 @@ html.dark .telecom-hero {
   .telecom-hero h1 { max-width: 18ch; }
   .telecom-hero-qr { flex-direction: column; }
 }
+
+/* خانات البحث النصية: من غير مستطيل أزرق داخلي وقت الكتابة (خصوصًا موبايل Chrome) —
+   التأشير على التركيز بيبان من إطار الخانة نفسها. */
+.codes-search input:focus,
+.codes-search input:focus-visible,
+.search-input-wrap input:focus,
+.search-input-wrap input:focus-visible,
+.service-helper-search input:focus,
+.service-helper-search input:focus-visible,
+.service-helper-custom-search input:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.codes-search:focus-within { border-color: #9dc6ee; box-shadow: 0 0 0 3px #dceafc; background: #fff; }
+html.dark .codes-search:focus-within { border-color: #3c6488; box-shadow: 0 0 0 3px #16283c; background: #12293c; }

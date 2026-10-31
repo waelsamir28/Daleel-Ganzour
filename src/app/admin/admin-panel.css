@@ -3241,3 +3241,28 @@ html.dark .analytics-code-report-row > em { background: #1b3247; color: #9fd2ff;
 .codes-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 8px; }
 html.dark .codes-settings-preview { border-color: #22384e; background: #0f2133; }
 @media (max-width: 600px) { .codes-settings-preview { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* خانة البحث: إزالة المستطيل الأزرق (focus ring) اللي كان بيظهر جوه التكست بوكس وقت الكتابة
+   على موبايل Chrome. الشكل الوحيد للتأشير على التركيز هو إطار الخانة الخارجي + هالة خفيفة. */
+.admin-shell .admin-search input,
+.admin-shell .admin-search input:hover,
+.admin-shell .admin-search input:focus,
+.admin-shell .admin-search input:focus-visible,
+.admin-shell .admin-search input:active,
+.admin-shell .admin-toolbar input:focus,
+.admin-shell .admin-toolbar input:focus-visible,
+.admin-shell .admin-toolbar textarea:focus,
+.admin-shell .admin-toolbar textarea:focus-visible,
+.admin-shell .admin-toolbar .ui-select-trigger:focus,
+.admin-shell .admin-toolbar .ui-select-trigger:focus-visible {
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.admin-shell .admin-search:focus-within {
+  border-color: #68bcb2;
+  box-shadow: 0 0 0 3px rgba(21, 135, 125, .12);
+}
