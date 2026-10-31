@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "daleel-janzour-shell";
-const CACHE_NAME = `${CACHE_PREFIX}-v2`;
+const CACHE_NAME = `${CACHE_PREFIX}-v3`;
 const OFFLINE_PAGE = "/offline.html";
 /** صفحة أكواد المحمول تُحفظ مسبقًا لأنها الأكثر احتياجًا وقت نفاد الرصيد/انقطاع الإنترنت. */
 const TELECOM_PAGE = "/telecom";
@@ -25,12 +25,27 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  const data = event.data ? event.data.json() : { title: "تنبيه من دليل جنزور", body: "لديك تحديث جديد لأهل القرية." };
-  event.waitUntil(self.registration.showNotification(data.title || "تنبيه من دليل جنزور", { body: data.body || "لديك تحديث جديد.", icon: "/icon-192.png", badge: "/icon-192.png", dir: "rtl", lang: "ar" }));
+  let data = { title: "تنبيه من دليل جنزور", body: "لديك تحديث جديد لأهل القرية.", url: "/" };
+  try { if (event.data) data = { ...data, ...event.data.json() }; } catch { /* بيانات غير JSON */ }
+  event.waitUntil(self.registration.showNotification(data.title || "تنبيه من دليل جنزور", {
+    body: data.body || "لديك تحديث جديد.",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    dir: "rtl",
+    lang: "ar",
+    tag: "janzour-update",
+    data: { url: data.url || "/" },
+  }));
 });
+// الضغط على الإشعار يفتح الرابط المرفق (مثل /telecom أو قسم معيّن) بدل الصفحة الرئيسية دائمًا.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => clients[0]?.focus() || self.clients.openWindow("/")));
+  const target = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+    const existing = clients.find((client) => client.url.includes(target));
+    if (existing) return existing.focus();
+    return self.clients.openWindow(target);
+  }));
 });
 
 self.addEventListener("fetch", (event) => {

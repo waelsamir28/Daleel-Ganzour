@@ -1,5 +1,7 @@
 "use client";
 
+import { CONTACT_EVENT } from "@/lib/quick-rating";
+
 export type AnalyticsEventRecord = {
   kind: "search" | "view" | "call" | "whatsapp" | "share";
   label: string;
@@ -30,7 +32,7 @@ export function readAnalyticsEvents(): AnalyticsEventRecord[] {
 // Server-side aggregate per specialty (feeds «أهم مهن القرية»). Anonymous; de-duplicated per
 // browser session so repeated taps on the same provider do not inflate the ranking.
 const HIT_SESSION_KEY = "janzour-hits-sent-v1";
-export function sendCategoryHit(categoryId: string | undefined, kind: "view" | "contact", dedupeKey = categoryId) {
+export function sendCategoryHit(categoryId: string | undefined, kind: "view" | "contact", dedupeKey = categoryId, serviceId?: string) {
   if (typeof window === "undefined" || !categoryId) return;
   try {
     const key = `${kind}:${dedupeKey}`;
@@ -41,7 +43,7 @@ export function sendCategoryHit(categoryId: string | undefined, kind: "view" | "
     // session storage unavailable — still count the hit
   }
   try {
-    void fetch("/api/hits", { method: "POST", keepalive: true, headers: { "content-type": "application/json", "x-silent": "1" }, body: JSON.stringify({ categoryId, kind }) }).catch(() => undefined);
+    void fetch("/api/hits", { method: "POST", keepalive: true, headers: { "content-type": "application/json", "x-silent": "1" }, body: JSON.stringify({ categoryId, kind, ...(serviceId ? { serviceId } : {}) }) }).catch(() => undefined);
   } catch {
     // ignore network errors
   }
@@ -49,8 +51,13 @@ export function sendCategoryHit(categoryId: string | undefined, kind: "view" | "
 
 export function trackDirectoryEvent(event: Omit<AnalyticsEventRecord, "timestamp">) {
   if (typeof window === "undefined") return;
-  if (event.kind === "view") sendCategoryHit(event.categoryId, "view", event.serviceId ?? event.categoryId);
-  if (event.kind === "call" || event.kind === "whatsapp") sendCategoryHit(event.categoryId, "contact", `${event.kind}:${event.serviceId ?? event.categoryId}`);
+  // أي ضغطة «اتصال» أو «واتساب» على مقدم خدمة تُطلق حدثًا تسمعه بطاقة التقييم السريع.
+  if ((event.kind === "call" || event.kind === "whatsapp") && event.serviceId) {
+    window.dispatchEvent(new CustomEvent(CONTACT_EVENT, { detail: { serviceId: event.serviceId, label: event.label } }));
+  }
+  if (event.kind === "view") sendCategoryHit(event.categoryId, "view", event.serviceId ?? event.categoryId, event.serviceId);
+  // ضغطة اتصال وواتساب للبطاقة نفسها تُحسب «تواصل» واحد في إحصاء المهني.
+  if (event.kind === "call" || event.kind === "whatsapp") sendCategoryHit(event.categoryId, "contact", `contact:${event.serviceId ?? event.categoryId}`, event.serviceId);
   try {
     const label = event.label.trim();
     if (!label) return;

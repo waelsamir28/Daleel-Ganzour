@@ -11,8 +11,33 @@ export function parseServiceItems(value: unknown): string[] {
   }))];
 }
 
-export function serviceWhatsappMessage(service: { name: string }, specialty: string, selectedArea = "", selectedService = "") {
-  return `مرحبًا ${service.name}، وصلت إليك من دليل جنزور. محتاج ${selectedService || specialty}${selectedArea ? ` في ${selectedArea}` : ""}. هل الخدمة متاحة؟`;
+/**
+ * رسالة واتساب جاهزة لمقدم الخدمة: توضّح مين المتصل ومن فين جاله (الدليل) ومحتاج إيه،
+ * ومعاها رابط صفحته لو المتصفح يقدر يبني الرابط — فالمهني يعرف الطلب جاي منين.
+ * كل أزرار الواتساب في الموقع بتستخدم نفس الصيغة.
+ */
+export function serviceWhatsappMessage(
+  service: { name: string },
+  specialty: string,
+  selectedArea = "",
+  selectedService = "",
+  extras: { siteName?: string; url?: string } = {},
+) {
+  const site = extras.siteName || "دليل جنزور";
+  const need = `${selectedService || specialty}${selectedArea ? ` في ${selectedArea}` : ""}`;
+  const lines = [
+    `السلام عليكم ${service.name} 👋`,
+    `وصلت لحضرتك من ${site} — دليل خدمات قرية جنزور.`,
+    `محتاج ${need}.`,
+    "هل الخدمة متاحة؟ ولو فيه مواعيد أو سعر تقديري ياريت توضحه.",
+  ];
+  if (extras.url) lines.push(`صفحتك على الدليل: ${extras.url}`);
+  return lines.join("\n");
+}
+
+/** رابط الصفحة المباشرة لمقدم الخدمة (يفتح الدليل على بطاقته) — يُستخدم في رسالة الواتساب. */
+export function serviceDirectUrl(id: string, siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app") {
+  return `${siteUrl.replace(/\/+$/, "")}/?service=${encodeURIComponent(id)}`;
 }
 
 export const specialtySynonyms: Record<string, string[]> = {
@@ -141,13 +166,48 @@ export function getSpecialtyKeywords(categoryId: string): string {
   return (specialtySynonyms[categoryId] ?? []).join(" ");
 }
 
+/**
+ * مسافة الحروف بين كلمتين مع توقف مبكر — بتخلّي البحث يتحمّل غلطة إملائية أو حرف ناقص
+ * («سباكه»/«سباكة»، «كهربا»/«كهرباء»، «نجر»/«نجار») من غير أي مكتبة خارجية.
+ */
+export function editDistanceAtMost(a: string, b: string, max: number): boolean {
+  if (a === b) return true;
+  if (Math.abs(a.length - b.length) > max) return false;
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    let rowMin = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const value = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost);
+      current.push(value);
+      if (value < rowMin) rowMin = value;
+    }
+    if (rowMin > max) return false;
+    previous = current;
+  }
+  return previous[b.length] <= max;
+}
+
+/** كلمتان متقاربتان؟ (كلمة من ٣–٥ حروف تتقبل غلطة، والأطول تتقبل غلطتين) */
+export function isCloseWord(word: string, candidate: string) {
+  if (!word || !candidate || word === candidate) return word === candidate;
+  const shortest = Math.min(word.length, candidate.length);
+  if (shortest < 3) return false;
+  return editDistanceAtMost(word, candidate, shortest >= 6 ? 2 : 1);
+}
+
 export function matchesServiceQuery(service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties" | "category" | "address" | "phone" | "phoneSecondary">, categoryName: string, query: string): boolean {
   const normalizedQuery = normalizeSearch(query.trim());
   if (!normalizedQuery) return true;
   const haystack = normalizeSearch(`${service.name} ${service.description} ${(service.serviceItems ?? []).join(" ")} ${(service.subSpecialties ?? []).join(" ")} ${categoryName} ${getSpecialtyKeywords(service.category)} ${service.address} ${service.phone} ${service.phoneSecondary}`);
   if (haystack.includes(normalizedQuery)) return true;
   const words = normalizedQuery.split(/\s+/).filter((word) => word.length > 1);
-  return words.length > 1 && words.every((word) => haystack.includes(word));
+  if (words.length > 1 && words.every((word) => haystack.includes(word))) return true;
+  // مرحلة أخيرة: تقبّل الأخطاء الإملائية الشائعة (زيادة/نقص/تبديل حرف).
+  const haystackWords = [...new Set(haystack.split(/[^\p{L}\p{N}]+/u).filter((word) => word.length > 2))];
+  if (!haystackWords.length) return false;
+  return words.every((word) => haystack.includes(word) || (word.length > 2 && haystackWords.some((candidate) => isCloseWord(word, candidate))));
 }
 
 const serviceIntentStopWords = new Set("عايز عايزه عايزين عاوز عاوزه عاوزين محتاج محتاجه محتاجين اريد ابغي نفسي اعمل اعمللي ممكن ياريت لو سمحت من فضلك عندي عندنا عنده عندها معايا عند لمحل للمحل بالمحل محل المحل في فيا فى من الى الي على علي ليا له لها هو هي انا انت احنا احنا ده دي دا ديه كده كدا كتير كثير جدا شويه شوية قوي او او و ولا عشان علشان بس خدمة خدمات حاجه حاجة شيء مياه ميه ماء الميه الميه كتيراً".split(/\s+/));
@@ -190,7 +250,13 @@ export function suggestSpecialties(query: string, catalog: CategoryRecord[], pro
   return catalog.filter((item) => item.active && item.parentId && (!rootId || item.parentId === rootId) && providers.some((service) => service.category === item.id))
     .map((item) => {
       const searchable = normalizeSearch(`${item.name} ${item.description} ${getSpecialtyKeywords(item.id)}`);
-      return { item, score: words.reduce((score, word) => score + (searchable.includes(word) ? 1 : 0), 0) };
+      const searchableWords = [...new Set(searchable.split(/[^\p{L}\p{N}]+/u).filter((word) => word.length > 2))];
+      // كلمة مطابقة بالحرف = نقطة كاملة، ومطابقة قريبة (غلطة إملائية) = نصف نقطة.
+      const score = words.reduce((total, word) => {
+        if (searchable.includes(word)) return total + 1;
+        return total + (searchableWords.some((candidate) => isCloseWord(word, candidate)) ? 0.5 : 0);
+      }, 0);
+      return { item, score };
     })
     .sort((a, b) => b.score - a.score || a.item.sortOrder - b.item.sortOrder)
     .slice(0, 3).map(({ item }) => item);
@@ -2852,10 +2918,33 @@ export function stickerIdForName(name: string): string {
   return "";
 }
 /** صورة معاينة المشاركة (واتساب/فيسبوك) للقسم أو التخصص: ملصقه + اسمه، تُولَّد بـ scripts/make-category-og.cjs (نفس هوية og-style.cjs). فارغ = تُستخدم صورة الدليل العامة. */
-export const OG_IMAGE_VERSION = 2;
-export function categoryOgImage(categoryId: string, name: string) {
-  if (!hasStickerIcon(categoryId)) return undefined;
-  return [{ url: `/images/og/${categoryId}.jpg?v=${OG_IMAGE_VERSION}`, width: 1200, height: 630, type: "image/jpeg", alt: `${name} — دليل المهن والخدمات بقرية جنزور` }];
+export const OG_IMAGE_VERSION = 3;
+/** لون كل قسم من أقسام الدليل — يُستخدم في بطاقة المشاركة وملصق الـQR والملصقات المطبوعة. */
+export const SECTION_ACCENTS: Record<string, string> = {
+  doctors: "#0e8f95", teachers: "#1d6fdc", maintenance: "#e88a16", "home-services": "#0f9d58",
+  beauty: "#d94a4a", "cars-services": "#6d2077", "food-supply": "#b45309", trade: "#0b5f9e",
+  "construction": "#a16207", "events": "#c026d3", technology: "#2563eb", "other-services": "#4b5563",
+  "agri-engineering": "#15803d", "tailors": "#be123c",
+};
+const FALLBACK_ACCENTS = ["#0877e6", "#0e8f95", "#0f9d58", "#e88a16", "#7c3aed", "#d94a4a", "#0b5f9e"];
+/** لون القسم: لون ثابت للأقسام المعروفة، وإلا لون مشتق من المعرّف (ثابت لنفس القسم دائمًا). */
+export function sectionAccent(categoryId: string) {
+  if (SECTION_ACCENTS[categoryId]) return SECTION_ACCENTS[categoryId];
+  let hash = 0;
+  for (let i = 0; i < categoryId.length; i += 1) hash = (hash * 31 + categoryId.charCodeAt(i)) % 100003;
+  return FALLBACK_ACCENTS[hash % FALLBACK_ACCENTS.length];
+}
+/**
+ * صورة معاينة المشاركة للقسم أو التخصص:
+ * - الأقسام المعروفة لها صورة جاهزة بهوية القسم (public/images/og) — أسرع وأجمل.
+ * - أي قسم/تخصص جديد من غير صورة جاهزة بياخد بطاقة مولّدة على الخادم بلونه واسمه
+ *   (‎/api/og/category)، فمفيش أي رابط في الدليل بيظهر بصورة عامة.
+ */
+export function categoryOgImage(categoryId: string, name: string, accent = sectionAccent(categoryId)) {
+  const alt = `${name} — دليل المهن والخدمات بقرية جنزور`;
+  if (hasStickerIcon(categoryId)) return [{ url: `/images/og/${categoryId}.jpg?v=${OG_IMAGE_VERSION}`, width: 1200, height: 630, type: "image/jpeg", alt }];
+  const query = new URLSearchParams({ name: name.slice(0, 80), color: accent });
+  return [{ url: `/api/og/category?${query.toString()}`, width: 1200, height: 630, type: "image/png", alt }];
 }
 export const CATEGORY_ICON_MAX_BYTES = 800 * 1024;
 /** يتحقق من صورة أيقونة مرفوعة (PNG/JPG/WebP/GIF حتى 800 كيلوبايت). */

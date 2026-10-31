@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
 import { Check, Copy, Heart, MapPin, MessageCircle, Pencil, PhoneCall, Share2, ShieldCheck, Star, MessageSquareWarning } from "lucide-react";
-import { activeOffer, categoryStickerSrc, centerSubjectNames, getTeacherStage, isNewService, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
+import { activeOffer, categoryStickerSrc, centerSubjectNames, getTeacherStage, isNewService, serviceDirectUrl, serviceStageIds, serviceWhatsappMessage, TEACHER_CENTER_ID, TEACHERS_ROOT_ID, whatsappUrl, type CategoryRecord, type ProviderEdgeToolId, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, SpecialtyIcon } from "@/components/ui";
 import { trackDirectoryEvent } from "@/lib/analytics-tracker";
 import ProfilePhotoCircle from "@/components/profile-photo-circle";
@@ -134,7 +134,7 @@ export default function ProviderCard({ service, category, categories, favorite, 
               return (
                 <a
                   key={tool}
-                  href={whatsappUrl(service.phone, serviceWhatsappMessage(service, category.name))}
+                  href={whatsappUrl(service.phone, serviceWhatsappMessage(service, category.name, "", "", { url: serviceDirectUrl(service.id) }))}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="edge-tool edge-tool-whatsapp"

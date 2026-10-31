@@ -6,6 +6,12 @@ import { getCategory, type AdminDirectory, type CategoryRecord, type ServiceReco
 import { CategoryIcon } from "@/components/ui";
 import AdminCodeReports from "@/components/admin-code-reports";
 import AdminErrorLog from "@/components/admin-error-log";
+import AdminPush from "@/components/admin-push";
+import AdminQuickRatings from "@/components/admin-quick-ratings";
+import AdminUsageInsights from "@/components/admin-usage-insights";
+import SectionStickerModal from "@/components/section-sticker-modal";
+import { sectionAccent } from "@/lib/catalog";
+import { QrCode } from "lucide-react";
 import { clearAnalyticsEvents, readAnalyticsEvents, type AnalyticsEventRecord } from "@/lib/analytics-tracker";
 
 export default function AdminAnalytics({
@@ -18,6 +24,7 @@ export default function AdminAnalytics({
   onEditService: (service: ServiceRecord) => void;
 }) {
   const [events, setEvents] = useState<AnalyticsEventRecord[]>(() => readAnalyticsEvents());
+  const [stickersOpen, setStickersOpen] = useState(false);
 
   const approvedServices = useMemo(
     () => data.services.filter((service) => service.status === "approved"),
@@ -226,6 +233,25 @@ export default function AdminAnalytics({
       </div>
 
       <AdminCodeReports/>
+      <section className="analytics-panel-card">
+        <div className="analytics-panel-head">
+          <div>
+            <h3><QrCode size={18}/> ملصقات QR للأقسام</h3>
+            <p>ملصق A6 لكل قسم بلونه واسمه: «كل … في مكان واحد — امسح». اطبعه وعلّقه في الصيدلية أو المحل.</p>
+          </div>
+          <button type="button" className="button button-soft button-small" onClick={() => setStickersOpen(true)}><QrCode size={15}/> افتح الملصقات</button>
+        </div>
+      </section>
+      {stickersOpen && (
+        <SectionStickerModal
+          siteName={data.settings.siteName}
+          sections={roots.map((category) => ({ id: category.id, name: category.name, accent: sectionAccent(category.id), count: approvedServices.filter((service) => service.category === category.id || data.categories.some((child) => child.parentId === category.id && child.id === service.category)).length }))}
+          onClose={() => setStickersOpen(false)}
+        />
+      )}
+      <AdminUsageInsights/>
+      <AdminQuickRatings/>
+      <AdminPush sections={roots.map((category) => ({ id: category.id, name: category.name }))}/>
       <AdminErrorLog/>
 
       {/* Underserved Specialties needing recruitment */}

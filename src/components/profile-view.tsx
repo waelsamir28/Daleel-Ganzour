@@ -92,7 +92,7 @@ export default function ProfileView({ profile, settings, design, origin }: Props
         </div>
         <div className="circle-tools is-row profile-tools" role="group" aria-label="أدوات الملف الشخصي">
           {profile.phone && <a className="circle-tool is-call" href={`tel:${profile.phone}`} data-tip="اتصال" aria-label={`اتصال بـ ${profile.name}`}><Phone size={16}/></a>}
-          {profile.phone && <a className="circle-tool is-whatsapp" href={whatsappUrl(profile.phone, `السلام عليكم ${profile.name}، وصلت لك من ${settings.siteName}`)} target="_blank" rel="noopener noreferrer" data-tip="واتساب" aria-label={`واتساب ${profile.name}`}><MessageCircle size={16}/></a>}
+          {profile.phone && <a className="circle-tool is-whatsapp" href={whatsappUrl(profile.phone, `السلام عليكم ${profile.name} 👋\nوصلت لحضرتك من ${settings.siteName}.\n${headline ? `${headline} — ` : ""}عايز أستفسر عن خدمتك.\n${url}`)} target="_blank" rel="noopener noreferrer" data-tip="واتساب" aria-label={`واتساب ${profile.name}`}><MessageCircle size={16}/></a>}
           {profile.phone && <button type="button" className={`circle-tool is-contact ${saved ? "is-active" : ""}`} data-tip={saved ? "تم تجهيز جهة الاتصال ✓" : "احفظ في جهات الاتصال"} onClick={() => void saveContact()} aria-label="احفظ في جهات الاتصال">{saved ? <Check size={16}/> : <UserPlus size={16}/>}</button>}
           <button type="button" className="circle-tool is-share" data-tip="مشاركة الملف" onClick={() => void share()} aria-label="مشاركة الملف الشخصي"><Share2 size={16}/></button>
           <button type="button" className="circle-tool is-card" data-tip="كارت جاهز كصورة" onClick={() => setCardOpen(true)} aria-label={`تجهيز كارت ${profile.name} كصورة جاهزة للمشاركة`}><IdCard size={16}/></button>

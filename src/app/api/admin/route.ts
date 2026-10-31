@@ -1,8 +1,10 @@
 import { randomBytes } from "node:crypto";
+import { after } from "next/server";
 import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { adBanners, adRequests, categoryIcons, communityListings, designImages, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
+import { pushApprovedRating, pushNewProvider } from "@/lib/push";
 import { ICON_LIMITS, autoTransparentKey, designImageLimits, optimizeStoredImage, removeFlatBackground } from "@/lib/image-optimize";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
@@ -312,6 +314,10 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
       } else if (action === "approve") {
         await serviceInput({ ...existing, photo: undefined }, false);
         await db.update(services).set({ status: "approved", verified: true, reviewNote: "" }).where(eq(services.id, id));
+        // إشعار المتصفح للزوار: «مدرس رياضيات جديد في جنزور» — يوصل مرة واحدة عند أول نشر.
+        if (existing.status !== "approved") {
+          after(() => { void pushNewProvider({ name: existing.name, categoryId: existing.category, area: existing.area }).catch(() => undefined); });
+        }
       } else if (action === "reject" || action === "request-info") {
         const reviewNote = cleanText(body.reviewNote ?? "", 1000);
         if (reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوب استكمالها.");
@@ -392,7 +398,13 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
       const id = uuid(body.id);
       const [existing] = await db.select().from(serviceRatings).where(eq(serviceRatings.id, id));
       if (!existing) throw new InputError("التقييم غير موجود.", 404);
-      if (action === "approve") await db.update(serviceRatings).set({ status: "approved" }).where(eq(serviceRatings.id, id));
+      if (action === "approve") {
+        await db.update(serviceRatings).set({ status: "approved" }).where(eq(serviceRatings.id, id));
+        if (existing.status !== "approved") {
+          const [service] = await db.select({ name: services.name }).from(services).where(eq(services.id, existing.serviceId)).limit(1);
+          if (service) after(() => { void pushApprovedRating({ serviceName: service.name, serviceId: existing.serviceId, stars: existing.stars }).catch(() => undefined); });
+        }
+      }
       else if (action === "reject") await db.update(serviceRatings).set({ status: "rejected" }).where(eq(serviceRatings.id, id));
       else throw new InputError("إجراء غير صحيح.");
     } else if (type === "member") {

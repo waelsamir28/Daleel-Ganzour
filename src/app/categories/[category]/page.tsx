@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import DirectoryShell from "@/components/directory-shell";
 import { getViewer } from "@/lib/auth";
-import { categoryOgImage } from "@/lib/catalog";
+import { categoryOgImage, sectionAccent } from "@/lib/catalog";
 import { getPublicDirectory } from "@/lib/directory";
 import { directoryForViewer, guestLocked } from "@/lib/membership-gate";
 
@@ -11,8 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
   const root = data.categories.find((item) => item.id === category && !item.parentId);
   const title = `${root?.name ?? "التصنيفات"} | ${data.settings.siteName}`;
   const description = root?.description || `دليل ${root?.name ?? "الخدمات"} في قرية جنزور: تواصل مباشرة مع مقدمي الخدمة بضغطة واحدة.`;
-  const images = root ? categoryOgImage(root.id, root.name) : undefined;
-  return { title, description, alternates: { canonical: `/categories/${category}` }, openGraph: { title, description, url: `/categories/${category}`, ...(images ? { images } : {}) }, twitter: { title, description, ...(images ? { images: images.map((image) => image.url) } : {}) } };
+  const images = root ? categoryOgImage(root.id, root.name, sectionAccent(root.parentId ?? root.id)) : undefined;
+  return { title, description, alternates: { canonical: `/categories/${category}` }, openGraph: { title, description, url: `/categories/${category}`, siteName: data.settings.siteName, locale: "ar_EG", type: "website", ...(images ? { images } : {}) }, twitter: { card: "summary_large_image", title, description, ...(images ? { images: images.map((image) => image.url) } : {}) } };
 }
 export default async function CategoryPage({ params, searchParams }: { params: Promise<{ category: string }>; searchParams: Promise<{ stage?: string }> }) {
   const [data, viewer, { category }, { stage }] = await Promise.all([getPublicDirectory(), getViewer(), params, searchParams]);

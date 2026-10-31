@@ -166,7 +166,7 @@ export default function BusinessCardModal({
             <Share2 size={16} />
           </button>
           <a
-            href={whatsappUrl(service.phone, `مرحباً ${service.name}، وصلت إلى بطاقتك الرقمية في دليل جنزور.`)}
+            href={whatsappUrl(service.phone, `السلام عليكم ${service.name} 👋\nوصلت إلى بطاقتك الرقمية على ${siteName}.\nعايز أستفسر عن خدمة ${category.name}.\n${directUrl}`)}
             target="_blank"
             rel="noopener noreferrer"
             className="circle-tool is-whatsapp"

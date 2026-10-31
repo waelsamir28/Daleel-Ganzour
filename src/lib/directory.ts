@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInArray, or, sql } from "drizzle-orm";
 import { databaseConfigured, db } from "@/db";
-import { activityLog, adBanners, adRequests, categoryHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
+import { activityLog, adBanners, adRequests, categoryHits, serviceHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
 import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type parsePinnedProfessions, DEFAULT_ADMIN_PALETTE, sanitizeAdminPalette, type AdminPaletteId } from "@/lib/catalog";
 import { getWhatsappAlertKinds, getWhatsappAlertStatus } from "@/lib/whatsapp-alert";
 import { defaultTelecomSettings, sanitizeTelecomSettings, type TelecomSettings } from "@/lib/telecom-settings";
@@ -42,7 +42,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-10-31.2";
+export const SCHEMA_VERSION = "2026-10-31.4";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -74,6 +74,13 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_error_log (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), kind varchar(12) NOT NULL DEFAULT 'client', fingerprint varchar(40) NOT NULL DEFAULT '', message varchar(400) NOT NULL DEFAULT '', detail text NOT NULL DEFAULT '', path varchar(200) NOT NULL DEFAULT '', user_agent varchar(180) NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_error_log_created_idx ON directory_error_log (created_at)`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_error_log_fingerprint_idx ON directory_error_log (fingerprint)`);
+      // إحصاء استخدام لكل مهني (مشاهدات + نقرات تواصل) — أرقام مجهولة للإدارة.
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_hits (service_id uuid PRIMARY KEY REFERENCES directory_services(id) ON DELETE CASCADE, views integer NOT NULL DEFAULT 0, contacts integer NOT NULL DEFAULT 0, updated_at timestamptz NOT NULL DEFAULT now())`);
+      // مواضيع الإشعارات اللي اختارها الزائر (فاضية = كل الأقسام).
+      await tx.execute(sql`ALTER TABLE directory_push_subscriptions ADD COLUMN IF NOT EXISTS topics jsonb NOT NULL DEFAULT '[]'::jsonb`);
+      // تقييم سريع مجهول بعد الاتصال (نجوم فقط) — مؤشر رضا الزوار في الإحصاءات.
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_quick_ratings (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, stars integer NOT NULL DEFAULT 5, created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_quick_ratings_created_idx ON directory_quick_ratings (created_at)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_appointment_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, name varchar(120) NOT NULL, phone varchar(24) NOT NULL, preference varchar(240) NOT NULL, status varchar(20) NOT NULL DEFAULT 'waiting', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_url text NOT NULL DEFAULT ''`);
@@ -297,6 +304,13 @@ export async function recordCategoryHit(categoryId: string, kind: "view" | "cont
   await db.insert(categoryHits).values({ categoryId, views: kind === "view" ? 1 : 0, contacts: kind === "contact" ? 1 : 0 })
     .onConflictDoUpdate({ target: categoryHits.categoryId, set: { [kind === "contact" ? "contacts" : "views"]: sql`${column} + 1`, updatedAt: new Date() } });
 }
+// إحصاء استخدام المهني نفسه (فتح البطاقة أو ضغط اتصال/واتساب) — بدون أي بيانات شخصية.
+export async function recordServiceHit(serviceId: string, kind: "view" | "contact") {
+  const column = kind === "contact" ? serviceHits.contacts : serviceHits.views;
+  await db.insert(serviceHits).values({ serviceId, views: kind === "view" ? 1 : 0, contacts: kind === "contact" ? 1 : 0 })
+    .onConflictDoUpdate({ target: serviceHits.serviceId, set: { [kind === "contact" ? "contacts" : "views"]: sql`${column} + 1`, updatedAt: new Date() } });
+}
+
 /**
  * كاش الدليل العام في ذاكرة الخادم:
  * - كل كتابة (من الإدارة أو الأعضاء) ترفع «رقم نسخة» صغيرًا في `directory_settings` عبر `invalidateDirectoryCache()`.
