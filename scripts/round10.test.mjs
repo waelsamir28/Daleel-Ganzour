@@ -255,3 +255,74 @@ test("quotes and seasonal screens are wired end to end", () => {
   const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
   assert.ok(schema.includes("directory_quote_requests"));
 });
+
+// ===== دفعة ١٤: دفتر الأرقام + ترحيب المهنيين + مهنة ناقصة + صحة الدليل =====
+
+test("directory health ranks stale, incomplete and empty specialties", async () => {
+  const health = await loadLib("../src/lib/directory-health.ts");
+  const now = Date.parse("2026-10-31T12:00:00Z");
+  const services = [
+    { id: "1", name: "أحمد", category: "plumbing", address: "جنزور", serviceItems: ["كشف"], subSpecialties: ["منازل"], confirmedAt: "2026-10-25T12:00:00Z", createdAt: "2025-01-01T12:00:00Z" },
+    { id: "2", name: "محمود", category: "electricity", address: "", serviceItems: [], subSpecialties: [], confirmedAt: "2025-01-01T12:00:00Z", createdAt: "2025-01-01T12:00:00Z" },
+  ];
+  const categories = [
+    { id: "crafts", name: "الحرفيين", parentId: null, active: true },
+    { id: "plumbing", name: "السباكة", parentId: "crafts", active: true },
+    { id: "electricity", name: "الكهرباء", parentId: "crafts", active: true },
+    { id: "carpentry", name: "النجارة", parentId: "crafts", active: true },
+  ];
+  const report = health.directoryHealth({ services, categories }, now);
+  assert.equal(report.providers, 2);
+  assert.deepEqual(report.stale.map((item) => item.id), ["2"]);
+  assert.deepEqual(report.incomplete.map((item) => item.id), ["2"]);
+  assert.deepEqual(report.incomplete[0].missing, ["العنوان", "الخدمات التفصيلية", "التخصصات الفرعية"]);
+  assert.deepEqual(report.emptySpecialties.map((item) => item.id), ["carpentry"]);
+  assert.ok(report.score > 0 && report.score < 100);
+  assert.equal(health.daysSinceUpdate({ createdAt: "2026-10-01T12:00:00Z" }, now), 30);
+  assert.equal(health.missingData({ address: "x", serviceItems: ["a"], subSpecialties: ["b"] }).length, 0);
+  assert.equal(health.healthVerdict(95).tone, "good");
+  assert.equal(health.healthVerdict(20).tone, "bad");
+  assert.equal(health.directoryHealth({ services: [], categories: [] }, now).score, 0);
+});
+
+test("missing-profession requests validate and build a fulfilled message", async () => {
+  const missing = await loadLib("../src/lib/missing-profession.ts");
+  const good = missing.cleanMissingRequest({ need: "  حد بيصلح تكييف عربيات  ", name: " محمود ", phone: "", categoryId: "" });
+  assert.equal(good.ok, true);
+  assert.equal(good.value.need, "حد بيصلح تكييف عربيات");
+  assert.equal(good.value.name, "محمود");
+  assert.equal(missing.cleanMissingRequest({ need: "قصير" }).ok, false);
+  assert.equal(missing.cleanMissingRequest({ need: "حد بيصلح تكييف عربيات", phone: "123" }).ok, false);
+  assert.equal(missing.cleanMissingRequest({ need: "حد بيصلح تكييف عربيات", categoryId: "../x" }).ok, false);
+  const message = missing.missingFulfilledMessage({ name: "محمود", need: "تكييف عربيات", title: "ميكانيكا السيارات", url: "/categories/crafts" });
+  assert.ok(message.includes("محمود") && message.includes("تكييف عربيات") && message.includes("/categories/crafts"));
+  assert.equal(missing.missingKindLabel("محتاج نجار"), "مهني");
+  assert.equal(missing.missingKindLabel("محل حلويات"), "مكان");
+  assert.ok(missing.missingSummary("ا".repeat(200), 40).length <= 41);
+});
+
+test("provider welcome message carries the direct page link", async () => {
+  const onboarding = await loadLib("../src/lib/provider-onboarding.ts");
+  const message = onboarding.providerWelcomeMessage({ name: "أحمد", categoryName: "السباكة", serviceId: "abc-123", siteName: "دليل جنزور" });
+  assert.ok(message.includes("أحمد") && message.includes("السباكة") && message.includes("دليل جنزور"));
+  assert.ok(message.includes("/?service=abc-123"));
+  assert.equal(onboarding.providerPublicUrl("a b", "https://x.test/"), "https://x.test/?service=a%20b");
+  assert.ok(onboarding.providerStickerRequestMessage("أحمد").includes("أحمد"));
+});
+
+test("booklet, welcoming, missing-profession and health screens are wired", () => {
+  const page = readFileSync(new URL("../src/app/dafter/page.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes("DafterBook") && page.includes("getPublicDirectory"));
+  const book = readFileSync(new URL("../src/components/dafter-book.tsx", import.meta.url), "utf8");
+  assert.ok(book.includes("window.print") && book.includes("QrSvg"));
+  const api = readFileSync(new URL("../src/app/api/missing/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes("cleanMissingRequest") && api.includes("rateLimit(request, \"missing-profession\"") && api.includes("validId"));
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(directory.includes("MissingProfessionModal") && directory.includes('setModal("missing")') && directory.includes('href="/dafter"'));
+  const admin = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
+  for (const part of ["AdminHealth", "AdminOnboarding", "AdminMissing"]) assert.ok(admin.includes(part));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes("directory_missing_requests"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes("@media print") && css.includes(".dafter-sheet"));
+});

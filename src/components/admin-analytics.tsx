@@ -11,6 +11,9 @@ import AdminQuickRatings from "@/components/admin-quick-ratings";
 import AdminUsageInsights from "@/components/admin-usage-insights";
 import AdminQuotes from "@/components/admin-quotes";
 import AdminSeasonal from "@/components/admin-seasonal";
+import AdminHealth from "@/components/admin-health";
+import AdminOnboarding from "@/components/admin-onboarding";
+import AdminMissing from "@/components/admin-missing";
 import SectionStickerModal from "@/components/section-sticker-modal";
 import { sectionAccent } from "@/lib/catalog";
 import { QrCode } from "lucide-react";
@@ -251,6 +254,9 @@ export default function AdminAnalytics({
           onClose={() => setStickersOpen(false)}
         />
       )}
+      <AdminHealth data={data} onEditService={onEditService} onAddServiceInCategory={onAddServiceInCategory}/>
+      <AdminMissing siteName={data.settings.siteName}/>
+      <AdminOnboarding data={data}/>
       <AdminQuotes/>
       <AdminSeasonal/>
       <AdminUsageInsights/>
