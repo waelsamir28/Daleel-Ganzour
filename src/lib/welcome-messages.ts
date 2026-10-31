@@ -26,13 +26,29 @@ export type WelcomeMessage = {
 
 export const WELCOME_STORAGE_PREFIX = "janzour-welcome-v1";
 
-export function memberWelcomeKey(memberId: string) {
-  return `${WELCOME_STORAGE_PREFIX}:member:${memberId || "guest"}`;
+/**
+ * مفتاح ثابت لكل رسالة — **بدون وقت أو حالة متغيرة**.
+ * يعني كل رسالة بتظهر مرة واحدة بس في عمرها، وأي تغيير حالة بعد كده مش بيرجّعها تاني.
+ */
+export function welcomeKey(tone: WelcomeTone, subjectId: string) {
+  return `${tone}:${subjectId}`;
 }
 
-export function providerStatusKey(serviceId: string, statusUpdatedAt: string | Date) {
-  const stamp = typeof statusUpdatedAt === "string" ? statusUpdatedAt : statusUpdatedAt.toISOString();
-  return `${WELCOME_STORAGE_PREFIX}:provider:${serviceId}:${stamp}`;
+/** رسالة العضو الجديد. */
+export function memberWelcomeKey(memberId: string) {
+  return welcomeKey("member", memberId || "guest");
+}
+
+/** مفتاح رسالة حالة المهنة (قيد المراجعة / موافقة / استكمال / رفض). */
+export function providerStatusKey(serviceId: string, tone: WelcomeTone = "pending") {
+  return welcomeKey(tone, serviceId);
+}
+
+/** صيغة المفتاح المقبولة على الخادم (نفس الصيغة اللي بتبنيها welcomeKey). */
+export const WELCOME_KEY_PATTERN = /^(member:(guest|[0-9a-f-]{36})|(pending|approved|needs-info|rejected):[0-9a-f-]{36})$/i;
+
+export function isValidWelcomeKey(value: unknown): value is string {
+  return typeof value === "string" && WELCOME_KEY_PATTERN.test(value);
 }
 
 /** رسالة العضو الجديد بعد التسجيل مباشرة. */
@@ -49,7 +65,7 @@ export function memberWelcome(name: string, siteName = "دليل جنزور"): W
       "فعّل الإشعارات من الجرس فوق عشان تعرف أول ما يتضاف جديد",
     ],
     primary: { label: "ابدأ تصفّح الدليل", href: "/" },
-    storageKey: memberWelcomeKey(""),
+    storageKey: "",
   };
 }
 
@@ -67,7 +83,7 @@ export function providerPending(name: string, trackingHref = ""): WelcomeMessage
     ],
     ...(trackingHref ? { primary: { label: "متابعة حالة الطلب", href: trackingHref } } : {}),
     secondary: { label: "تصفّح الدليل لحد ما نرجعلك", href: "/" },
-    storageKey: "provider-pending",
+    storageKey: "",
   };
 }
 
@@ -85,7 +101,7 @@ export function providerApproved(name: string, publicHref: string, accountHref: 
     ],
     primary: { label: "شوف بطاقتك", href: publicHref },
     secondary: { label: "حسابي وملصق QR", href: accountHref },
-    storageKey: "provider-approved",
+    storageKey: "",
   };
 }
 
@@ -102,32 +118,27 @@ export function providerAttention(status: "needs-info" | "rejected", note: strin
     bullets: note ? [note] : ["افتح حسابك وشوف التفاصيل المطلوبة"],
     primary: { label: "افتح حسابي", href: accountHref },
     secondary: { label: "تواصل مع الإدارة", href: "/" },
-    storageKey: `provider-${status}`,
+    storageKey: "",
   };
 }
 
-/** هل نعرض الرسالة؟ (مشوفناهاش قبل كده على الجهاز) */
-export function shouldShowWelcome(storageKey: string, seen: string | null | undefined) {
-  return Boolean(storageKey) && storageKey !== seen;
-}
-
-/** يقرأ مفاتيح «شوهدت» من نص JSON — يتعامل مع أي تلف بهدوء. */
-export function parseSeenMap(raw: string | null | undefined): Record<string, string> {
+/** يقرأ قائمة الرسائل اللي اتشافت من التخزين المحلي (بتتعامل مع أي تلف بهدوء). */
+export function parseSeenKeys(raw: string | null | undefined): string[] {
   try {
-    const parsed: unknown = raw ? JSON.parse(raw) : {};
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-    const result: Record<string, string> = {};
-    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
-      if (typeof key === "string" && typeof value === "string") result[key] = value;
-    }
-    return result;
-  } catch { return {}; }
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is string => isValidWelcomeKey(item));
+  } catch { return []; }
 }
 
-/** يسجّل إن الرسالة اتشافت، مع الحفاظ على آخر ٦٠ مفتاح فقط. */
-export function rememberWelcome(raw: string | null | undefined, kind: string, storageKey: string) {
-  const map = parseSeenMap(raw);
-  map[kind] = storageKey;
-  const entries = Object.entries(map).slice(-60);
-  return JSON.stringify(Object.fromEntries(entries));
+/** يضيف مفتاحًا لقائمة «شوهدت» (بدون تكرار) ويحتفظ بآخر ٨٠ مفتاح. */
+export function rememberSeenKey(raw: string | null | undefined, key: string) {
+  const list = parseSeenKeys(raw);
+  if (!isValidWelcomeKey(key) || list.includes(key)) return JSON.stringify(list);
+  return JSON.stringify([...list, key].slice(-80));
+}
+
+/** هل الرسالة اتشافت قبل كده؟ (محليًا أو على الخادم) */
+export function welcomeAlreadySeen(key: string, localSeen: string[], serverSeen: string[] = []) {
+  return !key || localSeen.includes(key) || serverSeen.includes(key);
 }

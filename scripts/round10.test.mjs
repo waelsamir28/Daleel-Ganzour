@@ -353,18 +353,37 @@ test("welcome messages cover member, pending and approved moments", async () => 
   assert.equal(welcome.providerAttention("rejected", "", "/my/token").tone, "rejected");
 });
 
-test("welcome storage shows each status change once", async () => {
+test("welcome messages show exactly once, for good", async () => {
   const welcome = await loadLib("../src/lib/welcome-messages.ts");
-  const key = welcome.providerStatusKey("svc-1", "2026-10-31T10:00:00.000Z");
-  assert.ok(key.includes("svc-1") && key.includes("2026-10-31"));
-  assert.equal(welcome.shouldShowWelcome(key, null), true);
-  assert.equal(welcome.shouldShowWelcome(key, key), false);
-  const stored = welcome.rememberWelcome(null, "provider", key);
-  assert.equal(welcome.parseSeenMap(stored).provider, key);
-  assert.deepEqual(welcome.parseSeenMap("{bad"), {});
-  assert.deepEqual(welcome.parseSeenMap("[1,2]"), {});
-  assert.equal(welcome.shouldShowWelcome("", ""), false);
-  assert.notEqual(welcome.memberWelcomeKey("a"), welcome.memberWelcomeKey("b"));
+  const svc = "3f2b1c40-9d1e-4b2a-8f0e-0f5c2a4d7b11";
+  const member = "7c1d8a2e-5b6f-4c3d-9e0a-123456789abc";
+  // المفتاح ثابت ومربوط بنوع الرسالة + صاحبها، مش بوقت تغيير الحالة.
+  assert.equal(welcome.providerStatusKey(svc, "approved"), `approved:${svc}`);
+  assert.equal(welcome.providerStatusKey(svc, "approved"), welcome.providerStatusKey(svc, "approved"));
+  assert.equal(welcome.memberWelcomeKey(member), `member:${member}`);
+  assert.equal(welcome.welcomeKey("pending", svc), `pending:${svc}`);
+  assert.notEqual(welcome.providerStatusKey(svc, "approved"), welcome.providerStatusKey(svc, "pending"));
+
+  // التخزين المحلي: قائمة مفاتيح بدون تكرار.
+  const first = welcome.rememberSeenKey(null, `approved:${svc}`);
+  assert.deepEqual(welcome.parseSeenKeys(first), [`approved:${svc}`]);
+  assert.equal(welcome.welcomeAlreadySeen(`approved:${svc}`, welcome.parseSeenKeys(first)), true);
+  assert.equal(welcome.welcomeAlreadySeen(`pending:${svc}`, welcome.parseSeenKeys(first)), false);
+  const dup = welcome.rememberSeenKey(first, `approved:${svc}`);
+  assert.deepEqual(welcome.parseSeenKeys(dup), [`approved:${svc}`]);
+  assert.deepEqual(welcome.parseSeenKeys("{bad"), []);
+  assert.deepEqual(welcome.parseSeenKeys('["admin:x"]'), []);
+  // «اتشافت على الخادم» تمنع الظهور حتى لو الجهاز جديد.
+  assert.equal(welcome.welcomeAlreadySeen(`approved:${svc}`, [], [`approved:${svc}`]), true);
+  // مفيش مفتاح = مفيش رسالة، فبنتعامل معاها كـ«اتشافت» حتى ما يظهرش أي كارت فاضي.
+  assert.equal(welcome.welcomeAlreadySeen("", [], []), true);
+
+  // صيغة المفاتيح المقبولة على الخادم.
+  assert.equal(welcome.isValidWelcomeKey(`member:${member}`), true);
+  assert.equal(welcome.isValidWelcomeKey(`approved:${svc}`), true);
+  assert.equal(welcome.isValidWelcomeKey("approved:not-a-uuid"), false);
+  assert.equal(welcome.isValidWelcomeKey("admin:member:1"), false);
+  assert.equal(welcome.isValidWelcomeKey(42), false);
 });
 
 test("welcome screens are wired to register, provider account and tracking", () => {
@@ -374,14 +393,19 @@ test("welcome screens are wired to register, provider account and tracking", () 
   assert.ok(layout.includes("<WelcomeCenter />"));
   const api = readFileSync(new URL("../src/app/api/welcome/route.ts", import.meta.url), "utf8");
   assert.ok(api.includes("statusUpdatedAt") && api.includes("ownedServiceIds"));
+  // «مرة واحدة فقط»: تسجيل المشاهدة على الخادم + قراءتها قبل العرض.
+  assert.ok(api.includes("welcomeSeen") && api.includes("onConflictDoNothing") && api.includes("isValidWelcomeKey"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes("directory_welcome_seen"));
+  const client = readFileSync(new URL("../src/lib/welcome-seen-client.ts", import.meta.url), "utf8");
+  assert.ok(client.includes("markWelcomeSeen"));
   const myPage = readFileSync(new URL("../src/app/my/[token]/page.tsx", import.meta.url), "utf8");
   assert.ok(myPage.includes("ProviderStatusWelcome"));
   const trackPage = readFileSync(new URL("../src/app/track/[token]/page.tsx", import.meta.url), "utf8");
   assert.ok(trackPage.includes("ProviderStatusWelcome"));
   const forms = readFileSync(new URL("../src/components/request-forms.tsx", import.meta.url), "utf8");
   assert.ok(forms.includes("ServiceSubmittedWelcome"));
-  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
-  assert.ok(schema.includes("statusUpdatedAt"));
+  assert.ok(api.includes("seen:") || api.includes("seen:"));
   const admin = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
   assert.ok(admin.includes("statusUpdatedAt: new Date()"));
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");

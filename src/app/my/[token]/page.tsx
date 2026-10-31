@@ -1,11 +1,12 @@
 import { asc, eq } from "drizzle-orm";
 import { db, databaseConfigured } from "@/db";
-import { directoryAreas, directoryCategories, services } from "@/db/schema";
+import { directoryAreas, directoryCategories, services, welcomeSeen } from "@/db/schema";
 import { ensureSeed, serializeCategory, serializeService } from "@/lib/directory";
 import { OFFICE_WHATSAPP } from "@/lib/catalog";
 import { Logo } from "@/components/ui";
 import ProviderAccount from "@/components/provider-account";
 import { ProviderStatusWelcome } from "@/components/welcome-center";
+import { providerStatusKey } from "@/lib/welcome-messages";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "حسابي — دليل جنزور", robots: { index: false, follow: false } };
@@ -31,6 +32,8 @@ export default async function MyAccountPage({ params }: { params: Promise<{ toke
     db.select().from(directoryCategories).where(eq(directoryCategories.active, true)).orderBy(asc(directoryCategories.sortOrder)),
     db.select({ name: directoryAreas.name }).from(directoryAreas).orderBy(asc(directoryAreas.sortOrder), asc(directoryAreas.name)),
   ]);
+  // الرسالة العائمة بتظهر مرة واحدة فقط: بنقرأ من الخادم إن كانت اتشافت قبل كده.
+  const [seenRow] = await db.select({ key: welcomeSeen.key }).from(welcomeSeen).where(eq(welcomeSeen.key, providerStatusKey(row.id, row.status as never))).limit(1);
   return <Shell>
     <ProviderStatusWelcome
       serviceId={row.id}
@@ -40,6 +43,7 @@ export default async function MyAccountPage({ params }: { params: Promise<{ toke
       reviewNote={row.reviewNote}
       accountHref={`/my/${token}`}
       publicHref={`/?service=${row.id}`}
+      seenKeys={seenRow ? [seenRow.key] : []}
     />
     <ProviderAccount token={token} initial={serializeService(row)} categories={categoryRows.map((item) => serializeCategory(item))} areas={areaRows.map((item) => item.name)}/>
   </Shell>;
