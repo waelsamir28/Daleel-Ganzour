@@ -10200,3 +10200,13 @@ html.dark .insights-row { background: #0f2337; border-color: #1e3a52; }
 html.dark .insights-row strong { color: #dbeafe; }
 html.dark .insights-row small { color: #9db3cb; }
 html.dark .insights-rank { background: #1e3a5f; color: #bfdbfe; }
+
+/* ===== تخطّي إلى المحتوى (قارئ الشاشة / لوحة المفاتيح) ===== */
+.skip-to-content {
+  position: absolute; inset-inline-start: 12px; top: -60px; z-index: 200;
+  padding: 10px 16px; border-radius: 0 0 12px 12px;
+  background: #0d8ee0; color: #fff; font-weight: 800; font-size: 13px; text-decoration: none;
+  transition: top .18s ease;
+}
+.skip-to-content:focus-visible { top: 0; outline: 3px solid #ffe066; outline-offset: 2px; }
+main#main-content:focus { outline: none; }

@@ -95,7 +95,7 @@ test("WhatsApp request names the provider, the need, the site and the direct lin
 
 test("every section has a stable accent colour and a branded share card", () => {
   const accents = new Set();
-  for (const id of ["doctors", "teachers", "maintenance", "home-services", "beauty", "cars-services", "food-supply", "trade", "construction", "events", "technology", "other-services", "agri-engineering", "tailors", "brand-new-section"]) {
+  for (const id of ["crafts", "clinics", "labs", "pharmacies", "shops", "teachers", "charities", "printing", "events", "beauty", "transport", "cleaning", "law", "other-services", "brand-new-section"]) {
     const accent = catalog.sectionAccent(id);
     assert.match(accent, /^#[0-9a-f]{6}$/i);
     accents.add(accent);
@@ -105,7 +105,8 @@ test("every section has a stable accent colour and a branded share card", () => 
     assert.equal(images[0].width, 1200);
   }
   assert.equal(accents.has(catalog.sectionAccent("brand-new-section")), true);
-  assert.equal(catalog.sectionAccent("doctors"), catalog.sectionAccent("doctors"));
+  assert.equal(catalog.sectionAccent("clinics"), "#22b96d");
+  assert.equal(catalog.sectionAccent("crafts"), "#ff941f");
 });
 
 test("section QR sticker text and URL are clean and printable", () => {
@@ -162,4 +163,32 @@ test("per-provider usage counters are recorded server-side and shown to the admi
   assert.ok(tracker.includes("serviceId"));
   const admin = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
   assert.ok(admin.includes("AdminUsageInsights"));
+});
+
+test("push keys are generated and stored server-side when env vars are absent", () => {
+  const push = readFileSync(new URL("../src/lib/push.ts", import.meta.url), "utf8");
+  assert.ok(push.includes("generateVAPIDKeys"));
+  assert.ok(push.includes('"vapid_keys"'));
+  assert.ok(push.includes("directorySettings"));
+  assert.ok(push.includes("export async function pushConfigured"));
+  // المفتاح الخاص لا يُرسل للمتصفح أبدًا: مسار API بيرجّع العام فقط.
+  const api = readFileSync(new URL("../src/app/api/push/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes("publicKey: await pushPublicKey()"));
+  assert.ok(!api.includes("privateKey"));
+  const envExample = readFileSync(new URL("../.env.example", import.meta.url), "utf8");
+  assert.ok(envExample.includes("NEXT_PUBLIC_VAPID_PUBLIC_KEY"));
+});
+
+test("install shortcuts and screen-reader helpers are wired", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
+  const urls = manifest.shortcuts.map((shortcut) => shortcut.url);
+  assert.deepEqual(urls, ["/telecom", "/categories/clinics", "/categories/crafts", "/categories/teachers"]);
+  for (const shortcut of manifest.shortcuts) assert.ok(shortcut.name && shortcut.icons.length === 1);
+  assert.equal(manifest.launch_handler.client_mode, "navigate-existing");
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(directory.includes('className="skip-to-content"'));
+  assert.ok(directory.includes('id="main-content"'));
+  assert.ok(directory.includes('aria-live="polite"'));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".skip-to-content"));
 });

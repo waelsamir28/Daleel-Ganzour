@@ -2921,10 +2921,10 @@ export function stickerIdForName(name: string): string {
 export const OG_IMAGE_VERSION = 3;
 /** لون كل قسم من أقسام الدليل — يُستخدم في بطاقة المشاركة وملصق الـQR والملصقات المطبوعة. */
 export const SECTION_ACCENTS: Record<string, string> = {
-  doctors: "#0e8f95", teachers: "#1d6fdc", maintenance: "#e88a16", "home-services": "#0f9d58",
-  beauty: "#d94a4a", "cars-services": "#6d2077", "food-supply": "#b45309", trade: "#0b5f9e",
-  "construction": "#a16207", "events": "#c026d3", technology: "#2563eb", "other-services": "#4b5563",
-  "agri-engineering": "#15803d", "tailors": "#be123c",
+  // نفس ألوان أقسام الدليل الرسمية (تُستخدم في بطاقة المشاركة وملصق الـQR المطبوع).
+  crafts: "#ff941f", clinics: "#22b96d", labs: "#0eb0b1", pharmacies: "#15a37f", shops: "#078cf0",
+  teachers: "#9160df", charities: "#ef5d82", printing: "#5b5fe8", events: "#ff5a36", beauty: "#e0409a",
+  transport: "#f2a900", cleaning: "#19b4d8", law: "#8a6a2f", "other-services": "#0eb0b1",
 };
 const FALLBACK_ACCENTS = ["#0877e6", "#0e8f95", "#0f9d58", "#e88a16", "#7c3aed", "#d94a4a", "#0b5f9e"];
 /** لون القسم: لون ثابت للأقسام المعروفة، وإلا لون مشتق من المعرّف (ثابت لنفس القسم دائمًا). */
