@@ -169,6 +169,20 @@ export const categoryHits = pgTable("directory_category_hits", {
 });
 
 /**
+ * «مهنة ناقصة»: الزائر يكتب اللي محتاجه ومش لاقيه في الدليل، والإدارة تتابعه
+ * وتجهّز له رسالة واتساب أول ما يتضاف — فالدليل بيتبني من احتياج الناس الحقيقي.
+ */
+export const missingProfessionRequests = pgTable("directory_missing_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  need: text("need").notNull(),
+  name: varchar("name", { length: 120 }).notNull().default(""),
+  phone: varchar("phone", { length: 24 }).notNull().default(""),
+  categoryId: varchar("category_id", { length: 60 }).notNull().default(""),
+  status: varchar("status", { length: 20 }).notNull().default("open"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [index("directory_missing_requests_created_idx").on(table.createdAt)]);
+
+/**
  * طلبات عرض السعر («اطلب من ٣ مهنيين»): الزائر يكتب طلبه مرة واحدة،
  * ويُخزَّن مع أرقام المهنيين اللي اتبعتلهم — للمتابعة في لوحة الإدارة.
  */

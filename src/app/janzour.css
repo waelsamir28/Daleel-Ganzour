@@ -10352,3 +10352,97 @@ html.dark .seasonal-copy strong { color: #dbeafe; }
 html.dark .seasonal-copy span { color: #b9d6f4; }
 html.dark .seasonal-copy small { color: #9db3cb; }
 html.dark .seasonal-upcoming span { background: #12293c; border-color: #24445f; color: #b9cee6; }
+
+/* ===== دفتر أرقام جنزور (للطباعة / حفظ PDF) — /dafter ===== */
+.dafter-page { min-height: 100vh; background: #eef3f9; padding: 14px; display: grid; gap: 12px; justify-items: center; }
+.dafter-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 820px; }
+.dafter-toolbar-hint { flex: 1 1 100%; color: #6b8298; font-size: 11px; font-weight: 700; }
+.dafter-book { width: 100%; max-width: 820px; display: grid; gap: 14px; }
+.dafter-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dafter-actions span { font-size: 11.5px; font-weight: 800; color: #6b8298; }
+.dafter-sheet { background: #fff; border-radius: 14px; padding: 26px 28px; box-shadow: 0 12px 30px rgba(11, 61, 107, .1); color: #14304a; }
+.dafter-cover { display: grid; gap: 14px; justify-items: start; border-top: 6px solid #0d8ee0; }
+.dafter-eyebrow { font-size: 12px; font-weight: 900; letter-spacing: .6px; color: #0d8ee0; }
+.dafter-cover h1 { margin: 0; font-size: 40px; font-weight: 900; letter-spacing: -.5px; }
+.dafter-cover p { margin: 0; font-size: 13.5px; line-height: 1.9; color: #3d5a76; max-width: 54ch; }
+.dafter-cover-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+.dafter-cover-stats span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; background: #f1f7fd; border: 1px solid #dbe9f7; font-size: 11.5px; font-weight: 800; color: #33536f; }
+.dafter-cover-stats b { font-size: 13px; color: #0d3f7d; }
+.dafter-cover-qr { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; border: 1px dashed #bfd8ee; background: #fafcff; }
+.dafter-cover-qr div { display: grid; gap: 2px; }
+.dafter-cover-qr strong { font-size: 13.5px; font-weight: 900; }
+.dafter-cover-qr span { font-size: 11.5px; font-weight: 700; color: #5b7391; }
+.dafter-cover-qr small { font-size: 11px; font-weight: 800; color: #0d8ee0; }
+.dafter-cover-foot { font-size: 11.5px !important; font-weight: 800; color: #5b7391 !important; }
+.dafter-title { --section: #0d8ee0; margin: 0 0 12px; padding-inline-start: 12px; border-inline-start: 6px solid var(--section); font-size: 21px; font-weight: 900; color: #10324f; }
+.dafter-group { margin-bottom: 14px; break-inside: avoid; }
+.dafter-group h3 { margin: 0 0 5px; font-size: 13px; font-weight: 900; color: #0d5fa8; }
+.dafter-group ul, .dafter-flat, .dafter-utility { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
+.dafter-group li, .dafter-flat li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 4px 8px; border-radius: 7px; font-size: 12.5px; }
+.dafter-group li:nth-child(odd), .dafter-flat li:nth-child(odd) { background: #f7fafd; }
+.dafter-name { font-weight: 800; color: #1c3d5c; }
+.dafter-name small { display: block; font-size: 10.5px; font-weight: 700; color: #7d93aa; }
+.dafter-group b, .dafter-flat b { font-size: 13px; font-weight: 900; color: #0b2f55; letter-spacing: .3px; }
+.dafter-utility { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+.dafter-utility li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 8px; background: #f7fafd; font-size: 12.5px; font-weight: 800; }
+.dafter-utility b { color: #0b2f55; }
+.dafter-sign { margin: 0; text-align: center; font-size: 11px; font-weight: 700; color: #7d93aa; }
+
+@media print {
+  .dafter-page { background: #fff; padding: 0; }
+  .dafter-toolbar, .dafter-actions { display: none !important; }
+  .dafter-book { max-width: none; gap: 0; }
+  .dafter-sheet { box-shadow: none; border-radius: 0; padding: 12mm 10mm; break-after: page; }
+  .dafter-sheet:last-of-type { break-after: auto; }
+  .dafter-cover h1 { font-size: 32px; }
+  @page { size: A4; margin: 8mm; }
+}
+
+/* ===== «مهنة ناقصة» — modal + لوحة الإدارة ===== */
+.missing-cta { margin-top: 8px; }
+.missing-form { display: grid; gap: 11px; }
+.missing-form .field { display: grid; gap: 5px; }
+.missing-form .field > span { font-size: 12.5px; font-weight: 800; color: #2b4a6b; }
+.missing-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.missing-note { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11.5px; font-weight: 700; color: #6b7f96; }
+.missing-submit { justify-content: center; }
+.missing-done { display: grid; gap: 10px; }
+.missing-done p { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 13.5px; font-weight: 800; color: #0f6b3a; }
+.missing-done-hint { font-size: 12px !important; font-weight: 700 !important; color: #4b6584 !important; line-height: 1.75; }
+.missing-admin-list { display: grid; gap: 7px; margin-top: 10px; }
+.missing-admin-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 11px; background: #f8fbff; border: 1px solid #e3eef8; }
+.missing-admin-row.is-done { opacity: .62; }
+.missing-admin-kind { padding: 2px 8px; border-radius: 999px; background: #e8f1fb; color: #0d5fa8; font-size: 10.5px; font-weight: 900; white-space: nowrap; }
+.missing-admin-main strong { display: block; font-size: 12.5px; font-weight: 800; color: #123a5e; }
+.missing-admin-main small { font-size: 10.5px; font-weight: 700; color: #6b7f96; }
+.missing-admin-actions { display: flex; align-items: center; gap: 6px; }
+.missing-admin-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 900; color: #0f6b3a; }
+html.dark .missing-form .field > span { color: #b9cee6; }
+html.dark .missing-note, html.dark .missing-done-hint { color: #a9bdd4 !important; }
+html.dark .missing-admin-row { background: #0f2337; border-color: #1e3a52; }
+html.dark .missing-admin-main strong { color: #dbeafe; }
+html.dark .missing-admin-kind { background: #1e3a5f; color: #bfdbfe; }
+
+/* ===== صحة الدليل + ترحيب المهنيين — لوحة الإدارة ===== */
+.health-score { display: inline-flex; align-items: baseline; gap: 2px; padding: 6px 14px; border-radius: 14px; font-size: 22px; font-weight: 900; background: #eefaf1; color: #0f6b3a; border: 1px solid #b9e3c8; }
+.health-score small { font-size: 11px; font-weight: 800; opacity: .7; }
+.health-score.is-warn { background: #fff8e8; color: #8a5a00; border-color: #f0d9a0; }
+.health-score.is-bad { background: #fdecea; color: #a5281f; border-color: #f3c2bd; }
+.health-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 10px 0; }
+.health-totals > div { display: grid; justify-items: center; gap: 2px; padding: 9px 8px; border-radius: 12px; background: #f7fafd; border: 1px solid #e3eef8; color: #33536f; }
+.health-totals b { font-size: 19px; font-weight: 900; color: #0d3f7d; }
+.health-totals small { font-size: 11px; font-weight: 800; color: #6b7f96; text-align: center; }
+.health-list { margin-top: 12px; display: grid; gap: 6px; }
+.health-list h4 { display: flex; align-items: center; gap: 5px; margin: 0; font-size: 12.5px; font-weight: 900; color: #0d3f7d; }
+.health-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 10px; background: #f8fbff; border: 1px solid #e3eef8; }
+.health-row strong { display: block; font-size: 12.5px; font-weight: 800; color: #123a5e; }
+.health-row small { font-size: 11px; font-weight: 700; color: #6b7f96; }
+.health-more { margin: 0; font-size: 11px; font-weight: 700; color: #7d93aa; }
+.onboarding-list { display: grid; gap: 7px; margin-top: 10px; }
+.onboarding-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: #f8fbff; border: 1px solid #e3eef8; }
+.onboarding-row strong { display: block; font-size: 12.5px; font-weight: 800; color: #123a5e; }
+.onboarding-row small { font-size: 11px; font-weight: 700; color: #6b7f96; }
+html.dark .health-totals > div, html.dark .health-row, html.dark .onboarding-row { background: #0f2337; border-color: #1e3a52; }
+html.dark .health-totals b, html.dark .health-list h4 { color: #bcd8f5; }
+html.dark .health-row strong, html.dark .onboarding-row strong { color: #dbeafe; }
+html.dark .health-row small, html.dark .onboarding-row small, html.dark .health-totals small { color: #9db3cb; }
