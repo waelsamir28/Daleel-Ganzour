@@ -192,3 +192,18 @@ test("install shortcuts and screen-reader helpers are wired", () => {
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
   assert.ok(css.includes(".skip-to-content"));
 });
+
+test("notification bell lives in the header as an elegant dropdown menu", () => {
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(directory.includes('className="header-notify"'));
+  assert.ok(!directory.includes("footer-notify"));
+  const bell = readFileSync(new URL("../src/components/notify-toggle.tsx", import.meta.url), "utf8");
+  assert.ok(bell.includes('role="dialog"'));
+  assert.ok(bell.includes("aria-expanded={open}"));
+  assert.ok(bell.includes("createPortal"));
+  assert.ok(bell.includes("Escape"));
+  assert.ok(bell.includes("notify-menu-chips"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  for (const part of [".notify-bell-btn", ".notify-menu-head", ".notify-menu-chips", ".notify-menu-cta"]) assert.ok(css.includes(part), part);
+  assert.ok(css.includes("html.dark .notify-menu"));
+});
