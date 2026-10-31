@@ -10286,3 +10286,69 @@ html.dark .notify-menu-arrow { background: #0d8ee0; border-color: #23465f; }
   .notify-menu-head { padding: 12px 14px; }
   .notify-menu-body { padding: 12px 14px 14px; }
 }
+
+/* ===== «اطلب عرض سعر من ٣ مهنيين» — quote-request-modal ===== */
+.quote-request-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: 999px; cursor: pointer;
+  border: 1px solid #ffd9a8; background: linear-gradient(180deg, #fff8ec 0%, #ffefd6 100%); color: #8a4b00;
+  font: inherit; font-size: 12.5px; font-weight: 900;
+  box-shadow: 0 2px 6px rgba(180, 110, 10, .1);
+  transition: transform .16s ease, box-shadow .18s ease, background .18s ease;
+}
+.quote-request-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(180, 110, 10, .2); background: #ffe9c9; }
+.quote-form { display: grid; gap: 12px; }
+.quote-form .field { display: grid; gap: 5px; }
+.quote-form .field > span { font-size: 12.5px; font-weight: 800; color: #2b4a6b; }
+.quote-submit { justify-content: center; }
+.quote-privacy { display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: 11.5px; font-weight: 700; color: #6b7f96; line-height: 1.6; }
+.quote-done { display: grid; gap: 12px; }
+.quote-done-note { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 13.5px; font-weight: 900; color: #0f6b3a; }
+.quote-done-hint { margin: 0; font-size: 12.5px; font-weight: 700; color: #4b6584; line-height: 1.7; }
+.quote-targets { display: grid; gap: 8px; }
+.quote-target { display: grid; grid-template-columns: 24px 1fr auto auto; align-items: center; gap: 9px; padding: 10px 12px; border-radius: 14px; background: #f6faff; border: 1px solid #e0edf9; }
+.quote-target strong { display: block; font-size: 13px; font-weight: 900; color: #123a5e; }
+.quote-target small { font-size: 11px; font-weight: 700; color: #6b7f96; }
+.quote-target-rank { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; font-size: 11px; font-weight: 900; }
+.quote-target-call { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: #fff; border: 1px solid #d7e6f4; color: #0d5fa8; }
+.quote-target-wa { display: inline-flex; align-items: center; gap: 5px; padding: 8px 12px; border-radius: 11px; background: #128c7e; color: #fff; font-size: 12px; font-weight: 900; text-decoration: none; }
+.quote-target-wa:hover { background: #0f7367; }
+html.dark .quote-request-btn { background: linear-gradient(180deg, #3a2a12 0%, #2b1f0d 100%); border-color: #6b4a1c; color: #ffcf8a; }
+html.dark .quote-form .field > span { color: #b9cee6; }
+html.dark .quote-done-hint, html.dark .quote-privacy { color: #a9bdd4; }
+html.dark .quote-target { background: #10293f; border-color: #24445f; }
+html.dark .quote-target strong { color: #dbeafe; }
+html.dark .quote-target-call { background: #142c42; border-color: #24445f; color: #b9d6f4; }
+html.dark .quote-done-note { color: #8fe0b0; }
+
+/* ===== لوحة الإدارة: طلبات عروض الأسعار + التذكيرات الموسمية ===== */
+.quote-admin-list { display: grid; gap: 8px; margin-top: 10px; }
+.quote-admin-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #f8fbff; border: 1px solid #e3eef8; }
+.quote-admin-main strong { font-size: 13px; font-weight: 900; color: #123a5e; }
+.quote-admin-main small { display: block; font-size: 11px; font-weight: 700; color: #5b7391; }
+.quote-admin-main p { margin: 5px 0 0; font-size: 12px; color: #33536f; line-height: 1.65; }
+.quote-admin-side { display: grid; gap: 4px; justify-items: end; font-size: 11.5px; font-weight: 800; }
+.quote-admin-side a { display: inline-flex; align-items: center; gap: 4px; color: #0d5fa8; text-decoration: none; }
+.quote-admin-side span { display: inline-flex; align-items: center; gap: 4px; color: #5b7391; }
+.quote-admin-side em { font-style: normal; font-size: 10.5px; color: #8ba1b8; }
+html.dark .quote-admin-row { background: #0f2337; border-color: #1e3a52; }
+html.dark .quote-admin-main strong { color: #dbeafe; }
+html.dark .quote-admin-main p { color: #b9cee6; }
+html.dark .quote-admin-side a { color: #8ec8ff; }
+
+.seasonal-grid { display: grid; gap: 8px; margin-top: 10px; }
+.seasonal-card { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #f8fbff; border: 1px solid #e3eef8; }
+.seasonal-emoji { font-size: 22px; line-height: 1; }
+.seasonal-copy strong { display: block; font-size: 13px; font-weight: 900; color: #123a5e; }
+.seasonal-copy span { display: block; font-size: 12px; font-weight: 800; color: #2b608e; }
+.seasonal-copy small { display: block; font-size: 11px; font-weight: 700; color: #5b7391; line-height: 1.6; margin-top: 2px; }
+.seasonal-upcoming { margin-top: 14px; display: grid; gap: 6px; }
+.seasonal-upcoming h4 { margin: 0; font-size: 12.5px; font-weight: 900; color: #7d93aa; }
+.seasonal-upcoming > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.seasonal-upcoming span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: #f2f7fd; border: 1px solid #e0edf9; font-size: 11.5px; font-weight: 800; color: #33536f; }
+.seasonal-upcoming em { font-style: normal; font-size: 10.5px; color: #8ba1b8; }
+html.dark .seasonal-card { background: #0f2337; border-color: #1e3a52; }
+html.dark .seasonal-copy strong { color: #dbeafe; }
+html.dark .seasonal-copy span { color: #b9d6f4; }
+html.dark .seasonal-copy small { color: #9db3cb; }
+html.dark .seasonal-upcoming span { background: #12293c; border-color: #24445f; color: #b9cee6; }

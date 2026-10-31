@@ -207,3 +207,51 @@ test("notification bell lives in the header as an elegant dropdown menu", () => 
   for (const part of [".notify-bell-btn", ".notify-menu-head", ".notify-menu-chips", ".notify-menu-cta"]) assert.ok(css.includes(part), part);
   assert.ok(css.includes("html.dark .notify-menu"));
 });
+
+// ===== دفعة ١٣: عروض الأسعار من ٣ مهنيين + التذكيرات الموسمية =====
+
+test("quote requests are validated before reaching providers", async () => {
+  const quotes = await loadLib("../src/lib/quotes.ts");
+  const good = quotes.cleanQuoteRequest({ name: " محمود  عبد الله ", phone: "01012345678", details: "تشطيب شقة ١٢٠ متر محارة وسيراميك", categoryId: "plumbing", area: "جنزور / السوق القديم" });
+  assert.equal(good.ok, true);
+  assert.equal(good.value.name, "محمود عبد الله");
+  assert.equal(good.value.phone, "01012345678");
+  for (const bad of [{ name: "", phone: "01012345678", details: "تشطيب شقة ١٢٠ متر", categoryId: "plumbing" }, { name: "محمود", phone: "12345", details: "تشطيب شقة ١٢٠ متر", categoryId: "plumbing" }, { name: "محمود", phone: "01012345678", details: "قصير", categoryId: "plumbing" }, { name: "محمود", phone: "01012345678", details: "تشطيب شقة ١٢٠ متر", categoryId: "../x" }]) {
+    assert.equal(quotes.cleanQuoteRequest(bad).ok, false);
+  }
+  const message = quotes.quoteWhatsappMessage({ name: "محمود", phone: "01012345678", details: "تشطيب شقة", area: "السوق القديم" }, "أحمد", "السباكة", "دليل جنزور");
+  assert.ok(message.includes("أحمد") && message.includes("تشطيب شقة") && message.includes("01012345678") && message.includes("من دليل جنزور"));
+  assert.equal(quotes.QUOTE_TARGETS, 3);
+  assert.ok(quotes.quoteSummary("ا".repeat(200), 50).length <= 51);
+});
+
+test("seasonal reminders produce ready texts for the right month", async () => {
+  const seasonal = await loadLib("../src/lib/seasonal-reminders.ts");
+  const may = seasonal.dueSeasonalReminders(new Date("2026-05-10T12:00:00Z"));
+  assert.ok(may.some((item) => item.id === "ac-before-summer"));
+  const november = seasonal.dueSeasonalReminders(new Date("2026-11-02T12:00:00Z"));
+  assert.ok(november.some((item) => item.id === "water-heater-before-winter"));
+  assert.equal(seasonal.currentMonth(new Date("2026-11-02T12:00:00Z")), 11);
+  for (const reminder of seasonal.SEASONAL_REMINDERS) {
+    assert.ok(reminder.title.length >= 2 && reminder.title.length <= 60, reminder.id);
+    assert.ok(reminder.body.length >= 2 && reminder.body.length <= 160, reminder.id);
+    assert.ok(seasonal.seasonalUrl(reminder).startsWith("/"));
+  }
+  assert.equal(seasonal.seasonalUrl({ ...seasonal.SEASONAL_REMINDERS[0], url: "https://evil.example" }), "/");
+  const ids = seasonal.SEASONAL_REMINDERS.map((item) => item.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.ok(seasonal.upcomingSeasonalReminders(new Date("2026-05-10T12:00:00Z")).length > 0);
+});
+
+test("quotes and seasonal screens are wired end to end", () => {
+  const quotesApi = readFileSync(new URL("../src/app/api/quotes/route.ts", import.meta.url), "utf8");
+  assert.ok(quotesApi.includes("cleanQuoteRequest") && quotesApi.includes("rateLimit(request, \"quote-request\"") && quotesApi.includes("QUOTE_TARGETS"));
+  const seasonalApi = readFileSync(new URL("../src/app/api/seasonal/route.ts", import.meta.url), "utf8");
+  assert.ok(seasonalApi.includes("dueSeasonalReminders") && seasonalApi.includes("sendPushToAll"));
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(directory.includes("QuoteRequestModal") && directory.includes('className="quote-request-btn"') && directory.includes('setModal("quote")'));
+  const admin = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
+  for (const part of ["AdminQuotes", "AdminSeasonal"]) assert.ok(admin.includes(part));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes("directory_quote_requests"));
+});
