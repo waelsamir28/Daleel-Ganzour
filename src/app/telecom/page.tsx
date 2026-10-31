@@ -1,5 +1,5 @@
 import TelecomPage from "@/components/telecom-page";
-import { getPublicDirectory, getSettings } from "@/lib/directory";
+import { getPublicDirectory, getSettings, getTelecomSettings } from "@/lib/directory";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +17,6 @@ export async function generateMetadata() {
 }
 
 export default async function Page() {
-  const data = await getPublicDirectory();
-  return <TelecomPage data={data}/>;
+  const [data, codes] = await Promise.all([getPublicDirectory(), getTelecomSettings()]);
+  return <TelecomPage data={data} codes={codes}/>;
 }

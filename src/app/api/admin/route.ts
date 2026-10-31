@@ -10,6 +10,7 @@ import { saveServicePhoto } from "@/lib/service-photo";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
 import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isDesignImageKey, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, parseDesignImageDataUrl, designImageUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers, sanitizeAdminPalette } from "@/lib/catalog";
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
+import { sanitizeTelecomSettings } from "@/lib/telecom-settings";
 import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
@@ -207,6 +208,9 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
     } else if (type === "design-settings") {
       const designSettings = sanitizeDesignSettings(objectInput(body.values));
       await db.insert(directorySettings).values({ key: "design_config", value: JSON.stringify(designSettings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(designSettings) } });
+    } else if (type === "codes-settings") {
+      const telecomSettings = sanitizeTelecomSettings(objectInput(body.values));
+      await db.insert(directorySettings).values({ key: "telecom_config", value: JSON.stringify(telecomSettings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(telecomSettings) } });
     } else if (type === "ad-pricing") {
       const pricing = sanitizeAdPricing(body.values);
       await db.insert(directorySettings).values({ key: "ad_pricing", value: JSON.stringify(pricing) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(pricing) } });

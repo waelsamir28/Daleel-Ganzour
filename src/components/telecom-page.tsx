@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, CloudOff, Landmark, MessageCircle, PhoneCall, QrCode, Smartphone } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CloudOff, Landmark, MessageCircle, PhoneCall, QrCode, Siren, Smartphone } from "lucide-react";
 import DesignApplicator from "@/components/design-applicator";
 import { Logo } from "@/components/ui";
 import QrSvg from "@/components/qr-svg";
@@ -11,17 +11,19 @@ import TelecomScreenView from "@/components/telecom-screen";
 import { defaultDesignSettings, type PublicDirectory } from "@/lib/catalog";
 import { telecomPageUrl } from "@/lib/telecom";
 import { telecomScreens, telecomScreenById, type TelecomScreen } from "@/lib/telecom-screens";
+import { defaultTelecomSettings, type TelecomSettings } from "@/lib/telecom-settings";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://daleel-ganzour.vercel.app";
 
-type Props = { data: PublicDirectory };
+type Props = { data: PublicDirectory; codes?: TelecomSettings };
 
 /**
  * صفحة «أرقام وأكواد المحمول والأرضي والبنوك»: كروت مربّعة لكل شركة/قسم،
  * وكل شاشة فيها عنوان على سطرين بلون الشركة وأزرار أقسام مربّعة ملوّنة.
- * الأرقام الحكومية والمرافق لها زر خاص في الدليل، فمش موجودة هنا.
+ * ومن الإضافات الجديدة: كارت «أرقام حكومية» بيجمع الطوارئ والمرافق والشكاوى والمستندات.
  */
-export default function TelecomPage({ data }: Props) {
+export default function TelecomPage({ data, codes }: Props) {
+  const settingsCodes = codes ?? defaultTelecomSettings;
   const design = { ...defaultDesignSettings, ...(data.designSettings ?? {}) };
   const settings = data.settings;
   const [activeId, setActiveId] = useState(telecomScreens[0].id);
@@ -72,25 +74,29 @@ export default function TelecomPage({ data }: Props) {
 
     <main className="container telecom-page-main">
       <section className="telecom-hero">
-        <span className="adv-eyebrow"><Smartphone size={14}/> أرقام وأكواد المحمول والأرضي والبنوك</span>
-        <h1>كل الأرقام والأكواد اللي تحتاجها في مكان واحد</h1>
-        <p>فودافون وأورنج واتصالات ووي، والخط الأرضي والفايبر، والبنوك وتطبيقات الدفع — اختار القسم من الكروت، وكل حاجة تظهر بشكل واضح وتشتغل بضغطة. الصفحة تتخزن على موبايلك بعد أول زيارة وتعمل بدون إنترنت.</p>
-        <div className="telecom-hero-chips">
-          <span><CheckCircle2 size={14}/> تعمل بدون إنترنت</span>
-          <span><PhoneCall size={14}/> طلب الكود بضغطة</span>
-          <span><MessageCircle size={14}/> مشاركة على واتساب</span>
-          {offlineReady && <span className="is-ok"><CloudOff size={14}/> محفوظة على جهازك</span>}
-        </div>
-        <div className="telecom-hero-qr">
-          <QrSvg value={`${SITE_URL}${telecomPageUrl()}`} size={92} label="رمز QR لصفحة الأكواد"/>
-          <span>امسح الكود لفتح الصفحة على أي موبايل</span>
-        </div>
+        <span className="adv-eyebrow"><Smartphone size={15}/> {settingsCodes.eyebrow}</span>
+        <h1>{settingsCodes.title}</h1>
+        <p>{settingsCodes.subtitle}</p>
+        {settingsCodes.showHeroChips && (
+          <div className="telecom-hero-chips">
+            <span><CheckCircle2 size={14}/> تعمل بدون إنترنت</span>
+            <span><PhoneCall size={14}/> طلب الكود بضغطة</span>
+            <span><MessageCircle size={14}/> مشاركة على واتساب</span>
+            {offlineReady && <span className="is-ok"><CloudOff size={14}/> محفوظة على جهازك</span>}
+          </div>
+        )}
+        {settingsCodes.showQr && (
+          <div className="telecom-hero-qr">
+            <QrSvg value={`${SITE_URL}${telecomPageUrl()}`} size={104} label="رمز QR لصفحة الأكواد"/>
+            <span>امسح الكود لفتح الصفحة على أي موبايل</span>
+          </div>
+        )}
       </section>
 
       <section className="telecom-home" aria-label="اختار الشركة أو القسم">
         <div className="telecom-home-head">
-          <h2>اختار من الكروت</h2>
-          <p>كل كارت يفتح شاشة كاملة بأكواد الشركة وأقسامها.</p>
+          <h2>{settingsCodes.homeHeading}</h2>
+          <p>{settingsCodes.homeNote}</p>
         </div>
         <div className="telecom-home-grid" role="tablist" aria-label="الشركات والأقسام">
           {telecomScreens.map((screen) => {
@@ -109,7 +115,7 @@ export default function TelecomPage({ data }: Props) {
                 <span className="telecom-home-logo">
                   {screen.operator
                     ? <TelecomLogo id={screen.operator.id} size={46}/>
-                    : <span className="telecom-home-glyph">{screen.icon === "bank" ? <Landmark size={26}/> : <PhoneCall size={26}/>}</span>}
+                    : <span className="telecom-home-glyph">{screen.icon === "bank" ? <Landmark size={26}/> : screen.icon === "gov" ? <Siren size={26}/> : <PhoneCall size={26}/>}</span>}
                 </span>
                 <strong>{screen.name}</strong>
                 <small>{count} رقمًا</small>
@@ -120,7 +126,7 @@ export default function TelecomPage({ data }: Props) {
       </section>
 
       <section className="telecom-panel" id="telecom-codes" style={{ "--screen-color": active.color, "--screen-deep": active.colorDeep } as CSSProperties}>
-        <TelecomScreenView key={active.id} screen={active} link={pageLink} siteName={settings.siteName}/>
+        <TelecomScreenView key={active.id} screen={active} link={pageLink} siteName={settings.siteName} codes={settingsCodes}/>
       </section>
 
       <div className="telecom-extras">
@@ -136,7 +142,7 @@ export default function TelecomPage({ data }: Props) {
 
       <p className="telecom-page-note">
         الأكواد والأرقام مأخوذة من أدلة الشركات وقد تُحدّثها من وقت لآخر — وكل كود فيه زر «الكود ده اتغيّر؟» يوصّل بلاغك للإدارة من غير ما تكتب اسمك.
-        أرقام الطوارئ والمرافق العامة موجودة في زر «الطوارئ» على الصفحة الرئيسية للدليل، فمش مكررة هنا.
+        أما أرقام الطوارئ والمرافق والشكاوى الحكومية ففي كارت «أرقام حكومية» فوق — ومطبوعة كمان في ملصق A4.
       </p>
 
       <p className="telecom-page-credit">من {settings.siteName} — مكتب الجمال للدعاية والإعلان · {settings.phone}</p>
