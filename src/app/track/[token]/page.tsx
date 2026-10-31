@@ -7,6 +7,7 @@ import { services, submissionTracking } from "@/db/schema";
 import { ensureSeed } from "@/lib/directory";
 import { Logo } from "@/components/ui";
 import SubmissionCompletion from "@/components/submission-completion";
+import { ProviderStatusWelcome } from "@/components/welcome-center";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "متابعة طلب إضافة المهنة", robots: { index: false, follow: false }, referrer: "no-referrer" };
@@ -14,13 +15,22 @@ export default async function TrackPage({ params }: { params: Promise<{ token: s
   const { token } = await params;
   if (!databaseConfigured || !/^[a-f0-9]{64}$/.test(token)) notFound();
   await ensureSeed();
-  const [request] = await db.select({ id: services.id, status: services.status, reviewNote: services.reviewNote, createdAt: services.createdAt })
+  const [request] = await db.select({ id: services.id, name: services.name, status: services.status, statusUpdatedAt: services.statusUpdatedAt, reviewNote: services.reviewNote, createdAt: services.createdAt })
     .from(submissionTracking).innerJoin(services, eq(submissionTracking.serviceId, services.id))
     .where(eq(submissionTracking.tokenHash, createHash("sha256").update(token).digest("hex")));
   if (!request) notFound();
   const labels: Record<string, string> = { pending: "قيد مراجعة الإدارة", approved: "تمت الموافقة والنشر", rejected: "لم تتم الموافقة / تم إيقاف النشر", "needs-info": "مطلوب استكمال بيانات" };
   return (
     <div className="admin-login-page">
+      <ProviderStatusWelcome
+        serviceId={request.id}
+        name={request.name}
+        status={request.status}
+        statusUpdatedAt={request.statusUpdatedAt?.toISOString?.() ?? new Date().toISOString()}
+        reviewNote={request.reviewNote}
+        accountHref="/"
+        publicHref={`/?service=${request.id}`}
+      />
       <header className="admin-public-header container">
         <Logo name="دليل المهن والخدمات بقرية جنزور"/>
         <Link href="/">العودة للدليل</Link>

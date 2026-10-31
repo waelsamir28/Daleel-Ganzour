@@ -11,6 +11,8 @@ export const services = pgTable("directory_services", {
   phoneSecondary: varchar("phone_secondary", { length: 24 }).notNull().default(""),
   description: text("description").notNull(),
   status: varchar("status", { length: 20 }).notNull().default("pending"),
+  /** وقت آخر تغيير في الحالة — بيستخدمه الموقع يعرض رسالة «تمت الموافقة» للمهني أول ما يفتح. */
+  statusUpdatedAt: timestamp("status_updated_at", { withTimezone: true }).notNull().defaultNow(),
   verified: boolean("verified").notNull().default(false),
   featured: boolean("featured").notNull().default(false),
   emergency: boolean("emergency").notNull().default(false),

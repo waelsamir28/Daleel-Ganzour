@@ -326,3 +326,64 @@ test("booklet, welcoming, missing-profession and health screens are wired", () =
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
   assert.ok(css.includes("@media print") && css.includes(".dafter-sheet"));
 });
+
+// ===== دفعة ١٥: الرسائل الترحيبية العائمة =====
+
+test("welcome messages cover member, pending and approved moments", async () => {
+  const welcome = await loadLib("../src/lib/welcome-messages.ts");
+  const member = welcome.memberWelcome("محمود عبد الله", "دليل جنزور");
+  assert.equal(member.tone, "member");
+  assert.ok(member.title.includes("محمود") && member.title.includes("دليل جنزور"));
+  assert.ok(member.bullets.length >= 2);
+  assert.equal(welcome.memberWelcome("").title.includes("صديقنا"), true);
+
+  const pending = welcome.providerPending("أحمد", "/my/token");
+  assert.equal(pending.tone, "pending");
+  assert.ok(pending.title.length > 5);
+  assert.equal(pending.primary?.href, "/my/token");
+
+  const approved = welcome.providerApproved("أحمد", "/?service=1", "/my/token");
+  assert.equal(approved.tone, "approved");
+  assert.ok(approved.title.includes("اتنشرت"));
+  assert.equal(approved.primary?.href, "/?service=1");
+  assert.equal(approved.secondary?.href, "/my/token");
+
+  const needsInfo = welcome.providerAttention("needs-info", "لازم صورة المحل", "/my/token");
+  assert.ok(needsInfo.bullets[0].includes("لازم صورة المحل"));
+  assert.equal(welcome.providerAttention("rejected", "", "/my/token").tone, "rejected");
+});
+
+test("welcome storage shows each status change once", async () => {
+  const welcome = await loadLib("../src/lib/welcome-messages.ts");
+  const key = welcome.providerStatusKey("svc-1", "2026-10-31T10:00:00.000Z");
+  assert.ok(key.includes("svc-1") && key.includes("2026-10-31"));
+  assert.equal(welcome.shouldShowWelcome(key, null), true);
+  assert.equal(welcome.shouldShowWelcome(key, key), false);
+  const stored = welcome.rememberWelcome(null, "provider", key);
+  assert.equal(welcome.parseSeenMap(stored).provider, key);
+  assert.deepEqual(welcome.parseSeenMap("{bad"), {});
+  assert.deepEqual(welcome.parseSeenMap("[1,2]"), {});
+  assert.equal(welcome.shouldShowWelcome("", ""), false);
+  assert.notEqual(welcome.memberWelcomeKey("a"), welcome.memberWelcomeKey("b"));
+});
+
+test("welcome screens are wired to register, provider account and tracking", () => {
+  const auth = readFileSync(new URL("../src/components/auth-form.tsx", import.meta.url), "utf8");
+  assert.ok(auth.includes("welcome=member"));
+  const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.ok(layout.includes("<WelcomeCenter />"));
+  const api = readFileSync(new URL("../src/app/api/welcome/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes("statusUpdatedAt") && api.includes("ownedServiceIds"));
+  const myPage = readFileSync(new URL("../src/app/my/[token]/page.tsx", import.meta.url), "utf8");
+  assert.ok(myPage.includes("ProviderStatusWelcome"));
+  const trackPage = readFileSync(new URL("../src/app/track/[token]/page.tsx", import.meta.url), "utf8");
+  assert.ok(trackPage.includes("ProviderStatusWelcome"));
+  const forms = readFileSync(new URL("../src/components/request-forms.tsx", import.meta.url), "utf8");
+  assert.ok(forms.includes("ServiceSubmittedWelcome"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes("statusUpdatedAt"));
+  const admin = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(admin.includes("statusUpdatedAt: new Date()"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  for (const part of [".welcome-overlay", ".welcome-card", ".welcome-bullets", ".welcome-primary"]) assert.ok(css.includes(part), part);
+});

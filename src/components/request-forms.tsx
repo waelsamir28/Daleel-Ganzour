@@ -6,6 +6,8 @@ import { areas, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubj
 import SelectField from "@/components/select-field";
 import { StickerIcon } from "@/components/ui";
 import AvatarPicker from "@/components/avatar-picker";
+import WelcomeModal from "@/components/welcome-modal";
+import { providerPending } from "@/lib/welcome-messages";
 
 const CLINIC_SCHEDULE_CHIPS = [
   CLINIC_APPOINTMENT_TAG,
@@ -16,6 +18,13 @@ const CLINIC_SCHEDULE_CHIPS = [
 ];
 
 type FormOptions = { catalog: CategoryRecord[]; areaOptions: AreaRecord[] };
+/** رسالة عائمة للمهني أول ما يبعت الطلب: طمأنة + متابعة، وهي «لحين قبول الإدارة». */
+function ServiceSubmittedWelcome({ trackingUrl }: { trackingUrl: string }) {
+  const [open, setOpen] = useState(true);
+  if (!open) return null;
+  return <WelcomeModal message={{ ...providerPending("", trackingUrl), title: "طلبك وصل.. وإحنا بنراجعه دلوقتي", body: "شكرًا إنك اخترت تنضم لدليل جنزور — طلب نشر مهنتك وصل للإدارة، والمراجعة بتاخد عادة أقل من يوم. مش محتاج تعمل أي حاجة." }} onClose={() => setOpen(false)}/>;
+}
+
 export function AddressFields({ areaOptions, initialArea = "", initialAddress = "", editableDetails = false }: { areaOptions: AreaRecord[]; initialArea?: string; initialAddress?: string; editableDetails?: boolean }) {
   const known = areaOptions.some((area) => area.name === initialArea);
   const [area, setArea] = useState(initialArea ? known ? initialArea : OTHER_ADDRESS : "");
@@ -80,7 +89,7 @@ export function ServiceForm({ catalog = initialCategories, areaOptions = areas.m
     } catch (err) { setError(err instanceof Error ? err.message : "تعذر الاتصال. حاول مرة أخرى."); }
     finally { setBusy(false); }
   }
-  if (submitted) return <div className="success-state"><span className="success-icon"><CheckCircle2 size={42}/></span><h3>طلبك وصل.. وأهلًا بيك!</h3><p>{submitted.message}</p><div className="reference-number"><Clock3 size={17}/> قيد مراجعة الإدارة <span dir="ltr">#{submitted.id}</span></div><a className="button button-soft" href={submitted.trackingUrl}>متابعة الطلب بالرابط الخاص</a><p>احتفظ بالرابط لمتابعة الحالة، ولا تشاركه علنًا.</p><button className="button button-primary" onClick={onClose}>تمام، شكرًا <Check size={18}/></button></div>;
+  if (submitted) return <><ServiceSubmittedWelcome trackingUrl={submitted.trackingUrl}/><div className="success-state"><span className="success-icon"><CheckCircle2 size={42}/></span><h3>طلبك وصل.. وأهلًا بيك!</h3><p>{submitted.message}</p><div className="reference-number"><Clock3 size={17}/> قيد مراجعة الإدارة <span dir="ltr">#{submitted.id}</span></div><a className="button button-soft" href={submitted.trackingUrl}>متابعة الطلب بالرابط الخاص</a><p>احتفظ بالرابط لمتابعة الحالة، ولا تشاركه علنًا.</p><button className="button button-primary" onClick={onClose}>تمام، شكرًا <Check size={18}/></button></div></>;
   return <form className="request-form compact-service-form" onSubmit={submit}>
     <div className="form-notice"><ShieldCheck size={20}/><span>ده طلب إضافة خدمة، مش تسجيل عضوية. الطلب بيوصل للإدارة الأول ومش بيتنشر إلا بعد الموافقة.</span></div>
     <div className="form-row compact-two-col">

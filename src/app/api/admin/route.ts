@@ -310,10 +310,10 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
         await saveServicePhoto(db, id, photo);
         const reviewNote = cleanText(values.reviewNote || existing.reviewNote, 1000);
         if ((status === "rejected" || status === "needs-info") && reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوبة.");
-        await db.update(services).set({ ...basics, ...availabilityInput(values.availabilityAction, existing), status, reviewNote: status === "approved" || status === "pending" ? "" : reviewNote, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: typeof values.demo === "boolean" ? values.demo : existing.demo }).where(eq(services.id, id));
+        await db.update(services).set({ ...basics, ...availabilityInput(values.availabilityAction, existing), status, statusUpdatedAt: status === existing.status ? existing.statusUpdatedAt : new Date(), reviewNote: status === "approved" || status === "pending" ? "" : reviewNote, verified: status === "approved" && values.verified === true, featured: status === "approved" && values.featured === true, demo: typeof values.demo === "boolean" ? values.demo : existing.demo }).where(eq(services.id, id));
       } else if (action === "approve") {
         await serviceInput({ ...existing, photo: undefined }, false);
-        await db.update(services).set({ status: "approved", verified: true, reviewNote: "" }).where(eq(services.id, id));
+        await db.update(services).set({ status: "approved", verified: true, reviewNote: "", ...(existing.status === "approved" ? {} : { statusUpdatedAt: new Date() }) }).where(eq(services.id, id));
         // إشعار المتصفح للزوار: «مدرس رياضيات جديد في جنزور» — يوصل مرة واحدة عند أول نشر.
         if (existing.status !== "approved") {
           after(() => { void pushNewProvider({ name: existing.name, categoryId: existing.category, area: existing.area }).catch(() => undefined); });
@@ -322,7 +322,7 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
         const reviewNote = cleanText(body.reviewNote ?? "", 1000);
         if (reviewNote.length < 3) throw new InputError("اكتب سبب الرفض أو البيانات المطلوب استكمالها.");
         if (action === "request-info" && existing.status === "approved") throw new InputError("طلب الاستكمال متاح للطلبات غير المنشورة فقط.");
-        await db.update(services).set({ status: action === "reject" ? "rejected" : "needs-info", reviewNote, ...(action === "request-info" ? { completionStatus: "requested", completionNote: reviewNote } : {}), verified: false, featured: false }).where(eq(services.id, id));
+        await db.update(services).set({ status: action === "reject" ? "rejected" : "needs-info", statusUpdatedAt: new Date(), reviewNote, ...(action === "request-info" ? { completionStatus: "requested", completionNote: reviewNote } : {}), verified: false, featured: false }).where(eq(services.id, id));
         if (action === "request-info") {
           await db.insert(notifications).values({ type: "provider", title: `مطلوب استكمال بيانات: ${existing.name}`, message: reviewNote.slice(0, 300), entityId: existing.id });
         }
