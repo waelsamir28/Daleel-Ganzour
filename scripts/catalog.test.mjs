@@ -991,8 +991,9 @@ test("whatsapp alert helpers normalize Egyptian numbers, extract phones and sani
   assert.equal(extractEgyptPhone("للتواصل: +201155554444 شكرًا"), "201155554444");
   assert.equal(extractEgyptPhone("الرقم ٠١٢٢٢٣٥٥٧٦٩"), "201222355769");
   assert.equal(extractEgyptPhone("بدون رقم هنا 12345"), "");
-  assert.equal(allWhatsappAlertKinds.length, 7);
+  assert.equal(allWhatsappAlertKinds.length, 8);
   assert.equal(allWhatsappAlertKinds.includes("code-report"), true);
+  assert.equal(allWhatsappAlertKinds.includes("site-error"), true);
   assert.deepEqual(sanitizeWhatsappAlertKinds(undefined), allWhatsappAlertKinds, "missing setting means every event");
   assert.deepEqual(sanitizeWhatsappAlertKinds(["rating", "bogus", "service", "rating"]), ["service", "rating"]);
   assert.deepEqual(sanitizeWhatsappAlertKinds("member,ad-request"), ["ad-request", "member"]);
@@ -1448,4 +1449,119 @@ test("telecom page settings sanitize safely, keep defaults and drive tile labels
   const govStyle = sanitizeTelecomSettings({ groupStyles: { siren: { label: "نجدة", color: "#aa1122" } } });
   assert.equal(govStyle.groupStyles.siren.label, "نجدة");
   assert.equal(govStyle.groupStyles.siren.color, "#aa1122");
+});
+
+test("share card keeps clean phones, safe file names and a readable caption", async () => {
+  const src = readFileSync(new URL("../src/lib/share-card.ts", import.meta.url), "utf8");
+  const { outputText } = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
+  const mod = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
+  const { DEFAULT_CARD_ACCENT, SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH, cardAccent, shareCardCaption, shareCardFacts, shareCardFileName, shareCardPhones, shareCardReady } = mod;
+
+  // مقاس 4:5 المستخدم في صور السوشيال والنشر على إنستجرام/فيسبوك.
+  assert.equal(SHARE_CARD_WIDTH, 1080);
+  assert.equal(SHARE_CARD_HEIGHT, 1350);
+
+  // الألوان: أي قيمة غير صحيحة ترجع للون الدليل الافتراضي بدل ما تكسر الرسم.
+  assert.equal(cardAccent("#FF941F"), "#ff941f");
+  assert.equal(cardAccent("red"), DEFAULT_CARD_ACCENT);
+  assert.equal(cardAccent(undefined), DEFAULT_CARD_ACCENT);
+
+  // الأرقام: بدون تكرار، بدون فراغات، وبحد أقصى رقمين على الكارت.
+  assert.deepEqual(shareCardPhones(["0100 123 4567", "01001234567", "", null, "0111 222 3344", "0122 999 8888"]), ["0100 123 4567", "0111 222 3344"]);
+
+  // اسم الملف يمنع الرموز التي تكسر التنزيل.
+  const file = shareCardFileName('أسطى/محمد: "الصاوي"');
+  assert.ok(file.startsWith("كارت-") && file.endsWith(".png"));
+  assert.ok(!/[\\/:*?"<>|]/.test(file), "file name has no forbidden characters");
+
+  const data = {
+    name: "أسطى محمد الصاوي", headline: "سباكة • الحرفيين", area: "جنزور / الناحية الشرقية",
+    phones: ["0100 123 4567"], url: "https://daleel-ganzour.vercel.app/profile/abc",
+    siteName: "دليل جنزور", rating: "4.5", reviews: 7,
+  };
+  assert.equal(shareCardReady(data), true);
+  assert.equal(shareCardReady({ ...data, url: " " }), false);
+  const caption = shareCardCaption(data);
+  for (const part of ["أسطى محمد الصاوي", "سباكة", "0100 123 4567", data.url]) assert.ok(caption.includes(part), `caption keeps ${part}`);
+  // التقييم يظهر في الكارت فقط لو رقم صحيح أكبر من صفر.
+  const facts = shareCardFacts(data);
+  assert.ok(facts.some((fact) => fact.label === "التقييم" && fact.value.includes("4.5")));
+  assert.ok(!shareCardFacts({ ...data, rating: "" }).some((fact) => fact.label === "التقييم"));
+});
+
+test("error reports are anonymous, deduplicated and safe to store", async () => {
+  const src = readFileSync(new URL("../src/lib/error-report.ts", import.meta.url), "utf8");
+  const { outputText } = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
+  const mod = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
+  const { sanitizeErrorReport, errorFingerprint, redactErrorText } = mod;
+
+  // الرسائل الفارغة أو القصيرة لا تُخزَّن.
+  assert.equal(sanitizeErrorReport({ message: "" }), null);
+  assert.equal(sanitizeErrorReport({ message: "  " }), null);
+
+  // أرقام الهواتف والمفاتيح تتشال من الرسالة قبل التخزين.
+  const report = sanitizeErrorReport({
+    message: "تعذر الاتصال بـ 01001234567 أثناء تحميل api?token=secret123",
+    detail: "Error: boom\n  at /app/page.tsx:10:5\n".repeat(30),
+    path: "/profile/abc?x=1#top",
+    kind: "client",
+    userAgent: "Mozilla/5.0 Chrome/130",
+  });
+  assert.ok(report);
+  assert.equal(report.kind, "client");
+  assert.ok(!report.message.includes("01001234567"), "phone numbers are redacted");
+  assert.ok(report.message.length <= 400);
+  assert.ok(report.detail.length <= 1200, "detail stays small");
+  assert.equal(report.path, "/profile/abc", "query string and hash are dropped");
+  assert.equal(report.userAgent.slice(0, 6), "Mozill");
+
+  // بصمة ثابتة لنفس الخطأ، ومختلفة لخطأ آخر — حتى تُجمَّع البلاغات المتكررة.
+  assert.equal(errorFingerprint("client", "Cannot read properties of null"), errorFingerprint("client", "Cannot read properties of null"));
+  assert.notEqual(errorFingerprint("client", "Cannot read properties of null"), errorFingerprint("client", "Network request failed"));
+
+  // النوع غير المعروف يتحول لخطأ متصفح، والمسار يبدأ بـ /.
+  const fallback = sanitizeErrorReport({ message: "خطأ غير معروف", kind: "hack", path: "telecom" });
+  assert.equal(fallback.kind, "client");
+  assert.equal(fallback.path, "/telecom");
+
+  // التنظيف لا يترك عناوين طويلة داخل النص.
+  assert.ok(!redactErrorText("اتصل على 01222355769").includes("01222355769"));
+});
+
+test("SEO helpers describe a provider as a local business with a canonical url", async () => {
+  const src = readFileSync(new URL("../src/lib/seo.ts", import.meta.url), "utf8");
+  const { outputText } = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2017 } });
+  const mod = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
+  const { jsonLdText, profileCanonicalUrl, profileJsonLd, profileSeo, siteJsonLd } = mod;
+
+  const profile = {
+    id: "11111111-2222-3333-4444-555555555555", kind: "member", name: "أسطى محمد الصاوي", photoUrl: "", phone: "01001234567",
+    memberSince: "2026-01-01T00:00:00.000Z", profile: { jobTitle: "", email: "", birthDate: "", address: "", whatsapp: "", facebook: "", bio: "" },
+    services: [{ id: "s1", name: "سباكة الصاوي", categoryId: "plumbing", categoryName: "السباكة", address: "جنزور / الناحية الشرقية", description: "", photoUrl: "", rating: "4.5", reviews: 9, verified: true }],
+  };
+  const settings = { siteName: "دليل جنزور", tagline: "كل خدمات القرية", contactText: "", phone: "01222355769" };
+
+  assert.equal(profileCanonicalUrl("https://example.com/", profile.id), `https://example.com/profile/${profile.id}`);
+  const seo = profileSeo(profile, settings);
+  assert.ok(seo.title.includes("أسطى محمد الصاوي") && seo.title.includes("السباكة"));
+  assert.ok(seo.description.includes("جنزور"));
+
+  const ld = profileJsonLd({ profile, settings, siteUrl: "https://example.com" });
+  assert.equal(ld["@type"], "LocalBusiness");
+  assert.equal(ld.url, `https://example.com/profile/${profile.id}`);
+  assert.equal(ld.telephone, "01001234567");
+  assert.equal(ld.address.addressLocality, "جنزور");
+  assert.equal(ld.aggregateRating.ratingValue, "4.5");
+  assert.equal(ld.aggregateRating.reviewCount, 9);
+
+  // عضو من غير مهنة يوصف كشخص، ومن غير تقييم مزيّف.
+  const person = profileJsonLd({ profile: { ...profile, services: [] }, settings, siteUrl: "https://example.com" });
+  assert.equal(person["@type"], "Person");
+  assert.equal(person.aggregateRating, undefined);
+
+  const site = siteJsonLd({ settings, siteUrl: "https://example.com" });
+  assert.equal(site.length, 2);
+  assert.deepEqual(site.map((entry) => entry["@type"]), ["WebSite", "LocalBusiness"]);
+  // النص لا يسمح بكسر وسم السكربت.
+  assert.ok(!jsonLdText({ name: "</script><script>alert(1)</script>" }).includes("</script"));
 });

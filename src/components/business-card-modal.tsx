@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { Award, Check, Clipboard, MapPin, MessageCircle, Phone, Printer, QrCode, Share2, ShieldCheck, Star, UserPlus, X } from "lucide-react";
+import { Award, Check, Clipboard, IdCard, MapPin, MessageCircle, Phone, Printer, QrCode, Share2, ShieldCheck, Star, UserPlus, X } from "lucide-react";
 import { getServiceTrustBadges, servicePhotoUrl, whatsappUrl, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { saveVCard, serviceVCard } from "@/lib/vcard";
 import { CategoryIcon, Modal } from "@/components/ui";
 import QrSvg from "@/components/qr-svg";
+import ShareCardModal from "@/components/share-card-modal";
 
 export default function BusinessCardModal({
   service,
@@ -21,6 +22,7 @@ export default function BusinessCardModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [cardOpen, setCardOpen] = useState(false);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://daleel-ganzour.vercel.app";
   const directUrl = `${origin}/?service=${encodeURIComponent(service.id)}`;
@@ -179,6 +181,9 @@ export default function BusinessCardModal({
           <button type="button" className={`circle-tool is-contact ${savedContact ? "is-active" : ""}`} data-tip={savedContact ? "تم تجهيز جهة الاتصال ✓" : "احفظ في جهات الاتصال"} aria-label="احفظ الرقم في جهات الاتصال" onClick={() => void saveContact()}>
             {savedContact ? <Check size={16} /> : <UserPlus size={16} />}
           </button>
+          <button type="button" className="circle-tool is-card" data-tip="حفظ الكارت كصورة" aria-label="حفظ الكارت كصورة جاهزة للمشاركة" onClick={() => setCardOpen(true)}>
+            <IdCard size={16} />
+          </button>
           <button type="button" className="circle-tool is-print" data-tip="طباعة الكارت" aria-label="طباعة الكارت" onClick={printCard}>
             <Printer size={16} />
           </button>
@@ -187,6 +192,24 @@ export default function BusinessCardModal({
           </button>
         </div>
       </div>
+
+      {cardOpen && <ShareCardModal
+        data={{
+          name: service.name,
+          headline: [category.name, service.area].filter(Boolean).join(" • "),
+          area: service.address || service.area,
+          phones: [service.phone, service.phoneSecondary],
+          url: directUrl,
+          siteName,
+          accent: category.color,
+          verified: service.verified,
+          rating: service.rating,
+          reviews: service.reviews,
+          photoUrl: servicePhotoUrl(service),
+          logoUrl: "/images/logo-daleel-transparent.png",
+        }}
+        onClose={() => setCardOpen(false)}
+      />}
     </Modal>
   );
 }

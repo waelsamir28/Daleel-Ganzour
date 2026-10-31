@@ -42,7 +42,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-10-31.1";
+export const SCHEMA_VERSION = "2026-10-31.2";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -70,6 +70,10 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_submission_tracking (token_hash varchar(64) PRIMARY KEY, service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_telecom_reports (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), scope varchar(20) NOT NULL, code varchar(60) NOT NULL, label varchar(160) NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_telecom_reports_created_idx ON directory_telecom_reports (created_at)`);
+      // سجل أخطاء المتصفح (بدون بيانات شخصية) — يُقرأ في لوحة الإدارة ← الإحصاءات.
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_error_log (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), kind varchar(12) NOT NULL DEFAULT 'client', fingerprint varchar(40) NOT NULL DEFAULT '', message varchar(400) NOT NULL DEFAULT '', detail text NOT NULL DEFAULT '', path varchar(200) NOT NULL DEFAULT '', user_agent varchar(180) NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now())`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_error_log_created_idx ON directory_error_log (created_at)`);
+      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_error_log_fingerprint_idx ON directory_error_log (fingerprint)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_appointment_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, name varchar(120) NOT NULL, phone varchar(24) NOT NULL, preference varchar(240) NOT NULL, status varchar(20) NOT NULL DEFAULT 'waiting', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS hours varchar(120) NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS menu_url text NOT NULL DEFAULT ''`);

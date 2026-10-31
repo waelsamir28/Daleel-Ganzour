@@ -8792,6 +8792,7 @@ html.dark .detail-preview-frame { border-color: #3d6d9e; background: radial-grad
 .circle-tool.is-copy { --tool: #7c3aed; }
 .circle-tool.is-copy.is-active { --tool: #047857; background: rgba(209, 250, 229, .95); border-color: #34d399; }
 .circle-tool.is-print { --tool: #334155; }
+.circle-tool.is-card { --tool: #b45309; }
 .circle-tool.is-close { --tool: #b91c1c; }
 .circle-tool::after {
   content: attr(data-tip);
@@ -9206,6 +9207,20 @@ html.dark .my-offer-current strong { color: #ffc46b; }
 .rating-sticker-actions .button { flex: 1 1 160px; justify-content: center; }
 .rating-sticker-hint { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; color: #4b6584; font-weight: 700; text-align: center; }
 html.dark .rating-sticker-hint, html.dark .rating-sticker-wait { color: #a9bdd4; }
+
+/* ===== كارت المهني كصورة (1080×1350) — share-card-modal ===== */
+.share-card-body { display: grid; gap: 12px; justify-items: center; }
+.share-card-wait { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: #4b6584; font-weight: 800; }
+.share-card-preview {
+  width: min(100%, 330px); aspect-ratio: 4 / 5; object-fit: contain;
+  border-radius: 16px; border: 1px solid #d7e6f4; background: #f6fafe;
+  box-shadow: 0 14px 34px rgba(13, 63, 125, .2);
+}
+.share-card-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; }
+.share-card-actions .button { flex: 1 1 150px; justify-content: center; }
+.share-card-hint { margin: 0; max-width: 52ch; text-align: center; font-size: 11.5px; line-height: 1.9; color: #5b7691; font-weight: 600; }
+html.dark .share-card-wait, html.dark .share-card-hint { color: #a9bdd4; }
+html.dark .share-card-preview { border-color: #23394f; background: #0f2133; }
 
 /* ===== صفحة «جنزور في أرقام» ===== */
 .stats-hero { background: linear-gradient(120deg, #0b4a93 0%, #0d8ee0 60%, #38bdf8 100%); }
