@@ -166,13 +166,48 @@ export function getSpecialtyKeywords(categoryId: string): string {
   return (specialtySynonyms[categoryId] ?? []).join(" ");
 }
 
+/**
+ * مسافة الحروف بين كلمتين مع توقف مبكر — بتخلّي البحث يتحمّل غلطة إملائية أو حرف ناقص
+ * («سباكه»/«سباكة»، «كهربا»/«كهرباء»، «نجر»/«نجار») من غير أي مكتبة خارجية.
+ */
+export function editDistanceAtMost(a: string, b: string, max: number): boolean {
+  if (a === b) return true;
+  if (Math.abs(a.length - b.length) > max) return false;
+  let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    const current = [i];
+    let rowMin = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      const value = Math.min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost);
+      current.push(value);
+      if (value < rowMin) rowMin = value;
+    }
+    if (rowMin > max) return false;
+    previous = current;
+  }
+  return previous[b.length] <= max;
+}
+
+/** كلمتان متقاربتان؟ (كلمة من ٣–٥ حروف تتقبل غلطة، والأطول تتقبل غلطتين) */
+export function isCloseWord(word: string, candidate: string) {
+  if (!word || !candidate || word === candidate) return word === candidate;
+  const shortest = Math.min(word.length, candidate.length);
+  if (shortest < 3) return false;
+  return editDistanceAtMost(word, candidate, shortest >= 6 ? 2 : 1);
+}
+
 export function matchesServiceQuery(service: Pick<ServiceRecord, "name" | "description" | "serviceItems" | "subSpecialties" | "category" | "address" | "phone" | "phoneSecondary">, categoryName: string, query: string): boolean {
   const normalizedQuery = normalizeSearch(query.trim());
   if (!normalizedQuery) return true;
   const haystack = normalizeSearch(`${service.name} ${service.description} ${(service.serviceItems ?? []).join(" ")} ${(service.subSpecialties ?? []).join(" ")} ${categoryName} ${getSpecialtyKeywords(service.category)} ${service.address} ${service.phone} ${service.phoneSecondary}`);
   if (haystack.includes(normalizedQuery)) return true;
   const words = normalizedQuery.split(/\s+/).filter((word) => word.length > 1);
-  return words.length > 1 && words.every((word) => haystack.includes(word));
+  if (words.length > 1 && words.every((word) => haystack.includes(word))) return true;
+  // مرحلة أخيرة: تقبّل الأخطاء الإملائية الشائعة (زيادة/نقص/تبديل حرف).
+  const haystackWords = [...new Set(haystack.split(/[^\p{L}\p{N}]+/u).filter((word) => word.length > 2))];
+  if (!haystackWords.length) return false;
+  return words.every((word) => haystack.includes(word) || (word.length > 2 && haystackWords.some((candidate) => isCloseWord(word, candidate))));
 }
 
 const serviceIntentStopWords = new Set("عايز عايزه عايزين عاوز عاوزه عاوزين محتاج محتاجه محتاجين اريد ابغي نفسي اعمل اعمللي ممكن ياريت لو سمحت من فضلك عندي عندنا عنده عندها معايا عند لمحل للمحل بالمحل محل المحل في فيا فى من الى الي على علي ليا له لها هو هي انا انت احنا احنا ده دي دا ديه كده كدا كتير كثير جدا شويه شوية قوي او او و ولا عشان علشان بس خدمة خدمات حاجه حاجة شيء مياه ميه ماء الميه الميه كتيراً".split(/\s+/));
@@ -215,7 +250,13 @@ export function suggestSpecialties(query: string, catalog: CategoryRecord[], pro
   return catalog.filter((item) => item.active && item.parentId && (!rootId || item.parentId === rootId) && providers.some((service) => service.category === item.id))
     .map((item) => {
       const searchable = normalizeSearch(`${item.name} ${item.description} ${getSpecialtyKeywords(item.id)}`);
-      return { item, score: words.reduce((score, word) => score + (searchable.includes(word) ? 1 : 0), 0) };
+      const searchableWords = [...new Set(searchable.split(/[^\p{L}\p{N}]+/u).filter((word) => word.length > 2))];
+      // كلمة مطابقة بالحرف = نقطة كاملة، ومطابقة قريبة (غلطة إملائية) = نصف نقطة.
+      const score = words.reduce((total, word) => {
+        if (searchable.includes(word)) return total + 1;
+        return total + (searchableWords.some((candidate) => isCloseWord(word, candidate)) ? 0.5 : 0);
+      }, 0);
+      return { item, score };
     })
     .sort((a, b) => b.score - a.score || a.item.sortOrder - b.item.sortOrder)
     .slice(0, 3).map(({ item }) => item);

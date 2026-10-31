@@ -8,6 +8,7 @@ import AdminCodeReports from "@/components/admin-code-reports";
 import AdminErrorLog from "@/components/admin-error-log";
 import AdminPush from "@/components/admin-push";
 import AdminQuickRatings from "@/components/admin-quick-ratings";
+import AdminUsageInsights from "@/components/admin-usage-insights";
 import SectionStickerModal from "@/components/section-sticker-modal";
 import { sectionAccent } from "@/lib/catalog";
 import { QrCode } from "lucide-react";
@@ -248,6 +249,7 @@ export default function AdminAnalytics({
           onClose={() => setStickersOpen(false)}
         />
       )}
+      <AdminUsageInsights/>
       <AdminQuickRatings/>
       <AdminPush sections={roots.map((category) => ({ id: category.id, name: category.name }))}/>
       <AdminErrorLog/>

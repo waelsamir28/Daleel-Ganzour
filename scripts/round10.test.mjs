@@ -129,3 +129,37 @@ test("round-10 screens are wired: push API, service worker and admin panels", ()
   const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
   assert.ok(layout.includes("<QuickRating />"));
 });
+
+test("Arabic search tolerates common typos and letter substitutions", () => {
+  const service = { name: "محمد السباك", description: "تركيب وصيانة حمامات", serviceItems: ["كشف تسريب"], subSpecialties: ["منازل"], category: "plumbing", address: "جنزور / السوق", phone: "01000000000", phoneSecondary: "" };
+  assert.equal(catalog.editDistanceAtMost("سباكه", "سباكه", 1), true);
+  assert.equal(catalog.editDistanceAtMost("كهربا", "كهرباء", 1), true);
+  assert.equal(catalog.editDistanceAtMost("نجار", "نجر", 1), true);
+  assert.equal(catalog.editDistanceAtMost("سباك", "كهربا", 1), false);
+  assert.equal(catalog.isCloseWord("سباكه", "سباك"), true);
+  assert.equal(catalog.isCloseWord("حداد", "نجار"), false);
+  // البحث العادي والبحث بغلطة إملائية يوصلوا لنفس المهني.
+  assert.equal(catalog.matchesServiceQuery(service, "سباكة", "سباكه"), true);
+  assert.equal(catalog.matchesServiceQuery(service, "سباكة", "سباك"), true);
+  assert.equal(catalog.matchesServiceQuery(service, "سباكة", "سبااك"), true);
+  assert.equal(catalog.matchesServiceQuery(service, "سباكة", "كهرباء"), false);
+  // الاقتراحات بترشّح الأقرب حتى مع غلطة.
+  const categories = [{ id: "plumbing", name: "سباكة", description: "", parentId: "maintenance", active: true, sortOrder: 1, imageVersion: 0 }];
+  const [suggestion] = catalog.suggestSpecialties("سباكه", categories, [{ category: "plumbing" }]);
+  assert.equal(suggestion?.id, "plumbing");
+});
+
+test("per-provider usage counters are recorded server-side and shown to the admin", () => {
+  const api = readFileSync(new URL("../src/app/api/hits/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes("recordServiceHit") && api.includes("serviceId"));
+  const insights = readFileSync(new URL("../src/app/api/insights/route.ts", import.meta.url), "utf8");
+  assert.ok(insights.includes("serviceHits") && insights.includes("categoryHits") && insights.includes("viewer.role"));
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("directory_service_hits") && directory.includes("export async function recordServiceHit"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes("directory_service_hits"));
+  const tracker = readFileSync(new URL("../src/lib/analytics-tracker.ts", import.meta.url), "utf8");
+  assert.ok(tracker.includes("serviceId"));
+  const admin = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
+  assert.ok(admin.includes("AdminUsageInsights"));
+});

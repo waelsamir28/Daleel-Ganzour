@@ -168,6 +168,17 @@ export const categoryHits = pgTable("directory_category_hits", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * إحصاء حقيقي لكل مهني (فتح البطاقة مرة، ضغط اتصال/واتساب مرة) — مجهول بالكامل،
+ * وبيُغذّي «الأكثر تفاعلًا» في إحصاءات الإدارة بدل أرقام المتصفح المحلية.
+ */
+export const serviceHits = pgTable("directory_service_hits", {
+  serviceId: uuid("service_id").primaryKey().references(() => services.id, { onDelete: "cascade" }),
+  views: integer("views").notNull().default(0),
+  contacts: integer("contacts").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const appointmentRequests = pgTable("directory_appointment_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
   serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
