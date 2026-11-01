@@ -474,17 +474,12 @@ test("the ask-for-price button is gone for good", () => {
   assert.equal(directory.includes("QuoteRequestModal"), false);
 });
 
-test("ad strip matches the marquee strip and the missing-profession button moved into the action frame", () => {
+test("ad strip spans the full width with its original height + red missing-profession button", () => {
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
-  // ارتفاع موحّد للشريطين.
-  assert.ok(css.includes(":root { --strip-h: 50px; }"));
-  assert.ok(css.includes(".site-announcement-ticker-card { min-height: var(--strip-h);"));
-  assert.ok(css.includes("height: calc(var(--strip-h) - 4px);"));
-  // الإعلان بعرض الشريط الكامل.
+  // الإعلان بعرض الشريط الكامل، والارتفاع رجع لطبيعته 3:1 (مش شريط رفيع).
   assert.ok(css.includes("  width: 100%;\n  max-width: none;\n  margin: 0 auto 12px;"));
-  // القوالب الجاهزة بتتصغّر.
-  assert.ok(css.includes(".ad-rotator-stage .ad-art {"));
-  assert.ok(css.includes(".ad-rotator-stage .ad-art-copy strong { font-size: clamp(0.8rem, 3cqw, 1.02rem);"));
+  assert.ok(css.includes(".ad-rotator-stage {\n  width: 100%;\n  aspect-ratio: 3 / 1;\n  height: auto;\n  min-height: 110px;\n  max-height: 240px;"));
+  assert.equal(css.includes("--strip-h"), false);
   // زر «مهنة ناقصة» أحمر بنفس مقاس الزرّين التانيين.
   assert.ok(css.includes(".categories-top-action-frame .missing-profession-btn {"));
   assert.ok(css.includes("grid-template-columns: repeat(3, minmax(0, 1fr));"));
