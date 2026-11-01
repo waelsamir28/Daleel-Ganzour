@@ -653,10 +653,6 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(custom.outerCardStyle, "bordered");
   assert.equal(custom.searchTriggerStyle, "gold-accent");
   assert.equal(custom.badgesDefaultOpen, true);
-  assert.equal(custom.sponsorModalEnabled, false);
-  assert.equal(custom.sponsorModalDelaySeconds, 10);
-  assert.equal(custom.showDailyOffersSection, false);
-  assert.equal(custom.showSponsorsRibbon, false);
   assert.equal(defaultDesignSettings.themeMode, "auto", "الوضع الافتراضي للزوار يتبع إعداد الجهاز");
   assert.equal(defaultDesignSettings.sectionHeadingStyle, "clean");
 
@@ -675,29 +671,14 @@ test("extended design & site studio settings sanitize cleanly", () => {
   assert.equal(extendedVisuals.cardAnimationSpeed, "bouncy");
   assert.equal(extendedVisuals.announcementSpeed, "flash");
 
-  const parsedSponsors = catalog.parseSponsoredProviders(custom.sponsoredProvidersJson);
-  assert.ok(parsedSponsors.length >= 3);
-  assert.equal(parsedSponsors[0].badgeLabel, "راعي معتمد 👑");
-
-  const activeTrial = catalog.getSponsorTrialStatus(
-    { planType: "trial-10-days", trialStartDate: "2026-10-10" },
-    new Date("2026-10-13T12:00:00Z"),
-  );
-  assert.equal(activeTrial.isTrial, true);
-  assert.equal(activeTrial.elapsedDays, 3);
-  assert.equal(activeTrial.remainingDays, 7);
-  assert.equal(activeTrial.isExpired, false);
-
-  const expiredTrial = catalog.getSponsorTrialStatus(
-    { planType: "trial-10-days", trialStartDate: "2026-10-01" },
-    new Date("2026-10-13T12:00:00Z"),
-  );
-  assert.equal(expiredTrial.isExpired, true);
-  assert.equal(expiredTrial.remainingDays, 0);
-
-  assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[0]), "clinics");
-  assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[1]), "labs");
-  assert.equal(catalog.getSponsorOfferCategoryGroup(parsedSponsors[2]), "shops");
+  // باقات الرعاية والتميز اتلغت نهائيًا من التطبيق — مفيش أي إعداد أو نوع أو دالة خاصة بيها.
+  assert.equal("sponsorModalEnabled" in catalog.defaultDesignSettings, false);
+  assert.equal("sponsoredProvidersJson" in catalog.defaultDesignSettings, false);
+  assert.equal("showSponsorsRibbon" in catalog.defaultDesignSettings, false);
+  assert.equal("showDailyOffersSection" in catalog.defaultDesignSettings, false);
+  for (const name of ["parseSponsoredProviders", "getSponsorTrialStatus", "getSponsorOfferCategoryGroup", "defaultSponsoredProviders"]) {
+    assert.equal(name in catalog, false, `${name} should be gone`);
+  }
 
   const royalBlueSnippet = `'royal-blue': {
   '50': '#edf7ff',
@@ -991,7 +972,8 @@ test("whatsapp alert helpers normalize Egyptian numbers, extract phones and sani
   assert.equal(extractEgyptPhone("للتواصل: +201155554444 شكرًا"), "201155554444");
   assert.equal(extractEgyptPhone("الرقم ٠١٢٢٢٣٥٥٧٦٩"), "201222355769");
   assert.equal(extractEgyptPhone("بدون رقم هنا 12345"), "");
-  assert.equal(allWhatsappAlertKinds.length, 8);
+  assert.equal(allWhatsappAlertKinds.length, 9);
+  assert.equal(allWhatsappAlertKinds.includes("ad-expiry"), true);
   assert.equal(allWhatsappAlertKinds.includes("code-report"), true);
   assert.equal(allWhatsappAlertKinds.includes("site-error"), true);
   assert.deepEqual(sanitizeWhatsappAlertKinds(undefined), allWhatsappAlertKinds, "missing setting means every event");

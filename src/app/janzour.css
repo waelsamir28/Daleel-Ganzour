@@ -5228,76 +5228,6 @@ html.dark .clinic-floating-row strong {
 }
 
 /* =========================================================================
-   8. الشاشة العائمة الاحترافية «باقات الرعاية والتميز» (Fade-In + 10s Countdown)
-   ========================================================================= */
-
-@keyframes sponsorModalOverlayFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes sponsorModalCardEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(24px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes sponsorCloseBtnPop {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* بنر الـ 10 أيام مجاناً */
-
-/* شبكة مميزات الباقة */
-
-/* كارت رقم التواصل والواتساب الشيك */
-
-/* =========================================================================
-   9. زر «باقات الرعاية والتميز» في الصفحة الرئيسية والقائمة
-   ========================================================================= */
-.hero-sponsor-packages-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px !important;
-  border-radius: 999px !important;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  color: #09172b !important;
-  border: 2px solid #fef08a !important;
-  font-size: 0.92rem !important;
-  font-weight: 900 !important;
-  box-shadow: 0 8px 22px rgba(245, 158, 11, 0.36) !important;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-.hero-sponsor-packages-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(245, 158, 11, 0.5) !important;
-}
-.menu-sponsor-item {
-  background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
-  color: #92400e !important;
-  border: 1.5px solid #f59e0b !important;
-  font-weight: 900 !important;
-}
-
-/* =========================================================================
    10. قسم «عروض اليوم في جنزور 🔥» بالصفحة الرئيسية (ميزة #7)
    ========================================================================= */
 .daily-offers-section {
@@ -5453,35 +5383,6 @@ html.dark .clinic-floating-row strong {
   cursor: pointer;
 }
 
-/* =========================================================================
-   11. البرواز الذهبي المتوهج + شارة «راعي معتمد 👑» للكروت (ميزة #8)
-   ========================================================================= */
-.provider-card.is-vip-sponsor {
-  border: 2.5px solid #f59e0b !important;
-  background: linear-gradient(160deg, #ffffff 0%, #fffbeb 100%) !important;
-  box-shadow:
-    0 10px 26px rgba(245, 158, 11, 0.2),
-    0 0 0 3px rgba(251, 191, 36, 0.22) !important;
-  position: relative;
-}
-.vip-sponsor-card-ribbon {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #ffffff;
-  font-size: 0.78rem;
-  font-weight: 900;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
-}
-
-/* =========================================================================
-   12. تنسيقات صفحة إدارة باقات الرعاية والتميز (Admin Sponsors Tab)
-   ========================================================================= */
-
 /* الوضع الليلي للأقسام الجديدة */
 html.dark .daily-offers-section {
   background: linear-gradient(145deg, #17130a 0%, #1e1b10 100%);
@@ -5503,132 +5404,10 @@ html.dark .daily-offer-provider {
 html.dark .daily-offer-description {
   color: #cbd5e1;
 }
-html.dark .provider-card.is-vip-sponsor {
-  background: linear-gradient(160deg, #102338 0%, #1f1a0d 100%) !important;
-  border-color: #fbbf24 !important;
-}
 
 /* =========================================================================
    13. شريط «رعاة الدليل المعتمدون 👑» المتحرك بالأيقونات (Suggestion #7)
    ========================================================================= */
-.certified-sponsors-ribbon-card {
-  margin: 12px 0 14px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #0b1f3a 0%, #102e54 100%);
-  border: 2px solid #f59e0b;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.22);
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-}
-.sponsors-ribbon-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.sponsors-ribbon-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 13px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #09172b;
-  font-size: 0.86rem;
-  font-weight: 900;
-}
-.sponsors-ribbon-join-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 13px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid #fde047;
-  color: #fef08a;
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 0.16s ease, transform 0.16s ease;
-}
-.sponsors-ribbon-join-link:hover {
-  background: rgba(255, 255, 255, 0.22);
-  transform: translateY(-1px);
-}
-.sponsors-ribbon-track {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: thin;
-}
-.sponsor-ribbon-pill {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1.5px solid rgba(251, 191, 36, 0.48);
-  color: #ffffff;
-  cursor: pointer;
-  text-align: right;
-  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
-}
-.sponsor-ribbon-pill:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.18);
-  border-color: #fde047;
-}
-.sponsor-ribbon-pill-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #b45309;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.sponsor-ribbon-pill.is-group-clinics .sponsor-ribbon-pill-icon {
-  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  color: #047857;
-}
-.sponsor-ribbon-pill.is-group-labs .sponsor-ribbon-pill-icon {
-  background: linear-gradient(135deg, #cffafe, #a5f3fc);
-  color: #0e7490;
-}
-.sponsor-ribbon-pill-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.sponsor-ribbon-pill-copy strong {
-  font-size: 0.88rem;
-  font-weight: 900;
-  color: #ffffff;
-  white-space: nowrap;
-}
-.sponsor-ribbon-pill-copy small {
-  font-size: 0.74rem;
-  color: #bae6fd;
-  font-weight: 700;
-}
-.sponsor-ribbon-pill-tag {
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: #dc2626;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 900;
-  white-space: nowrap;
-}
 
 /* =========================================================================
    14. فلتر سريع داخل قسم «عروض اليوم في جنزور 🔥» (Suggestion #10)
@@ -5731,41 +5510,6 @@ html.dark .daily-offer-filter-chip.is-active {
   font-size: 0.78rem;
 }
 
-/* زر باقات الرعاية والتميز باللون الذهبي وبعرض الشريط المتحرك بالكامل */
-.hero-sponsor-fullwidth-wrap {
-  width: 100%;
-  margin: 10px auto 0;
-  display: flex;
-  justify-content: center;
-}
-.hero-sponsor-packages-btn.is-ticker-width {
-  width: 100% !important;
-  max-width: 100% !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 13px 20px !important;
-  border-radius: 18px !important;
-  background: linear-gradient(135deg, #fde047 0%, #f59e0b 52%, #d97706 100%) !important;
-  border: 2px solid #fef08a !important;
-  color: #3b1700 !important;
-  font-size: 1rem !important;
-  font-weight: 900 !important;
-  box-shadow: 0 10px 26px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
-  text-align: center;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-}
-.hero-sponsor-packages-btn.is-ticker-width svg {
-  color: #78350f !important;
-  flex-shrink: 0;
-}
-.hero-sponsor-packages-btn.is-ticker-width:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.04);
-  box-shadow: 0 14px 32px rgba(245, 158, 11, 0.45) !important;
-}
-
 /* البرواز الأنيق أعلى عنوان «تصفح أقسام القرية» وبداخله أيقونة البحث + زر أضف مهنتك المصغّر */
 .categories-top-action-frame {
   display: flex;
@@ -5851,74 +5595,6 @@ html.dark .daily-offer-filter-chip.is-active {
 }
 
 /* تنسيق «رعاة الدليل المعتمدون 👑»: العنوان في المنتصف راكب فوق الخط العلوي للبرواز وأسفله داخل البرواز في المنتصف انضم (١٠ أيام مجاناً) */
-.certified-sponsors-ribbon-card {
-  position: relative;
-  margin-top: 22px !important;
-  padding: 28px 16px 16px !important;
-  border-radius: 22px !important;
-  border: 2.5px solid #f59e0b !important;
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fff7ed 100%) !important;
-  box-shadow: 0 12px 28px rgba(217, 119, 6, 0.14) !important;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  overflow: visible !important;
-}
-.sponsors-ribbon-top-legend {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -54%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 7px 20px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #78350f 0%, #b45309 55%, #d97706 100%);
-  border: 2px solid #fde68a;
-  color: #ffffff;
-  font-size: 0.94rem;
-  font-weight: 900;
-  white-space: nowrap;
-  box-shadow: 0 8px 18px rgba(180, 83, 9, 0.28);
-  z-index: 3;
-}
-.sponsors-ribbon-top-legend svg {
-  color: #fde047;
-  flex-shrink: 0;
-}
-.sponsors-ribbon-centered-join-wrap {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin: 2px 0 12px;
-}
-.certified-sponsors-ribbon-card .sponsors-ribbon-join-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 8px 20px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  border: 1.5px solid #fef08a;
-  color: #ffffff;
-  font-size: 0.86rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.26);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-.certified-sponsors-ribbon-card .sponsors-ribbon-join-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(217, 119, 6, 0.35);
-}
-.certified-sponsors-ribbon-card .sponsors-ribbon-track {
-  width: 100%;
-  justify-content: center;
-}
 
 /* تنسيق قسم «عروض اليوم في جنزور 🔥» المتمركز والمطوي افتراضياً */
 .daily-offers-section {
@@ -6046,10 +5722,6 @@ html.dark .floating-modal-search-form .search-input-wrap {
   background: #081525;
   border-color: #2563eb;
 }
-html.dark .certified-sponsors-ribbon-card {
-  background: linear-gradient(135deg, #1e1607 0%, #271c09 100%) !important;
-  border-color: #d97706 !important;
-}
 html.dark .daily-offers-section {
   background: linear-gradient(180deg, #1f1408 0%, #191006 100%) !important;
   border-color: #d97706 !important;
@@ -6070,26 +5742,6 @@ html.dark .daily-offers-double-arrow-btn {
 }
 
 /* بطاقة الراعي المعتمد وعرض اليوم داخل نافذة تفاصيل مقدم الخدمة (#5) */
-.detail-vip-sponsor-banner {
-  margin: 10px 0 8px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 2px solid #f59e0b;
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.16);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 8px;
-}
-.detail-vip-sponsor-top {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 .detail-vip-crown-pill {
   display: inline-flex;
   align-items: center;
@@ -6143,12 +5795,6 @@ html.dark .daily-offers-double-arrow-btn {
   box-shadow: 0 9px 20px rgba(16, 185, 129, 0.36);
 }
 
-/* شريط الأثر وشهادات الرعاة داخل نافذة باقات الرعاية (#2 & #4) */
-
-html.dark .detail-vip-sponsor-banner {
-  background: linear-gradient(135deg, #231907 0%, #2d1f08 100%);
-  border-color: #d97706;
-}
 html.dark .detail-vip-offer-desc {
   color: #fde68a;
 }
@@ -6172,7 +5818,6 @@ html.dark[data-design-active="true"] body {
 }
 
 html.dark[data-design-active="true"] .category-tile,
-html.dark[data-design-active="true"] .provider-card:not(.is-vip-sponsor),
 html.dark[data-design-active="true"] .categories-top-action-frame,
 html.dark[data-design-active="true"] .transit-route-card,
 html.dark[data-design-active="true"] .modal-card {
@@ -6201,24 +5846,6 @@ html.dark[data-design-active="true"] .category-meta {
   }
 }
 
-html[data-design-shimmer="true"] .hero-sponsor-packages-btn.is-ticker-width {
-  position: relative;
-  overflow: hidden;
-}
-html[data-design-shimmer="true"] .hero-sponsor-packages-btn.is-ticker-width::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.55) 50%,
-    transparent 65%
-  );
-  background-size: 220% 100%;
-  animation: royalShimmerSweep 4.5s infinite linear;
-  pointer-events: none;
-}
 
 /* صندوق لصق تدرج الألوان (50-950) أو JSON في استوديو المظهر */
 
@@ -10355,12 +9982,29 @@ html.dark .seasonal-upcoming span { background: #12293c; border-color: #24445f; 
 
 /* ===== دفتر أرقام جنزور (للطباعة / حفظ PDF) — /dafter ===== */
 .dafter-page { min-height: 100vh; background: #eef3f9; padding: 14px; display: grid; gap: 12px; justify-items: center; }
-.dafter-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 820px; }
+.dafter-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 860px; }
 .dafter-toolbar-hint { flex: 1 1 100%; color: #6b8298; font-size: 11px; font-weight: 700; }
-.dafter-book { width: 100%; max-width: 820px; display: grid; gap: 14px; }
+.dafter-book { width: 100%; max-width: 860px; display: grid; gap: 14px; }
 .dafter-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .dafter-actions span { font-size: 11.5px; font-weight: 800; color: #6b8298; }
-.dafter-sheet { background: #fff; border-radius: 14px; padding: 26px 28px; box-shadow: 0 12px 30px rgba(11, 61, 107, .1); color: #14304a; }
+
+/* اختيار القسم اللي عايز تطبعه لوحده */
+.dafter-filter { display: grid; gap: 7px; padding: 10px 12px; border-radius: 14px; background: #fff; border: 1px solid #dfeaf5; box-shadow: 0 8px 20px rgba(11, 61, 107, .06); }
+.dafter-filter-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 900; color: #33536f; }
+.dafter-filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dafter-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 11px;
+  border: 1px solid #d7e6f4; border-radius: 999px; background: #f7fbff; color: #24486b;
+  font: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+.dafter-chip b { font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 999px; background: #e6f0fa; color: #2b6c9e; }
+.dafter-chip:hover { transform: translateY(-1px); border-color: var(--section, #8ec3ea); }
+.dafter-chip.is-on { background: var(--section, #0d8ee0); border-color: var(--section, #0d8ee0); color: #fff; box-shadow: 0 6px 14px -6px rgba(13, 142, 224, .8); }
+.dafter-chip.is-on b { background: rgba(255, 255, 255, .28); color: #fff; }
+.dafter-filter-hint { margin: 0; font-size: 10.5px; font-weight: 700; color: #7b91a8; }
+
+.dafter-sheet { position: relative; overflow: hidden; background: #fff; border-radius: 14px; padding: 22px 24px 18px; box-shadow: 0 12px 30px rgba(11, 61, 107, .1); color: #14304a; }
 .dafter-cover { display: grid; gap: 14px; justify-items: start; border-top: 6px solid #0d8ee0; }
 .dafter-eyebrow { font-size: 12px; font-weight: 900; letter-spacing: .6px; color: #0d8ee0; }
 .dafter-cover h1 { margin: 0; font-size: 40px; font-weight: 900; letter-spacing: -.5px; }
@@ -10374,28 +10018,82 @@ html.dark .seasonal-upcoming span { background: #12293c; border-color: #24445f; 
 .dafter-cover-qr span { font-size: 11.5px; font-weight: 700; color: #5b7391; }
 .dafter-cover-qr small { font-size: 11px; font-weight: 800; color: #0d8ee0; }
 .dafter-cover-foot { font-size: 11.5px !important; font-weight: 800; color: #5b7391 !important; }
-.dafter-title { --section: #0d8ee0; margin: 0 0 12px; padding-inline-start: 12px; border-inline-start: 6px solid var(--section); font-size: 21px; font-weight: 900; color: #10324f; }
-.dafter-group { margin-bottom: 14px; break-inside: avoid; }
-.dafter-group h3 { margin: 0 0 5px; font-size: 13px; font-weight: 900; color: #0d5fa8; }
-.dafter-group ul, .dafter-flat, .dafter-utility { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; }
-.dafter-group li, .dafter-flat li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: baseline; padding: 4px 8px; border-radius: 7px; font-size: 12.5px; }
-.dafter-group li:nth-child(odd), .dafter-flat li:nth-child(odd) { background: #f7fafd; }
-.dafter-name { font-weight: 800; color: #1c3d5c; }
-.dafter-name small { display: block; font-size: 10.5px; font-weight: 700; color: #7d93aa; }
-.dafter-group b, .dafter-flat b { font-size: 13px; font-weight: 900; color: #0b2f55; letter-spacing: .3px; }
-.dafter-utility { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
-.dafter-utility li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 8px; background: #f7fafd; font-size: 12.5px; font-weight: 800; }
+
+/* رأس صفحة القسم: العنوان في المنتصف + باركود خاص بكل قسم */
+.dafter-section-sheet { padding-top: 18px; }
+.dafter-sheet-head { display: grid; justify-items: center; gap: 4px; text-align: center; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 2px solid var(--section, #0d8ee0); }
+.dafter-sheet-eyebrow { font-size: 9.5px; font-weight: 900; letter-spacing: .5px; color: #7b91a8; text-transform: uppercase; }
+.dafter-title {
+  --section: #0d8ee0;
+  margin: 0; padding: 0; border: 0;
+  font-size: 23px; font-weight: 900; line-height: 1.35;
+  color: var(--section, #10324f);
+  text-align: center;
+}
+.dafter-sheet-sub { font-size: 10.5px; font-weight: 800; color: #7b91a8; }
+.dafter-sheet-code { display: grid; justify-items: center; gap: 1px; margin-top: 5px; }
+.dafter-sheet-code-hint { font-size: 8.5px; font-weight: 700; color: #8b9db1; }
+
+/* الباركود */
+.barcode-svg { display: inline-grid; justify-items: center; gap: 1px; line-height: 1; }
+.barcode-svg svg { display: block; }
+.barcode-svg-text { font-family: var(--font-mono, ui-monospace, monospace); font-size: 8px; font-weight: 800; letter-spacing: 1.2px; color: #58697a; }
+
+/* الجدول المسطّر: خطوط رفيعة + كل رقم في صفين (اسم فوق ونمرة تحت) في عمودين */
+.dafter-table { display: grid; gap: 10px; }
+.dafter-group { break-inside: avoid; }
+.dafter-group-title {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin: 0; padding: 3px 8px;
+  border: 1px solid #e3ebf3; border-radius: 6px 6px 0 0;
+  background: color-mix(in srgb, var(--section, #0d8ee0) 8%, #ffffff);
+  font-size: 11.5px; font-weight: 900; color: #23496f;
+}
+.dafter-group-title span { font-size: 9px; font-weight: 900; padding: 0 5px; border-radius: 999px; background: #fff; color: #517496; border: 1px solid #dbe7f2; }
+.dafter-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #e3ebf3; border-inline-start: 1px solid #e3ebf3; }
+.dafter-cell {
+  display: grid; gap: 0; align-content: start;
+  padding: 3px 7px 4px;
+  border-bottom: 1px solid #e9eff6; border-inline-end: 1px solid #e9eff6;
+  break-inside: avoid;
+}
+.dafter-name { font-size: 11.5px; font-weight: 800; color: #14304a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dafter-line { height: 0; border-top: 1px dotted #dfe8f1; }
+.dafter-phone { font-size: 11.5px; font-weight: 900; color: #0b2f55; letter-spacing: .6px; }
+.dafter-area { font-size: 9px; font-weight: 700; color: #8b9db1; }
+
+/* تذييل كل صفحة: اسم التطبيق + التصميم والتنفيذ + QR */
+.dafter-sheet-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding-top: 8px; border-top: 1px solid #dbe7f2; }
+.dafter-sheet-foot-copy { display: grid; gap: 1px; }
+.dafter-sheet-foot-copy strong { font-size: 11.5px; font-weight: 900; color: #12406b; }
+.dafter-sheet-foot-copy span { font-size: 10.5px; font-weight: 800; color: #517496; }
+.dafter-sheet-foot-copy small { font-size: 9px; font-weight: 700; color: #8b9db1; }
+.dafter-sheet-foot-qr { display: block; opacity: .9; }
+
+/* اللوجو أسفل الجدول كعلامة مائية خفيفة */
+.dafter-watermark { position: absolute; inset-inline: 0; bottom: 4px; display: grid; place-items: center; pointer-events: none; z-index: 0; }
+.dafter-watermark img { width: 150px; height: auto; opacity: .07; filter: grayscale(1); }
+.dafter-sheet-head, .dafter-table, .dafter-sheet-foot { position: relative; z-index: 1; }
+
+.dafter-utility { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.dafter-utility li { display: flex; justify-content: space-between; gap: 8px; padding: 5px 9px; border: 1px solid #e9eff6; border-radius: 7px; font-size: 11.5px; font-weight: 800; }
 .dafter-utility b { color: #0b2f55; }
 .dafter-sign { margin: 0; text-align: center; font-size: 11px; font-weight: 700; color: #7d93aa; }
 
 @media print {
   .dafter-page { background: #fff; padding: 0; }
-  .dafter-toolbar, .dafter-actions { display: none !important; }
+  .dafter-toolbar, .dafter-actions, .dafter-filter, .dafter-sign { display: none !important; }
   .dafter-book { max-width: none; gap: 0; }
-  .dafter-sheet { box-shadow: none; border-radius: 0; padding: 12mm 10mm; break-after: page; }
+  .dafter-sheet { box-shadow: none; border-radius: 0; padding: 8mm 7mm 10mm; break-after: page; overflow: visible; }
   .dafter-sheet:last-of-type { break-after: auto; }
   .dafter-cover h1 { font-size: 32px; }
-  @page { size: A4; margin: 8mm; }
+  .dafter-grid { grid-template-columns: 1fr 1fr; }
+  .dafter-cell { padding: 2px 6px 3px; }
+  .dafter-name, .dafter-phone { font-size: 10.5px; }
+  .dafter-group-title { font-size: 10.5px; }
+  .dafter-title { font-size: 21px; }
+  .dafter-watermark img { opacity: .06; width: 120px; }
+  @page { size: A4; margin: 6mm; }
 }
 
 /* ===== «مهنة ناقصة» — modal + لوحة الإدارة ===== */
@@ -10952,3 +10650,125 @@ html.dark .categories-top-action-frame .missing-profession-btn {
   border-color: #7f1d1d !important;
   background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%) !important;
 }
+
+/* ===== لوحة الإدارة: تنبيه الإعلانات اللي هتنتهي ===== */
+.admin-ad-expiry-panel { display: grid; gap: 8px; padding: 12px 14px; border-radius: 16px; border: 1.5px solid #f5c98a; background: linear-gradient(180deg, #fffaf1, #fff4e3); }
+.admin-ad-expiry-hint { margin: 0; font-size: 11.5px; font-weight: 700; color: #8a6a2f; }
+.admin-ad-expiry-list { display: grid; gap: 7px; }
+.admin-ad-expiry-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #fff; border: 1px solid #f3e0c4; }
+.admin-ad-expiry-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: #fdf0d8; color: #b7791f; flex: none; }
+.admin-ad-expiry-row > div:nth-child(2) { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.admin-ad-expiry-row strong { font-size: 12.5px; font-weight: 900; color: #7a4f10; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-ad-expiry-row small { font-size: 10.5px; font-weight: 700; color: #a2762f; }
+.admin-ad-expiry-actions { display: flex; align-items: center; gap: 5px; flex: none; }
+.admin-ad-expiry-done { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11px; font-weight: 800; color: #7b6a55; }
+.admin-ad-field-hint { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 10px; font-weight: 700; color: #7b8fa6; }
+html.dark .admin-ad-expiry-panel { border-color: #6b4a1c; background: linear-gradient(180deg, #2b1f0d, #241a0b); }
+html.dark .admin-ad-expiry-hint, html.dark .admin-ad-expiry-row small { color: #d3b483; }
+html.dark .admin-ad-expiry-row { background: #1d1509; border-color: #4a3616; }
+html.dark .admin-ad-expiry-row strong { color: #ffd89a; }
+html.dark .admin-ad-expiry-icon { background: #3a2b11; color: #ffc46b; }
+html.dark .admin-ad-field-hint { color: #8fa6bd; }
+@media (max-width: 600px) {
+  .admin-ad-expiry-row { flex-wrap: wrap; }
+  .admin-ad-expiry-actions { width: 100%; justify-content: flex-end; }
+  .dafter-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== دفتر الأرقام: زر تحميل PDF المباشر ===== */
+.dafter-actions .button[disabled] { opacity: .75; cursor: progress; }
+.dafter-pdf-note {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  background: #eaf7f0; border: 1px solid #bfe6d2; color: #0b7a4a;
+  font-size: 11px; font-weight: 800;
+}
+.dafter-pdf-note.is-error { background: #fff4f4; border-color: #f5c2c2; color: #b91c1c; }
+.spin { animation: dafter-spin 1s linear infinite; }
+@keyframes dafter-spin { to { transform: rotate(360deg); } }
+@media print { .dafter-pdf-note { display: none !important; } }
+
+/* ===== معرض صور الأعمال (حتى ٤ صور لكل مهني) =====
+   الصور تُصغَّر وتُضغط في المتصفح قبل الرفع فتبقى بالكيلوبايت، وتظهر في بطاقة التفاصيل. */
+.provider-gallery { display: grid; gap: 12px; }
+.gallery-rules {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 12px 14px; border-radius: 16px;
+  background: linear-gradient(135deg, #eef6ff, #e8f1fd);
+  border: 1px solid #cfe2f7; color: #123a5f;
+}
+html.dark .gallery-rules { background: linear-gradient(135deg, #16283c, #12202f); border-color: #24445f; color: #d7e7f7; }
+.gallery-rules > svg { flex: none; margin-top: 2px; color: #0877e6; }
+.gallery-rules strong { display: block; font-size: 13.5px; font-weight: 900; line-height: 1.7; }
+.gallery-rules ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+.gallery-rules li { position: relative; padding-inline-start: 15px; font-size: 12.5px; line-height: 1.8; opacity: .92; }
+.gallery-rules li::before { content: "•"; position: absolute; inset-inline-start: 0; color: #0877e6; font-weight: 900; }
+.gallery-rules b { font-weight: 900; }
+
+.gallery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gallery-slot {
+  position: relative; display: grid; aspect-ratio: 1; place-items: center;
+  border-radius: 16px; overflow: hidden;
+  background: #f4f8fc; border: 1.5px dashed #bcd3e9; color: #6b8aa8;
+}
+.gallery-slot.has-photo { border-style: solid; border-color: #cfe2f7; background: #0c2238; }
+.gallery-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-slot-no {
+  position: absolute; inset-block-start: 8px; inset-inline-start: 8px;
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 8px;
+  background: #0c2238c9; color: #fff; font-size: 11px; font-weight: 900;
+}
+.gallery-slot-actions { position: absolute; inset-block-end: 8px; inset-inline: 8px; display: flex; gap: 6px; }
+.gallery-slot-actions button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 7px 8px; border-radius: 10px; border: 0; cursor: pointer;
+  background: #ffffffeb; color: #0c2238; font-size: 11.5px; font-weight: 800;
+  font-family: inherit; box-shadow: 0 4px 12px #0c223829;
+}
+.gallery-slot-actions button.is-danger { flex: none; padding: 7px 9px; background: #dc2626; color: #fff; }
+.gallery-slot-actions button:disabled { opacity: .6; cursor: default; }
+.gallery-slot-busy {
+  position: absolute; inset: 0; display: grid; place-items: center; gap: 6px;
+  background: #0c2238c9; color: #fff; font-size: 11.5px; font-weight: 800; text-align: center; padding: 8px;
+}
+.gallery-count { margin: 0; font-size: 11.5px; font-weight: 700; color: #6b8aa8; text-align: center; }
+.my-inline-status.is-error { color: #b91c1c; }
+
+/* شريط المعرض داخل بطاقة التفاصيل */
+.detail-gallery { display: grid; gap: 8px; margin: 12px 0; }
+.detail-gallery-head { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 900; color: #0c2238; }
+html.dark .detail-gallery-head { color: #dbe9f7; }
+.detail-gallery-head small { margin-inline-start: auto; font-size: 11px; font-weight: 700; color: #6b8aa8; }
+.detail-gallery-strip {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 104px;
+  gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.detail-gallery-thumb {
+  padding: 0; border: 0; cursor: pointer; border-radius: 14px; overflow: hidden;
+  aspect-ratio: 1; background: #eef4fa; scroll-snap-align: start;
+  box-shadow: 0 6px 16px #0c22381f; transition: transform .18s ease;
+}
+.detail-gallery-thumb:hover { transform: translateY(-2px); }
+.detail-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-gallery-viewer { display: grid; gap: 10px; }
+.detail-gallery-viewer img { width: 100%; height: auto; max-height: 62vh; object-fit: contain; border-radius: 16px; background: #0c2238; }
+.detail-gallery-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 800; }
+
+/* ===== حالة الدليل على شاشة القفل ===== */
+.splash-status { display: grid; justify-items: center; gap: 7px; animation: splash-fade-up .8s ease 1.25s both; }
+.splash-status-title { color: #9fc4e8; font-size: 11px; font-weight: 800; letter-spacing: .4px; }
+.splash-status-row { display: flex; gap: 8px; }
+.splash-status-pill {
+  display: grid; justify-items: center; gap: 1px; min-width: 82px;
+  padding: 7px 10px; border-radius: 14px;
+  background: #ffffff14; border: 1px solid #ffffff26; backdrop-filter: blur(6px);
+}
+.splash-status-pill b { color: #fff; font-size: 15px; font-weight: 900; line-height: 1.3; }
+.splash-status-pill small { color: #b9d4ee; font-size: 10px; font-weight: 700; }
+@media (max-width: 420px) {
+  .splash-status-pill { min-width: 72px; padding: 6px 8px; }
+  .splash-status-pill b { font-size: 13.5px; }
+  .splash-status-pill small { font-size: 9.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .splash-status { animation: none; } }

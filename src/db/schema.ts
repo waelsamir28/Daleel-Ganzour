@@ -33,6 +33,10 @@ export const services = pgTable("directory_services", {
   confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
   /** رقم إصدار الصورة الشخصية للمهني (0 = لا توجد صورة)؛ الصورة نفسها في directory_service_photos. */
   photoVersion: integer("photo_version").notNull().default(0),
+  /** خانات معرض صور الأعمال المستخدمة («1,3» مثلًا) — حتى ٤ صور في directory_service_gallery. */
+  gallerySlots: varchar("gallery_slots", { length: 24 }).notNull().default(""),
+  /** رقم إصدار المعرض — يتغيّر مع أي صورة حتى تُحدَّث روابط الصور في المتصفحات فورًا. */
+  galleryVersion: integer("gallery_version").notNull().default(0),
   neededRank: integer("needed_rank").notNull().default(0),
   reviewNote: text("review_note").notNull().default(""),
   completionStatus: varchar("completion_status", { length: 20 }).notNull().default("none"),
@@ -258,6 +262,18 @@ export const servicePhotos = pgTable("directory_service_photos", {
   data: text("data").notNull().default(""),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * معرض صور الأعمال: حتى ٤ صور لكل مهني (خانة 1..4)، كل صورة مصغّرة ومضغوطة في المتصفح
+ * قبل الرفع فتبقى في حدود الكيلوبايت. تخزين داخل القاعدة لأن Vercel بلا قرص دائم.
+ */
+export const serviceGallery = pgTable("directory_service_gallery", {
+  serviceId: uuid("service_id").notNull().references(() => services.id, { onDelete: "cascade" }),
+  slot: integer("slot").notNull(),
+  mime: varchar("mime", { length: 60 }).notNull().default("image/webp"),
+  data: text("data").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [primaryKey({ columns: [table.serviceId, table.slot] })]);
 
 export const categoryIcons = pgTable("directory_category_icons", {
   categoryId: varchar("category_id", { length: 60 }).primaryKey(),

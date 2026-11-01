@@ -1,8 +1,9 @@
 "use client";
 import { type ChangeEvent, type FormEvent, useMemo, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, BadgeDollarSign, CalendarDays, Check, Clapperboard, Clock3, ImagePlus, Inbox, LayoutTemplate, LoaderCircle, MessageCircle, Palette, Pencil, Plus, Power, RotateCcw, Save, Sparkles, Trash2, Upload, UserRound, Wand2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BadgeDollarSign, CalendarClock, CalendarDays, Check, Clapperboard, Clock3, ImagePlus, Inbox, LayoutTemplate, LoaderCircle, MessageCircle, Palette, Pencil, Plus, Power, RotateCcw, Save, Sparkles, TimerReset, TriangleAlert, Trash2, Upload, UserRound, Wand2, X } from "lucide-react";
 import SelectField from "@/components/select-field";
 import AdTemplateArt from "@/components/ad-template-art";
+import { AD_EXPIRY_WARNING_DAYS, adExpiryInfo, extendAdEndsAt, expiringAds } from "@/lib/ad-expiry";
 import { AD_ACCENT_PRESETS, AD_CURRENCY, AD_IMAGE_MAX_BYTES, AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, AD_MOTIONS, AD_REQUEST_KINDS, AD_TRANSITIONS, adImageUrl, adTemplates, autoTemplateService, defaultAdPricing, formatEgp, getCategory, isAdLive, whatsappUrl, type AdBannerRecord, type AdPricing, type AdRequestRecord, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { adAccentStyle } from "@/components/ad-rotator";
 import { shrinkImageFile } from "@/lib/client-image";
@@ -37,6 +38,9 @@ export default function AdminAds({ ads, requests, services, categories, busy, mu
   const providerOptions = useMemo(() => [{ value: "", label: "بدون ربط بصفحة مهني" }, ...services.filter((service) => service.status === "approved").map((service) => ({ value: service.id, label: `${service.name} — ${categories.find((category) => category.id === service.category)?.name ?? service.category}` }))], [services, categories]);
   const editing = editingId ? ads.find((ad) => ad.id === editingId) ?? null : null;
   const live = ads.filter((ad) => isAdLive(ad)).length;
+  // انتهاء الإعلانات تلقائيًا: الإعلان بيقف لوحده في ميعاده، والإدارة بتاخد تنبيه قبل النهاية بيومين.
+  const expiring = expiringAds(ads);
+  const expired = ads.filter((ad) => adExpiryInfo(ad).state === "expired");
   const autoFor = (template: string) => { const service = autoTemplateService(template, services, categories); return { service, categoryName: service ? getCategory(service.category, categories).name : "" }; };
   const artProps = { siteName, logoUrl, pricing };
   const weekly = autoFor(draft.template).service;
@@ -206,6 +210,7 @@ export default function AdminAds({ ads, requests, services, categories, busy, mu
               <label className="admin-ad-field">
                 <span><CalendarDays size={13}/> ينتهي في (اختياري)</span>
                 <input type="date" value={draft.endsAt} onChange={(event) => setDraft({ ...draft, endsAt: event.target.value })}/>
+                <small className="admin-ad-field-hint"><Clock3 size={11}/> الإعلان بيقف لوحده آخر اليوم ده، وهيوصلك تنبيه قبلها بيومين.</small>
               </label>
               <label className="admin-ad-switch">
                 <input type="checkbox" checked={draft.active} onChange={(event) => setDraft({ ...draft, active: event.target.checked })}/>
@@ -268,11 +273,40 @@ export default function AdminAds({ ads, requests, services, categories, busy, mu
       </div> : <p className="admin-ad-requests-empty">لسه مفيش طلبات. كل طلب من صفحة «أعلن معنا» هيظهر هنا ومعاه إشعار في الجرس.</p>}
     </section>
 
+    {(expiring.length > 0 || expired.length > 0) && (
+      <section className="admin-ad-expiry-panel" aria-label="إعلانات قربت تنتهي أو انتهت">
+        {expiring.length > 0 && (
+          <>
+            <h3 className="admin-ads-section-title"><TriangleAlert size={17}/> إعلانات هتنتهي خلال {AD_EXPIRY_WARNING_DAYS} يوم <span>{expiring.length}</span></h3>
+            <p className="admin-ad-expiry-hint">الإعلان بيقف لوحده في ميعاده بالظبط. مدّد المدة بضغطة عشان يفضل ظاهر للزوار.</p>
+            <div className="admin-ad-expiry-list">
+              {expiring.map((ad) => (
+                <article key={ad.id} className="admin-ad-expiry-row">
+                  <span className="admin-ad-expiry-icon"><CalendarClock size={17}/></span>
+                  <div>
+                    <strong>{ad.title}</strong>
+                    <small>{ad.info.label}{ad.endsAt ? ` — ينتهي ${new Date(ad.endsAt).toLocaleDateString("ar-EG", { day: "numeric", month: "long" })}` : ""}</small>
+                  </div>
+                  <div className="admin-ad-expiry-actions">
+                    <button type="button" className="button button-success button-small" disabled={busy === ad.id} onClick={() => void mutate("PATCH", { type: "ad", id: ad.id, action: "extend", days: 7 }, "تم تمديد الإعلان ٧ أيام.")}><TimerReset size={14}/> +٧ أيام</button>
+                    <button type="button" className="button button-soft button-small" disabled={busy === ad.id} onClick={() => void mutate("PATCH", { type: "ad", id: ad.id, action: "extend", days: 30 }, "تم تمديد الإعلان ٣٠ يوم.")}>+٣٠ يوم</button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+        {expired.length > 0 && (
+          <p className="admin-ad-expiry-done"><Clock3 size={14}/> {expired.length} إعلان انتهت مدته واتوقف تلقائيًا — تقدر تمددها من تحت أو تسيبها.</p>
+        )}
+      </section>
+    )}
+
     <section className="admin-ads-list-section">
       <h3 className="admin-ads-section-title"><Clapperboard size={17}/> الإعلانات الحالية <span>{ads.length}</span></h3>
       <div className="admin-ads-list">
         {ads.map((ad, position) => {
-          const isLive = isAdLive(ad), linked = ad.serviceId ? services.find((service) => service.id === ad.serviceId) : null;
+          const isLive = isAdLive(ad), expiry = adExpiryInfo(ad), linked = ad.serviceId ? services.find((service) => service.id === ad.serviceId) : null;
           return <article key={ad.id} className={`admin-ad-row ${isLive ? "" : "is-off"}`}>
             <span className="admin-ad-order">{position + 1}</span>
             <div className="admin-ad-thumb" style={adAccentStyle(ad.accentColor)}>
@@ -283,7 +317,7 @@ export default function AdminAds({ ads, requests, services, categories, busy, mu
                 ) : <Clapperboard size={22}/>}
             </div>
             <div className="admin-ad-info">
-              <h4>{ad.title}<span className={`status-badge ${isLive ? "status-approved" : "status-rejected"}`}>{isLive ? "يُعرض الآن" : ad.active ? "خارج الفترة / بلا صورة" : "موقوف"}</span>{ad.template && <span className="admin-ad-chip"><LayoutTemplate size={11}/> قالب جاهز</span>}</h4>
+              <h4>{ad.title}<span className={`status-badge ${isLive ? (expiry.state === "expiring" ? "status-pending" : "status-approved") : "status-rejected"}`}>{isLive ? expiry.label : ad.active ? "خارج الفترة / بلا صورة" : "موقوف"}</span>{ad.template && <span className="admin-ad-chip"><LayoutTemplate size={11}/> قالب جاهز</span>}</h4>
               <p>
                 {ad.caption && <span>{ad.caption}</span>}
                 {linked && <span><UserRound size={12}/> {linked.name}</span>}
@@ -296,6 +330,7 @@ export default function AdminAds({ ads, requests, services, categories, busy, mu
               <button type="button" className="icon-button" disabled={position === 0 || busy === ad.id} onClick={() => void mutate("PATCH", { type: "ad", id: ad.id, action: "move", direction: "up" }, "تم تغيير الترتيب.")} aria-label="تقديم الإعلان"><ArrowUp size={15}/></button>
               <button type="button" className="icon-button" disabled={position === ads.length - 1 || busy === ad.id} onClick={() => void mutate("PATCH", { type: "ad", id: ad.id, action: "move", direction: "down" }, "تم تغيير الترتيب.")} aria-label="تأخير الإعلان"><ArrowDown size={15}/></button>
               <button type="button" className={`button button-small ${ad.active ? "button-danger-soft" : "button-success"}`} disabled={busy === ad.id} onClick={() => void mutate("PATCH", { type: "ad", id: ad.id, action: "toggle" }, ad.active ? "تم إيقاف الإعلان." : "تم تفعيل الإعلان.")}><Power size={14}/> {ad.active ? "إيقاف" : "تفعيل"}</button>
+              <button type="button" className="button button-soft button-small" disabled={busy === ad.id} onClick={() => void mutate("PATCH", { type: "ad", id: ad.id, action: "extend", days: 30 }, "تم تمديد الإعلان ٣٠ يوم.")}><TimerReset size={14}/> مدّد ٣٠ يوم</button>
               <button type="button" className="button button-soft button-small" onClick={() => startEdit(ad)}><Pencil size={14}/> تعديل</button>
               <button type="button" className="icon-button admin-delete" onClick={() => onConfirmDelete(ad)} aria-label={`حذف إعلان ${ad.title}`}><Trash2 size={15}/></button>
             </div>

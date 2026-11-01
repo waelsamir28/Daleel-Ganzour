@@ -31,6 +31,8 @@ export default async function DafterPage() {
       <DafterBook
         siteName={data.settings.siteName || settings?.siteName || "دليل جنزور"}
         officePhone={data.settings.phone}
+        logoUrl={data.designSettings?.headerLogoUrl || "/images/logo-daleel-transparent.png"}
+        designCredit={data.designSettings?.footerCredit}
         sections={data.categories.filter((category) => !category.parentId && category.active).map((root) => ({
           id: root.id,
           name: root.name,

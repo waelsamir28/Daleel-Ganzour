@@ -495,3 +495,178 @@ test("ad strip spans the full width with its original height + red missing-profe
   assert.ok(frame.includes("compact-add-service-btn"));
   assert.ok(frame.includes("search-icon-only-trigger-btn"));
 });
+
+// ===== جولة ٢٠: انتهاء الإعلانات تلقائيًا + دفتر أرقام مقسّم + باركود =====
+
+const adExpiry = await loadLib("../src/lib/ad-expiry.ts");
+const barcode = await loadLib("../src/lib/barcode.ts");
+
+test("ads stop on their own and the admin is warned two days before", () => {
+  const DAY = 86_400_000;
+  const now = Date.parse("2026-11-01T12:00:00Z");
+  const base = { active: true, hasImage: true, startsAt: null };
+  // شغال وباقي له كتير.
+  assert.equal(adExpiry.adExpiryInfo({ ...base, endsAt: new Date(now + 10 * DAY).toISOString() }, now).state, "live");
+  // هينتهي خلال يومين → تنبيه.
+  const soon = adExpiry.adExpiryInfo({ ...base, endsAt: new Date(now + 1.2 * DAY).toISOString() }, now);
+  assert.equal(soon.state, "expiring");
+  assert.equal(soon.daysLeft, 2);
+  // بعد الميعاد → انتهى (وبالتالي isAdLive بيخفيه تلقائيًا).
+  assert.equal(adExpiry.adExpiryInfo({ ...base, endsAt: new Date(now - 1000).toISOString() }, now).state, "expired");
+  // بلا تاريخ نهاية → شغال، والموقوف والمجدول حالات مستقلة.
+  assert.equal(adExpiry.adExpiryInfo({ ...base, endsAt: null }, now).state, "live");
+  assert.equal(adExpiry.adExpiryInfo({ ...base, endsAt: null, active: false }, now).state, "paused");
+  assert.equal(adExpiry.adExpiryInfo({ ...base, endsAt: null, startsAt: new Date(now + 3 * DAY).toISOString() }, now).state, "scheduled");
+
+  const ads = [
+    { id: "a", title: "إعلان أ", ...base, endsAt: new Date(now + 0.5 * DAY).toISOString() },
+    { id: "b", title: "إعلان ب", ...base, endsAt: new Date(now + 9 * DAY).toISOString() },
+  ];
+  const due = adExpiry.expiringAds(ads, now);
+  assert.deepEqual(due.map((ad) => ad.id), ["a"]);
+  assert.equal(adExpiry.adExpirySummary(ads, now).expiring, 1);
+  // منع تكرار التنبيه لنفس الإعلان بنفس تاريخ النهاية.
+  assert.equal(adExpiry.adExpiryAlertKey(ads[0]), adExpiry.adExpiryAlertKey({ ...ads[0] }));
+  assert.ok(adExpiry.adExpiryAlertMessage(ads[0], 1).includes("إعلان أ"));
+  // التمديد بيحسب من آخر يوم (مش من النهاردة) لو الإعلان لسه شغال.
+  const extended = Date.parse(adExpiry.extendAdEndsAt(new Date(now + 9 * DAY).toISOString(), 30, now));
+  assert.equal(Math.round((extended - (now + 9 * DAY)) / DAY), 30);
+  // لو انتهى، التمديد بيبدأ من الآن.
+  const revived = Date.parse(adExpiry.extendAdEndsAt(new Date(now - 5 * DAY).toISOString(), 7, now));
+  assert.equal(Math.round((revived - now) / DAY), 7);
+
+  const api = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes('action === "extend"') && api.includes("extendAdEndsAt"));
+  const server = readFileSync(new URL("../src/lib/ad-expiry-server.ts", import.meta.url), "utf8");
+  assert.ok(server.includes("alertExpiringAds") && server.includes("ad_expiry_alerts"));
+  const adminPage = readFileSync(new URL("../src/app/admin/page.tsx", import.meta.url), "utf8");
+  assert.ok(adminPage.includes("alertExpiringAds"));
+  const adminAds = readFileSync(new URL("../src/components/admin-ads.tsx", import.meta.url), "utf8");
+  assert.ok(adminAds.includes("admin-ad-expiry-panel") && adminAds.includes("expiringAds(ads)"));
+  const kinds = readFileSync(new URL("../src/lib/whatsapp-alert-kinds.ts", import.meta.url), "utf8");
+  assert.ok(kinds.includes("ad-expiry"));
+});
+
+test("section barcodes encode a scannable Code 39 pattern", () => {
+  const units = barcode.code39Modules("CLINICS");
+  assert.ok(units.length > 20);
+  assert.equal(units[0].bar, true);
+  assert.equal(units[units.length - 1].bar, true);
+  // كل حرف ١٥ وحدة + مسافة فاصلة، ومع علامتي البداية والنهاية.
+  assert.equal(barcode.code39Width("CLINICS"), (7 + 2) * 15 + (7 + 1));
+  // التنظيف: حروف كبيرة وأرقام بس، وأي رمز غريب بيتحول لشرطة.
+  assert.equal(barcode.barcodeValue("clinics"), "CLINICS");
+  assert.equal(barcode.barcodeValue("a_b"), "A-B");
+  assert.equal(barcode.code39Modules("").length, 0);
+  const svg = readFileSync(new URL("../src/components/barcode-svg.tsx", import.meta.url), "utf8");
+  assert.ok(svg.includes("code39Modules") && svg.includes("<svg"));
+});
+
+test("printed booklet: one section at a time, two-row entries, ruled table, watermark", () => {
+  const book = readFileSync(new URL("../src/components/dafter-book.tsx", import.meta.url), "utf8");
+  // اختيار قسم واحد وطباعته لوحده.
+  assert.ok(book.includes("خيار القسم") === false);
+  assert.ok(book.includes("dafter-filter") && book.includes("dafter-chip"));
+  assert.ok(book.includes("useState<string>(ALL)"));
+  assert.ok(book.includes("is-single"));
+  // كل قسم ليه باركوده الخاص.
+  assert.ok(book.includes("sectionBarcode") && book.includes("<BarcodeSvg value={code}"));
+  // كل رقم في صفين (اسم فوق ونمرة تحت) جوه جدول مسطّر.
+  assert.ok(book.includes("dafter-cell") && book.includes("dafter-line") && book.includes("dafter-phone"));
+  // التذييل: اسم التطبيق + التصميم والتنفيذ + اللوجو كعلامة مائية.
+  assert.ok(book.includes("تصميم وتنفيذ وائل الجمال"));
+  assert.ok(book.includes("dafter-sheet-foot"));
+  assert.ok(book.includes("dafter-watermark"));
+
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".dafter-grid { display: grid; grid-template-columns: 1fr 1fr;"));
+  assert.ok(css.includes(".dafter-watermark img { width: 150px; height: auto; opacity: .07;"));
+  assert.ok(css.includes(".dafter-title {") && css.includes("text-align: center;"));
+  assert.ok(css.includes(".dafter-cell {\n  display: grid;"));
+  const page = readFileSync(new URL("../src/app/dafter/page.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes("logoUrl") && page.includes("designCredit"));
+});
+
+test("the booklet downloads as a real PDF in one click, with a print fallback", () => {
+  const book = readFileSync(new URL("../src/components/dafter-book.tsx", import.meta.url), "utf8");
+  assert.ok(book.includes('import("jspdf")') && book.includes('import("html-to-image")'));
+  assert.ok(book.includes("pdf.save(") && book.includes("toCanvas("));
+  assert.ok(book.includes("حمّل الدفتر PDF"));
+  // لو المتصفح ما قدرش يجهّز الملف، بيرجع لنافذة الطباعة تلقائيًا.
+  assert.ok(book.includes("window.print()"));
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  assert.ok(pkg.dependencies.jspdf && pkg.dependencies["html-to-image"]);
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".dafter-pdf-note {"));
+});
+
+test("sponsorship packages are gone from the whole app", () => {
+  const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.equal(admin.includes("AdminSponsors"), false);
+  assert.equal(admin.includes("باقات الرعاية"), false);
+  assert.equal(admin.includes('"sponsors"'), false);
+  const pkg = readFileSync(new URL("../package.json", import.meta.url), "utf8");
+  assert.ok(pkg.length > 0);
+  const catalog = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
+  for (const gone of ["SponsoredProviderConfig", "parseSponsoredProviders", "getSponsorTrialStatus", "sponsorModalEnabled", "sponsoredProvidersJson"]) {
+    assert.equal(catalog.includes(gone), false, `${gone} should be deleted`);
+  }
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.equal(/sponsor/i.test(css), false);
+  for (const file of ["admin-sponsors.tsx", "sponsorship-modal.tsx"]) {
+    assert.throws(() => readFileSync(new URL(`../src/components/${file}`, import.meta.url), "utf8"), file);
+  }
+});
+
+test("provider work gallery: four photos, 3 MB input, compressed to kilobytes", async () => {
+  const gallery = await loadLib("../src/lib/service-gallery-rules.ts");
+  assert.equal(gallery.SERVICE_GALLERY_MAX, 4);
+  assert.equal(gallery.SERVICE_GALLERY_MAX_FILE, 3 * 1024 * 1024);
+  assert.equal(gallery.SERVICE_GALLERY_MAX_BYTES, 300 * 1024);
+  assert.equal(gallery.gallerySlotList("2,4").join(","), "2,4");
+  // قراءة الصور: يرفض غير الصور ويقبل data URL مضغوط، ويحسب الحجم من base64.
+  assert.equal(gallery.parseGalleryPhoto(null), null);
+  assert.throws(() => gallery.parseGalleryPhoto("data:text/plain;base64,AAAA"));
+  assert.equal(gallery.parseGalleryPhoto("data:image/webp;base64," + "A".repeat(400)).mime, "image/webp");
+  // الخانات: 1..4 فقط، والقائمة المخزَّنة تُنظَّف وتُرتَّب.
+  assert.equal(gallery.gallerySlotList("3,1,1,9").join(","), "1,3");
+  assert.equal(gallery.gallerySlotNumber("2"), 2);
+  assert.throws(() => gallery.gallerySlotNumber(5));
+  assert.throws(() => gallery.gallerySlotNumber(0));
+
+  const client = readFileSync(new URL("../src/components/provider-gallery.tsx", import.meta.url), "utf8");
+  // تعليمات الحجم مكتوبة صراحة للعميل داخل شاشة الرفع.
+  assert.ok(client.includes("٣ ميجابايت"));
+  assert.ok(client.includes("بالكيلوبايت"));
+  assert.ok(client.includes("shrinkImageFile"));
+  assert.ok(client.includes("SERVICE_GALLERY_MAX_FILE"));
+  const account = readFileSync(new URL("../src/components/provider-account.tsx", import.meta.url), "utf8");
+  assert.ok(account.includes("ProviderGallery") && account.includes('call("gallery"'));
+  const route = readFileSync(new URL("../src/app/api/my/route.ts", import.meta.url), "utf8");
+  assert.ok(route.includes('body.action === "gallery"') && route.includes("saveServiceGalleryPhoto"));
+  const file = readFileSync(new URL("../src/app/api/service-gallery/[id]/[slot]/route.ts", import.meta.url), "utf8");
+  assert.ok(file.includes("serviceGallery") && file.includes("IMMUTABLE_IMAGE_HEADERS"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes('"directory_service_gallery"') && schema.includes("gallerySlots"));
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("CREATE TABLE IF NOT EXISTS directory_service_gallery"));
+  const strip = readFileSync(new URL("../src/components/service-gallery-strip.tsx", import.meta.url), "utf8");
+  assert.ok(strip.includes("serviceGalleryUrls") && strip.includes("صور من شغله"));
+  const page = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes("<ServiceGalleryStrip service={liveDetail ?? detail}"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".gallery-grid {") && css.includes(".gallery-rules {") && css.includes(".detail-gallery-strip {"));
+});
+
+test("suggestion 9: directory status shows on the lock splash screen", () => {
+  const splash = readFileSync(new URL("../src/components/splash-screen.tsx", import.meta.url), "utf8");
+  assert.ok(splash.includes("/api/status"));
+  assert.ok(splash.includes("حالة الدليل الآن"));
+  assert.ok(splash.includes("مقدّم خدمة") && splash.includes("مهنة وخدمة"));
+  const status = readFileSync(new URL("../src/app/api/status/route.ts", import.meta.url), "utf8");
+  assert.ok(status.includes("professions") && status.includes("providers") && status.includes("visits"));
+  // حالة الدليل لا تعطّل الشاشة ولا ترمي أخطاء لو القاعدة غير متصلة.
+  assert.ok(splash.includes("AbortController") && splash.includes(".catch("));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".splash-status-pill {") && css.includes(".splash-status-row {"));
+});

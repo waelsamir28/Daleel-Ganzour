@@ -14,6 +14,14 @@ export const SPLASH_PREVIEW_EVENT = "janzour-splash-preview";
 const SPLASH_STICKERS = ["electricity", "dentistry", "pharmacies", "groceries", "teachers", "plumbing", "barbers", "charities"] as const;
 const DEFAULT_LOGO = "/images/logo-app.webp";
 
+/** أرقام مختصرة لشاشة القفل: 1200 → «1.2 ألف». */
+function shortCount(value: number) {
+  if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)} ألف`;
+  return new Intl.NumberFormat("ar-EG").format(value);
+}
+
+type DirectoryStatus = { professions: number; providers: number; visits: number; contacts: number };
+
 function readConfig() {
   const root = document.documentElement;
   return {
@@ -42,6 +50,8 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
   const [splashImage, setSplashImage] = useState(DEFAULT_LOGO);
   const [withStickers, setWithStickers] = useState(true);
   const [withOrbit, setWithOrbit] = useState(true);
+  /** حالة الدليل الحقيقية (عدد المهن والمقدمين والزيارات) — تُقرأ بعد ظهور الشاشة فلا تؤخر شيئًا. */
+  const [status, setStatus] = useState<DirectoryStatus | null>(null);
 
   // الضغط في أي مكان على الشاشة (أو زر Esc) يتخطى شاشة البداية فورًا — مهم لأن المدة الافتراضية 12 ثانية.
   const skip = useCallback(() => setSkipped(true), []);
@@ -86,6 +96,17 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
     return () => { window.clearTimeout(fade); window.clearTimeout(remove); };
   }, [pathname, preview, skipped]);
 
+  // قراءة أرقام الدليل: الطلب لا يعطّل الشاشة إطلاقًا؛ لو فشل تختفي الحالة بهدوء.
+  useEffect(() => {
+    if (hidden) return;
+    const controller = new AbortController();
+    fetch("/api/status", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: DirectoryStatus | null) => { if (data && Number.isFinite(data.professions)) setStatus(data); })
+      .catch(() => { /* أرقام الشاشة اختيارية */ });
+    return () => controller.abort();
+  }, [hidden]);
+
   if (hidden || (pathname !== "/" && preview === 0)) return null;
   return <div
     key={preview}
@@ -112,6 +133,16 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
       )}
     </div>
     <span className="splash-tagline">{tagline}</span>
+    {status && (
+      <div className="splash-status" role="status" aria-label="حالة الدليل الآن">
+        <span className="splash-status-title">حالة الدليل الآن</span>
+        <div className="splash-status-row">
+          <span className="splash-status-pill"><b>{shortCount(status.professions)}</b><small>مهنة وخدمة</small></span>
+          <span className="splash-status-pill"><b>{shortCount(status.providers)}</b><small>مقدّم خدمة</small></span>
+          <span className="splash-status-pill"><b>{shortCount(status.visits)}</b><small>زيارة للدليل</small></span>
+        </div>
+      </div>
+    )}
     <span className="splash-dots"><i/><i/><i/></span>
   </div>;
 }

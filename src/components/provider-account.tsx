@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { BellRing, RefreshCw, BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
+import { BellRing, ImagePlus, RefreshCw, BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
 import { activeOffer, servicePhotoUrl, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerTimeLeft, recentlyExpiredOffer, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
@@ -10,6 +10,7 @@ import CenterScheduleView from "@/components/center-schedule-view";
 import { SpecialtyIcon, StickerIcon } from "@/components/ui";
 import RatingStickerModal from "@/components/rating-sticker-modal";
 import AvatarPicker from "@/components/avatar-picker";
+import ProviderGallery from "@/components/provider-gallery";
 import { rememberMyToken } from "@/lib/viewer-ownership";
 
 type Props = { token: string; initial: ServiceRecord; categories: CategoryRecord[]; areas: string[] };
@@ -20,7 +21,7 @@ const statusLabel: Record<string, string> = { approved: "منشور على ال�
 /** صفحة «حسابي» لصاحب الخدمة: تعديل ذاتي عبر الرابط السري الذي أرسلته الإدارة على واتسابه. */
 export default function ProviderAccount({ token, initial, categories, areas }: Props) {
   const [service, setService] = useState(initial);
-  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request" | "offer" | "confirm" | "photo">("");
+  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request" | "offer" | "confirm" | "photo" | "gallery">("");
   const [offerTitle, setOfferTitle] = useState(initial.offerTitle ?? "");
   const [offerDetails, setOfferDetails] = useState(initial.offerDetails ?? "");
   const [offerDays, setOfferDays] = useState(7);
@@ -66,8 +67,8 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   const [address, setAddress] = useState(initial.address);
   const specialties = useMemo(() => categories.filter((item) => item.parentId === rootId), [categories, rootId]);
 
-  async function call(action: "availability" | "quick" | "request" | "offer" | "confirm" | "photo", payload: Record<string, unknown>) {
-    if (busy) return;
+  async function call(action: "availability" | "quick" | "request" | "offer" | "confirm" | "photo" | "gallery", payload: Record<string, unknown>): Promise<boolean> {
+    if (busy) return false;
     setBusy(action); setNotice(null);
     try {
       const response = await fetch("/api/my", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, action, ...payload }) });
@@ -76,7 +77,8 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       setService(result.service as ServiceRecord);
       setNotice({ text: result.message ?? "تم الحفظ.", error: false });
       if (navigator.vibrate) navigator.vibrate(12);
-    } catch (caught) { setNotice({ text: caught instanceof Error ? caught.message : "تعذر الاتصال. حاول مرة أخرى.", error: true }); }
+      return true;
+    } catch (caught) { setNotice({ text: caught instanceof Error ? caught.message : "تعذر الاتصال. حاول مرة أخرى.", error: true }); return false; }
     finally { setBusy(""); }
   }
 
@@ -152,6 +154,11 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       <header className="my-section-head"><Camera size={18}/><div><h2>الصورة الشخصية</h2><span>تظهر في دائرة على بطاقتك وفي صفحة التفاصيل. اختر صورة، قصّها، ثم تُحفظ فورًا.</span></div></header>
       <AvatarPicker value={undefined} currentUrl={servicePhotoUrl(service)} hint="صورتك أو لوجو المحل — حتى 3 ميجابايت، ونقصّها ونضغطها تلقائيًا قبل الرفع." onChange={(next) => { if (next !== undefined) void call("photo", { photo: next }); }}/>
       {busy === "photo" && <p className="my-inline-status"><LoaderCircle size={15} className="spin"/> جاري حفظ الصورة…</p>}
+    </section>
+
+    <section className="availability-card my-gallery">
+      <header className="my-section-head"><ImagePlus size={18}/><div><h2>صور أعمالك</h2><span>حتى ٤ صور تظهر للعميل في بطاقتك وصفحة التفاصيل قبل ما يتصل بيك.</span></div></header>
+      <ProviderGallery service={service} onUpload={(slot, photo) => call("gallery", { slot, photo })}/>
     </section>
 
     <form className="availability-card my-form my-offer" onSubmit={submitOffer}>
