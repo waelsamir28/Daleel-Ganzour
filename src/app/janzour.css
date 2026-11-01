@@ -10513,79 +10513,112 @@ html.dark .welcome-dismiss { color: #8fa6bd; }
 }
 
 /* =========================================================================
-   Round 17: عنوان القسم في سطر واحد + زر «اطلب عرض سعر» راكب على حد البرواز
+   Round 17: عنوان القسم في سطر واحد + الأزرار في الجانب الآخر
    + صفوف إدارة التصنيفات في سطر واحد بدون تكسير
    ========================================================================= */
 
-/* --- عنوان القسم: سطر واحد، في المنتصف --- */
+/* --- برواز عنوان القسم: العنوان يمين + العدّاد تحته، والأزرار على الشمال --- */
 .providers-section .section-heading.directory-section-heading {
   display: flex !important;
-  flex-direction: column !important;
+  flex-direction: row !important;
   align-items: center !important;
-  justify-content: center !important;
+  justify-content: space-between !important;
   flex-wrap: nowrap !important;
-  gap: 0 !important;
-  text-align: center !important;
-  padding: 13px 12px 12px;
+  gap: 10px !important;
+  padding: 10px 12px;
+  text-align: right;
 }
 .providers-section .section-heading.directory-section-heading > .section-heading-title {
+  /* العمود بيلف حوالين العنوان بالظبط، فالعدّاد بيتوسّط تحته مش تحت البرواز كله */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0;
-  width: 100%;
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
+  text-align: center;
 }
 .providers-section .directory-section-heading h2 {
   white-space: nowrap;
   width: max-content;
   max-width: 100%;
   margin: 0 auto;
-  padding: 6px 16px;
-  font-size: clamp(13.5px, 3.9vw, 17px);
+  padding: 6px 14px;
+  font-size: clamp(13px, 3.7vw, 16.5px);
   line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .providers-section .directory-section-heading h2 > svg {
-  width: 26px;
-  height: 26px;
+  width: 25px;
+  height: 25px;
   padding: 4px;
   flex: none;
 }
 .providers-section .directory-section-heading .section-heading-count {
-  margin: 8px 0 0 !important;
+  margin: 6px 0 0 !important;
   padding: 0 !important;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
+  line-height: 1.4;
   text-align: center;
+  white-space: nowrap;
   color: #7189a1;
 }
+
+/* --- الجانب الآخر: زر متابعة التخصص (أيقونة فقط) + زر عرض السعر بجانبه --- */
 .providers-section .directory-section-heading .section-heading-actions {
-  width: 100%;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 0;
+  width: auto;
 }
 .providers-section .directory-section-heading .section-heading-actions:empty { display: none; }
 
-/* --- زر طلب عرض السعر: في المنتصف ويركب على الجزء السفلي من برواز العنوان --- */
-.providers-section .section-heading.directory-section-heading .quote-request-btn {
-  position: relative;
-  z-index: 3;
-  margin: -15px auto 0;
-  padding: 8px 18px;
-  font-size: 12.5px;
-  border-width: 2px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #fffdf8 0%, #ffedcf 100%);
-  box-shadow: 0 8px 18px rgba(180, 110, 10, .22), inset 0 1px 0 #fff;
-  transition: transform .16s ease, box-shadow .18s ease, background .18s ease;
+.follow-toggle-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid #0876e1;
+  background: linear-gradient(135deg, #0887e8, #0565d6);
+  color: #fff;
+  box-shadow: 0 4px 10px #0876e126;
+  flex: none;
+  cursor: pointer;
+  transition: background .18s, box-shadow .18s, transform .18s;
 }
-.providers-section .section-heading.directory-section-heading .quote-request-btn:active { transform: translateY(1px); }
-html.dark .providers-section .section-heading.directory-section-heading .quote-request-btn {
-  background: linear-gradient(180deg, #3a2a12 0%, #241a0b 100%);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .06);
+.follow-toggle-icon:hover:not(:disabled) { background: linear-gradient(135deg, #1595ff, #0760c9); transform: translateY(-1px); }
+.follow-toggle-icon:active:not(:disabled) { transform: translateY(1px); }
+.follow-toggle-icon.is-on { border-color: #b9d1e5; background: #edf5ff; color: #086dcc; box-shadow: none; }
+.follow-toggle-icon.is-on svg { animation: availability-glow 1.9s ease-in-out infinite; }
+.follow-toggle-icon:disabled { opacity: .55; cursor: progress; }
+html.dark .follow-toggle-icon { background: linear-gradient(135deg, #0d8ee0, #0b4f96); border-color: transparent; color: #fff; }
+html.dark .follow-toggle-icon.is-on { background: #14324c; border-color: #2b5878; color: #8fc4ef; }
+
+.providers-section .directory-section-heading .quote-request-btn {
+  position: static;
+  margin: 0;
+  padding: 9px 13px;
+  font-size: 12px;
+  border-radius: 12px;
+  border-width: 1px;
+  white-space: nowrap;
+  flex: none;
+  box-shadow: 0 4px 10px rgba(180, 110, 10, .14), inset 0 1px 0 #fff;
+}
+html.dark .providers-section .directory-section-heading .quote-request-btn {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .06);
 }
 
 /* --- لوحة الإدارة: صفوف التصنيفات والتخصصات — العنوان في سطر واحد --- */
@@ -10639,8 +10672,22 @@ html.dark .providers-section .section-heading.directory-section-heading .quote-r
   .category-management-row .category-order-arrows .icon-button { width: 27px; height: 27px; }
 }
 
-@media (max-width: 400px) {
-  .providers-section .directory-section-heading h2 { font-size: 12.5px; padding: 6px 12px; gap: 6px; }
-  .providers-section .directory-section-heading h2 > svg { width: 23px; height: 23px; padding: 3px; }
-  .providers-section .section-heading.directory-section-heading .quote-request-btn { margin-top: -14px; padding: 7px 15px; font-size: 12px; }
+/* رسالة خطأ المتابعة (نادرة) تنزل سطر لوحدها بدل ما تكسر الصف */
+.providers-section .directory-section-heading .section-heading-actions:has(.follow-error) { flex-wrap: wrap; }
+.providers-section .directory-section-heading .follow-error { flex-basis: 100%; text-align: center; font-size: 10.5px; }
+
+@media (max-width: 520px) {
+  /* زر «يوجد توصيل» يبقى أيقونة فقط عشان الصف ما يزنقش */
+  .providers-section .directory-section-heading .delivery-filter-toggle span { display: none; }
+  .providers-section .directory-section-heading .delivery-filter-toggle { padding: 8px 10px; }
+}
+
+@media (max-width: 420px) {
+  .providers-section .section-heading.directory-section-heading { gap: 7px !important; padding: 9px 9px; }
+  .providers-section .directory-section-heading h2 { font-size: 12.5px; padding: 5px 11px; gap: 5px; }
+  .providers-section .directory-section-heading h2 > svg { width: 22px; height: 22px; padding: 3px; }
+  .providers-section .directory-section-heading .section-heading-count { font-size: 10.5px; margin-top: 5px !important; }
+  .follow-toggle-icon { width: 34px; height: 34px; border-radius: 11px; }
+  .providers-section .directory-section-heading .quote-request-btn { padding: 8px 10px; font-size: 11px; gap: 4px; }
+  .providers-section .directory-section-heading .quote-request-btn svg { width: 13px; height: 13px; }
 }
