@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import "./admin-panel.css";
 import "./admin-mobile.css";
 import "./admin-palette.css";
+import { after } from "next/server";
 import AdminPanel from "@/components/admin-panel";
+import { alertExpiringAds } from "@/lib/ad-expiry-server";
 import { getViewer } from "@/lib/auth";
 import { getAdminDirectory } from "@/lib/directory";
 
@@ -13,5 +15,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const viewer = await getViewer();
   if (viewer.role !== "admin" && viewer.role !== "moderator") redirect(viewer.role === "member" ? "/account" : "/login");
   const [data, query] = await Promise.all([getAdminDirectory(viewer.role), searchParams]);
+  // تنبيه الإدارة قبل انتهاء أي إعلان بيومين — بعد رد الصفحة عشان ما يبطّلهاش.
+  after(() => alertExpiringAds(data.ads ?? []).catch(() => undefined));
   return <AdminPanel initialData={data} initialTab={query.tab} initialEditService={query.editService} username={viewer.username} role={viewer.role}/>;
 }

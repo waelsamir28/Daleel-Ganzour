@@ -14,6 +14,7 @@ import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAd
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { sanitizeTelecomSettings } from "@/lib/telecom-settings";
 import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
+import { extendAdEndsAt } from "@/lib/ad-expiry";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -250,6 +251,11 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
         await db.transaction(async (tx) => { for (const [position, row] of reordered.entries()) await tx.update(adBanners).set({ sortOrder: position }).where(eq(adBanners.id, row.id)); });
       } else if (action === "toggle") {
         await db.update(adBanners).set({ active: !existing.active }).where(eq(adBanners.id, id));
+      } else if (action === "extend") {
+        // تمديد مدة الإعلان: من آخر يوم محسوب (أو من الآن لو انتهى/بلا تاريخ) + عدد الأيام المطلوب.
+        const days = integerInput(body.days ?? 7, 1, 120, "عدد أيام التمديد");
+        const endsAt = new Date(extendAdEndsAt(existing.endsAt ? existing.endsAt.toISOString() : null, days));
+        await db.update(adBanners).set({ endsAt, active: true }).where(eq(adBanners.id, id));
       } else {
         const values = objectInput(body.values), fields = await adInput(values);
         const image = values.image ? adImageInput(values.image) : null;

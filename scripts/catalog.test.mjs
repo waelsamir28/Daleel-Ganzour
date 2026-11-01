@@ -991,7 +991,8 @@ test("whatsapp alert helpers normalize Egyptian numbers, extract phones and sani
   assert.equal(extractEgyptPhone("للتواصل: +201155554444 شكرًا"), "201155554444");
   assert.equal(extractEgyptPhone("الرقم ٠١٢٢٢٣٥٥٧٦٩"), "201222355769");
   assert.equal(extractEgyptPhone("بدون رقم هنا 12345"), "");
-  assert.equal(allWhatsappAlertKinds.length, 8);
+  assert.equal(allWhatsappAlertKinds.length, 9);
+  assert.equal(allWhatsappAlertKinds.includes("ad-expiry"), true);
   assert.equal(allWhatsappAlertKinds.includes("code-report"), true);
   assert.equal(allWhatsappAlertKinds.includes("site-error"), true);
   assert.deepEqual(sanitizeWhatsappAlertKinds(undefined), allWhatsappAlertKinds, "missing setting means every event");
