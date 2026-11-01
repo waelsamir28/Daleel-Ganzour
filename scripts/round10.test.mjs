@@ -412,18 +412,26 @@ test("welcome screens are wired to register, provider account and tracking", () 
   for (const part of [".welcome-overlay", ".welcome-card", ".welcome-bullets", ".welcome-primary"]) assert.ok(css.includes(part), part);
 });
 
-test("section heading keeps one line and the quote button rides the frame", () => {
+test("section heading is one line on the right with the count under it and the buttons on the other side", () => {
   const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
-  // العنوان في سطر واحد داخل برواز، والزر بقى عنصرًا مستقلًا بعد البرواز.
-  assert.ok(directory.includes('className="section-heading-title"'));
   const headingStart = directory.lastIndexOf('className="section-heading directory-section-heading"');
-  const heading = directory.slice(headingStart, headingStart + 1400);
-  assert.ok(heading.includes("quote-request-btn"));
-  assert.ok(heading.indexOf("quote-request-btn") < heading.indexOf('className="section-heading-actions"'));
-  assert.ok(heading.includes('className="section-heading-count"'));
+  const heading = directory.slice(headingStart, headingStart + 1800);
+  // العنوان + العدّاد في عمود واحد، والأزرار في عمود تاني.
+  assert.ok(heading.includes('className="section-heading-title"'));
+  assert.ok(heading.indexOf("section-heading-count") > heading.indexOf("section-heading-title"));
+  assert.ok(heading.indexOf("section-heading-count") < heading.indexOf('className="section-heading-actions"'));
+  // زر المتابعة أيقونة فقط، وزر عرض السعر جنبه في نفس الصف.
+  assert.ok(heading.includes("follow-toggle-icon"));
+  assert.ok(heading.includes('aria-label={isFollowed ? "إلغاء متابعة التخصص" : "متابعة التخصص"}'));
+  assert.ok(heading.indexOf("follow-toggle-icon") < heading.indexOf("quote-request-btn"));
+  // سطر «كام مهنة مرتبطة» تحت العنوان.
+  assert.ok(heading.includes("{providerCountLabel}"));
+  assert.ok(directory.includes("`${filteredServices.length} مهنة مرتبطة`"));
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
   assert.ok(css.includes(".providers-section .directory-section-heading h2 {\n  white-space: nowrap;"));
-  assert.ok(css.includes(".quote-request-btn {\n  position: relative;\n  z-index: 3;\n  margin: -15px auto 0;"));
+  // الهيدر صف أفقي: العنوان في عمود والأزرار في العمود الآخر.
+  assert.ok(css.includes("flex-direction: row !important;\n  align-items: center !important;\n  justify-content: space-between !important;"));
+  assert.ok(css.includes(".follow-toggle-icon {\n  display: inline-grid;"));
 });
 
 test("admin category rows keep the title on a single line on mobile", () => {
