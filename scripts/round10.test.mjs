@@ -411,3 +411,25 @@ test("welcome screens are wired to register, provider account and tracking", () 
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
   for (const part of [".welcome-overlay", ".welcome-card", ".welcome-bullets", ".welcome-primary"]) assert.ok(css.includes(part), part);
 });
+
+test("section heading keeps one line and the quote button rides the frame", () => {
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  // العنوان في سطر واحد داخل برواز، والزر بقى عنصرًا مستقلًا بعد البرواز.
+  assert.ok(directory.includes('className="section-heading-title"'));
+  const headingStart = directory.lastIndexOf('className="section-heading directory-section-heading"');
+  const heading = directory.slice(headingStart, headingStart + 1400);
+  assert.ok(heading.includes("quote-request-btn"));
+  assert.ok(heading.indexOf("quote-request-btn") < heading.indexOf('className="section-heading-actions"'));
+  assert.ok(heading.includes('className="section-heading-count"'));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".providers-section .directory-section-heading h2 {\n  white-space: nowrap;"));
+  assert.ok(css.includes(".quote-request-btn {\n  position: relative;\n  z-index: 3;\n  margin: -15px auto 0;"));
+});
+
+test("admin category rows keep the title on a single line on mobile", () => {
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes('"icon name badge"'));
+  assert.ok(css.includes('"icon meta actions"'));
+  assert.ok(css.includes(".category-management-row > div:nth-child(2) { display: contents; }"));
+  assert.ok(css.includes("text-overflow: ellipsis;"));
+});
