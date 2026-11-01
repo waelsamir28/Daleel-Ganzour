@@ -3,13 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
-import { Timer, BadgePercent, BarChart3, Minus, Plus as PlusIcon, ListChecks, PackageOpen, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning, Calculator, BookOpen } from "lucide-react";
+import { Timer, BadgePercent, BarChart3, Minus, Plus as PlusIcon, ListChecks, PackageOpen, ArrowLeft, Award, BellRing, Building2, Droplets, Flame, Zap, Megaphone, CalendarCheck, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, CirclePlus, Clipboard, ClipboardCheck, ClipboardList, Clock, Crown, Grid2X2, Heart, Info, LockKeyhole, LogIn, LogOut, MapPin, MapPinned, Medal, Menu, MessageCircle, Moon, Pencil, Phone, PhoneCall, Pill, Plus, QrCode, Search, SearchX, Share2, ShieldCheck, ShoppingBag, Siren, Smartphone, Sparkles, Star, Stethoscope, Sun, Trash2, Truck, UserPlus, UserRound, UserRoundPlus, UsersRound, X, Volume2, VolumeX, Copy, MessageSquareWarning, BookOpen } from "lucide-react";
 import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSettings, resolveHeroBanner, getCategory, getClinicBookingLabel, getClinicBookingMode, getClinicScheduleSummary, getDutyShiftInfo, getOnDutyServices, getServiceTrustBadges, getShopCatalogItems, getSpecialtyKeywords, isAvailableNow, isNewService, isServiceOwner, matchesClinicFilter, matchesServiceQuery, normalizeSearch, OTHER_ADDRESS, eventPhase, liveTickerItems, parseAnnouncementItems, publicUtilityNumbers, serviceWhatsappMessage, serviceDirectUrl, suggestSpecialties, supportsHomeDelivery, whatsappUrl, type CategoryRecord, type ClinicBookingFilter, type DutyFilter, type FollowFeedItem, type FollowState, type PublicDirectory, type PublicUtilityContact, type ServiceRecord, type Viewer, parseProviderEdgeTools, type ProviderEdgeToolId, hasProfessionArt, categoryInStage, getTeacherStage, serviceInStage, serviceTeachesSubject, stageHref, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, activeOffer, offerTimeLeft, OFFICE_WHATSAPP, isNewOffer, servicesWithOffers } from "@/lib/catalog";
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
-import NotifyToggle from "@/components/notify-toggle";
-import QuoteRequestModal from "@/components/quote-request-modal";
+import SoundSheet from "@/components/sound-sheet";
 import MissingProfessionModal from "@/components/missing-profession-modal";
 import { openInstallAppModal } from "@/components/install-app-modal";
 import dynamic from "next/dynamic";
@@ -49,7 +48,7 @@ function utilityIcon(item: { id: string; name: string; category: string; tone: s
   if (/complaint|شكاوى|حكوم/.test(text)) return Megaphone;
   return PhoneCall;
 }
-type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | "about" | "quote" | "missing" | null;
+type ModalName = "service" | "location" | "contact" | "emergency" | "duty" | "utilities" | "quick" | "about" | "missing" | null;
 
 export default function Directory({ initialData, viewer, rootId, specialtyId, stageId, initialFavorites = false, guestLocked = false, onData, refreshOnMount = false }: { initialData: PublicDirectory; viewer: Viewer; rootId?: string; specialtyId?: string; stageId?: string; initialFavorites?: boolean; guestLocked?: boolean; onData?: (data: PublicDirectory) => void; refreshOnMount?: boolean }) {
   // الغلاف (DirectoryShell) يحتفظ بأحدث نسخة من البيانات حتى يفتح القسم التالي فورًا بها.
@@ -63,6 +62,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   const [menuOpen, setMenuOpen] = useState(false), [favorites, setFavorites] = useState<string[]>([]);
   const menuRef = useRef<HTMLElement>(null), menuButtonRef = useRef<HTMLButtonElement>(null);
   const [soundMuted, setSoundMutedState] = useState(false);
+  const [soundSheetOpen, setSoundSheetOpen] = useState(false);
   useEffect(() => {
     const sync = () => setSoundMutedState(isSoundMuted());
     sync();
@@ -619,18 +619,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
               </Link>
             </div>
           ) : null}
-          <NotifyToggle className="header-notify" sections={categories.filter((category) => !category.parentId && category.active).map((category) => ({ id: category.id, name: category.name }))}/>
-          <button
-            type="button"
-            className={`sound-toggle ${soundMuted ? "is-muted" : ""}`}
-            aria-pressed={soundMuted}
-            aria-label={soundMuted ? "تشغيل صوت النقرات" : "كتم صوت النقرات"}
-            title={soundMuted ? "الصوت مكتوم — اضغط للتشغيل" : "كتم صوت النقرات"}
-            onClick={() => setSoundMuted(!soundMuted)}
-            data-no-feedback
-          >
-            {soundMuted ? <VolumeX size={17}/> : <Volume2 size={17}/>}
-          </button>
           {design.showHeaderDarkToggle && (
             <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي والنهاري" title="وضع الليل والنهار" onClick={toggleTheme}>
               <span className="theme-toggle-track">
@@ -700,6 +688,13 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
               {feedUnread > 0 && <span className="nav-count is-alert">{feedUnread > 99 ? "99+" : feedUnread}</span>}
             </button>
           )}
+          <div className="menu-tools-row">
+            <button type="button" className="menu-sound-item" onClick={() => { setMenuOpen(false); setSoundSheetOpen(true); }}>
+              {soundMuted ? <VolumeX size={17}/> : <Volume2 size={17}/>}
+              <span>الصوت</span>
+              <span className={`nav-count ${soundMuted ? "is-alert" : "is-on"}`}>{soundMuted ? "مكتوم" : "شغال"}</span>
+            </button>
+          </div>
           <button type="button" className="menu-install-item" onClick={() => { setMenuOpen(false); openInstallAppModal(); }}>
             <Smartphone size={17}/>
             <span>تثبيت التطبيق على الموبايل</span>
@@ -913,7 +908,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
           <span className="featured-strip-hint">{featuredOpen ? "اضغط السهم لإخفاء المميزين" : "اضغط السهم لعرض المميزين"}</span>
         </div>
       ) : (
-        <div className="section-heading directory-section-heading"><div className="section-heading-title"><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2><p className="section-heading-count" aria-live="polite">{providerCountLabel}</p></div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle follow-toggle-icon ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} aria-label={isFollowed ? "إلغاء متابعة التخصص" : "متابعة التخصص"} title={isFollowed ? "إلغاء متابعة التخصص" : "متابعة التخصص"} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={18}/></button>}{(specialty || activeSpecialtyCategory || rootId) && <button type="button" className="quote-request-btn" onClick={() => setModal("quote")} title="اكتب طلبك مرة واحدة وابعته لـ٣ مهنيين"><Calculator size={15}/><span>اطلب عرض سعر من ٣</span></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
+        <div className="section-heading directory-section-heading"><div className="section-heading-title"><h2>{view === "favorites" ? <Heart size={22} className="pink-icon"/> : emergency ? <Siren size={24} className="red-icon"/> : activeSpecialtyCategory ? <UsersRound size={23}/> : <Crown size={23} className="crown-icon"/>}{providerTitle}</h2><p className="section-heading-count" aria-live="polite">{providerCountLabel}</p></div><div className="section-heading-actions">{specialty && viewer.role !== "guest" && <button type="button" className={`follow-toggle follow-toggle-icon ${isFollowed ? "is-on" : ""}`} aria-pressed={isFollowed} aria-label={isFollowed ? "إلغاء متابعة التخصص" : "متابعة التخصص"} title={isFollowed ? "إلغاء متابعة التخصص" : "متابعة التخصص"} disabled={followBusy} onClick={() => void toggleFollow()}><BellRing size={18}/></button>}{specialty && viewer.role !== "guest" && followError && <small className="follow-error" role="alert">{followError}</small>}{isShopsContext && <button type="button" className={`availability-toggle delivery-filter-toggle ${deliveryOnly ? "is-on" : ""}`} aria-pressed={deliveryOnly} onClick={() => setDeliveryOnly(!deliveryOnly)}><Truck size={15} aria-hidden="true"/><span>يوجد توصيل</span></button>}</div></div>
       )}
       {isFiltering && <div className="filter-tags">{view === "favorites" && <span><Heart size={13}/>المفضلة</span>}{query && <span>{query}<button onClick={() => { setQuery(""); setQueryDraft(""); }} aria-label="إزالة كلمة البحث"><X size={12}/></button></span>}{!scoped && rootFilter && <span>{getCategory(rootFilter, categories).name}</span>}{area && <span><MapPin size={12}/>{area === OTHER_ADDRESS ? customAddress || OTHER_ADDRESS : area}<button onClick={() => { setArea(""); setCustomAddress(""); }} aria-label="إزالة العنوان"><X size={12}/></button></span>}{emergency && <span className="emergency-filter">خدمات الطوارئ</span>}{activeDeliveryOnly && <span className="delivery-filter-tag"><Truck size={13}/>يوجد توصيل للمنازل<button onClick={() => setDeliveryOnly(false)} aria-label="إزالة فلتر التوصيل"><X size={12}/></button></span>}{isClinicsContext && activeClinicFilter !== "all" && <span className="clinic-filter-tag"><Stethoscope size={13}/>{activeClinicFilter === "appointment" ? "بحجز مسبق" : activeClinicFilter === "walk-in" ? "بأسبقية الحضور" : "متواجد اليوم"}<button onClick={() => setClinicFilter("all")} aria-label="إزالة فلتر العيادة"><X size={12}/></button></span>}<button className="clear-filters" onClick={clearFilters}>مسح الفلاتر</button></div>}{showProvidersList && (visibleServices.length ? <div className={`provider-grid ${isFeaturedCollapsible ? "featured-strip-panel" : ""}`} id={isFeaturedCollapsible ? "featured-providers-panel" : undefined}>{visibleServices.map((service) => <ProviderCard art3d={specArt3d} sticker={specSticker} key={service.id} service={service} categories={categories} category={getCategory(service.category, categories)} favorite={favorites.includes(service.id)} now={now} showAdminQuickEdit={Boolean(isAdmin && design.showAdminQuickEdit)} edgeTools={edgeTools} onOpen={openDetail} onOpenCompletion={(item) => setCompletionService(item)} onShare={(item) => void shareService(item)} onSuggest={openSuggest} onToggleFavorite={toggleFavorite}/>)}</div> : <div className="empty-state"><span><SearchX size={36}/></span><h3>{view === "favorites" ? "مفضلتك لسه فاضية" : "لسه مفيش خدمات مطابقة"}</h3><p>{view === "favorites" ? "اضغط على القلب بجانب أي خدمة عشان ترجع لها بسهولة." : "كن أول مقدم خدمة هنا.. أضف بياناتك والإدارة هتراجعها قبل النشر."}</p><button className="button button-soft" onClick={view === "favorites" ? clearFilters : () => openAddService()}>{view === "favorites" ? "تصفح الخدمات" : "أضف مهنتك مجانًا"}<ArrowLeft size={16}/></button></div>)}</section>}
       {!scoped && !isFiltering && design.showOffersSection && offerServices.length > 0 && (
@@ -1233,8 +1228,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
       </Modal>
     )}
     {modal === "missing" && <MissingProfessionModal categoryId={specialty?.id ?? rootId ?? ""} categoryName={specialty?.name ?? (rootId ? getCategory(rootId, categories).name : "")} onClose={closeModal}/>}
-    {modal === "quote" && <QuoteRequestModal categoryId={(specialty ?? activeSpecialtyCategory)?.id ?? rootId ?? ""} categoryName={(specialty ?? activeSpecialtyCategory)?.name ?? (rootId ? getCategory(rootId, categories).name : "خدمات جنزور")} siteName={settings.siteName} areas={data.areas.map((item) => item.name)} onClose={closeModal}/>}
-    {modal === "about" && <AppInfoModal siteName={settings.siteName} logoUrl={design.headerLogoUrl} memberCount={data.memberCount} onClose={closeModal} onAddService={() => openAddService()}/>}
+        {modal === "about" && <AppInfoModal siteName={settings.siteName} logoUrl={design.headerLogoUrl} memberCount={data.memberCount} onClose={closeModal} onAddService={() => openAddService()}/>}
     {modal === "contact" && <Modal floating title="خلّينا على تواصل" subtitle="مكتب الجمال للدعاية والإعلان" onClose={closeModal}><div className="contact-content"><span className="contact-illustration"><MessageCircle size={46}/></span><h3>إحنا هنا عشان نساعدك</h3><p>{settings.contactText}</p><a className="contact-number" href={`tel:${settings.phone}`} dir="ltr">{settings.phone}</a><a className="button button-whatsapp" href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={20}/>تواصل على واتساب</a><a className="button button-soft" href={`tel:${settings.phone}`}><Phone size={18}/>اتصل بمكتب الجمال</a></div></Modal>}
     {completionService && (
       <Modal floating wide title="استكمال بيانات المهنة" subtitle={`${completionService.name} — ${getCategory(completionService.category, categories).name}`} onClose={() => setCompletionService(null)}>
@@ -1247,6 +1241,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
         />
       </Modal>
     )}
+    {<SoundSheet open={soundSheetOpen} muted={soundMuted} onPick={(muted) => setSoundMuted(muted)} onClose={() => setSoundSheetOpen(false)}/>}
     {stageModalOpen && <TeacherStageModal current={stage?.id} counts={stageCounts} centerCount={services.filter((service) => service.category === TEACHER_CENTER_ID).length} onClose={() => setStageModalOpen(false)}/>}
     {detail && <Modal floating className="modal-quiet-scroll detail-modal" title={getCategory(detail.category, categories).parentId === "clinics" ? "بيانات الطبيب والعيادة" : "تفاصيل مقدم الخدمة"} subtitle={`${getCategory(detail.category, categories).name} • ${detail.address || detail.area}`} onClose={closeDetail}><div className="service-details detail-v2">
       <header className="detail-v2-hero" style={categoryTheme(getCategory(detail.category, categories))}>

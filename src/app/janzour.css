@@ -10691,3 +10691,179 @@ html.dark .providers-section .directory-section-heading .quote-request-btn {
   .providers-section .directory-section-heading .quote-request-btn { padding: 8px 10px; font-size: 11px; gap: 4px; }
   .providers-section .directory-section-heading .quote-request-btn svg { width: 13px; height: 13px; }
 }
+
+/* =========================================================================
+   Round 18: جرس ذهبي لامع + أدوات الهيدر جوّه القائمة + شاشة الصوت العائمة
+   ========================================================================= */
+
+/* --- 1) عنوان القسم: العنوان في اليمين والعدّاد متوسّط تحته بالظبط --- */
+.providers-section .section-heading.directory-section-heading > .section-heading-title {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.providers-section .directory-section-heading h2 { text-align: center; }
+.providers-section .directory-section-heading .section-heading-count {
+  margin-inline: auto !important;
+  text-align: center;
+}
+
+/* --- 2) أيقونة جرص المتابعة باللون الدهبي مع حركة لمعان --- */
+.follow-toggle-icon {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e9b422;
+  background: linear-gradient(160deg, #ffd54a 0%, #f6b81a 45%, #d99512 100%);
+  color: #4a3200;
+  box-shadow: 0 4px 12px rgba(214, 148, 18, .34), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+.follow-toggle-icon svg { color: #4a3200; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .5)); }
+.follow-toggle-icon::after {
+  content: "";
+  position: absolute;
+  inset-block: -40%;
+  inset-inline-start: -70%;
+  width: 46%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .85), transparent);
+  transform: skewX(-18deg);
+  animation: follow-bell-shine 3.1s cubic-bezier(.35, 0, .25, 1) infinite;
+  pointer-events: none;
+}
+@keyframes follow-bell-shine {
+  0% { inset-inline-start: -70%; }
+  55%, 100% { inset-inline-start: 130%; }
+}
+.follow-toggle-icon:hover:not(:disabled) {
+  background: linear-gradient(160deg, #ffdf6b 0%, #ffc72c 45%, #e2a017 100%);
+  box-shadow: 0 7px 18px rgba(214, 148, 18, .45), inset 0 1px 0 rgba(255, 255, 255, .75);
+}
+.follow-toggle-icon.is-on {
+  border-color: #b98d1f;
+  background: linear-gradient(160deg, #fff3c4 0%, #ffe08a 100%);
+  color: #6b4a00;
+  box-shadow: inset 0 1px 0 #fff, 0 2px 8px rgba(214, 148, 18, .25);
+}
+.follow-toggle-icon.is-on svg { color: #8a5f00; animation: availability-glow 1.9s ease-in-out infinite; }
+html.dark .follow-toggle-icon { border-color: #8a6a1d; background: linear-gradient(160deg, #f0c33c 0%, #cf9a12 100%); color: #2a1c00; }
+html.dark .follow-toggle-icon.is-on { background: linear-gradient(160deg, #4a3a10 0%, #3a2c0b 100%); border-color: #7a611f; color: #ffd981; }
+html.dark .follow-toggle-icon.is-on svg { color: #ffd981; }
+@media (prefers-reduced-motion: reduce) {
+  .follow-toggle-icon::after { animation: none; display: none; }
+}
+
+/* --- 3) أدوات القائمة: الإشعارات والصوت في صفوف لها اسم واضح --- */
+.menu-tools-row { display: grid; gap: 3px; }
+.menu-tools-row:empty { display: none; }
+.menu-sound-item {
+  display: flex; align-items: center; justify-content: flex-start; gap: 10px;
+  width: 100%; min-height: 41px; height: auto; padding: 8px 12px;
+  border: 1px solid transparent; border-radius: 11px;
+  background: transparent; color: #163d64;
+  font: inherit; font-size: 13px; font-weight: 800; text-align: right; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.menu-sound-item svg { color: #0878c9; flex: none; }
+.menu-sound-item > span:nth-of-type(1) { flex: 1; }
+.menu-sound-item:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .85), rgba(226, 240, 255, .7));
+  border-color: rgba(120, 170, 220, .7); color: #0a5fa6;
+}
+.menu-tools-row .notify-bell { position: relative; display: block; width: 100%; }
+.menu-tools-row .notify-bell-btn.is-menu-row {
+  width: 100%; height: auto; min-height: 41px; padding: 8px 12px;
+  justify-content: flex-start; gap: 10px;
+  border: 1px solid transparent; border-radius: 11px;
+  background: transparent; box-shadow: none; color: #163d64;
+  font: inherit; font-size: 13px; font-weight: 800;
+}
+.menu-tools-row .notify-bell-btn.is-menu-row svg { color: #0878c9; flex: none; }
+.menu-tools-row .notify-bell-btn.is-menu-row:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .85), rgba(226, 240, 255, .7));
+  border-color: rgba(120, 170, 220, .7); color: #0a5fa6; transform: none; box-shadow: none;
+}
+.menu-tools-row .notify-bell-btn.is-menu-row.is-on { background: rgba(13, 142, 224, .12); color: #0a5fa6; }
+.menu-tools-row .notify-bell-btn.is-menu-row .notify-bell-caret { display: none; }
+.menu-tools-row .notify-bell-row-label { flex: 1; text-align: right; }
+.menu-tools-row .notify-bell-dot { inset-block-start: auto; inset-inline-start: 12px; inset-inline-end: auto; position: static; box-shadow: none; }
+html.dark .menu-sound-item { color: #cfe0f2; }
+html.dark .menu-sound-item svg { color: #6cc0f5; }
+html.dark .menu-tools-row .notify-bell-btn.is-menu-row { color: #cfe0f2; }
+html.dark .menu-tools-row .notify-bell-btn.is-menu-row svg { color: #6cc0f5; }
+
+/* --- 4) زر عدد الأعضاء في القائمة: أحمر والكتابة أبيض --- */
+.site-header .main-nav.header-dropdown-menu .header-menu-member-badge {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: 1.5px solid #f87171;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(185, 28, 28, .32), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+.site-header .main-nav.header-dropdown-menu .header-menu-member-badge svg { color: #ffffff; }
+.site-header .main-nav.header-dropdown-menu .header-menu-member-badge > span:first-of-type {
+  color: #ffffff; font-weight: 900; text-shadow: 0 1px 1px rgba(0, 0, 0, .22);
+}
+.site-header .main-nav.header-dropdown-menu .header-menu-member-badge .nav-count {
+  background: #ffffff; color: #b91c1c; font-weight: 900;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
+}
+
+/* --- 5) شاشة الصوت العائمة --- */
+.sound-sheet-overlay {
+  position: fixed; inset: 0; z-index: 140;
+  display: grid; place-items: center;
+  padding: 18px;
+  background: rgba(6, 24, 43, .55);
+  backdrop-filter: blur(4px);
+  animation: sound-sheet-fade .18s ease both;
+}
+@keyframes sound-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+.sound-sheet {
+  width: min(360px, 100%);
+  display: grid; gap: 12px;
+  padding: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, .8);
+  background: linear-gradient(180deg, #ffffff 0%, #f2f8ff 100%);
+  box-shadow: 0 30px 70px rgba(6, 30, 55, .4);
+  animation: sound-sheet-pop .24s cubic-bezier(.2, .9, .25, 1.1) both;
+}
+@keyframes sound-sheet-pop { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.sound-sheet-head { display: flex; align-items: center; gap: 9px; }
+.sound-sheet-badge {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px;
+  background: linear-gradient(160deg, #e8f3ff, #d6e9ff); color: #0b5fa8; flex: none;
+}
+.sound-sheet-head strong { flex: 1; font-size: 15.5px; font-weight: 900; color: #123a5e; }
+.sound-sheet-close {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px;
+  border: 1px solid #dce9f7; background: #fff; color: #40658a; cursor: pointer;
+}
+.sound-sheet-close:hover { background: #f1f7ff; color: #0b5fa8; }
+.sound-sheet-hint { margin: 0; font-size: 12px; font-weight: 700; line-height: 1.65; color: #5b7391; }
+.sound-sheet-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sound-option {
+  display: grid; justify-items: center; gap: 5px;
+  padding: 14px 8px 11px; border-radius: 16px; cursor: pointer;
+  border: 2px solid #dbe7f3; background: #f8fbff; color: #17395c;
+  font: inherit; font-size: 13px; font-weight: 900;
+  transition: border-color .18s, background .18s, transform .16s, box-shadow .18s;
+}
+.sound-option:hover { transform: translateY(-2px); border-color: #9dc6ee; box-shadow: 0 10px 20px -10px rgba(12, 78, 140, .5); }
+.sound-option-icon {
+  display: grid; place-items: center; width: 50px; height: 50px; border-radius: 15px;
+  background: linear-gradient(160deg, #e6f6ee, #cdeedd); color: #0b7a4a;
+}
+.sound-option.is-mute .sound-option-icon { background: linear-gradient(160deg, #ffeaea, #ffd5d5); color: #c0392b; }
+.sound-option-label { line-height: 1.4; }
+.sound-option-mark { min-height: 16px; font-size: 11px; font-weight: 900; color: #0b7a4a; }
+.sound-option.is-mute .sound-option-mark { color: #c0392b; }
+.sound-option.is-active { border-color: #16a34a; background: linear-gradient(180deg, #f2fdf7, #e3f8ec); box-shadow: 0 0 0 3px rgba(22, 163, 74, .14); }
+.sound-option.is-mute.is-active { border-color: #dc2626; background: linear-gradient(180deg, #fff6f6, #ffe8e8); box-shadow: 0 0 0 3px rgba(220, 38, 38, .14); }
+html.dark .sound-sheet { background: linear-gradient(180deg, #0f2437 0%, #0c1c2c 100%); border-color: #23465f; }
+html.dark .sound-sheet-head strong { color: #dbeafe; }
+html.dark .sound-sheet-hint { color: #9fb6cd; }
+html.dark .sound-sheet-badge { background: #16283c; color: #6cc0f5; }
+html.dark .sound-sheet-close { background: #142c42; border-color: #24445f; color: #b9d6f4; }
+html.dark .sound-option { background: #10293f; border-color: #24445f; color: #dbeafe; }
+html.dark .sound-option.is-active { background: #103626; border-color: #16a34a; }
+html.dark .sound-option.is-mute.is-active { background: #3a1414; border-color: #dc2626; }
+@media (max-width: 380px) { .sound-sheet-options { gap: 8px; } .sound-option { padding: 12px 6px 10px; font-size: 12px; } .sound-option-icon { width: 44px; height: 44px; border-radius: 13px; } }
