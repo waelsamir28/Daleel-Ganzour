@@ -11047,3 +11047,16 @@ html.dark .admin-ad-field-hint { color: #8fa6bd; }
   .admin-ad-expiry-actions { width: 100%; justify-content: flex-end; }
   .dafter-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ===== دفتر الأرقام: زر تحميل PDF المباشر ===== */
+.dafter-actions .button[disabled] { opacity: .75; cursor: progress; }
+.dafter-pdf-note {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  background: #eaf7f0; border: 1px solid #bfe6d2; color: #0b7a4a;
+  font-size: 11px; font-weight: 800;
+}
+.dafter-pdf-note.is-error { background: #fff4f4; border-color: #f5c2c2; color: #b91c1c; }
+.spin { animation: dafter-spin 1s linear infinite; }
+@keyframes dafter-spin { to { transform: rotate(360deg); } }
+@media print { .dafter-pdf-note { display: none !important; } }

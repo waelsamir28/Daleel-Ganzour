@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { BookOpen, Check, Layers, Printer, Save } from "lucide-react";
+import { BookOpen, Check, Download, Layers, LoaderCircle, Printer } from "lucide-react";
 import QrSvg from "@/components/qr-svg";
 import BarcodeSvg from "@/components/barcode-svg";
 import { barcodeValue } from "@/lib/barcode";
@@ -51,6 +51,10 @@ export default function DafterBook({
   utilityNumbers: Array<{ label: string; phone: string }>;
 }) {
   const [selected, setSelected] = useState<string>(ALL);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfStep, setPdfStep] = useState("");
+  const [pdfError, setPdfError] = useState("");
+  const bookRef = useRef<HTMLDivElement>(null);
   const credit = designCredit?.trim() || CREDIT;
   const total = sections.reduce((sum, section) => sum + section.specialties.reduce((count, specialty) => count + specialty.providers.length, 0), 0) + directProviders.length;
   const today = new Intl.DateTimeFormat("ar-EG", { month: "long", year: "numeric" }).format(new Date());
@@ -58,12 +62,70 @@ export default function DafterBook({
   const activeSection = sections.find((section) => section.id === selected) ?? null;
   const span = activeSection ? activeSection.specialties.reduce((sum, specialty) => sum + specialty.providers.length, 0) : total;
 
+  /** اسم ملف لطيف على أي نظام (حروف إنجليزية وأرقام بس). */
+  const fileSlug = (activeSection ? activeSection.id : "ganzour-book") + "-" + new Date().toISOString().slice(0, 10);
+
+  /**
+   * تحميل الدفتر PDF بضغطة واحدة (بدون نافذة طباعة):
+   * بنصوّر كل صفحة كصورة عالية الدقة في المتصفح، ونجمّعها في ملف PDF مقاس A4،
+   * ولو حاولنا والصفحة أطول من الورقة بنقسّمها لصفحتين.
+   * لو حصل أي خطأ (متصفح قديم مثلًا) بنرجع لنافذة الطباعة تلقائيًا.
+   */
+  const downloadPdf = useCallback(async () => {
+    if (pdfBusy) return;
+    setPdfError(""); setPdfBusy(true); setPdfStep("بنجهّز الصفحات…");
+    try {
+      const root = bookRef.current;
+      if (!root) throw new Error("no-root");
+      const sheets = Array.from(root.querySelectorAll<HTMLElement>(".dafter-sheet"));
+      if (!sheets.length) throw new Error("no-sheets");
+      if (document.fonts?.ready) await document.fonts.ready;
+      const [{ toCanvas }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+      const pageW = 210, pageH = 297, margin = 7;
+      const contentW = pageW - margin * 2;
+      let firstPage = true;
+      for (const [index, sheet] of sheets.entries()) {
+        setPdfStep(`بنجهّز الصفحة ${index + 1} من ${sheets.length}…`);
+        const canvas = await toCanvas(sheet, { pixelRatio: 2, backgroundColor: "#ffffff", cacheBust: true, width: sheet.offsetWidth, height: sheet.scrollHeight });
+        // لوحة اللوجو المائية صورة محلية — بنرسمها من جديد لو المتصفح ما لقطهاش.
+        const pxPerMm = canvas.width / contentW;
+        const sliceH = Math.floor((pageH - margin * 2) * pxPerMm);
+        for (let offset = 0; offset < canvas.height; offset += sliceH) {
+          const height = Math.min(sliceH, canvas.height - offset);
+          const slice = document.createElement("canvas");
+          slice.width = canvas.width; slice.height = height;
+          const context = slice.getContext("2d");
+          if (!context) throw new Error("no-canvas");
+          context.fillStyle = "#ffffff"; context.fillRect(0, 0, slice.width, slice.height);
+          context.drawImage(canvas, 0, offset, canvas.width, height, 0, 0, canvas.width, height);
+          if (!firstPage) pdf.addPage();
+          firstPage = false;
+          pdf.addImage(slice.toDataURL("image/jpeg", 0.94), "JPEG", margin, margin, contentW, height / pxPerMm, undefined, "FAST");
+        }
+      }
+      pdf.save(`${fileSlug}.pdf`);
+      setPdfStep("تم تحميل الدفتر ✅");
+      window.setTimeout(() => setPdfStep(""), 2600);
+    } catch {
+      setPdfError("تعذّر تجهيز الملف على المتصفح ده — فتحنا نافذة الطباعة، اختار «حفظ كـ PDF».");
+      window.print();
+    } finally {
+      setPdfBusy(false);
+    }
+  }, [pdfBusy, fileSlug]);
+
   return (
-    <div className={`dafter-book ${activeSection ? "is-single" : ""}`}>
+    <div className={`dafter-book ${activeSection ? "is-single" : ""}`} ref={bookRef}>
       <div className="dafter-actions">
-        <button type="button" className="button button-primary" onClick={() => window.print()}><Printer size={16}/> {activeSection ? `اطبع «${activeSection.name}»` : "طباعة / حفظ PDF"}</button>
-        <button type="button" className="button button-soft" onClick={() => window.print()}><Save size={16}/> حفظ PDF</button>
+        <button type="button" className="button button-primary" onClick={() => void downloadPdf()} disabled={pdfBusy} aria-busy={pdfBusy}>
+          {pdfBusy ? <LoaderCircle size={16} className="spin"/> : <Download size={16}/>}
+          {pdfBusy ? "بنجهّز الملف…" : activeSection ? `حمّل «${activeSection.name}» PDF` : "حمّل الدفتر PDF"}
+        </button>
+        <button type="button" className="button button-soft" onClick={() => window.print()}><Printer size={16}/> طباعة</button>
         <span>{span} رقم {activeSection ? `في قسم ${activeSection.name}` : `في ${sections.length} قسم`}</span>
+        {pdfStep && <span className="dafter-pdf-note" role="status">{pdfStep}</span>}
+        {pdfError && <span className="dafter-pdf-note is-error" role="alert">{pdfError}</span>}
       </div>
 
       <div className="dafter-filter" role="group" aria-label="اختيار القسم المطلوب طباعته">

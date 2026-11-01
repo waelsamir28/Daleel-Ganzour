@@ -586,3 +586,16 @@ test("printed booklet: one section at a time, two-row entries, ruled table, wate
   const page = readFileSync(new URL("../src/app/dafter/page.tsx", import.meta.url), "utf8");
   assert.ok(page.includes("logoUrl") && page.includes("designCredit"));
 });
+
+test("the booklet downloads as a real PDF in one click, with a print fallback", () => {
+  const book = readFileSync(new URL("../src/components/dafter-book.tsx", import.meta.url), "utf8");
+  assert.ok(book.includes('import("jspdf")') && book.includes('import("html-to-image")'));
+  assert.ok(book.includes("pdf.save(") && book.includes("toCanvas("));
+  assert.ok(book.includes("حمّل الدفتر PDF"));
+  // لو المتصفح ما قدرش يجهّز الملف، بيرجع لنافذة الطباعة تلقائيًا.
+  assert.ok(book.includes("window.print()"));
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  assert.ok(pkg.dependencies.jspdf && pkg.dependencies["html-to-image"]);
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".dafter-pdf-note {"));
+});
