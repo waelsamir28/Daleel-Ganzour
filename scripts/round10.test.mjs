@@ -193,9 +193,11 @@ test("install shortcuts and screen-reader helpers are wired", () => {
   assert.ok(css.includes(".skip-to-content"));
 });
 
-test("notification bell lives in the header as an elegant dropdown menu", () => {
+test("notification bell lives in the menu as an elegant dropdown panel", () => {
   const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
-  assert.ok(directory.includes('className="header-notify"'));
+  // الجرس خرج من الهيدر وبقى صف في القائمة بنفس القائمة المنسدلة الأنيقة.
+  assert.ok(directory.includes('className="header-notify menu-notify-item"'));
+  assert.ok(directory.includes('row="إشعارات جنزور"'));
   assert.ok(!directory.includes("footer-notify"));
   const bell = readFileSync(new URL("../src/components/notify-toggle.tsx", import.meta.url), "utf8");
   assert.ok(bell.includes('role="dialog"'));
@@ -249,7 +251,9 @@ test("quotes and seasonal screens are wired end to end", () => {
   const seasonalApi = readFileSync(new URL("../src/app/api/seasonal/route.ts", import.meta.url), "utf8");
   assert.ok(seasonalApi.includes("dueSeasonalReminders") && seasonalApi.includes("sendPushToAll"));
   const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
-  assert.ok(directory.includes("QuoteRequestModal") && directory.includes('className="quote-request-btn"') && directory.includes('setModal("quote")'));
+  // زر «اطلب عرض سعر» اتشال نهائيًا من الواجهة — الخدمة نفسها موجودة في الخادم ولوحة الإدارة.
+  assert.equal(directory.includes("quote-request-btn"), false);
+  assert.equal(directory.includes('setModal("quote")'), false);
   const admin = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
   for (const part of ["AdminQuotes", "AdminSeasonal"]) assert.ok(admin.includes(part));
   const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
@@ -423,7 +427,9 @@ test("section heading is one line on the right with the count under it and the b
   // زر المتابعة أيقونة فقط، وزر عرض السعر جنبه في نفس الصف.
   assert.ok(heading.includes("follow-toggle-icon"));
   assert.ok(heading.includes('aria-label={isFollowed ? "إلغاء متابعة التخصص" : "متابعة التخصص"}'));
-  assert.ok(heading.indexOf("follow-toggle-icon") < heading.indexOf("quote-request-btn"));
+  // زر «اطلب عرض سعر» اتشال نهائي من برواز العنوان.
+  assert.equal(heading.includes("quote-request-btn"), false);
+  assert.ok(heading.includes("follow-toggle-icon"));
   // سطر «كام مهنة مرتبطة» تحت العنوان.
   assert.ok(heading.includes("{providerCountLabel}"));
   assert.ok(directory.includes("`${filteredServices.length} مهنة مرتبطة`"));
@@ -440,4 +446,36 @@ test("admin category rows keep the title on a single line on mobile", () => {
   assert.ok(css.includes('"icon meta actions"'));
   assert.ok(css.includes(".category-management-row > div:nth-child(2) { display: contents; }"));
   assert.ok(css.includes("text-overflow: ellipsis;"));
+});
+
+test("header tools moved into the menu: sound sheet, notifications row, red members badge", () => {
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  const headerEnd = directory.indexOf('</header>');
+  const headerStart = directory.indexOf('<header');
+  const header = directory.slice(headerStart, headerEnd);
+  // مفيش جرس إشعارات ولا أيقونة صوت في الهيدر.
+  assert.equal(header.includes('className="sound-toggle'), false);
+  assert.equal(/<NotifyToggle[^>]*className="header-notify"(?![^>]*menu)/.test(header), false);
+  // الأدوات موجودة كصفوف في القائمة باسم واضح.
+  assert.ok(directory.includes('className="menu-tools-row"'));
+  assert.ok(directory.includes('row="إشعارات جنزور"'));
+  assert.ok(directory.includes('className="menu-sound-item"'));
+  assert.ok(directory.includes("setSoundSheetOpen(true)"));
+  // الشاشة العائمة: أيقونتين — تفعيل وكتم — وتقفل لوحدها بعد الاختيار.
+  const sheet = readFileSync(new URL("../src/components/sound-sheet.tsx", import.meta.url), "utf8");
+  assert.ok(sheet.includes("تفعيل الصوت") && sheet.includes("كتم الصوت"));
+  assert.ok(sheet.includes("onPick(false); onClose();") && sheet.includes("onPick(true); onClose();"));
+  assert.ok(sheet.includes("Volume2") && sheet.includes("VolumeX"));
+  // زر عدد الأعضاء أحمر والكتابة بيضاء.
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".header-menu-member-badge {\n  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);"));
+  // الجرس الدهبي بلمعان.
+  assert.ok(css.includes("animation: follow-bell-shine"));
+  assert.ok(css.includes("linear-gradient(160deg, #ffd54a 0%, #f6b81a 45%, #d99512 100%)"));
+});
+
+test("the ask-for-price button is gone for good", () => {
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.equal(directory.includes("quote-request-btn"), false);
+  assert.equal(directory.includes("QuoteRequestModal"), false);
 });

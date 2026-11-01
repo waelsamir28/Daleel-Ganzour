@@ -25,7 +25,7 @@ async function currentSubscription() {
   return registration.pushManager.getSubscription();
 }
 
-export default function NotifyToggle({ className = "", sections = [] }: { className?: string; sections?: NotifySection[] }) {
+export default function NotifyToggle({ className = "", sections = [], row }: { className?: string; sections?: NotifySection[]; row?: string }) {
   const [state, setState] = useState<State>("checking");
   const [publicKey, setPublicKey] = useState("");
   const [note, setNote] = useState("");
@@ -230,7 +230,7 @@ export default function NotifyToggle({ className = "", sections = [] }: { classN
       <button
         ref={buttonRef}
         type="button"
-        className={`notify-bell-btn ${on ? "is-on" : ""} ${open ? "is-open" : ""}`}
+        className={`notify-bell-btn ${on ? "is-on" : ""} ${open ? "is-open" : ""} ${row ? "is-menu-row" : ""}`}
         onClick={toggleOpen}
         aria-expanded={open}
         aria-haspopup="dialog"
@@ -240,7 +240,7 @@ export default function NotifyToggle({ className = "", sections = [] }: { classN
       >
         {busy ? <LoaderCircle size={18} className="spin"/> : on ? <BellRing size={18}/> : <Bell size={18}/>}
         {on && <span className="notify-bell-dot" aria-hidden="true"/>}
-        <ChevronDown size={12} className="notify-bell-caret" aria-hidden="true"/>
+        {row ? <span className="notify-bell-row-label">{row}</span> : <ChevronDown size={12} className="notify-bell-caret" aria-hidden="true"/>}
       </button>
       {panel}
     </div>
