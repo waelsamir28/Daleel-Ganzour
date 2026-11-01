@@ -546,11 +546,37 @@ export type ServiceRecord = {
   confirmedAt?: string;
   /** رقم إصدار الصورة الشخصية (0 = بدون صورة). */
   photoVersion?: number;
+  /** خانات معرض صور الأعمال المستخدمة («1,3» مثلًا، فاضي = بدون صور). */
+  gallerySlots?: string;
+  /** رقم إصدار معرض الصور — جزء من رابط كل صورة حتى تتجدد فورًا. */
+  galleryVersion?: number;
 };
 /** رابط الصورة الشخصية للمهني أو "" إن لم يرفع صورة. */
 export function servicePhotoUrl(service: Pick<ServiceRecord, "id" | "photoVersion">): string {
   return service.photoVersion ? `/api/service-photo/${service.id}?v=${service.photoVersion}` : "";
 }
+/** الحد الأقصى لعدد صور الأعمال في معرض المهني. */
+export const SERVICE_GALLERY_MAX = 4;
+/** أقصى حجم لأي ملف صورة عمل قبل الضغط في المتصفح (٣ ميجابايت). */
+export const SERVICE_GALLERY_MAX_FILE = 3 * 1024 * 1024;
+/** الحجم الذي نهبط تحته بعد الضغط في المتصفح — فتبقى الصورة بالكيلوبايت. */
+export const SERVICE_GALLERY_TARGET_BYTES = 260 * 1024;
+/** الحد الذي يقبله الخادم بعد الضغط. */
+export const SERVICE_GALLERY_MAX_BYTES = 300 * 1024;
+
+/** روابط صور الأعمال بالترتيب (خانات 1..4) — مصفوفة فاضية إن لم يرفع المهني صورًا. */
+export function serviceGalleryUrls(service: Pick<ServiceRecord, "id" | "gallerySlots" | "galleryVersion">): string[] {
+  const version = service.galleryVersion ?? 0;
+  if (!version) return [];
+  return (service.gallerySlots ?? "")
+    .split(",")
+    .map((part) => Number(part.trim()))
+    .filter((slot) => Number.isInteger(slot) && slot >= 1 && slot <= SERVICE_GALLERY_MAX)
+    .filter((slot, index, list) => list.indexOf(slot) === index)
+    .sort((a, b) => a - b)
+    .map((slot) => `/api/service-gallery/${service.id}/${slot}?v=${version}`);
+}
+
 /** رابط الصورة الشخصية لعضو الموقع (تحمل رقم الإصدار لتتجدد فورًا). */
 export function memberPhotoUrl(memberId: string, photoVersion: number): string {
   return photoVersion > 0 ? `/api/member-photo/${memberId}?v=${photoVersion}` : "";

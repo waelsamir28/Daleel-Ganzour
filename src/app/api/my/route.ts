@@ -8,6 +8,7 @@ import { sameOrigin } from "@/lib/auth";
 import { availabilityUpdate, AVAILABILITY_HOURS, parseServiceItems, parseCenterSchedule, parseServiceOffer, parseWorkingHours, withCenterSubjects, withServiceStages, TEACHER_CENTER_ID, type ServiceCompletionDraft } from "@/lib/catalog";
 import { queueAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { parsePhotoInput, saveServicePhoto } from "@/lib/service-photo";
+import { galleryPhotoInput, gallerySlotInput, saveServiceGalleryPhoto } from "@/lib/service-gallery";
 import { mirrorServicePhotoToMember } from "@/lib/member-profile";
 import { serviceDescriptionVariant } from "@/lib/service-description";
 
@@ -94,6 +95,17 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       await db.update(services).set({ confirmedAt: new Date() }).where(eq(services.id, service.id));
       const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
       return Response.json({ ok: true, service: serializeService(updated), message: photo ? "تم حفظ صورتك وظهورها على بطاقتك فورًا." : "تم حذف الصورة الشخصية." });
+    }
+
+    // gallery: صور الأعمال — حتى ٤ صور، كل صورة مصغّرة ومضغوطة في المتصفح (null = حذف الخانة).
+    if (body.action === "gallery") {
+      const slot = gallerySlotInput(body.slot);
+      const photo = galleryPhotoInput(body.photo ?? null);
+      const slots = await saveServiceGalleryPhoto(db, service.id, slot, photo);
+      if (photo) await db.insert(notifications).values({ type: "service-update", entityId: service.id, title: `صور أعمال جديدة من ${service.name}`, message: `أضاف صورة في معرض أعماله (${slots.length} من 4).` });
+      await db.update(services).set({ confirmedAt: new Date() }).where(eq(services.id, service.id));
+      const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
+      return Response.json({ ok: true, service: serializeService(updated), message: photo ? `تم حفظ صورة العمل (${slots.length} من 4).` : "تم حذف الصورة من المعرض." });
     }
 
     if (body.action === "confirm") {

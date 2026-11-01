@@ -617,3 +617,56 @@ test("sponsorship packages are gone from the whole app", () => {
     assert.throws(() => readFileSync(new URL(`../src/components/${file}`, import.meta.url), "utf8"), file);
   }
 });
+
+test("provider work gallery: four photos, 3 MB input, compressed to kilobytes", async () => {
+  const gallery = await loadLib("../src/lib/service-gallery-rules.ts");
+  assert.equal(gallery.SERVICE_GALLERY_MAX, 4);
+  assert.equal(gallery.SERVICE_GALLERY_MAX_FILE, 3 * 1024 * 1024);
+  assert.equal(gallery.SERVICE_GALLERY_MAX_BYTES, 300 * 1024);
+  assert.equal(gallery.gallerySlotList("2,4").join(","), "2,4");
+  // قراءة الصور: يرفض غير الصور ويقبل data URL مضغوط، ويحسب الحجم من base64.
+  assert.equal(gallery.parseGalleryPhoto(null), null);
+  assert.throws(() => gallery.parseGalleryPhoto("data:text/plain;base64,AAAA"));
+  assert.equal(gallery.parseGalleryPhoto("data:image/webp;base64," + "A".repeat(400)).mime, "image/webp");
+  // الخانات: 1..4 فقط، والقائمة المخزَّنة تُنظَّف وتُرتَّب.
+  assert.equal(gallery.gallerySlotList("3,1,1,9").join(","), "1,3");
+  assert.equal(gallery.gallerySlotNumber("2"), 2);
+  assert.throws(() => gallery.gallerySlotNumber(5));
+  assert.throws(() => gallery.gallerySlotNumber(0));
+
+  const client = readFileSync(new URL("../src/components/provider-gallery.tsx", import.meta.url), "utf8");
+  // تعليمات الحجم مكتوبة صراحة للعميل داخل شاشة الرفع.
+  assert.ok(client.includes("٣ ميجابايت"));
+  assert.ok(client.includes("بالكيلوبايت"));
+  assert.ok(client.includes("shrinkImageFile"));
+  assert.ok(client.includes("SERVICE_GALLERY_MAX_FILE"));
+  const account = readFileSync(new URL("../src/components/provider-account.tsx", import.meta.url), "utf8");
+  assert.ok(account.includes("ProviderGallery") && account.includes('call("gallery"'));
+  const route = readFileSync(new URL("../src/app/api/my/route.ts", import.meta.url), "utf8");
+  assert.ok(route.includes('body.action === "gallery"') && route.includes("saveServiceGalleryPhoto"));
+  const file = readFileSync(new URL("../src/app/api/service-gallery/[id]/[slot]/route.ts", import.meta.url), "utf8");
+  assert.ok(file.includes("serviceGallery") && file.includes("IMMUTABLE_IMAGE_HEADERS"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes('"directory_service_gallery"') && schema.includes("gallerySlots"));
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("CREATE TABLE IF NOT EXISTS directory_service_gallery"));
+  const strip = readFileSync(new URL("../src/components/service-gallery-strip.tsx", import.meta.url), "utf8");
+  assert.ok(strip.includes("serviceGalleryUrls") && strip.includes("صور من شغله"));
+  const page = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes("<ServiceGalleryStrip service={liveDetail ?? detail}"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".gallery-grid {") && css.includes(".gallery-rules {") && css.includes(".detail-gallery-strip {"));
+});
+
+test("suggestion 9: directory status shows on the lock splash screen", () => {
+  const splash = readFileSync(new URL("../src/components/splash-screen.tsx", import.meta.url), "utf8");
+  assert.ok(splash.includes("/api/status"));
+  assert.ok(splash.includes("حالة الدليل الآن"));
+  assert.ok(splash.includes("مقدّم خدمة") && splash.includes("مهنة وخدمة"));
+  const status = readFileSync(new URL("../src/app/api/status/route.ts", import.meta.url), "utf8");
+  assert.ok(status.includes("professions") && status.includes("providers") && status.includes("visits"));
+  // حالة الدليل لا تعطّل الشاشة ولا ترمي أخطاء لو القاعدة غير متصلة.
+  assert.ok(splash.includes("AbortController") && splash.includes(".catch("));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".splash-status-pill {") && css.includes(".splash-status-row {"));
+});

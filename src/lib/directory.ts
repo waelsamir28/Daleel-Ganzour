@@ -42,7 +42,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-10-31.8";
+export const SCHEMA_VERSION = "2026-11-02.9";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -118,6 +118,10 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ALTER COLUMN confirmed_at SET NOT NULL`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS photo_version integer NOT NULL DEFAULT 0`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_photos (service_id uuid PRIMARY KEY REFERENCES directory_services(id) ON DELETE CASCADE, mime varchar(60) NOT NULL DEFAULT 'image/webp', data text NOT NULL DEFAULT '', updated_at timestamptz NOT NULL DEFAULT now())`);
+      // معرض صور الأعمال: حتى ٤ صور لكل مهني (خانة 1..4)، كل صورة مضغوطة في المتصفح فتبقى بالكيلوبايت.
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS gallery_slots varchar(24) NOT NULL DEFAULT ''`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS gallery_version integer NOT NULL DEFAULT 0`);
+      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_gallery (service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE, slot integer NOT NULL, mime varchar(60) NOT NULL DEFAULT 'image/webp', data text NOT NULL DEFAULT '', updated_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY (service_id, slot))`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_member_profiles (member_id uuid PRIMARY KEY REFERENCES directory_members(id) ON DELETE CASCADE, photo_version integer NOT NULL DEFAULT 0, photo_mime varchar(60) NOT NULL DEFAULT 'image/webp', photo_data text NOT NULL DEFAULT '', email varchar(160) NOT NULL DEFAULT '', birth_date varchar(10) NOT NULL DEFAULT '', address varchar(200) NOT NULL DEFAULT '', bio text NOT NULL DEFAULT '', facebook varchar(300) NOT NULL DEFAULT '', whatsapp varchar(24) NOT NULL DEFAULT '', job_title varchar(120) NOT NULL DEFAULT '', updated_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_ad_banners (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), title varchar(120) NOT NULL, caption varchar(240) NOT NULL DEFAULT '', service_id uuid REFERENCES directory_services(id) ON DELETE SET NULL, whatsapp varchar(24) NOT NULL DEFAULT '', active boolean NOT NULL DEFAULT true, starts_at timestamptz, ends_at timestamptz, sort_order integer NOT NULL DEFAULT 0, duration_seconds integer NOT NULL DEFAULT 6, image_mime varchar(60) NOT NULL DEFAULT 'image/gif', image_data text NOT NULL DEFAULT '', image_version integer NOT NULL DEFAULT 1, created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`ALTER TABLE directory_ad_banners ADD COLUMN IF NOT EXISTS template varchar(40) NOT NULL DEFAULT ''`);

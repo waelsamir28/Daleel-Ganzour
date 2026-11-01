@@ -26,6 +26,7 @@ import { TickerText } from "@/components/ticker-text";
 import TeacherStageModal from "@/components/teacher-stage-modal";
 import CenterScheduleView from "@/components/center-schedule-view";
 import QrSvg from "@/components/qr-svg";
+import ServiceGalleryStrip from "@/components/service-gallery-strip";
 
 // تحميل كسول للمكوّنات التي لا تظهر إلا عند فتحها (نوافذ وأدوات الإدارة) لتخفيف الحزمة الأولى للصفحة الرئيسية.
 const AppInfoModal = dynamic(() => import("@/components/app-info-modal"), { ssr: false });
@@ -1330,6 +1331,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
           </div>
         )}
       </div>
+      <ServiceGalleryStrip service={liveDetail ?? detail} name={detail.name}/>
       {detail.menuUrl && <a className="button button-soft detail-menu-button" href={detail.menuUrl} target="_blank" rel="noopener noreferrer">عرض المنيو</a>}
 
       {!contactLocked && <div className="detail-popup-icons-bar detail-v2-triggers" role="group" aria-label="نوافذ التقييم ومواعيد العيادة">

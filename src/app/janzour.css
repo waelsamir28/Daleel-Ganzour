@@ -10687,3 +10687,88 @@ html.dark .admin-ad-field-hint { color: #8fa6bd; }
 .spin { animation: dafter-spin 1s linear infinite; }
 @keyframes dafter-spin { to { transform: rotate(360deg); } }
 @media print { .dafter-pdf-note { display: none !important; } }
+
+/* ===== معرض صور الأعمال (حتى ٤ صور لكل مهني) =====
+   الصور تُصغَّر وتُضغط في المتصفح قبل الرفع فتبقى بالكيلوبايت، وتظهر في بطاقة التفاصيل. */
+.provider-gallery { display: grid; gap: 12px; }
+.gallery-rules {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 12px 14px; border-radius: 16px;
+  background: linear-gradient(135deg, #eef6ff, #e8f1fd);
+  border: 1px solid #cfe2f7; color: #123a5f;
+}
+html.dark .gallery-rules { background: linear-gradient(135deg, #16283c, #12202f); border-color: #24445f; color: #d7e7f7; }
+.gallery-rules > svg { flex: none; margin-top: 2px; color: #0877e6; }
+.gallery-rules strong { display: block; font-size: 13.5px; font-weight: 900; line-height: 1.7; }
+.gallery-rules ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+.gallery-rules li { position: relative; padding-inline-start: 15px; font-size: 12.5px; line-height: 1.8; opacity: .92; }
+.gallery-rules li::before { content: "•"; position: absolute; inset-inline-start: 0; color: #0877e6; font-weight: 900; }
+.gallery-rules b { font-weight: 900; }
+
+.gallery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gallery-slot {
+  position: relative; display: grid; aspect-ratio: 1; place-items: center;
+  border-radius: 16px; overflow: hidden;
+  background: #f4f8fc; border: 1.5px dashed #bcd3e9; color: #6b8aa8;
+}
+.gallery-slot.has-photo { border-style: solid; border-color: #cfe2f7; background: #0c2238; }
+.gallery-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-slot-no {
+  position: absolute; inset-block-start: 8px; inset-inline-start: 8px;
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 8px;
+  background: #0c2238c9; color: #fff; font-size: 11px; font-weight: 900;
+}
+.gallery-slot-actions { position: absolute; inset-block-end: 8px; inset-inline: 8px; display: flex; gap: 6px; }
+.gallery-slot-actions button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 7px 8px; border-radius: 10px; border: 0; cursor: pointer;
+  background: #ffffffeb; color: #0c2238; font-size: 11.5px; font-weight: 800;
+  font-family: inherit; box-shadow: 0 4px 12px #0c223829;
+}
+.gallery-slot-actions button.is-danger { flex: none; padding: 7px 9px; background: #dc2626; color: #fff; }
+.gallery-slot-actions button:disabled { opacity: .6; cursor: default; }
+.gallery-slot-busy {
+  position: absolute; inset: 0; display: grid; place-items: center; gap: 6px;
+  background: #0c2238c9; color: #fff; font-size: 11.5px; font-weight: 800; text-align: center; padding: 8px;
+}
+.gallery-count { margin: 0; font-size: 11.5px; font-weight: 700; color: #6b8aa8; text-align: center; }
+.my-inline-status.is-error { color: #b91c1c; }
+
+/* شريط المعرض داخل بطاقة التفاصيل */
+.detail-gallery { display: grid; gap: 8px; margin: 12px 0; }
+.detail-gallery-head { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 900; color: #0c2238; }
+html.dark .detail-gallery-head { color: #dbe9f7; }
+.detail-gallery-head small { margin-inline-start: auto; font-size: 11px; font-weight: 700; color: #6b8aa8; }
+.detail-gallery-strip {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 104px;
+  gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.detail-gallery-thumb {
+  padding: 0; border: 0; cursor: pointer; border-radius: 14px; overflow: hidden;
+  aspect-ratio: 1; background: #eef4fa; scroll-snap-align: start;
+  box-shadow: 0 6px 16px #0c22381f; transition: transform .18s ease;
+}
+.detail-gallery-thumb:hover { transform: translateY(-2px); }
+.detail-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-gallery-viewer { display: grid; gap: 10px; }
+.detail-gallery-viewer img { width: 100%; height: auto; max-height: 62vh; object-fit: contain; border-radius: 16px; background: #0c2238; }
+.detail-gallery-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 800; }
+
+/* ===== حالة الدليل على شاشة القفل ===== */
+.splash-status { display: grid; justify-items: center; gap: 7px; animation: splash-fade-up .8s ease 1.25s both; }
+.splash-status-title { color: #9fc4e8; font-size: 11px; font-weight: 800; letter-spacing: .4px; }
+.splash-status-row { display: flex; gap: 8px; }
+.splash-status-pill {
+  display: grid; justify-items: center; gap: 1px; min-width: 82px;
+  padding: 7px 10px; border-radius: 14px;
+  background: #ffffff14; border: 1px solid #ffffff26; backdrop-filter: blur(6px);
+}
+.splash-status-pill b { color: #fff; font-size: 15px; font-weight: 900; line-height: 1.3; }
+.splash-status-pill small { color: #b9d4ee; font-size: 10px; font-weight: 700; }
+@media (max-width: 420px) {
+  .splash-status-pill { min-width: 72px; padding: 6px 8px; }
+  .splash-status-pill b { font-size: 13.5px; }
+  .splash-status-pill small { font-size: 9.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .splash-status { animation: none; } }
