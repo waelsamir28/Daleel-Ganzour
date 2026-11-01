@@ -151,6 +151,9 @@ export function applyDesignSettingsToDocument(design: DesignSettings = defaultDe
   root.setAttribute("data-design-splash-audience", design.splashAudience || "installed");
   root.setAttribute("data-design-splash-stickers", design.splashStickers === false ? "false" : "true");
   root.setAttribute("data-design-splash-orbit", design.splashOrbit === false ? "false" : "true");
+  // صوت شاشة البداية: يُشغَّل تلقائيًا على الرئيسية إن كان مفعّلًا ومرفوعًا (ويحترم كتم الصوت).
+  root.setAttribute("data-design-splash-audio", design.splashAudioEnabled && design.splashAudioUrl ? design.splashAudioUrl : "");
+  root.setAttribute("data-design-splash-audio-enabled", design.splashAudioEnabled && design.splashAudioUrl ? "true" : "false");
   // يُحفظ محليًا كي يقرأه السكربت الحاجب في <head> قبل أول رسم (لتفادي وميض الشاشة لزوار المتصفح حين تكون للتطبيق المثبّت فقط).
   try { localStorage.setItem("janzour-splash-audience", design.splashEnabled ? (design.splashAudience || "installed") : "off"); } catch { /* ignore */ }
   if (!design.splashEnabled) {

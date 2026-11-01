@@ -10772,3 +10772,21 @@ html.dark .detail-gallery-head { color: #dbe9f7; }
   .splash-status-pill small { font-size: 9.5px; }
 }
 @media (prefers-reduced-motion: reduce) { .splash-status { animation: none; } }
+
+/* ===== استوديو التصميم: رفع صوت شاشة البداية ===== */
+.audio-upload-field { display: grid; gap: 8px; }
+.audio-upload-field .image-upload-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: #123a5f; }
+html.dark .audio-upload-field .image-upload-label { color: #d7e7f7; }
+.audio-upload-body { display: grid; gap: 8px; }
+.audio-upload-drop {
+  display: grid; justify-items: center; gap: 4px; width: 100%;
+  padding: 18px 14px; border-radius: 16px; cursor: pointer;
+  background: #f4f8fc; border: 1.5px dashed #bcd3e9; color: #123a5f;
+  font-family: inherit; font-size: 13px; font-weight: 800; text-align: center;
+}
+html.dark .audio-upload-drop { background: #16283c; border-color: #24445f; color: #dbe9f7; }
+.audio-upload-drop small { font-size: 11px; font-weight: 600; color: #6b8aa8; line-height: 1.8; }
+.audio-upload-player { width: 100%; height: 40px; border-radius: 12px; }
+.audio-upload-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.audio-upload-meta { font-size: 11.5px; font-weight: 700; color: #6b8aa8; }
+.audio-upload-actions .button-soft.is-danger { color: #b91c1c; border-color: #f5c2c2; }

@@ -1442,6 +1442,10 @@ export type DesignSettings = {
   splashStickers: boolean;
   /** الحركة الثانية: دوران الملصقات في مدار دائري حول الشعار بعد اكتمال التجمع. */
   splashOrbit: boolean;
+  /** رابط مقطع صوت شاشة البداية المرفوع من الاستوديو (فارغ = بدون صوت). */
+  splashAudioUrl: string;
+  /** تشغيل المقطع تلقائيًا مع شاشة البداية (يلزم رفعه أولًا). */
+  splashAudioEnabled: boolean;
   // 7. Login & Register Customizer
   authShowBanner: boolean;
   /** بانر شاشة الدخول (فارغ = البانر الافتراضي المصمم للتطبيق). */
@@ -1634,6 +1638,8 @@ export const defaultDesignSettings: DesignSettings = {
   splashAudience: "installed",
   splashStickers: true,
   splashOrbit: true,
+  splashAudioUrl: "",
+  splashAudioEnabled: false,
   authShowBanner: true,
   authBannerImage: "",
   authBannerImageDark: "",
@@ -2243,6 +2249,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.splashAudience = pickEnum(record.splashAudience, ["installed", "all"] as const, defaultDesignSettings.splashAudience);
   next.splashStickers = pickBool(record.splashStickers, defaultDesignSettings.splashStickers);
   next.splashOrbit = pickBool(record.splashOrbit, defaultDesignSettings.splashOrbit);
+  next.splashAudioUrl = pickText(record.splashAudioUrl, defaultDesignSettings.splashAudioUrl, 300, true);
+  next.splashAudioEnabled = pickBool(record.splashAudioEnabled, defaultDesignSettings.splashAudioEnabled);
   // إعدادات قديمة (قبل إضافة حركة الدوران) كانت تحمل المدة الافتراضية القديمة 0.9 ثانية → تُرقّى إلى المدة الجديدة 12 ثانية
   // كي تظهر الحركتان كاملتين، مع احترام أي مدة اختارها المسؤول صراحةً بعد إضافة الخيار الجديد.
   if (typeof record.splashOrbit !== "boolean" && next.splashDuration === "900") next.splashDuration = defaultDesignSettings.splashDuration;
@@ -2842,6 +2850,26 @@ export function designImageSizeText(key: DesignImageKey) {
   return `${pxToCm(guide.width)} × ${pxToCm(guide.height)} سم (≈ ${guide.width} × ${guide.height} بكسل)`;
 }
 export function designImageUrl(key: DesignImageKey, version: number) { return `/api/design-image/${key}?v=${version}`; }
+/* ===== صوت شاشة البداية (يرفعه المسؤول من الاستوديو) ===== */
+/** مفتاح المقطع الصوتي الوحيد حاليًا: صوت شاشة البداية. */
+export const SPLASH_AUDIO_KEY = "splash";
+export function isDesignAudioKey(value: unknown): value is "splash" { return value === SPLASH_AUDIO_KEY; }
+/** أقصى حجم لمقطع الصوت المرفوع (٢ ميجابايت) — يكفي نحو ١٠ ثوانٍ بجودة عالية. */
+export const DESIGN_AUDIO_MAX_BYTES = 2 * 1024 * 1024;
+/** أقصى مدة مقترحة للمقطع: صوّرناها في الواجهة ونتحقق منها في المتصفح. */
+export const SPLASH_AUDIO_MAX_SECONDS = 20;
+export function designAudioUrl(key: string, version: number) { return `/api/design-audio/${key}?v=${version}`; }
+/** يتحقق من مقطع صوت مرفوع (MP3/M4A/WAV/OGG/WebM). */
+export function parseDesignAudioDataUrl(value: unknown): { mime: string; base64: string } {
+  if (typeof value !== "string" || !value) throw new Error("اختر ملف صوت من جهازك أولًا.");
+  const match = /^data:(audio\/(?:mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|wave|ogg|webm));base64,([A-Za-z0-9+/=\s]+)$/.exec(value.trim());
+  if (!match) throw new Error("صيغة الصوت غير مدعومة. ارفع MP3 أو M4A أو WAV أو OGG.");
+  const base64 = match[2].replace(/\s+/g, "");
+  const bytes = Math.floor((base64.length * 3) / 4) - (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
+  if (bytes < 1000) throw new Error("الملف الصوتي فارغ أو تالف.");
+  if (bytes > DESIGN_AUDIO_MAX_BYTES) throw new Error("الملف أكبر من 2 ميجابايت. اضغط المقطع (MP3 بجودة 96–128 كيلوبت) ثم ارفعه.");
+  return { mime: match[1], base64 };
+}
 /** يتحقق من صورة مظهر مرفوعة (PNG/JPG/WebP/GIF حتى 2 ميجابايت). */
 export function parseDesignImageDataUrl(value: unknown): { mime: string; base64: string } {
   if (typeof value !== "string") throw new Error("اختر صورة من جهازك أولًا.");

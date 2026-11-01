@@ -50,6 +50,7 @@ import DetailPreview from "@/components/detail-preview";
 import { MainCategoryIcon } from "@/components/ui";
 import SelectField from "@/components/select-field";
 import ImageUploadField from "@/components/image-upload-field";
+import AudioUploadField from "@/components/audio-upload-field";
 import { SPLASH_PREVIEW_EVENT } from "@/components/splash-screen";
 import { TickerText } from "@/components/ticker-text";
 
@@ -1723,12 +1724,17 @@ export default function DesignCustomizer({
                   </label>
                   <div className="field">
                     معاينة فورية
-                    <button type="button" className="button button-soft" onClick={() => { localStorage.setItem("janzour-splash-audience", draft.splashEnabled ? draft.splashAudience : "off"); document.documentElement.setAttribute("data-design-splash-stickers", draft.splashStickers ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-image", draft.splashImageUrl || defaultDesignSettings.splashImageUrl); document.documentElement.setAttribute("data-design-splash-duration", draft.splashDuration); document.documentElement.setAttribute("data-design-splash-orbit", draft.splashOrbit ? "true" : "false"); window.dispatchEvent(new CustomEvent(SPLASH_PREVIEW_EVENT)); }}>
+                    <button type="button" className="button button-soft" onClick={() => { localStorage.setItem("janzour-splash-audience", draft.splashEnabled ? draft.splashAudience : "off"); document.documentElement.setAttribute("data-design-splash-stickers", draft.splashStickers ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-image", draft.splashImageUrl || defaultDesignSettings.splashImageUrl); document.documentElement.setAttribute("data-design-splash-duration", draft.splashDuration); document.documentElement.setAttribute("data-design-splash-orbit", draft.splashOrbit ? "true" : "false"); document.documentElement.setAttribute("data-design-splash-audio", draft.splashAudioEnabled && draft.splashAudioUrl ? draft.splashAudioUrl : ""); document.documentElement.setAttribute("data-design-splash-audio-enabled", draft.splashAudioEnabled && draft.splashAudioUrl ? "true" : "false"); window.dispatchEvent(new CustomEvent(SPLASH_PREVIEW_EVENT)); }}>
                       <Sparkles size={16}/> معاينة شاشة البداية
                     </button>
                     <small className="input-help">تعرض الشاشة بالإعدادات الحالية (قبل الحفظ) لمدة ثانية ونصف على الأقل.</small>
                   </div>
                 </div>
+                <InnerDivider title="صوت شاشة البداية" />
+                <AudioUploadField value={draft.splashAudioUrl} onChange={(url) => { updateField("splashAudioUrl", url); if (!url) updateField("splashAudioEnabled", false); }}/>
+                <label className="checkbox-field"><input type="checkbox" checked={draft.splashAudioEnabled && Boolean(draft.splashAudioUrl)} disabled={!draft.splashAudioUrl} onChange={(e) => updateField("splashAudioEnabled", e.target.checked)}/>تشغيل المقطع تلقائيًا مع فتح التطبيق (شاشة البداية)</label>
+                <small className="input-help">المتصفحات تمنع الصوت التلقائي قبل أي تفاعل من الزائر؛ لو اتمنع، المقطع يشتغل مع أول لمسة على الشاشة. ويحترم زر «كتم الصوت» الموجود في الموقع، ويشتغل مرة واحدة في الجلسة. المقاس المناسب: ١٠ ثوانٍ، MP3 بجودة 96–128 كيلوبت (≈ ١٠٠–١٥٠ كيلوبايت).</small>
+
                 <label className="checkbox-field"><input type="checkbox" checked={draft.splashStickers} onChange={(e) => updateField("splashStickers", e.target.checked)}/>الحركة الأولى: ملصقات الأقسام 3D تتجمع حول الشعار في شاشة البداية</label>
                 <label className="checkbox-field"><input type="checkbox" checked={draft.splashOrbit} onChange={(e) => updateField("splashOrbit", e.target.checked)}/>الحركة الثانية: الملصقات تدور في مدار دائري حول الشعار بعد اكتمال التجمع</label>
                 <small className="input-help">المسافة بين الشعار والملصقات محسوبة تلقائيًا حتى لا تتراكب معه على أي مقاس شاشة. أي ضغطة على شاشة البداية تتخطاها فورًا.</small>

@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { after } from "next/server";
 import { and, asc, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { adBanners, adRequests, categoryIcons, communityListings, designImages, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
+import { adBanners, adRequests, categoryIcons, communityListings, designAudio, designImages, villageEvents, directoryAreas, directoryCategories, directorySettings, members, memberSessions, notifications, serviceRatings, services } from "@/db/schema";
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { pushApprovedRating, pushNewProvider } from "@/lib/push";
 import { ICON_LIMITS, autoTransparentKey, designImageLimits, optimizeStoredImage, removeFlatBackground } from "@/lib/image-optimize";
@@ -10,7 +10,7 @@ import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, wit
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { saveServicePhoto } from "@/lib/service-photo";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
-import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isDesignImageKey, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, parseDesignImageDataUrl, designImageUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers, sanitizeAdminPalette } from "@/lib/catalog";
+import { AD_MAX_COUNT, AD_MAX_SECONDS, AD_MIN_SECONDS, availabilityUpdate, getAdTemplate, isAdMotion, isAdTemplateId, isAdTransition, isEventKind, isDesignImageKey, isDesignAudioKey, isHexColor, parseAdImageDataUrl, parseCategoryIconDataUrl, parseDesignImageDataUrl, parseDesignAudioDataUrl, designAudioUrl, designImageUrl, sanitizeAdPricing, sanitizeGreetingSettings, sanitizeDesignSettings, sanitizeUtilityNumbers, sanitizeAdminPalette } from "@/lib/catalog";
 import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-alert";
 import { sanitizeTelecomSettings } from "@/lib/telecom-settings";
 import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
@@ -110,6 +110,24 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       return Response.json({ ok: true, detail: result.detail });
     }
     // صور المظهر (لوجو/سبلاش/بانرات): رفع من الجهاز بدل اللينك. data URL = رفع/استبدال، "__remove__" = حذف.
+    // صوت شاشة البداية: يرفعه المسؤول كملف صوتي قصير (حتى ٢ ميجابايت) ويُخزَّن في القاعدة.
+    if (body.type === "design-audio") {
+      if (!isDesignAudioKey(body.key)) throw new InputError("نوع الصوت غير معروف.");
+      if (body.audio === "__remove__") {
+        await db.delete(designAudio).where(eq(designAudio.key, body.key));
+        await logActivity(actor, "POST", body, `حذف صوت شاشة البداية (${body.key})`);
+        return Response.json({ ok: true, url: "" });
+      }
+      let audio: { mime: string; base64: string };
+      try { audio = parseDesignAudioDataUrl(body.audio); }
+      catch (error) { throw new InputError(error instanceof Error ? error.message : "ملف الصوت غير صحيح."); }
+      const [row] = await db.insert(designAudio).values({ key: body.key, mime: audio.mime, data: audio.base64, version: 1, updatedAt: new Date() })
+        .onConflictDoUpdate({ target: designAudio.key, set: { mime: audio.mime, data: audio.base64, version: sql`${designAudio.version} + 1`, updatedAt: new Date() } })
+        .returning({ version: designAudio.version });
+      await logActivity(actor, "POST", body, `رفع صوت شاشة البداية (${body.key})`);
+      return Response.json({ ok: true, url: designAudioUrl(body.key, row?.version ?? 1) });
+    }
+
     if (body.type === "design-image") {
       if (!isDesignImageKey(body.key)) throw new InputError("نوع الصورة غير معروف.");
       if (body.image === "__remove__") {
