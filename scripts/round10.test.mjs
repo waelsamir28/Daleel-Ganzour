@@ -193,21 +193,15 @@ test("install shortcuts and screen-reader helpers are wired", () => {
   assert.ok(css.includes(".skip-to-content"));
 });
 
-test("notification bell lives in the menu as an elegant dropdown panel", () => {
+test("the public notification bell is gone, admin notifications stay", () => {
   const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
-  // الجرس خرج من الهيدر وبقى صف في القائمة بنفس القائمة المنسدلة الأنيقة.
-  assert.ok(directory.includes('className="header-notify menu-notify-item"'));
-  assert.ok(directory.includes('row="إشعارات جنزور"'));
-  assert.ok(!directory.includes("footer-notify"));
-  const bell = readFileSync(new URL("../src/components/notify-toggle.tsx", import.meta.url), "utf8");
-  assert.ok(bell.includes('role="dialog"'));
-  assert.ok(bell.includes("aria-expanded={open}"));
-  assert.ok(bell.includes("createPortal"));
-  assert.ok(bell.includes("Escape"));
-  assert.ok(bell.includes("notify-menu-chips"));
+  // جرس إشعارات الزوار اتشال خالص من الهيدر ومن القائمة.
+  assert.equal(directory.includes("NotifyToggle"), false);
+  assert.equal(directory.includes("notify-bell"), false);
+  // إشعارات الإدارة باقية في القائمة.
+  assert.ok(directory.includes("إشعارات الإدارة"));
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
-  for (const part of [".notify-bell-btn", ".notify-menu-head", ".notify-menu-chips", ".notify-menu-cta"]) assert.ok(css.includes(part), part);
-  assert.ok(css.includes("html.dark .notify-menu"));
+  assert.ok(css.includes(".notify-menu-head"));
 });
 
 // ===== دفعة ١٣: عروض الأسعار من ٣ مهنيين + التذكيرات الموسمية =====
@@ -448,17 +442,17 @@ test("admin category rows keep the title on a single line on mobile", () => {
   assert.ok(css.includes("text-overflow: ellipsis;"));
 });
 
-test("header tools moved into the menu: sound sheet, notifications row, red members badge", () => {
+test("header tools moved into the menu: sound sheet and red members badge", () => {
   const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
   const headerEnd = directory.indexOf('</header>');
   const headerStart = directory.indexOf('<header');
   const header = directory.slice(headerStart, headerEnd);
   // مفيش جرس إشعارات ولا أيقونة صوت في الهيدر.
   assert.equal(header.includes('className="sound-toggle'), false);
-  assert.equal(/<NotifyToggle[^>]*className="header-notify"(?![^>]*menu)/.test(header), false);
+  assert.equal(header.includes("NotifyToggle"), false);
   // الأدوات موجودة كصفوف في القائمة باسم واضح.
   assert.ok(directory.includes('className="menu-tools-row"'));
-  assert.ok(directory.includes('row="إشعارات جنزور"'));
+  assert.equal(directory.includes("إشعارات جنزور"), false);
   assert.ok(directory.includes('className="menu-sound-item"'));
   assert.ok(directory.includes("setSoundSheetOpen(true)"));
   // الشاشة العائمة: أيقونتين — تفعيل وكتم — وتقفل لوحدها بعد الاختيار.

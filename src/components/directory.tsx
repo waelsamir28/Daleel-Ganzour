@@ -8,7 +8,6 @@ import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSetting
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
-import NotifyToggle from "@/components/notify-toggle";
 import SoundSheet from "@/components/sound-sheet";
 import MissingProfessionModal from "@/components/missing-profession-modal";
 import { openInstallAppModal } from "@/components/install-app-modal";
@@ -690,7 +689,6 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             </button>
           )}
           <div className="menu-tools-row">
-            <NotifyToggle className="header-notify menu-notify-item" row="إشعارات جنزور" sections={categories.filter((category) => !category.parentId && category.active).map((category) => ({ id: category.id, name: category.name }))}/>
             <button type="button" className="menu-sound-item" onClick={() => { setMenuOpen(false); setSoundSheetOpen(true); }}>
               {soundMuted ? <VolumeX size={17}/> : <Volume2 size={17}/>}
               <span>الصوت</span>
