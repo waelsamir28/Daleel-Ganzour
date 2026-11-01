@@ -473,3 +473,30 @@ test("the ask-for-price button is gone for good", () => {
   assert.equal(directory.includes("quote-request-btn"), false);
   assert.equal(directory.includes("QuoteRequestModal"), false);
 });
+
+test("ad strip matches the marquee strip and the missing-profession button moved into the action frame", () => {
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  // ارتفاع موحّد للشريطين.
+  assert.ok(css.includes(":root { --strip-h: 50px; }"));
+  assert.ok(css.includes(".site-announcement-ticker-card { min-height: var(--strip-h);"));
+  assert.ok(css.includes("height: calc(var(--strip-h) - 4px);"));
+  // الإعلان بعرض الشريط الكامل.
+  assert.ok(css.includes("  width: 100%;\n  max-width: none;\n  margin: 0 auto 12px;"));
+  // القوالب الجاهزة بتتصغّر.
+  assert.ok(css.includes(".ad-rotator-stage .ad-art {"));
+  assert.ok(css.includes(".ad-rotator-stage .ad-art-copy strong { font-size: clamp(0.8rem, 3cqw, 1.02rem);"));
+  // زر «مهنة ناقصة» أحمر بنفس مقاس الزرّين التانيين.
+  assert.ok(css.includes(".categories-top-action-frame .missing-profession-btn {"));
+  assert.ok(css.includes("grid-template-columns: repeat(3, minmax(0, 1fr));"));
+
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  // الزر اتحذف من الفوتر.
+  const footer = directory.slice(directory.indexOf("<footer"), directory.indexOf("</footer>"));
+  assert.equal(footer.includes("مهنة ناقصة"), false);
+  // وبقى في إطار البحث والإضافة (النسختين) بنفس مقاس البحث وأضف مهنتك.
+  assert.equal((directory.match(/className="missing-profession-btn"/g) ?? []).length, 2);
+  const frame = directory.slice(directory.indexOf('className="categories-top-action-frame"'), directory.indexOf('className="categories-top-action-frame"') + 1200);
+  assert.ok(frame.includes("missing-profession-btn"));
+  assert.ok(frame.includes("compact-add-service-btn"));
+  assert.ok(frame.includes("search-icon-only-trigger-btn"));
+});
