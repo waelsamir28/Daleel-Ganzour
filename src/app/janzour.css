@@ -10511,3 +10511,136 @@ html.dark .welcome-dismiss { color: #8fa6bd; }
   .welcome-card h2 { font-size: 18.5px; }
   .welcome-emoji { font-size: 38px; }
 }
+
+/* =========================================================================
+   Round 17: عنوان القسم في سطر واحد + زر «اطلب عرض سعر» راكب على حد البرواز
+   + صفوف إدارة التصنيفات في سطر واحد بدون تكسير
+   ========================================================================= */
+
+/* --- عنوان القسم: سطر واحد، في المنتصف --- */
+.providers-section .section-heading.directory-section-heading {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  text-align: center !important;
+  padding: 13px 12px 12px;
+}
+.providers-section .section-heading.directory-section-heading > .section-heading-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+}
+.providers-section .directory-section-heading h2 {
+  white-space: nowrap;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 6px 16px;
+  font-size: clamp(13.5px, 3.9vw, 17px);
+  line-height: 1.5;
+}
+.providers-section .directory-section-heading h2 > svg {
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+  flex: none;
+}
+.providers-section .directory-section-heading .section-heading-count {
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  color: #7189a1;
+}
+.providers-section .directory-section-heading .section-heading-actions {
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.providers-section .directory-section-heading .section-heading-actions:empty { display: none; }
+
+/* --- زر طلب عرض السعر: في المنتصف ويركب على الجزء السفلي من برواز العنوان --- */
+.providers-section .section-heading.directory-section-heading .quote-request-btn {
+  position: relative;
+  z-index: 3;
+  margin: -15px auto 0;
+  padding: 8px 18px;
+  font-size: 12.5px;
+  border-width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fffdf8 0%, #ffedcf 100%);
+  box-shadow: 0 8px 18px rgba(180, 110, 10, .22), inset 0 1px 0 #fff;
+  transition: transform .16s ease, box-shadow .18s ease, background .18s ease;
+}
+.providers-section .section-heading.directory-section-heading .quote-request-btn:active { transform: translateY(1px); }
+html.dark .providers-section .section-heading.directory-section-heading .quote-request-btn {
+  background: linear-gradient(180deg, #3a2a12 0%, #241a0b 100%);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+/* --- لوحة الإدارة: صفوف التصنيفات والتخصصات — العنوان في سطر واحد --- */
+.category-management-heading h3 { white-space: nowrap; min-width: 0; }
+.category-management-heading h3 > span { flex: none; }
+.category-management-row { min-width: 0; }
+.category-management-row strong { min-width: 0; }
+
+@media (max-width: 600px) {
+  .category-management-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "icon name badge"
+      "icon meta actions";
+    align-items: center;
+    gap: 2px 8px;
+    padding: 9px 4px;
+  }
+  .category-management-row > svg { grid-area: icon; align-self: center; flex: none; }
+  .category-management-row > div:nth-child(2) { display: contents; }
+  .category-management-row strong {
+    grid-area: name;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .category-management-row > div > span {
+    grid-area: meta;
+    margin-top: 0;
+    font-size: 9.5px;
+    white-space: nowrap;
+  }
+  .category-management-row > .status-badge {
+    grid-area: badge;
+    justify-self: end;
+    padding: 1px 8px;
+    font-size: 10px;
+    line-height: 1.7;
+  }
+  .category-management-row > .category-management-actions {
+    grid-area: actions;
+    justify-self: end;
+    gap: 3px;
+    flex-wrap: nowrap;
+  }
+  .category-management-row .category-management-actions > .icon-button { width: 27px; height: 27px; border-radius: 7px; }
+  .category-management-row .category-order-arrows { gap: 2px; margin-inline-end: 2px; }
+  .category-management-row .category-order-arrows .icon-button { width: 27px; height: 27px; }
+}
+
+@media (max-width: 400px) {
+  .providers-section .directory-section-heading h2 { font-size: 12.5px; padding: 6px 12px; gap: 6px; }
+  .providers-section .directory-section-heading h2 > svg { width: 23px; height: 23px; padding: 3px; }
+  .providers-section .section-heading.directory-section-heading .quote-request-btn { margin-top: -14px; padding: 7px 15px; font-size: 12px; }
+}
