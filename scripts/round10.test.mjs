@@ -599,3 +599,21 @@ test("the booklet downloads as a real PDF in one click, with a print fallback", 
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
   assert.ok(css.includes(".dafter-pdf-note {"));
 });
+
+test("sponsorship packages are gone from the whole app", () => {
+  const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.equal(admin.includes("AdminSponsors"), false);
+  assert.equal(admin.includes("باقات الرعاية"), false);
+  assert.equal(admin.includes('"sponsors"'), false);
+  const pkg = readFileSync(new URL("../package.json", import.meta.url), "utf8");
+  assert.ok(pkg.length > 0);
+  const catalog = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
+  for (const gone of ["SponsoredProviderConfig", "parseSponsoredProviders", "getSponsorTrialStatus", "sponsorModalEnabled", "sponsoredProvidersJson"]) {
+    assert.equal(catalog.includes(gone), false, `${gone} should be deleted`);
+  }
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.equal(/sponsor/i.test(css), false);
+  for (const file of ["admin-sponsors.tsx", "sponsorship-modal.tsx"]) {
+    assert.throws(() => readFileSync(new URL(`../src/components/${file}`, import.meta.url), "utf8"), file);
+  }
+});

@@ -1548,204 +1548,14 @@ export type DesignSettings = {
   outerCardStyle: "modern" | "bordered" | "soft-gradient";
   searchTriggerStyle: "pill-gradient" | "glass-outline" | "gold-accent";
   badgesDefaultOpen: boolean;
-  // 12. Sponsorship & VIP Packages (باقات الرعاية والتميز)
-  sponsorModalEnabled: boolean;
-  sponsorModalDelaySeconds: number;
-  sponsorModalTitle: string;
-  sponsorModalSubtitle: string;
-  sponsorModalOfferBanner: string;
-  sponsorModalPhone: string;
-  showDailyOffersSection: boolean;
-  showSponsorsRibbon: boolean;
-  sponsoredProvidersJson: string;
-  // 13. Dark Mode Palette & Shimmer Animations
+  // 12. Dark Mode Palette & Shimmer Animations
+
   darkPageBgColor: string;
   darkCardBgColor: string;
   darkBorderColor: string;
   darkPrimaryColor: string;
   shimmerEffectEnabled: boolean;
 };
-
-export type SponsoredProviderConfig = {
-  serviceId: string;
-  providerName: string;
-  categoryName: string;
-  phone: string;
-  active: boolean;
-  planType: "trial-10-days" | "monthly-vip";
-  badgeLabel: string;
-  dailyOfferTitle: string;
-  dailyOfferDiscount: string;
-  tickerAdText: string;
-  trialStartDate: string;
-};
-
-export type SponsorTrialStatus = {
-  isTrial: boolean;
-  totalDays: number;
-  elapsedDays: number;
-  remainingDays: number;
-  isExpired: boolean;
-  isExpiringSoon: boolean;
-  progressPercent: number;
-  statusLabel: string;
-  endDateFormatted: string;
-  tone: "emerald" | "amber" | "red" | "gold";
-};
-
-export function getSponsorTrialStatus(
-  sponsor: Pick<SponsoredProviderConfig, "planType" | "trialStartDate">,
-  nowInput: Date | number = new Date(),
-): SponsorTrialStatus {
-  const totalDays = 10;
-  const nowDate = typeof nowInput === "number" ? new Date(nowInput) : nowInput;
-  const nowUtcMidnight = Date.UTC(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
-
-  const parts = (sponsor.trialStartDate || "").split("-").map((n) => Number.parseInt(n, 10));
-  const startUtcMidnight =
-    parts.length === 3 && parts.every((n) => Number.isFinite(n))
-      ? Date.UTC(parts[0], parts[1] - 1, parts[2])
-      : nowUtcMidnight;
-
-  const endUtc = startUtcMidnight + totalDays * 86_400_000;
-  const endDateObj = new Date(endUtc);
-  const endDateFormatted = `${endDateObj.getUTCFullYear()}-${String(endDateObj.getUTCMonth() + 1).padStart(2, "0")}-${String(endDateObj.getUTCDate()).padStart(2, "0")}`;
-
-  if (sponsor.planType === "monthly-vip") {
-    return {
-      isTrial: false,
-      totalDays: 30,
-      elapsedDays: 0,
-      remainingDays: 30,
-      isExpired: false,
-      isExpiringSoon: false,
-      progressPercent: 100,
-      statusLabel: "👑 اشتراك باقة التميز VIP مفعل",
-      endDateFormatted,
-      tone: "gold",
-    };
-  }
-
-  const rawDiffDays = Math.floor((nowUtcMidnight - startUtcMidnight) / 86_400_000);
-  const elapsedDays = Math.max(0, rawDiffDays);
-  const remainingDays = Math.max(0, totalDays - elapsedDays);
-  const isExpired = elapsedDays >= totalDays;
-  const isExpiringSoon = !isExpired && remainingDays <= 3;
-  const progressPercent = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
-
-  let statusLabel = `⏳ التجربة المجانية سارية — متبقي ${remainingDays} أيام من ١٠ (مضى ${elapsedDays} يوم)`;
-  let tone: SponsorTrialStatus["tone"] = "emerald";
-
-  if (isExpired) {
-    statusLabel = "🚨 انتهت الـ ١٠ أيام المجانية — بانتظار تجديد الاشتراك!";
-    tone = "red";
-  } else if (isExpiringSoon) {
-    statusLabel = `⚠️ قاربت التجربة على الانتهاء — متبقي ${remainingDays} أيام فقط (مضى ${elapsedDays} يوم)`;
-    tone = "amber";
-  }
-
-  return {
-    isTrial: true,
-    totalDays,
-    elapsedDays,
-    remainingDays,
-    isExpired,
-    isExpiringSoon,
-    progressPercent,
-    statusLabel,
-    endDateFormatted,
-    tone,
-  };
-}
-
-export type DailyOfferFilterGroup = "all" | "clinics" | "labs" | "shops";
-
-export function getSponsorOfferCategoryGroup(
-  sponsor: Pick<SponsoredProviderConfig, "serviceId" | "categoryName" | "providerName">,
-  services: ServiceRecord[] = [],
-  catalog: CategoryRecord[] = initialCategories,
-): Exclude<DailyOfferFilterGroup, "all"> {
-  const matched = services.find((srv) => srv.id === sponsor.serviceId);
-  if (matched) {
-    const cat = getCategory(matched.category, catalog);
-    const rootId = cat.parentId ?? cat.id;
-    if (rootId === "clinics") return "clinics";
-    if (rootId === "labs") return "labs";
-    if (rootId === "shops") return "shops";
-  }
-  const text = normalizeSearch(`${sponsor.categoryName} ${sponsor.providerName}`);
-  if (/معمل|تحاليل|اشعه|مختبر/.test(text)) return "labs";
-  if (/عياد|طبيب|دكتور|د\.|اسنان|اطفال|باطن|نساء|عظام|جلدي|عيون|علاج طبيعي/.test(text)) return "clinics";
-  return "shops";
-}
-
-export const defaultSponsoredProviders: SponsoredProviderConfig[] = [
-  {
-    serviceId: "00000000-0000-4000-8000-000000000007",
-    providerName: "د. سارة أحمد — عيادة طب الأسرة والباطنة",
-    categoryName: "العيادات والأطباء",
-    phone: OFFICE_PHONE,
-    active: true,
-    planType: "trial-10-days",
-    badgeLabel: "راعي معتمد 👑",
-    dailyOfferTitle: "حجز كشف واستشارة طبية فورية عبر واتساب مع متابعة دورية شاملة لأهالي جنزور",
-    dailyOfferDiscount: "حجز مباشر 🩺",
-    tickerAdText: "👑 عيادة د. سارة أحمد لطب الأسرة والباطنة — متاح الآن الحجز والاستفسار المباشر عبر دليل قرية جنزور",
-    trialStartDate: "2026-10-13",
-  },
-  {
-    serviceId: "sponsor-demo-lab",
-    providerName: "معمل التحاليل الطبية الشامل بجنزور (نموذج باقة التميز)",
-    categoryName: "معامل التحاليل",
-    phone: OFFICE_PHONE,
-    active: true,
-    planType: "trial-10-days",
-    badgeLabel: "راعي معتمد 👑",
-    dailyOfferTitle: "خصم ٢٠٪ على باقة الفحص الشامل + خدمة سحب العينات من المنزل وإرسال النتيجة على واتساب",
-    dailyOfferDiscount: "خصم ٢٠٪ 🔥",
-    tickerAdText: "👑 عرض خاص بمعامل التحاليل المشتركة في باقة التميز: خصومات لأهالي جنزور وسحب عينات من المنزل",
-    trialStartDate: "2026-10-13",
-  },
-  {
-    serviceId: "sponsor-demo-shop",
-    providerName: "عروض المحلات والسوبر ماركت بجنزور (نموذج باقة التميز)",
-    categoryName: "المحلات التجارية",
-    phone: OFFICE_PHONE,
-    active: true,
-    planType: "trial-10-days",
-    badgeLabel: "راعي معتمد 👑",
-    dailyOfferTitle: "اطلب احتياجات منزلك من المنيو التفاعلي بالأسعار مع توصيل سريع لباب البيت في جنزور",
-    dailyOfferDiscount: "توصيل مجاني 🛵",
-    tickerAdText: "👑 انضم الآن لباقة الرعاية والتميز للعيادات والمعامل والمحلات بقرية جنزور — ١٠ أيام تجربة مجانية كاملة!",
-    trialStartDate: "2026-10-13",
-  },
-];
-
-export function parseSponsoredProviders(jsonText: string | undefined | null): SponsoredProviderConfig[] {
-  if (!jsonText || !jsonText.trim()) return defaultSponsoredProviders;
-  try {
-    const parsed = JSON.parse(jsonText);
-    if (!Array.isArray(parsed)) return defaultSponsoredProviders;
-    return parsed
-      .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
-      .map((item) => ({
-        serviceId: typeof item.serviceId === "string" ? item.serviceId.trim() : "",
-        providerName: typeof item.providerName === "string" ? item.providerName.trim().slice(0, 140) : "",
-        categoryName: typeof item.categoryName === "string" ? item.categoryName.trim().slice(0, 80) : "العيادات والمعامل والمحلات",
-        phone: typeof item.phone === "string" && item.phone.trim() ? item.phone.trim().slice(0, 30) : OFFICE_PHONE,
-        active: typeof item.active === "boolean" ? item.active : true,
-        planType: item.planType === "monthly-vip" ? ("monthly-vip" as const) : ("trial-10-days" as const),
-        badgeLabel: typeof item.badgeLabel === "string" && item.badgeLabel.trim() ? item.badgeLabel.trim().slice(0, 60) : "راعي معتمد 👑",
-        dailyOfferTitle: typeof item.dailyOfferTitle === "string" ? item.dailyOfferTitle.trim().slice(0, 260) : "",
-        dailyOfferDiscount: typeof item.dailyOfferDiscount === "string" ? item.dailyOfferDiscount.trim().slice(0, 50) : "عرض مميز 🔥",
-        tickerAdText: typeof item.tickerAdText === "string" ? item.tickerAdText.trim().slice(0, 260) : "",
-        trialStartDate: typeof item.trialStartDate === "string" ? item.trialStartDate.trim().slice(0, 30) : "2026-10-13",
-      }))
-      .filter((item) => Boolean(item.serviceId || item.providerName));
-  } catch {
-    return defaultSponsoredProviders;
-  }
-}
 
 export const defaultDesignSettings: DesignSettings = {
   themePreset: "win11-bloom",
@@ -1882,17 +1692,6 @@ export const defaultDesignSettings: DesignSettings = {
   outerCardStyle: "modern",
   searchTriggerStyle: "pill-gradient",
   badgesDefaultOpen: false,
-  sponsorModalEnabled: false,
-  sponsorModalDelaySeconds: 10,
-  sponsorModalTitle: "باقات الرعاية والتميز للعيادات والمعامل والمحلات التجارية",
-  sponsorModalSubtitle:
-    "دليل قرية جنزور خدمة مجانية ١٠٠٪ لوجه الله لجميع المهن والحرفيين والأهالي.. ولضمان استمرار الموقع وتطويره بأعلى جودة، خصصنا (باقة الرعاية والتميز الذهبية) للعيادات والمعامل والمحلات التجارية الراغبة في ظهور استثنائي وخدمات إلكترونية متكاملة.",
-  sponsorModalOfferBanner:
-    "🎁 عرض خاص لفترة محدودة: تجربة مجانية كاملة لمدة ١٠ أيام للعيادات والمعامل والمحلات التجارية بقرية جنزور — فعّل باقتك الآن وجرّب كل المميزات الذهبية بنفسك أولاً مجاناً وبدون أي التزام!",
-  sponsorModalPhone: OFFICE_PHONE,
-  showDailyOffersSection: false,
-  showSponsorsRibbon: false,
-  sponsoredProvidersJson: JSON.stringify(defaultSponsoredProviders),
   darkPageBgColor: "#202020",
   darkCardBgColor: "#2b2b2b",
   darkBorderColor: "#3a3a3a",
@@ -2544,18 +2343,6 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.searchTriggerStyle = pickEnum(record.searchTriggerStyle, ["pill-gradient", "glass-outline", "gold-accent"] as const, defaultDesignSettings.searchTriggerStyle);
   next.badgesDefaultOpen = pickBool(record.badgesDefaultOpen, defaultDesignSettings.badgesDefaultOpen);
 
-  next.sponsorModalEnabled = pickBool(record.sponsorModalEnabled, defaultDesignSettings.sponsorModalEnabled);
-  const rawDelay = typeof record.sponsorModalDelaySeconds === "number" ? record.sponsorModalDelaySeconds : Number(record.sponsorModalDelaySeconds);
-  next.sponsorModalDelaySeconds = Number.isFinite(rawDelay) && rawDelay >= 0 && rawDelay <= 60 ? Math.round(rawDelay) : defaultDesignSettings.sponsorModalDelaySeconds;
-  next.sponsorModalTitle = pickText(record.sponsorModalTitle, defaultDesignSettings.sponsorModalTitle, 200);
-  next.sponsorModalSubtitle = pickText(record.sponsorModalSubtitle, defaultDesignSettings.sponsorModalSubtitle, 600);
-  next.sponsorModalOfferBanner = pickText(record.sponsorModalOfferBanner, defaultDesignSettings.sponsorModalOfferBanner, 400);
-  next.sponsorModalPhone = pickText(record.sponsorModalPhone, defaultDesignSettings.sponsorModalPhone, 30);
-  next.showDailyOffersSection = pickBool(record.showDailyOffersSection, defaultDesignSettings.showDailyOffersSection);
-  next.showSponsorsRibbon = pickBool(record.showSponsorsRibbon, defaultDesignSettings.showSponsorsRibbon);
-  next.sponsoredProvidersJson = typeof record.sponsoredProvidersJson === "string" && record.sponsoredProvidersJson.trim()
-    ? JSON.stringify(parseSponsoredProviders(record.sponsoredProvidersJson))
-    : defaultDesignSettings.sponsoredProvidersJson;
 
   next.darkPageBgColor = hexColor(record.darkPageBgColor, defaultDesignSettings.darkPageBgColor);
   next.darkCardBgColor = hexColor(record.darkCardBgColor, defaultDesignSettings.darkCardBgColor);

@@ -418,7 +418,7 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   }
 
   const suggestions = query && filteredServices.length === 0 && view !== "favorites" ? suggestSpecialties(query, categories, services, rootId) : [];
-  // Live autocomplete: matching specialties open their page, matching services jump straight to the results (with VIP sponsors prioritized first #6).
+  // Live autocomplete: matching specialties open their page, matching services jump straight to the results (VIP/featured providers first).
   const searchSuggestions = useMemo(() => {
     const term = normalizeSearch(queryDraft.trim());
     if (term.length < 2) return [];

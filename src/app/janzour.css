@@ -5228,76 +5228,6 @@ html.dark .clinic-floating-row strong {
 }
 
 /* =========================================================================
-   8. الشاشة العائمة الاحترافية «باقات الرعاية والتميز» (Fade-In + 10s Countdown)
-   ========================================================================= */
-
-@keyframes sponsorModalOverlayFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes sponsorModalCardEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(24px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes sponsorCloseBtnPop {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* بنر الـ 10 أيام مجاناً */
-
-/* شبكة مميزات الباقة */
-
-/* كارت رقم التواصل والواتساب الشيك */
-
-/* =========================================================================
-   9. زر «باقات الرعاية والتميز» في الصفحة الرئيسية والقائمة
-   ========================================================================= */
-.hero-sponsor-packages-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px !important;
-  border-radius: 999px !important;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  color: #09172b !important;
-  border: 2px solid #fef08a !important;
-  font-size: 0.92rem !important;
-  font-weight: 900 !important;
-  box-shadow: 0 8px 22px rgba(245, 158, 11, 0.36) !important;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-.hero-sponsor-packages-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(245, 158, 11, 0.5) !important;
-}
-.menu-sponsor-item {
-  background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
-  color: #92400e !important;
-  border: 1.5px solid #f59e0b !important;
-  font-weight: 900 !important;
-}
-
-/* =========================================================================
    10. قسم «عروض اليوم في جنزور 🔥» بالصفحة الرئيسية (ميزة #7)
    ========================================================================= */
 .daily-offers-section {
@@ -5453,35 +5383,6 @@ html.dark .clinic-floating-row strong {
   cursor: pointer;
 }
 
-/* =========================================================================
-   11. البرواز الذهبي المتوهج + شارة «راعي معتمد 👑» للكروت (ميزة #8)
-   ========================================================================= */
-.provider-card.is-vip-sponsor {
-  border: 2.5px solid #f59e0b !important;
-  background: linear-gradient(160deg, #ffffff 0%, #fffbeb 100%) !important;
-  box-shadow:
-    0 10px 26px rgba(245, 158, 11, 0.2),
-    0 0 0 3px rgba(251, 191, 36, 0.22) !important;
-  position: relative;
-}
-.vip-sponsor-card-ribbon {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #ffffff;
-  font-size: 0.78rem;
-  font-weight: 900;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
-}
-
-/* =========================================================================
-   12. تنسيقات صفحة إدارة باقات الرعاية والتميز (Admin Sponsors Tab)
-   ========================================================================= */
-
 /* الوضع الليلي للأقسام الجديدة */
 html.dark .daily-offers-section {
   background: linear-gradient(145deg, #17130a 0%, #1e1b10 100%);
@@ -5503,132 +5404,10 @@ html.dark .daily-offer-provider {
 html.dark .daily-offer-description {
   color: #cbd5e1;
 }
-html.dark .provider-card.is-vip-sponsor {
-  background: linear-gradient(160deg, #102338 0%, #1f1a0d 100%) !important;
-  border-color: #fbbf24 !important;
-}
 
 /* =========================================================================
    13. شريط «رعاة الدليل المعتمدون 👑» المتحرك بالأيقونات (Suggestion #7)
    ========================================================================= */
-.certified-sponsors-ribbon-card {
-  margin: 12px 0 14px;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #0b1f3a 0%, #102e54 100%);
-  border: 2px solid #f59e0b;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.22);
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-}
-.sponsors-ribbon-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.sponsors-ribbon-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 13px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #09172b;
-  font-size: 0.86rem;
-  font-weight: 900;
-}
-.sponsors-ribbon-join-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 13px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid #fde047;
-  color: #fef08a;
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background 0.16s ease, transform 0.16s ease;
-}
-.sponsors-ribbon-join-link:hover {
-  background: rgba(255, 255, 255, 0.22);
-  transform: translateY(-1px);
-}
-.sponsors-ribbon-track {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: thin;
-}
-.sponsor-ribbon-pill {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1.5px solid rgba(251, 191, 36, 0.48);
-  color: #ffffff;
-  cursor: pointer;
-  text-align: right;
-  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
-}
-.sponsor-ribbon-pill:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.18);
-  border-color: #fde047;
-}
-.sponsor-ribbon-pill-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #b45309;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.sponsor-ribbon-pill.is-group-clinics .sponsor-ribbon-pill-icon {
-  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-  color: #047857;
-}
-.sponsor-ribbon-pill.is-group-labs .sponsor-ribbon-pill-icon {
-  background: linear-gradient(135deg, #cffafe, #a5f3fc);
-  color: #0e7490;
-}
-.sponsor-ribbon-pill-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.sponsor-ribbon-pill-copy strong {
-  font-size: 0.88rem;
-  font-weight: 900;
-  color: #ffffff;
-  white-space: nowrap;
-}
-.sponsor-ribbon-pill-copy small {
-  font-size: 0.74rem;
-  color: #bae6fd;
-  font-weight: 700;
-}
-.sponsor-ribbon-pill-tag {
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: #dc2626;
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 900;
-  white-space: nowrap;
-}
 
 /* =========================================================================
    14. فلتر سريع داخل قسم «عروض اليوم في جنزور 🔥» (Suggestion #10)
@@ -5731,41 +5510,6 @@ html.dark .daily-offer-filter-chip.is-active {
   font-size: 0.78rem;
 }
 
-/* زر باقات الرعاية والتميز باللون الذهبي وبعرض الشريط المتحرك بالكامل */
-.hero-sponsor-fullwidth-wrap {
-  width: 100%;
-  margin: 10px auto 0;
-  display: flex;
-  justify-content: center;
-}
-.hero-sponsor-packages-btn.is-ticker-width {
-  width: 100% !important;
-  max-width: 100% !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 13px 20px !important;
-  border-radius: 18px !important;
-  background: linear-gradient(135deg, #fde047 0%, #f59e0b 52%, #d97706 100%) !important;
-  border: 2px solid #fef08a !important;
-  color: #3b1700 !important;
-  font-size: 1rem !important;
-  font-weight: 900 !important;
-  box-shadow: 0 10px 26px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
-  text-align: center;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-}
-.hero-sponsor-packages-btn.is-ticker-width svg {
-  color: #78350f !important;
-  flex-shrink: 0;
-}
-.hero-sponsor-packages-btn.is-ticker-width:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.04);
-  box-shadow: 0 14px 32px rgba(245, 158, 11, 0.45) !important;
-}
-
 /* البرواز الأنيق أعلى عنوان «تصفح أقسام القرية» وبداخله أيقونة البحث + زر أضف مهنتك المصغّر */
 .categories-top-action-frame {
   display: flex;
@@ -5851,74 +5595,6 @@ html.dark .daily-offer-filter-chip.is-active {
 }
 
 /* تنسيق «رعاة الدليل المعتمدون 👑»: العنوان في المنتصف راكب فوق الخط العلوي للبرواز وأسفله داخل البرواز في المنتصف انضم (١٠ أيام مجاناً) */
-.certified-sponsors-ribbon-card {
-  position: relative;
-  margin-top: 22px !important;
-  padding: 28px 16px 16px !important;
-  border-radius: 22px !important;
-  border: 2.5px solid #f59e0b !important;
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #fff7ed 100%) !important;
-  box-shadow: 0 12px 28px rgba(217, 119, 6, 0.14) !important;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  overflow: visible !important;
-}
-.sponsors-ribbon-top-legend {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -54%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 7px 20px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #78350f 0%, #b45309 55%, #d97706 100%);
-  border: 2px solid #fde68a;
-  color: #ffffff;
-  font-size: 0.94rem;
-  font-weight: 900;
-  white-space: nowrap;
-  box-shadow: 0 8px 18px rgba(180, 83, 9, 0.28);
-  z-index: 3;
-}
-.sponsors-ribbon-top-legend svg {
-  color: #fde047;
-  flex-shrink: 0;
-}
-.sponsors-ribbon-centered-join-wrap {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin: 2px 0 12px;
-}
-.certified-sponsors-ribbon-card .sponsors-ribbon-join-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 8px 20px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  border: 1.5px solid #fef08a;
-  color: #ffffff;
-  font-size: 0.86rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.26);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-.certified-sponsors-ribbon-card .sponsors-ribbon-join-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(217, 119, 6, 0.35);
-}
-.certified-sponsors-ribbon-card .sponsors-ribbon-track {
-  width: 100%;
-  justify-content: center;
-}
 
 /* تنسيق قسم «عروض اليوم في جنزور 🔥» المتمركز والمطوي افتراضياً */
 .daily-offers-section {
@@ -6046,10 +5722,6 @@ html.dark .floating-modal-search-form .search-input-wrap {
   background: #081525;
   border-color: #2563eb;
 }
-html.dark .certified-sponsors-ribbon-card {
-  background: linear-gradient(135deg, #1e1607 0%, #271c09 100%) !important;
-  border-color: #d97706 !important;
-}
 html.dark .daily-offers-section {
   background: linear-gradient(180deg, #1f1408 0%, #191006 100%) !important;
   border-color: #d97706 !important;
@@ -6070,26 +5742,6 @@ html.dark .daily-offers-double-arrow-btn {
 }
 
 /* بطاقة الراعي المعتمد وعرض اليوم داخل نافذة تفاصيل مقدم الخدمة (#5) */
-.detail-vip-sponsor-banner {
-  margin: 10px 0 8px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 2px solid #f59e0b;
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.16);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 8px;
-}
-.detail-vip-sponsor-top {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 .detail-vip-crown-pill {
   display: inline-flex;
   align-items: center;
@@ -6143,12 +5795,6 @@ html.dark .daily-offers-double-arrow-btn {
   box-shadow: 0 9px 20px rgba(16, 185, 129, 0.36);
 }
 
-/* شريط الأثر وشهادات الرعاة داخل نافذة باقات الرعاية (#2 & #4) */
-
-html.dark .detail-vip-sponsor-banner {
-  background: linear-gradient(135deg, #231907 0%, #2d1f08 100%);
-  border-color: #d97706;
-}
 html.dark .detail-vip-offer-desc {
   color: #fde68a;
 }
@@ -6172,7 +5818,6 @@ html.dark[data-design-active="true"] body {
 }
 
 html.dark[data-design-active="true"] .category-tile,
-html.dark[data-design-active="true"] .provider-card:not(.is-vip-sponsor),
 html.dark[data-design-active="true"] .categories-top-action-frame,
 html.dark[data-design-active="true"] .transit-route-card,
 html.dark[data-design-active="true"] .modal-card {
@@ -6201,24 +5846,6 @@ html.dark[data-design-active="true"] .category-meta {
   }
 }
 
-html[data-design-shimmer="true"] .hero-sponsor-packages-btn.is-ticker-width {
-  position: relative;
-  overflow: hidden;
-}
-html[data-design-shimmer="true"] .hero-sponsor-packages-btn.is-ticker-width::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.55) 50%,
-    transparent 65%
-  );
-  background-size: 220% 100%;
-  animation: royalShimmerSweep 4.5s infinite linear;
-  pointer-events: none;
-}
 
 /* صندوق لصق تدرج الألوان (50-950) أو JSON في استوديو المظهر */
 
