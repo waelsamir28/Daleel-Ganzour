@@ -373,6 +373,17 @@ export const errorLog = pgTable("directory_error_log", {
 ]);
 
 /**
+ * «تم الإصلاح» لأخطاء المتصفح: بصمة الخطأ اللي اتقفلت، مين قفلها وليه.
+ * لو الخطأ رجع تاني بعد تاريخ الإصلاح، السجل بيعرضه كـ«عاد بعد الإصلاح» تلقائيًا.
+ */
+export const errorResolutions = pgTable("directory_error_resolutions", {
+  fingerprint: varchar("fingerprint", { length: 40 }).primaryKey(),
+  note: varchar("note", { length: 300 }).notNull().default(""),
+  resolvedBy: varchar("resolved_by", { length: 120 }).notNull().default(""),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * تقييم سريع مجهول بعد الاتصال/الواتساب (نجوم فقط، بدون اسم أو رقم):
  * مؤشر رضا يظهر في إحصاءات الإدارة، وللعضو المسجّل يدخل نظام التقييمات العادي.
  */

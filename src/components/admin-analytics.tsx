@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { AlertTriangle, Award, BarChart3, BellRing, CalendarClock, CircleAlert, ClipboardCheck, Eye, Grid2X2, HeartPulse, MapPin, MessageCircle, Pencil, PhoneCall, Plus, QrCode, Search, Share2, Star, Trash2, TrendingUp, UserRoundPlus } from "lucide-react";
 import { getCategory, type AdminDirectory, type CategoryRecord, type ServiceRecord } from "@/lib/catalog";
 import { CategoryIcon, Modal } from "@/components/ui";
@@ -16,6 +16,7 @@ import AdminMissing from "@/components/admin-missing";
 import SectionStickerModal from "@/components/section-sticker-modal";
 import { sectionAccent } from "@/lib/catalog";
 import { clearAnalyticsEvents, readAnalyticsEvents, type AnalyticsEventRecord } from "@/lib/analytics-tracker";
+import { errorStatus } from "@/lib/error-triage";
 
 /**
  * «إحصائيات التفاعل والبحث» — صفحة أزرار لا صفحة أقسام متراكمة:
@@ -49,6 +50,26 @@ export default function AdminAnalytics({
   const [events, setEvents] = useState<AnalyticsEventRecord[]>(() => readAnalyticsEvents());
   const [open, setOpen] = useState<SectionId | null>(null);
   const [stickersOpen, setStickersOpen] = useState(false);
+  /** عدد الأخطاء غير المفتوحة/المفتوحة — يظهر كرقم على زر «أخطاء الموقع». */
+  const [errorCounts, setErrorCounts] = useState<{ open: number; resolved: number } | null>(null);
+
+  // قراءة سريعة لسجل الأخطاء: الرقم على الزر يوضح المفتوح والمقفول بدون فتح الشاشة.
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/errors", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { errors?: Array<{ lastAt?: string | null; resolvedAt?: string | null }> } | null) => {
+        if (!alive || !data?.errors) return;
+        let open = 0, resolved = 0;
+        for (const row of data.errors) {
+          if (errorStatus(row) === "resolved") resolved += 1;
+          else open += 1;
+        }
+        setErrorCounts({ open, resolved });
+      })
+      .catch(() => undefined);
+    return () => { alive = false; };
+  }, []);
 
   const approvedServices = useMemo(() => data.services.filter((service) => service.status === "approved"), [data.services]);
   const roots = useMemo(() => data.categories.filter((category) => !category.parentId && category.active), [data.categories]);
@@ -130,7 +151,7 @@ export default function AdminAnalytics({
     { id: "push", title: "إشعار الزوار", hint: "إرسال إشعار لأجهزة الزوار المشتركة", icon: BellRing, accent: "#7e22ce", actionLabel: "فتح الإشعار" },
     { id: "welcome", title: "ترحيب بالمهنيين الجدد", hint: "رسالة واتساب + ملصق + إشعار ترحيب", icon: UserRoundPlus, accent: "#15803d", actionLabel: "عرض الجدد" },
     { id: "stickers", title: "ملصقات QR للأقسام", hint: "ملصق A6 ملون لكل قسم للطباعة", icon: QrCode, accent: "#0b5f9e", actionLabel: "فتح الملصقات" },
-    { id: "errors", title: "أخطاء الموقع", hint: "أعطال وصلت من متصفحات الزوار", icon: CircleAlert, accent: "#b91c1c", actionLabel: "عرض الأخطاء" },
+    { id: "errors", title: "أخطاء الموقع", hint: errorCounts ? `${errorCounts.open} مفتوح · ${errorCounts.resolved} تم إصلاحه` : "أعطال وصلت من متصفحات الزوار", icon: CircleAlert, accent: "#b91c1c", badge: errorCounts?.open, actionLabel: "عرض الأخطاء" },
     { id: "health", title: "صحة الدليل", hint: "بيانات قديمة أو ناقصة تحتاج متابعة", icon: HeartPulse, accent: "#9d174d", actionLabel: "عرض الحالة" },
     { id: "missing", title: "مهن ناقصة", hint: "طلبات الزوار لمهن غير موجودة في الدليل", icon: ClipboardCheck, accent: "#0369a1", actionLabel: "عرض الطلبات" },
     { id: "quickRatings", title: "تقييمات سريعة", hint: "نجوم مجهولة بعد الاتصال", icon: Award, accent: "#a16207", actionLabel: "عرض التقييمات" },
