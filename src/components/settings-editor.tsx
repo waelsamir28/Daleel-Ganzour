@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { BellRing, Building2, Check, Globe, LoaderCircle, MessageCircle, Send, Settings2, Share2, Sliders } from "lucide-react";
+import { BellRing, Building2, Check, Globe, LoaderCircle, MessageCircle, Send, Settings2, Share2, Sliders, Siren } from "lucide-react";
 import { defaultDesignSettings, OFFICE_PHONE, type DesignSettings, type SiteSettings } from "@/lib/catalog";
 import { allWhatsappAlertKinds, sanitizeWhatsappAlertKinds, whatsappAlertKinds, type WhatsappAlertKind } from "@/lib/whatsapp-alert-kinds";
+import { activeEmergencyAlert, EMERGENCY_ALERT_MAX_LENGTH, EMERGENCY_ALERT_MAX_HOURS, EMERGENCY_ALERT_LEVELS, emergencyAlertHoursToIso, remainingAlertLabel } from "@/lib/emergency-alert";
 import ImageUploadField from "@/components/image-upload-field";
 
 export default function SettingsEditor({
@@ -35,6 +36,8 @@ export default function SettingsEditor({
   const [kindsBusy, setKindsBusy] = useState(false);
   const savedKinds = alertKinds ? sanitizeWhatsappAlertKinds(alertKinds) : [...allWhatsappAlertKinds];
   const kindsDirty = savedKinds.join(",") !== kinds.join(",");
+  /** حالة شريط التنبيه الطارئ كما ستظهر للزوار (ظاهر/منتهي + المدة الباقية). */
+  const alertState = activeEmergencyAlert(values);
   function toggleKind(id: WhatsappAlertKind) { setKinds((current) => sanitizeWhatsappAlertKinds(current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id])); }
   async function persistKinds() {
     if (!onSaveAlertKinds) return;
@@ -349,6 +352,77 @@ export default function SettingsEditor({
               onChange={(e) => updateDesign("announcementText", e.target.value)}
             />
           </div>
+        </div>
+
+        {/* شريط التنبيه الطارئ: سطر واحد يظهر فورًا أعلى كل صفحات الموقع لكل الزوار */}
+        <div className="emergency-alert-editor">
+          <div className="emergency-alert-editor-head">
+            <span className="emergency-alert-editor-icon" aria-hidden="true"><Siren size={17}/></span>
+            <div>
+              <h5>شريط التنبيه الطارئ أعلى الموقع</h5>
+              <p>اكتب سطرًا واحدًا (انقطاع مياه، كهرباء، طقس…) وحدّد المدة — الشريط يظهر فورًا لكل الزوار ويختفي لوحده بعد المدة.</p>
+            </div>
+          </div>
+          <div className="settings-items-grid">
+            <div className="settings-item-box">
+              <label className="settings-item-label" htmlFor="setting-alertText">١. نص التنبيه ({values.emergencyAlertText.length}/{EMERGENCY_ALERT_MAX_LENGTH})</label>
+              <small className="settings-item-hint">اتركه فارغًا لإخفاء الشريط تمامًا</small>
+              <textarea
+                id="setting-alertText"
+                className="studio-textbox"
+                rows={2}
+                maxLength={EMERGENCY_ALERT_MAX_LENGTH}
+                placeholder="مثال: انقطاع مياه بشارع حسيب من ٢ الظهر لـ٦ المغرب — إدارة الدليل"
+                value={values.emergencyAlertText}
+                onChange={(e) => updateSetting("emergencyAlertText", e.target.value)}
+              />
+            </div>
+            <div className="settings-item-box">
+              <label className="settings-item-label" htmlFor="setting-alertLevel">٢. درجة التنبيه (اللون)</label>
+              <small className="settings-item-hint">الأحمر للخطر، البرتقالي للتحذير، الأزرق للتنويه</small>
+              <select
+                id="setting-alertLevel"
+                className="studio-textbox"
+                value={values.emergencyAlertLevel}
+                onChange={(e) => updateSetting("emergencyAlertLevel", e.target.value)}
+              >
+                {EMERGENCY_ALERT_LEVELS.map((level) => <option key={level.id} value={level.id}>{level.label} — {level.hint}</option>)}
+              </select>
+            </div>
+            <div className="settings-item-box">
+              <label className="settings-item-label" htmlFor="setting-alertHours">٣. مدة الظهور</label>
+              <small className="settings-item-hint">ينتهي تلقائيًا بعد المدة (أقصى {EMERGENCY_ALERT_MAX_HOURS} ساعة)</small>
+              <select
+                id="setting-alertHours"
+                className="studio-textbox"
+                value=""
+                onChange={(e) => {
+                const raw = e.target.value;
+                if (!raw) return;
+                updateSetting("emergencyAlertUntil", raw === "none" ? "" : emergencyAlertHoursToIso(Number(raw)));
+              }}
+              >
+                <option value="">— اختر المدة —</option>
+                {[1, 3, 6, 12, 24].map((hours) => <option key={hours} value={hours}>لمدة {hours} ساعة</option>)}
+                <option value="none">بدون انتهاء (لحد ما أمسحه)</option>
+              </select>
+              <small className="settings-item-hint">
+                الحالة الحالية: <strong>{remainingAlertLabel(alertState.active ? alertState.minutesLeft : null)}</strong>
+              </small>
+            </div>
+          </div>
+          <div className="emergency-alert-editor-actions">
+            <button type="button" className="button button-ghost button-small" onClick={() => { updateSetting("emergencyAlertText", ""); updateSetting("emergencyAlertUntil", ""); }}>
+              مسح التنبيه
+            </button>
+            <small className="settings-item-hint">اضغط «حفظ» بالأسفل لتطبيق التغيير على الموقع.</small>
+          </div>
+          {values.emergencyAlertText.trim() && (
+            <div className={`site-alert-bar is-${values.emergencyAlertLevel || "info"} is-preview`} role="note">
+              <span className="site-alert-icon" aria-hidden="true"><Siren size={17}/></span>
+              <p className="site-alert-text">{values.emergencyAlertText}</p>
+            </div>
+          )}
         </div>
       </section>
 

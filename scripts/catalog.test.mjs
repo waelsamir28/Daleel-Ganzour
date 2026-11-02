@@ -259,9 +259,13 @@ test("keeps sections, specialties and icons coherent", () => {
 });
 
 test("serves settings without any advertising field", () => {
-  const expected = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright", "phone", "showEmergency", "whatsappAlertsNumber", "whatsappAlertsApiKey"];
+  const expected = ["siteName", "heroSubtitle", "heroEyebrow", "tagline", "benefitsHeading", "benefitsText", "contactText", "copyright", "phone", "showEmergency", "whatsappAlertsNumber", "whatsappAlertsApiKey", "emergencyAlertText", "emergencyAlertLevel", "emergencyAlertUntil"];
   assert.deepEqual(Object.keys(defaultSettings), expected);
-  assert.deepEqual([...settingsTextKeys, "showEmergency", "whatsappAlertsNumber", "whatsappAlertsApiKey"], expected);
+  assert.deepEqual([...settingsTextKeys, "showEmergency", "whatsappAlertsNumber", "whatsappAlertsApiKey", "emergencyAlertText", "emergencyAlertLevel", "emergencyAlertUntil"], expected);
+  // شريط التنبيه الطارئ مخفي افتراضيًا (الأدمن هو اللي يشغّله).
+  assert.equal(defaultSettings.emergencyAlertText, "");
+  assert.equal(defaultSettings.emergencyAlertLevel, "info");
+  assert.equal(defaultSettings.emergencyAlertUntil, "");
   for (const key of ["adPrice", "adDays", "marqueeEnabled"]) assert.equal(key in defaultSettings, false, `${key} is gone`);
   assert.equal(/إعلان/.test(defaultSettings.contactText), false, "the contact text no longer sells advertising");
   assert.equal(defaultSettings.phone, "01222355769");

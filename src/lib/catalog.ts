@@ -714,6 +714,13 @@ export function missingServiceData(service: ServiceRecord) {
     !service.subSpecialties.length && "التخصصات الفرعية",
   ].filter((item): item is string => typeof item === "string");
 }
+/**
+ * بيانات المهنة مكتملة؟ (عنوان + خدمات تفصيلية + تخصصات فرعية)
+ * بتظهر شارة «بيانات مكتملة ✓» على الكارت وفي صفحة المهنة — حافز لباقي المهنيين يكمّلوا.
+ */
+export function isProfileComplete(service: Pick<ServiceRecord, "address" | "serviceItems" | "subSpecialties">) {
+  return Boolean((service.address ?? "").trim()) && (service.serviceItems ?? []).length > 0 && (service.subSpecialties ?? []).length > 0;
+}
 
 export type TrustBadge = {
   id: "weekly-star" | "complete-profile" | "community-recommended" | "fast-response";
@@ -728,7 +735,7 @@ export function getServiceTrustBadges(
   const badges: TrustBadge[] = [];
   if ("weeklyStar" in service && (service as { weeklyStar?: boolean }).weeklyStar) badges.push({ id: "weekly-star", label: "نجم الأسبوع ⭐", tone: "amber" });
   const isComplete = Boolean(service.address?.trim() && service.description?.trim() && service.serviceItems?.length && service.subSpecialties?.length);
-  if (isComplete) badges.push({ id: "complete-profile", label: "ملف مكتمل ١٠٠٪", tone: "emerald" });
+  if (isComplete) badges.push({ id: "complete-profile", label: "بيانات مكتملة ✓", tone: "emerald" });
   const score = Number.parseFloat(service.rating) || 0;
   const positiveComments = service.comments?.filter((item) => item.stars >= 4).length ?? 0;
   if ((score >= 4.5 && (service.reviews || 0) >= 3) || positiveComments >= 2 || (service.featured && service.verified)) {
@@ -1290,6 +1297,12 @@ export type SiteSettings = {
   benefitsHeading: string; benefitsText: string; contactText: string; copyright: string;
   phone: string; showEmergency: boolean;
   whatsappAlertsNumber: string; whatsappAlertsApiKey: string;
+  /** شريط التنبيه الطارئ أعلى الموقع: نص التنبيه (فارغ = مخفي). */
+  emergencyAlertText: string;
+  /** لون/خطورة التنبيه: info | warning | danger. */
+  emergencyAlertLevel: string;
+  /** وقت انتهاء التنبيه (ISO) — فاضي = ظاهر لحد ما الأدمن يمسحه، وينتهي لوحده بعد المدة المختارة. */
+  emergencyAlertUntil: string;
 };
 export type DesignThemePresetId =
   | "royal-blue"
@@ -3007,6 +3020,8 @@ export const defaultSettings: SiteSettings = {
   copyright: "جميع الحقوق محفوظة لمكتب الجمال للدعاية والإعلان.", phone: OFFICE_PHONE,
   showEmergency: true,
   whatsappAlertsNumber: "", whatsappAlertsApiKey: "",
+  // شريط التنبيه الطارئ: مخفي افتراضيًا لحد ما الأدمن يكتب نصه من الإعدادات.
+  emergencyAlertText: "", emergencyAlertLevel: "info", emergencyAlertUntil: "",
 };
 
 // Settings rows saved by older releases still carry advertising fields (adPrice, adDays, marquee*).
@@ -3018,6 +3033,13 @@ export function sanitizeSettings(saved: Record<string, unknown>): SiteSettings {
   next.copyright = next.copyright.replace(/©?\s*(?:2026|٢٠٢٦)\s*/g, "").replace(/\s{2,}/g, " ").trim() || defaultSettings.copyright;
   if (typeof saved.showEmergency === "boolean") next.showEmergency = saved.showEmergency;
   for (const key of ["whatsappAlertsNumber", "whatsappAlertsApiKey"] as const) { const value = saved[key]; if (typeof value === "string") next[key] = value.trim(); }
+  // شريط التنبيه الطارئ: نفس تنظيف الإدخال حتى تبقى البيانات القديمة المحفوظة سليمة (بدون اعتماديات خارجية).
+  if (typeof saved.emergencyAlertText === "string") next.emergencyAlertText = saved.emergencyAlertText.replace(/\s+/g, " ").trim().slice(0, 200);
+  if (saved.emergencyAlertLevel === "warning" || saved.emergencyAlertLevel === "danger" || saved.emergencyAlertLevel === "info") next.emergencyAlertLevel = saved.emergencyAlertLevel;
+  if (typeof saved.emergencyAlertUntil === "string") {
+    const until = saved.emergencyAlertUntil.trim();
+    next.emergencyAlertUntil = until && Number.isFinite(Date.parse(until)) ? new Date(Date.parse(until)).toISOString() : "";
+  }
   return next;
 }
 

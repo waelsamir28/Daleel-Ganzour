@@ -942,3 +942,121 @@ test("splash audio starts on its own when the app opens, without any tap", () =>
   assert.ok(css.includes(".splash-audio-toggle.is-waiting"));
   assert.ok(css.includes(".splash-sound-hint {"));
 });
+
+test("emergency alert bar: appears instantly, colours by level, and expires on its own", async () => {
+  const alert = await loadLib("../src/lib/emergency-alert.ts");
+  const now = Date.parse("2026-11-02T10:00:00Z");
+  // مفيش نص → مخفي
+  assert.equal(alert.activeEmergencyAlert({ emergencyAlertText: "" }, now).active, false);
+  assert.equal(alert.activeEmergencyAlert(null, now).reason, "empty");
+  // نص بدون مدة → ظاهر لحد ما الأدمن يمسحه
+  const open = alert.activeEmergencyAlert({ emergencyAlertText: "قطع مياه بشارع حسيب", emergencyAlertLevel: "danger" }, now);
+  assert.equal(open.active, true);
+  assert.equal(open.level, "danger");
+  assert.equal(open.until, null);
+  // مدة مستقبلية → ظاهر وباقي وقت محسوب
+  const timed = alert.activeEmergencyAlert({ emergencyAlertText: "تحذير من طقس سيئ", emergencyAlertLevel: "warning", emergencyAlertUntil: "2026-11-02T12:00:00Z" }, now);
+  assert.equal(timed.active, true);
+  assert.equal(timed.minutesLeft, 120);
+  assert.match(alert.remainingAlertLabel(timed.minutesLeft), /ساعة/);
+  // انتهت المدة → يختفي لوحده
+  assert.equal(alert.activeEmergencyAlert({ emergencyAlertText: "قديم", emergencyAlertUntil: "2026-11-02T09:00:00Z" }, now).reason, "expired");
+  // تاريخ غير صالح → مش بنعرض شريط غلط
+  assert.equal(alert.activeEmergencyAlert({ emergencyAlertText: "غلط", emergencyAlertUntil: "not-a-date" }, now).active, false);
+  // تنظيف النص واللون والمدة
+  assert.equal(alert.normalizeEmergencyText("  انقطاع\n\nكهرباء   بالقرية  "), "انقطاع كهرباء بالقرية");
+  assert.equal(alert.normalizeEmergencyText("ع".repeat(400)).length, alert.EMERGENCY_ALERT_MAX_LENGTH);
+  assert.equal(alert.normalizeEmergencyLevel("weird"), "info");
+  assert.equal(alert.normalizeEmergencyLevel("danger"), "danger");
+  assert.equal(alert.emergencyAlertHoursToIso(2, now), "2026-11-02T12:00:00.000Z");
+  assert.ok(Date.parse(alert.emergencyAlertHoursToIso(500, now)) - now === alert.EMERGENCY_ALERT_MAX_HOURS * 3_600_000);
+  assert.notEqual(alert.emergencyAlertKey("نص", null), alert.emergencyAlertKey("نص", "2026-11-02T12:00:00Z"));
+
+  // التوصيل: API + الشريط في كل الصفحات + محرر في الإعدادات
+  const route = readFileSync(new URL("../src/app/api/site-alert/route.ts", import.meta.url), "utf8");
+  assert.ok(route.includes("activeEmergencyAlert") && route.includes("no-store"));
+  const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.ok(layout.includes("<EmergencyAlertBar />") && layout.includes("<OfflineIndicator />"));
+  const editor = readFileSync(new URL("../src/components/settings-editor.tsx", import.meta.url), "utf8");
+  assert.ok(editor.includes("emergencyAlertText") && editor.includes("EMERGENCY_ALERT_LEVELS") && editor.includes("شريط التنبيه الطارئ أعلى الموقع"));
+  const inputs = readFileSync(new URL("../src/lib/inputs.ts", import.meta.url), "utf8");
+  assert.ok(inputs.includes("normalizeEmergencyText") && inputs.includes("emergencyAlertUntil"));
+});
+
+test("new arrivals strip lists the last 7 days only, published only, and keeps featured at the end", async () => {
+  const arrivals = await loadLib("../src/lib/new-arrivals.ts");
+  const now = Date.parse("2026-11-02T12:00:00Z");
+  const day = 86_400_000;
+  const services = [
+    { id: "old", createdAt: new Date(now - 20 * day).toISOString() },
+    { id: "fresh", createdAt: new Date(now - 1 * day).toISOString() },
+    { id: "today", createdAt: new Date(now - 60_000).toISOString() },
+    { id: "featured", createdAt: new Date(now - 2 * day).toISOString(), featured: true },
+    { id: "pending", createdAt: new Date(now - day).toISOString(), status: "pending" },
+    { id: "bad-date", createdAt: "not-a-date" },
+  ];
+  const list = arrivals.newArrivalServices(services, now).map((item) => item.id);
+  assert.deepEqual(list, ["today", "fresh", "featured"]);
+  assert.equal(arrivals.NEW_ARRIVALS_DAYS, 7);
+  assert.equal(arrivals.newArrivalServices(services, now, 7, 2).length, 2);
+  assert.equal(arrivals.arrivalDayLabel(new Date(now - 60_000).toISOString(), now), "النهاردة");
+  assert.equal(arrivals.arrivalDayLabel(new Date(now - day).toISOString(), now), "إمبارح");
+  assert.equal(arrivals.arrivalDayLabel(new Date(now - 4 * day).toISOString(), now), "من 4 أيام");
+  assert.equal(arrivals.arrivalDayLabel("bad", now), "");
+
+  const component = readFileSync(new URL("../src/components/new-arrivals.tsx", import.meta.url), "utf8");
+  assert.ok(component.includes("new-arrivals-strip") && component.includes("arrivalDayLabel"));
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(directory.includes("newArrivalServices") && directory.includes("<NewArrivals"));
+});
+
+test("monthly printed guide groups published services by section with phone numbers", async () => {
+  const guide = await loadLib("../src/lib/printable-guide.ts");
+  const categories = [
+    { id: "clinics", name: "عيادات", color: "#22b96d" },
+    { id: "dentistry", name: "الأسنان", parentId: "clinics" },
+    { id: "crafts", name: "حرفيين", color: "#ff941f" },
+    { id: "empty-section", name: "قسم فاضي" },
+  ];
+  const services = [
+    { id: "1", name: "د. أحمد", category: "dentistry", phone: "01000000001", address: "شارع حسيب", featured: true },
+    { id: "2", name: "د. سارة", category: "clinics", phone: "01000000002", area: "السوق القديم", verified: true },
+    { id: "3", name: "أسطى محمود", category: "crafts", phone: "01000000003" },
+    { id: "4", name: "مرفوض", category: "crafts", phone: "01000000004", status: "pending" },
+  ];
+  const sections = guide.printableGuideSections(categories, services);
+  assert.deepEqual(sections.map((section) => section.id), ["clinics", "crafts"]);
+  assert.equal(sections[0].entries.length, 2);
+  assert.ok(sections[0].entries.some((entry) => entry.name === "د. أحمد (الأسنان)"));
+  assert.equal(sections[1].entries.length, 1, "الطلبات غير المنشورة لا تُطبع");
+  assert.equal(guide.printableGuideCount(sections), 3);
+  assert.equal(guide.guideSummaryLine(3, 2), "٣ خدمة ومهنة في ٢ قسم");
+  assert.equal(guide.arabicDigits("0123456789"), "٠١٢٣٤٥٦٧٨٩");
+  assert.match(guide.guideEditionLabel(Date.parse("2026-11-02T12:00:00Z")), /٢٠٢٦|2026/);
+  assert.match(guide.guideFileName(Date.parse("2026-11-02T12:00:00Z")), /^daleel-ganzour-guide-2026-11$/);
+
+  const page = readFileSync(new URL("../src/app/print/guide/page.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes("printableGuideSections") && page.includes("PrintGuideControls"));
+  const css = readFileSync(new URL("../src/app/print/guide/guide.css", import.meta.url), "utf8");
+  assert.ok(css.includes("@media print") && css.includes("@page"));
+  const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.ok(admin.includes('href="/print/guide"'));
+});
+
+test("profile-complete badge and offline mode are wired into the public app", () => {
+  const catalog = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
+  assert.ok(catalog.includes("export function isProfileComplete"));
+  assert.ok(catalog.includes("بيانات مكتملة ✓"));
+  const card = readFileSync(new URL("../src/components/provider-card.tsx", import.meta.url), "utf8");
+  assert.ok(card.includes("isProfileComplete") && card.includes("complete-flag"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".complete-flag {") && css.includes(".offline-bar.is-offline"));
+  assert.ok(css.includes(".site-alert-bar.is-danger") && css.includes(".new-arrival-card"));
+
+  const sw = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
+  assert.ok(sw.includes("PAGES_CACHE") && sw.includes("handleNavigation"));
+  assert.ok(sw.includes("/api/site-alert") && sw.includes("OFFLINE_PAGE"));
+  assert.ok(sw.includes("const CACHE_NAME = `${CACHE_PREFIX}-v4`;"));
+  const indicator = readFileSync(new URL("../src/components/offline-indicator.tsx", import.meta.url), "utf8");
+  assert.ok(indicator.includes("addEventListener(\"offline\"") && indicator.includes("location.reload"));
+});
