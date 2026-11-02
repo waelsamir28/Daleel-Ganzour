@@ -82,8 +82,6 @@ export async function ensureSeed() {
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_missing_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), need text NOT NULL, name varchar(120) NOT NULL DEFAULT '', phone varchar(24) NOT NULL DEFAULT '', category_id varchar(60) NOT NULL DEFAULT '', status varchar(20) NOT NULL DEFAULT 'open', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_missing_requests_created_idx ON directory_missing_requests (created_at)`);
       // طلبات عرض السعر من الزوار (توصل لـ٣ مهنيين في نفس التخصص).
-      await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_quote_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), category_id varchar(60) NOT NULL, name varchar(120) NOT NULL, phone varchar(24) NOT NULL, details text NOT NULL, area varchar(80) NOT NULL DEFAULT '', service_ids jsonb NOT NULL DEFAULT '[]'::jsonb, status varchar(20) NOT NULL DEFAULT 'open', created_at timestamptz NOT NULL DEFAULT now())`);
-      await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_quote_requests_created_idx ON directory_quote_requests (created_at)`);
       // إحصاء استخدام لكل مهني (مشاهدات + نقرات تواصل) — أرقام مجهولة للإدارة.
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_service_hits (service_id uuid PRIMARY KEY REFERENCES directory_services(id) ON DELETE CASCADE, views integer NOT NULL DEFAULT 0, contacts integer NOT NULL DEFAULT 0, updated_at timestamptz NOT NULL DEFAULT now())`);
       // مواضيع الإشعارات اللي اختارها الزائر (فاضية = كل الأقسام).
@@ -290,7 +288,7 @@ export async function getDesignSettings(): Promise<DesignSettings> {
 }
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
   const { reviewNote: _privateNote, availabilityToken: _privateToken, accountToken: _privateAccountToken, ...publicItem } = item;
-  const completionStatus = (["none", "requested", "submitted", "rejected"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
+  const completionStatus = (["none", "requested", "submitted", "rejected", "done"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
   return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString(), offerEndsAt: item.offerEndsAt?.toISOString() ?? null, offerStartedAt: item.offerStartedAt?.toISOString() ?? null, confirmedAt: (item.confirmedAt ?? item.createdAt).toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect, imageVersion = 0): CategoryRecord { return { ...item, light: `${item.color}12`, ...(imageVersion ? { imageVersion } : {}) }; }

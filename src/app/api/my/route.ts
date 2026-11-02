@@ -97,6 +97,20 @@ export const POST = withDirectoryInvalidation(async (request: Request) => {
       return Response.json({ ok: true, service: serializeService(updated), message: photo ? "تم حفظ صورتك وظهورها على بطاقتك فورًا." : "تم حذف الصورة الشخصية." });
     }
 
+    // completion-done: المهني أكّد إنه خلّص الاستكمال — الزر يتحول عند الإدارة لـ«تم التنفيذ ✓».
+    if (body.action === "completion-done") {
+      if (service.completionStatus !== "submitted") throw new InputError("مفيش استكمال بانتظار التأكيد.");
+      await db.update(services).set({ completionStatus: "done" }).where(eq(services.id, service.id));
+      await db.insert(notifications).values({
+        type: "service",
+        title: `تم الاستكمال: ${service.name}`,
+        message: "أكّد المهني إنه خلّص استكمال البيانات — راجع البيانات ثم اضغط «تم التنفيذ ✓» لتخرج من البطاقات الناقصة.",
+        entityId: service.id,
+      });
+      const [updated] = await db.select().from(services).where(eq(services.id, service.id)).limit(1);
+      return Response.json({ ok: true, service: serializeService(updated), message: "تم تأكيد الاستكمال — الإدارة هتراجع البيانات وتأكدها." });
+    }
+
     // gallery: صور الأعمال — حتى ٤ صور، كل صورة مصغّرة ومضغوطة في المتصفح (null = حذف الخانة).
     if (body.action === "gallery") {
       const slot = gallerySlotInput(body.slot);

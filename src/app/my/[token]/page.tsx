@@ -5,6 +5,7 @@ import { ensureSeed, serializeCategory, serializeService } from "@/lib/directory
 import { OFFICE_WHATSAPP } from "@/lib/catalog";
 import { Logo } from "@/components/ui";
 import ProviderAccount from "@/components/provider-account";
+import WelcomeAudio from "@/components/welcome-audio";
 import { ProviderStatusWelcome } from "@/components/welcome-center";
 import { providerStatusKey } from "@/lib/welcome-messages";
 
@@ -35,6 +36,7 @@ export default async function MyAccountPage({ params }: { params: Promise<{ toke
   // الرسالة العائمة بتظهر مرة واحدة فقط: بنقرأ من الخادم إن كانت اتشافت قبل كده.
   const [seenRow] = await db.select({ key: welcomeSeen.key }).from(welcomeSeen).where(eq(welcomeSeen.key, providerStatusKey(row.id, row.status as never))).limit(1);
   return <Shell>
+    <WelcomeAudio token={token}/>
     <ProviderStatusWelcome
       serviceId={row.id}
       name={row.name}

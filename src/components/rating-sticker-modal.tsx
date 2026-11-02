@@ -66,14 +66,12 @@ export async function renderRatingSticker(opts: { name: string; category: string
   nameLines.forEach((line, index) => ctx.fillText(line, A6_W / 2, 650 + index * 84));
   ctx.fillStyle = "#4b6584"; ctx.font = font(800, 38); ctx.fillText(opts.category, A6_W / 2, 650 + nameLines.length * 84 + 10);
   // إطار QR
-  const qrSide = 640, qx = (A6_W - qrSide) / 2, qy = 860;
+  const qrSide = 640, qx = (A6_W - qrSide) / 2, qy = 740;
   round(qx - 28, qy - 28, qrSide + 56, qrSide + 56, 44, "#ffffff", "#0d8ee0", 10);
   drawQr(ctx, opts.url, qx, qy, qrSide, "#0b2f55", "#ffffff", 1);
   // تعليمات
   ctx.fillStyle = "#0b2f55"; ctx.font = font(800, 36);
   ctx.fillText("افتح الكاميرا ووجّهها للرمز، ثم اضغط «قيّم الخدمة»", A6_W / 2, qy + qrSide + 95);
-  ctx.fillStyle = "#4b6584"; ctx.font = font(700, 30);
-  ctx.fillText("رأيك يساعد جيرانك على اختيار الأفضل", A6_W / 2, qy + qrSide + 150);
   // الذيل
   ctx.fillStyle = "#ffffff"; ctx.font = font(900, 40); ctx.fillText("دليل المهن والخدمات بقرية جنزور", A6_W / 2, A6_H - 150);
   ctx.fillStyle = "#cfe6ff"; ctx.font = font(700, 32); ctx.direction = "ltr"; ctx.fillText(opts.siteHost, A6_W / 2, A6_H - 85); ctx.direction = "rtl";

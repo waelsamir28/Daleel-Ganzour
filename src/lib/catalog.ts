@@ -521,7 +521,7 @@ export function isPharmacyCategory(categoryId: string, catalog: CategoryRecord[]
   return catalog.find((category) => category.id === categoryId)?.parentId === "pharmacies";
 }
 export type AreaRecord = { id: string; name: string; sortOrder: number };
-export type CompletionStatus = "none" | "requested" | "submitted" | "rejected";
+export type CompletionStatus = "none" | "requested" | "submitted" | "rejected" | "done";
 export type ServiceCompletionDraft = {
   name: string;
   category: string;
@@ -1446,6 +1446,9 @@ export type DesignSettings = {
   splashAudioUrl: string;
   /** تشغيل المقطع تلقائيًا مع شاشة البداية (يلزم رفعه أولًا). */
   splashAudioEnabled: boolean;
+  /** مقطع ترحيبي يشتغل مرة واحدة للمهني أول ما يفتح صفحة «حسابي». */
+  welcomeAudioUrl: string;
+  welcomeAudioEnabled: boolean;
   // 7. Login & Register Customizer
   authShowBanner: boolean;
   /** بانر شاشة الدخول (فارغ = البانر الافتراضي المصمم للتطبيق). */
@@ -1640,6 +1643,8 @@ export const defaultDesignSettings: DesignSettings = {
   splashOrbit: true,
   splashAudioUrl: "",
   splashAudioEnabled: false,
+  welcomeAudioUrl: "",
+  welcomeAudioEnabled: false,
   authShowBanner: true,
   authBannerImage: "",
   authBannerImageDark: "",
@@ -2251,6 +2256,8 @@ export function sanitizeDesignSettings(saved: unknown): DesignSettings {
   next.splashOrbit = pickBool(record.splashOrbit, defaultDesignSettings.splashOrbit);
   next.splashAudioUrl = pickText(record.splashAudioUrl, defaultDesignSettings.splashAudioUrl, 300, true);
   next.splashAudioEnabled = pickBool(record.splashAudioEnabled, defaultDesignSettings.splashAudioEnabled);
+  next.welcomeAudioUrl = pickText(record.welcomeAudioUrl, defaultDesignSettings.welcomeAudioUrl, 300, true);
+  next.welcomeAudioEnabled = pickBool(record.welcomeAudioEnabled, defaultDesignSettings.welcomeAudioEnabled);
   // إعدادات قديمة (قبل إضافة حركة الدوران) كانت تحمل المدة الافتراضية القديمة 0.9 ثانية → تُرقّى إلى المدة الجديدة 12 ثانية
   // كي تظهر الحركتان كاملتين، مع احترام أي مدة اختارها المسؤول صراحةً بعد إضافة الخيار الجديد.
   if (typeof record.splashOrbit !== "boolean" && next.splashDuration === "900") next.splashDuration = defaultDesignSettings.splashDuration;
@@ -2853,7 +2860,11 @@ export function designImageUrl(key: DesignImageKey, version: number) { return `/
 /* ===== صوت شاشة البداية (يرفعه المسؤول من الاستوديو) ===== */
 /** مفتاح المقطع الصوتي الوحيد حاليًا: صوت شاشة البداية. */
 export const SPLASH_AUDIO_KEY = "splash";
-export function isDesignAudioKey(value: unknown): value is "splash" { return value === SPLASH_AUDIO_KEY; }
+/** مفتاح صوت الترحيب بالمهني (يشتغل مرة واحدة في صفحة «حسابي»). */
+export const WELCOME_AUDIO_KEY = "welcome";
+export const DESIGN_AUDIO_KEYS = [SPLASH_AUDIO_KEY, WELCOME_AUDIO_KEY] as const;
+export type DesignAudioKey = (typeof DESIGN_AUDIO_KEYS)[number];
+export function isDesignAudioKey(value: unknown): value is DesignAudioKey { return typeof value === "string" && (DESIGN_AUDIO_KEYS as readonly string[]).includes(value); }
 /** أقصى حجم لمقطع الصوت المرفوع (٢ ميجابايت) — يكفي نحو ١٠ ثوانٍ بجودة عالية. */
 export const DESIGN_AUDIO_MAX_BYTES = 2 * 1024 * 1024;
 /** أقصى مدة مقترحة للمقطع: صوّرناها في الواجهة ونتحقق منها في المتصفح. */

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { BellRing, LoaderCircle, Send } from "lucide-react";
+import { BellRing, LoaderCircle, Send, Smartphone, UserRound } from "lucide-react";
 import { PUSH_BODY_MAX, PUSH_TITLE_MAX } from "@/lib/push-shared";
 
 /**
@@ -58,10 +58,24 @@ export default function AdminPush({ sections = [] }: { sections?: { id: string; 
 
   return (
     <section className="analytics-panel-card">
+      <div className="push-explainer" role="note">
+        <div className="push-explainer-head"><Smartphone size={18}/> <strong>إشعار الزوار — الرقم اللي جانبه معناه إيه؟</strong></div>
+        <p>
+          الرقم <b>{subscribers}</b> = <b>عدد الأجهزة</b> اللي فعّلت «إشعارات الموقع» من فوتر الصفحات (مش عدد الأشخاص — عضو واحد على موبايل وكمبيوتر = ٢).
+          لو الرقم ٣ يبقى ٣ أجهزة بس هي اللي هتشوف الرسالة.
+        </p>
+        <ul>
+          <li><UserRound size={13}/> <b>مين بيشوفه:</b> كل الأجهزة المشتركة (أو مشتركو قسم معيّن لو اخترت قسم).</li>
+          <li><BellRing size={13}/> <b>بيظهر إزاي:</b> إشعار على شاشة الموبايل/الكمبيوتر زي إشعار أي تطبيق — حتى لو الموقع مقفول.</li>
+          <li><Send size={13}/> <b>فين بيفتح:</b> عند الضغط بيفتح الرابط اللي تكتبه تحت (الصفحة الرئيسية افتراضيًا).</li>
+          <li><b>امتى يختفي:</b> بعد ٧ أيام لو محدش فتحه (الرسائل القديمة مش بتزحم).</li>
+        </ul>
+        <small>يحتاج إذن الزائر مرة واحدة؛ اللي رفض الإشعارات مش هيوصله حاجة، ومفيش أرقام هواتف ولا رسائل واتساب هنا.</small>
+      </div>
       <div className="analytics-panel-head">
         <div>
           <h3><BellRing size={18}/> إشعار الزوار ({subscribers})</h3>
-          <p>بيوصل لكل الأجهزة اللي فعّلت «إشعارات الموقع» من فوتر الصفحات — بدون تطبيق وبدون أرقام. استخدمه في خبر مهم أو عرض موسمي فقط.</p>
+          <p>اكتب عنوان ونص قصير، اختار مين يوصله، وأرسل. استخدمه في خبر مهم أو عرض موسمي فقط.</p>
         </div>
       </div>
 

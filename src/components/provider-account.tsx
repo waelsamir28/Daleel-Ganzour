@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { BellRing, ImagePlus, RefreshCw, BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
+import { BellRing, ClipboardCheck, ImagePlus, RefreshCw, BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
 import { activeOffer, servicePhotoUrl, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerTimeLeft, recentlyExpiredOffer, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
@@ -21,12 +21,24 @@ const statusLabel: Record<string, string> = { approved: "منشور على ال�
 /** صفحة «حسابي» لصاحب الخدمة: تعديل ذاتي عبر الرابط السري الذي أرسلته الإدارة على واتسابه. */
 export default function ProviderAccount({ token, initial, categories, areas }: Props) {
   const [service, setService] = useState(initial);
-  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request" | "offer" | "confirm" | "photo" | "gallery">("");
+  const [busy, setBusy] = useState<"" | "availability" | "quick" | "request" | "offer" | "confirm" | "photo" | "gallery" | "completion" | "completion-done">("");
   const [offerTitle, setOfferTitle] = useState(initial.offerTitle ?? "");
   const [offerDetails, setOfferDetails] = useState(initial.offerDetails ?? "");
   const [offerDays, setOfferDays] = useState(7);
   const [stickerOpen, setStickerOpen] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  /** أرقام بطاقتك (مشاهدات/تواصل) من الخادم — تُقرأ مرة عند فتح الصفحة. */
+  const [cardStats, setCardStats] = useState<{ views: number; contacts: number } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/my/insights?token=${encodeURIComponent(token)}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { views?: number; contacts?: number } | null) => {
+        if (alive && data && Number.isFinite(data.views)) setCardStats({ views: Number(data.views), contacts: Number(data.contacts) });
+      })
+      .catch(() => undefined);
+    return () => { alive = false; };
+  }, [token]);
   const [now, setNow] = useState(0);
   useEffect(() => {
     const tick = () => setNow(Date.now());
@@ -67,7 +79,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   const [address, setAddress] = useState(initial.address);
   const specialties = useMemo(() => categories.filter((item) => item.parentId === rootId), [categories, rootId]);
 
-  async function call(action: "availability" | "quick" | "request" | "offer" | "confirm" | "photo" | "gallery", payload: Record<string, unknown>): Promise<boolean> {
+  async function call(action: "availability" | "quick" | "request" | "offer" | "confirm" | "photo" | "gallery" | "completion-done", payload: Record<string, unknown>): Promise<boolean> {
     if (busy) return false;
     setBusy(action); setNotice(null);
     try {
@@ -147,6 +159,30 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       <section className="availability-card my-tools">
         <header className="my-section-head"><QrCode size={18}/><div><h2>ملصق التقييم للمحل</h2><span>ملصق A6 جاهز للطباعة: العميل يمسح الرمز فيفتح بطاقتك على نافذة التقييم مباشرة.</span></div></header>
         <button type="button" className="button button-primary" onClick={() => setStickerOpen(true)}><QrCode size={16}/> تجهيز ملصق «امسح لتقييمنا»</button>
+      </section>
+    )}
+
+    {cardStats && (
+      <section className="availability-card my-card-stats">
+        <header className="my-section-head"><Star size={18}/><div><h2>مهنتك على الدليل</h2><span>أرقام حقيقية من الخادم: كل فتح لبطاقتك = مشاهدة، وكل ضغط اتصال أو واتساب = تواصل.</span></div></header>
+        <div className="my-card-stats-row">
+          <div><b>{new Intl.NumberFormat("ar-EG").format(cardStats.views)}</b><small>مشاهدة بطاقة</small></div>
+          <div><b>{new Intl.NumberFormat("ar-EG").format(cardStats.contacts)}</b><small>ضغطة تواصل</small></div>
+        </div>
+      </section>
+    )}
+
+    {service.completionStatus === "submitted" && (
+      <section className="availability-card my-completion-done">
+        <header className="my-section-head"><ClipboardCheck size={18}/><div><h2>تم استكمال بياناتك؟</h2><span>اضغط «تم الاستكمال» لما تتأكد إن بياناتك كاملة — الإدارة هتشوف «تم التنفيذ» وتشيل اسمك من قائمة الناقص.</span></div></header>
+        <button type="button" className="availability-renew is-green" disabled={busy !== ""} onClick={() => void call("completion-done", {})}>
+          {busy === "completion-done" ? <LoaderCircle size={20} className="spin"/> : <ClipboardCheck size={20}/>} تم الاستكمال ✓
+        </button>
+      </section>
+    )}
+    {service.completionStatus === "done" && (
+      <section className="availability-card my-completion-done is-ack">
+        <header className="my-section-head"><CheckCircle2 size={18}/><div><h2>تم الاستكمال ✓</h2><span>وصل تأكيدك للإدارة وهي بتراجع البيانات. مفيش حاجة مطلوبة منك دلوقتي.</span></div></header>
       </section>
     )}
 
