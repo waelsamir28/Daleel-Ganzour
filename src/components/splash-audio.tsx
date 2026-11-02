@@ -3,10 +3,9 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
+import { claimSessionPlay, hasPlayedThisSession, SPLASH_AUDIO_SESSION_KEY } from "@/lib/splash-audio";
 import { SPLASH_AUDIO_BLOCKED_EVENT, SPLASH_AUDIO_STOP_EVENT, SPLASH_FINISHED_EVENT, SPLASH_PREVIEW_EVENT } from "@/components/splash-screen";
 
-/** مفتاح منع تكرار الصوت في نفس الجلسة (يفتح التطبيق عشر مرات فيشتغل مرة). */
-const PLAYED_KEY = "janzour-splash-audio-played";
 /** بيتعلّم أول ما الزائر يلمس الموقع، فالمتصفح يسمح بالتشغيل التلقائي في الزيارات الجاية. */
 const UNLOCKED_KEY = "janzour-audio-unlocked";
 /**
@@ -19,15 +18,24 @@ const GESTURES = ["pointerdown", "touchstart", "keydown", "click"] as const;
 
 /** عنصر صوت واحد لكل التطبيق: التنقل بين الصفحات مابيقطعش المقطع. */
 let sharedAudio: HTMLAudioElement | null = null;
+/** اتشغل (أو جاري التشغيل) في تحميل الصفحة الحالي — يمنع أي محاولة تانية. */
 let sharedStarted = false;
+/** حجز تشغيل واحد للجلسة كلها، مشترك بين كل عمليات تحميل الصفحة وفك وتركيب المكوّن. */
+let sessionClaimed = false;
+
+function sessionStore(): Storage | null {
+  try { return window.sessionStorage; } catch { return null; }
+}
 
 /**
  * صوت شاشة البداية: مقطع قصير (نحو ١٠ ثوانٍ) يرفعه المسؤول من الاستوديو.
- * - يشتغل تلقائيًا لحظة فتح التطبيق (أول الصفحة الرئيسية) من غير أي ضغطة،
- *   ولو التصميم لسه ماوصلش بيحاول تاني لحد ما يوصل، وكمان لما شاشة البداية تخلص.
- * - لو المتصفح رفض التشغيل التلقائي: يشتغل مع أول لمسة في أي مكان (ومابيطلبش منك تدوّر على زر).
- * - بيحترم زر «كتم الصوت» في الموقع (janzour-sound-muted).
- * - يشتغل مرة واحدة في الجلسة، وعلى الصفحة الرئيسية فقط حيث تبدأ شاشة البداية.
+ * - **يشتغل مرة واحدة فقط في الجلسة**: أول ما المقطع يبدأ (أو أول محاولة تشغيل) الجلسة
+ *   بتتعلّم، ومهما اتنقل الزائر بين الصفحات أو رجّع الرئيسية أو عمل تحديث للصفحة
+ *   مابيشتغلش تاني — لحد ما يقفل التاب ويفتح جلسة جديدة.
+ * - يشتغل تلقائيًا لحظة فتح التطبيق من غير أي ضغطة، ولو التصميم لسه ماوصلش بيحاول تاني
+ *   في نفس الصفحة، وكمان لما شاشة البداية تخلص.
+ * - لو المتصفح رفض التشغيل التلقائي: يشتغل مع أول لمسة في أي مكان (في نفس الصفحة بس).
+ * - بيحترم زر «كتم الصوت» في الموقع، وزر السماعة على شاشة البداية بيوقف/يكمّل نفس التشغيل.
  * - لا يرسم أي عنصر واجهة، ولا يعطّل شيئًا لو الملف غير موجود.
  */
 export default function SplashAudio() {
@@ -38,6 +46,8 @@ export default function SplashAudio() {
     const onHome = pathname === "/";
     let disposed = false;
     let forced = false;
+    let pausedByUser = false;
+    let claimedHere = false;
     let gestureOff: (() => void) | null = null;
     const timers: number[] = [];
 
@@ -46,14 +56,6 @@ export default function SplashAudio() {
         src: root.getAttribute("data-design-splash-audio") || "",
         enabled: root.getAttribute("data-design-splash-audio-enabled") === "true",
       };
-    }
-
-    function playedThisSession() {
-      try { return sessionStorage.getItem(PLAYED_KEY) === "1"; } catch { return false; }
-    }
-
-    function markPlayed() {
-      try { sessionStorage.setItem(PLAYED_KEY, "1"); } catch { /* ignore */ }
     }
 
     function markUnlocked() {
@@ -84,11 +86,22 @@ export default function SplashAudio() {
       gestureOff = null;
     }
 
+    /** حجز التشغيل الوحيد في الجلسة. المحاولات المتتابعة في نفس الصفحة مسموحة، وبعدها لأ. */
+    function claimSession(): boolean {
+      if (claimedHere) return true;
+      if (!claimSessionPlay(sessionStore(), sessionClaimed)) return false;
+      sessionClaimed = true;
+      claimedHere = true;
+      return true;
+    }
+
     async function tryPlay(): Promise<boolean> {
       if (disposed || sharedStarted) return false;
       if (!onHome && !forced) return false;
       const { src, enabled } = readConfig();
       if (!src || !enabled || isSoundMuted()) return false;
+      // المعاينة من الاستوديو مش داخلة في حساب «مرة واحدة في الجلسة».
+      if (!forced && !claimSession()) { clearTimers(); disarmGesture(); return false; }
       const audio = ensureAudio(src);
       try { audio.currentTime = 0; } catch { /* الملف لسه بيحمّل */ }
       try {
@@ -100,7 +113,8 @@ export default function SplashAudio() {
       }
       if (disposed) { audio.pause(); return false; }
       sharedStarted = true;
-      markPlayed();
+      pausedByUser = false;
+      clearTimers();
       disarmGesture();
       return true;
     }
@@ -121,14 +135,17 @@ export default function SplashAudio() {
     const listener = () => { markUnlocked(); };
     for (const name of GESTURES) window.addEventListener(name, listener, { once: true, passive: true });
 
-    if (onHome && !sharedStarted && !playedThisSession()) {
+    // الجلسة اللي شافت تشغيل خلاص مابنحاولش فيها تاني — لا محاولات ولا انتظار للمسة.
+    const fresh = forced || (onHome && !hasPlayedThisSession(sessionStore()));
+
+    if (onHome && fresh) {
       scheduleAttempts();
       armGesture();
     }
 
     // إعدادات التصميم بتتغيّر بعد التحميل (أو من الاستوديو مباشرة): أول ما رابط المقطع يظهر بنشغّله.
     const observer = new MutationObserver(() => {
-      if (disposed || sharedStarted || playedThisSession()) return;
+      if (disposed || sharedStarted || (!forced && !fresh)) return;
       const { src, enabled } = readConfig();
       if (!src || !enabled) return;
       void tryPlay();
@@ -142,10 +159,18 @@ export default function SplashAudio() {
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("pageshow", onVisible);
 
-    // الكتم أثناء التشغيل يوقف الصوت فورًا؛ ورفع الكتم يسمح بمحاولة جديدة عند أول لمسة.
+    // الكتم أثناء التشغيل يوقف الصوت، ورفع الكتم بيكمّل من نفس اللحظة (مش من الأول).
     const onMute = () => {
-      if (isSoundMuted()) { sharedAudio?.pause(); sharedStarted = false; armGesture(); }
-      else if (!sharedStarted) armGesture();
+      if (isSoundMuted()) {
+        sharedAudio?.pause();
+        if (sharedStarted) pausedByUser = true;
+        armGesture();
+      } else if (!sharedStarted) {
+        armGesture();
+      } else if (pausedByUser && !forced) {
+        pausedByUser = false;
+        void sharedAudio?.play().catch(() => undefined);
+      }
     };
     window.addEventListener(SOUND_MUTE_EVENT, onMute);
 
@@ -153,6 +178,7 @@ export default function SplashAudio() {
     const onPreview = () => {
       forced = true;
       sharedStarted = false;
+      pausedByUser = false;
       if (sharedAudio) {
         sharedAudio.pause();
         try { sharedAudio.currentTime = 0; } catch { /* ignore */ }
@@ -162,16 +188,17 @@ export default function SplashAudio() {
     };
     window.addEventListener(SPLASH_PREVIEW_EVENT, onPreview);
 
-    // زر السماعة على شاشة البداية: يوقف المقطع فورًا، وتشغيله تاني يرجّعه من الأول.
+    // زر السماعة على شاشة البداية: يوقف المقطع، وزر التشغيل بيكمّل من حيث وقف.
     const onStop = (event: Event) => {
       const muted = (event as CustomEvent<{ muted?: boolean }>).detail?.muted !== false;
       if (muted) {
         sharedAudio?.pause();
-        sharedStarted = false;
+        if (sharedStarted) pausedByUser = true;
         disarmGesture();
       } else {
-        if (sharedAudio) { try { sharedAudio.currentTime = 0; } catch { /* ignore */ } }
-        void tryPlay();
+        pausedByUser = false;
+        if (sharedStarted && sharedAudio) void sharedAudio.play().catch(() => undefined);
+        else { sharedStarted = false; void tryPlay(); }
       }
     };
     window.addEventListener(SPLASH_AUDIO_STOP_EVENT, onStop);
@@ -195,3 +222,5 @@ export default function SplashAudio() {
 
   return null;
 }
+
+export { SPLASH_AUDIO_SESSION_KEY };
