@@ -4,6 +4,7 @@ import { notificationChime } from "@/lib/feedback";
 import { extractEgyptPhone, whatsappReplyLink } from "@/lib/whatsapp-alert-kinds";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { completionReminderDecision, COMPLETION_REMINDER_DAYS, dueReminderCount as reminderDueCount } from "@/lib/completion-reminder";
 import { Smartphone, History, CheckSquare, CopyCheck, TriangleAlert, ListChecks, SlidersHorizontal, SquareMinus, XCircle, ArrowDown, ArrowUp, BadgeCheck, BarChart3, Bell, CalendarDays, Clapperboard, BellRing, BriefcaseBusiness, Building2, Check, CheckCheck, CheckCircle2, ChevronDown, ChevronLeft, CircleX, ClipboardList, Crown, EllipsisVertical, Eye, EyeOff, FileClock, FileSpreadsheet, Grid2X2, Hammer, LoaderCircle, LockKeyhole, Link2, LogOut, MapPin, Menu, MessageCircle, Megaphone, MessageSquareQuote, Palette, Pencil, Phone, Plus, RotateCw, Search, Settings2, ShieldCheck, Star, Trash2, UserRound, UsersRound, X, MessageSquareWarning } from "lucide-react";
 import { defaultAdPricing, findServiceDuplicates, getCategory, normalizeSearch, whatsappUrl, type AdminDirectory, type CategoryRecord, type CommunityListingRecord, type NotificationRecord, type ServiceRecord, type AdminPaletteId } from "@/lib/catalog";
 import { CategoryIcon, Logo, MainCategoryIcon, Modal } from "@/components/ui";
@@ -126,6 +127,8 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
   /** مين اتبعتله طلب استكمال في الجلسة دي — الزر بيتحول لـ«تم الإرسال» بدل ما يتفتح عندنا محرر. */
   const [completionSent, setCompletionSent] = useState<string[]>([]);
   const [completionBulkBusy, setCompletionBulkBusy] = useState(false);
+  /** عدد المهن اللي عدّى عليها ٣ أيام من طلب الاستكمال ومردّتش — التذكير التلقائي بيبعت لهم إشعار واحد. */
+  const [reminderBusy, setReminderBusy] = useState(false);
   const duplicateCount = useMemo(() => data.services.filter((service) => (tab === "directory" ? service.status === "approved" : service.status !== "approved") && duplicates.has(service.id)).length, [data.services, duplicates, tab]);
   const filteredServices = data.services.filter((service) => (tab === "directory" ? service.status === "approved" : service.status !== "approved") && (!dupOnly || duplicates.has(service.id)) && (status === "all" || service.status === status) && (!rootFilter || getCategory(service.category, data.categories).parentId === rootFilter) && (!areaFilter || service.area === areaFilter) && normalizeSearch(`${service.name} ${service.phone} ${service.phoneSecondary} ${service.area} ${getCategory(service.category, data.categories).name}`).includes(normalizeSearch(search)))
     // طلبات التعديل الواردة من أصحاب الخدمات (صفحة «حسابي») تتصدر القائمة حتى لا تضيع.
@@ -140,6 +143,9 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
   for (let index = 0; index < filteredIncompleteServices.length; index += 2) {
     completionPairs.push([filteredIncompleteServices[index], filteredIncompleteServices[index + 1]]);
   }
+  // المهن المستحقة لتذكير الاستكمال (٣ أيام من غير رد + مفيش تذكير سابق لنفس الطلب).
+  const reminderDueServices = data.services.filter((service) => completionReminderDecision(service).due);
+  const reminderDue = reminderDueCount(data.services);
   const allNotificationsSelected = data.notifications.length > 0 && data.notifications.every((notification) => selectedNotificationIds.has(notification.id));
   // Mobile action sheet for a service card. The list is built when the menu opens (event handler), not during render.
   function openServiceMenu(service: ServiceRecord) { setServiceMenu({ title: service.name, subtitle: `${getCategory(service.category, data.categories).name} · ${statusLabels[service.status]}`, items: serviceMenuItems(service) }); }
@@ -166,6 +172,25 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
     const ok = await mutate("PATCH", { id: service.id, type: "service", action: "request-completion" }, `تم إرسال طلب الاستكمال لـ ${service.name} — هيكمّل بياناته بنفسه من صفحة حسابه.`);
     if (ok) setCompletionSent((list) => (list.includes(service.id) ? list : [...list, service.id]));
   }
+  /** يبعت التذكير التلقائي لكل المستحقين (إشعار واحد لكل مهنة — لا يتكرر لنفس الطلب). */
+  async function sendCompletionReminders(quiet = false) {
+    setReminderBusy(true);
+    try {
+      const response = await fetch("/api/admin", {
+        method: "PATCH",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "service", action: "completion-reminders" }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.error ?? "تعذّر إرسال التذكيرات.");
+      await mutate("GET", undefined, result.message ?? "تم إرسال التذكيرات.");
+    } catch (error) {
+      if (!quiet) setToast({ text: error instanceof Error ? error.message : "تعذّر إرسال التذكيرات.", error: true });
+    } finally { setReminderBusy(false); }
+  }
+
+
   /** «استكمال الكل»: طلب واحد لكل المهن الناقصة، وكل الأزرار بتتحول لـ«تم الإرسال». */
   async function requestAllCompletions() {
     setCompletionBulkBusy(true);
@@ -321,6 +346,29 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
       : "تم إيقاف الإعلان، ولن يظهر للزوار.";
     await mutate("PATCH", { id: listing.id, type: "community", action }, message);
   }
+  // تذكير تلقائي: أول ما المسؤول يفتح اللوحة، أي مهنة عدّى عليها ٣ أيام من غير رد يتبعتلها إشعار واحد.
+  // الحماية: محاولة واحدة لكل جلسة في المتصفح، والتكرار ممنوع أصلًا على الخادم (تذكير واحد لكل طلب).
+  useEffect(() => {
+    if (reminderDueCount(initialData.services) === 0) return;
+    let done = false;
+    try { done = sessionStorage.getItem("janzour-completion-reminders") === "1"; } catch { /* التخزين ممكن يكون ممنوع */ }
+    if (done) return;
+    try { sessionStorage.setItem("janzour-completion-reminders", "1"); } catch { /* تجاهل */ }
+    fetch("/api/admin", {
+      method: "PATCH",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "service", action: "completion-reminders" }),
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((result: { ok?: boolean; sent?: number; message?: string } | null) => {
+        if (result?.ok && Number(result.sent) > 0) void mutate("GET", undefined, result.message ?? "تم إرسال التذكيرات.");
+      })
+      .catch(() => undefined);
+    // يعمل مرة واحدة عند فتح اللوحة فقط.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- تشغيل مرة واحدة عند الفتح
+  }, []);
+
   const visibleSelectedIds = selectedServiceIds.filter((id) => filteredServices.some((service) => service.id === id));
   async function runBulkServiceAction(action: "approve" | "reject", ids: string[]) {
     const reviewNote = action === "reject" ? window.prompt("سبب الرفض للمهن المحددة (يظهر لصاحب رابط المتابعة):") : undefined;
@@ -412,6 +460,24 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
                   {service.status === "approved" && <button type="button" className="admin-req-icon is-reject" disabled={busy === service.id} title="إيقاف النشر" aria-label={`إيقاف نشر ${service.name}`} onClick={() => change(service.id, "service", "reject")}><EyeOff size={18}/></button>}
                   <button type="button" className="admin-req-icon is-more" aria-haspopup="dialog" title="إجراءات" aria-label={`إجراءات ${service.name}`} onClick={() => openServiceMenu(service)}><SlidersHorizontal size={18}/></button>
                 </div>}</article>)}{!filteredServices.length && <AdminEmpty title={search ? "مفيش نتائج للبحث" : "كل الطلبات تحت السيطرة!"} text="أي مهنة جديدة هتوصلك هنا للمراجعة، ومعاها إشعار. مفيش نشر تلقائي."/>}</div>}
+    {tab === "completion" && (
+      <div className={`completion-reminder-bar ${reminderDue > 0 ? "is-due" : ""}`}>
+        <span className="completion-reminder-icon"><BellRing size={18}/></span>
+        <div className="completion-reminder-copy">
+          <strong>تذكير تلقائي بالاستكمال</strong>
+          <span>
+            {reminderDue > 0
+              ? `${reminderDue} مهنة عدّى عليها ${COMPLETION_REMINDER_DAYS} أيام من غير رد — بيتبعتلها إشعار واحد تلقائيًا أول ما تفتح اللوحة.`
+              : `مفيش مهن مستحقة للتذكير دلوقتي — التذكير بيتبعت تلقائيًا بعد ${COMPLETION_REMINDER_DAYS} أيام من طلب الاستكمال، ومرة واحدة لكل مهنة.`}
+          </span>
+        </div>
+        {reminderDue > 0 && (
+          <button type="button" className="button button-soft button-small" disabled={reminderBusy} onClick={() => void sendCompletionReminders()}>
+            {reminderBusy ? <LoaderCircle size={15} className="spin"/> : <BellRing size={15}/>} إرسال التذكير الآن ({reminderDue})
+          </button>
+        )}
+      </div>
+    )}
     {tab === "completion" && (completionPairs.length > 0 ? <div className="admin-completion-table-wrap"><table className="admin-completion-table" aria-label="جدول استكمال بيانات المهن"><thead><tr><th>الاسم</th><th>الإجراء</th><th>الاسم</th><th>الإجراء</th></tr></thead><tbody>{completionPairs.map(([first, second]) => <tr key={first.id}><td className="completion-name-cell"><strong>{first.name}</strong><small>{renderCompletionSubtitle(first)}</small></td><td className="completion-action-cell">{renderCompletionCell(first)}</td>{second ? <><td className="completion-name-cell"><strong>{second.name}</strong><small>{renderCompletionSubtitle(second)}</small></td><td className="completion-action-cell">{renderCompletionCell(second)}</td></> : <><td className="completion-name-cell is-empty" aria-hidden="true"/><td className="completion-action-cell is-empty" aria-hidden="true"/></>}</tr>)}</tbody></table></div> : <AdminEmpty title={search ? "مفيش نتائج مطابقة" : "كل بيانات المهن مكتملة!"} text="أي مهنة ينقصها وصف أو واتساب أو صورة أو عنوان تفصيلي ستظهر هنا لاستكمالها بسهولة."/>)}
     {tab === "community" && <div className="admin-community-list">{filteredCommunityListings.map((listing) => <article className="admin-community-row" key={listing.id}><div className="admin-community-summary"><span className={`admin-community-icon is-${listing.type}`}>{listing.type === "labor" ? <Hammer size={22}/> : listing.type === "property" ? <Building2 size={22}/> : <BriefcaseBusiness size={22}/>}</span><div className="admin-community-info"><div className="admin-community-badges"><span className={`status-badge status-${listing.status}`}>{statusLabels[listing.status] ?? listing.status}</span><span className="community-type-badge">{communityTypeLabels[listing.type]}</span><time>{new Date(listing.createdAt).toLocaleDateString("ar-EG")}</time></div><h3>{listing.title}</h3>{listing.type === "labor" && listing.profession && <strong className="admin-community-profession">{listing.profession}</strong>}<p>{listing.description || (listing.type === "labor" ? "بيانات عامل يومي" : "لا توجد تفاصيل إضافية.")}</p><div className="admin-community-meta"><a href={`tel:${listing.phone}`} dir="ltr"><Phone size={13}/>{listing.phone}</a>{listing.area && <span><MapPin size={13}/>{listing.area}</span>}{listing.price && <strong>{listing.price}</strong>}</div></div></div><div className="admin-community-actions">{listing.status !== "approved" && <button className="button button-success button-small" disabled={busy === listing.id} onClick={() => void changeCommunityListing(listing, "approve")}><Check size={15}/>موافقة ونشر</button>}{listing.status === "approved" && listing.type === "property" && <button className="button button-soft button-small" disabled={busy === listing.id} onClick={() => void changeCommunityListing(listing, "sold")}><BadgeCheck size={15}/>تم البيع</button>}{listing.status === "approved" && listing.type === "job" && <button className="button button-soft button-small" disabled={busy === listing.id} onClick={() => void changeCommunityListing(listing, "filled")}><BriefcaseBusiness size={15}/>تم شغل الوظيفة</button>}{(listing.status === "pending" || listing.status === "approved") && <button className="button button-danger-soft button-small" disabled={busy === listing.id} onClick={() => void changeCommunityListing(listing, "reject")}><X size={15}/>{listing.status === "approved" ? "إيقاف الإعلان" : "رفض"}</button>}</div></article>)}{!filteredCommunityListings.length && <AdminEmpty title={search ? "مفيش نتائج للبحث" : communityStatus === "pending" ? "لا توجد إعلانات بانتظار المراجعة" : "لا توجد إعلانات في هذه الحالة"} text="إعلانات العقارات والوظائف وطلبات العمالة اليومية التي تصل من الموقع ستظهر هنا لمراجعتها."/>}</div>}
     {tab === "categories" && <div className="categories-management" ref={categoriesPanel}>{filteredRoots.map((category) => <div className="category-management-group" data-open={search || openCategoryGroups[category.id] ? "true" : "false"} style={{ "--group-color": category.color, "--group-light": category.light } as CSSProperties} key={category.id}><div className="category-management-heading" role="button" tabIndex={0} aria-expanded={Boolean(search || openCategoryGroups[category.id])} onClick={(event) => { if ((event.target as HTMLElement).closest("button, a, input, select")) return; setOpenCategoryGroups((current) => ({ ...current, [category.id]: !current[category.id] })); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setOpenCategoryGroups((current) => ({ ...current, [category.id]: !current[category.id] })); } }}><span className="admin-category-icon admin-category-art" style={{ background: category.light, color: category.color }}><MainCategoryIcon icon={category.icon} art={category.art} size={34}/></span><div><h3>{category.name}<span className={`status-badge ${category.active ? "status-approved" : "status-rejected"}`}>{category.active ? "ظاهر" : "مخفي"}</span></h3></div><div className="category-management-actions"><span className="category-order-arrows"><button className="icon-button" disabled={busy === category.id || siblingPosition(category).first} onClick={() => void moveCategory(category, "up")} aria-label={`تحريك ${category.name} لأعلى`}><ArrowUp size={15}/></button><button className="icon-button" disabled={busy === category.id || siblingPosition(category).last} onClick={() => void moveCategory(category, "down")} aria-label={`تحريك ${category.name} لأسفل`}><ArrowDown size={15}/></button></span><button className="button button-soft button-small" onClick={() => setEditing({ kind: "category", parentId: category.id })}><Plus size={14}/>تخصص</button><button className="icon-button" onClick={() => setEditing({ kind: "category", item: category })} aria-label={`تعديل ${category.name}`}><Pencil size={16}/></button><button className="icon-button" onClick={() => toggleCategory(category)} aria-label={`${category.active ? "إخفاء" : "إظهار"} ${category.name}`}>{category.active ? <EyeOff size={16}/> : <Eye size={16}/>}</button><button className="icon-button admin-delete" onClick={() => setConfirmation({ id: category.id, kind: "category", action: "delete", label: category.name })} aria-label={`حذف ${category.name}`}><Trash2 size={16}/></button></div></div>{data.categories.some((item) => item.parentId === category.id) && <button type="button" className="category-group-toggle" aria-expanded={Boolean(search || openCategoryGroups[category.id])} onClick={() => setOpenCategoryGroups((current) => ({ ...current, [category.id]: !current[category.id] }))}><ChevronDown size={16}/><span>{search || openCategoryGroups[category.id] ? "إخفاء التخصصات" : `عرض التخصصات (${data.categories.filter((item) => item.parentId === category.id).length})`}</span></button>}<div className="specialties-management-list">{data.categories.filter((item) => item.parentId === category.id && (!search || normalizeSearch(item.name).includes(normalizeSearch(search)) || normalizeSearch(category.name).includes(normalizeSearch(search)))).map((item) => <div className="category-management-row" key={item.id}><CategoryIcon icon={item.icon} size={18}/><div><strong>{item.name}</strong><span>{data.services.filter((service) => service.category === item.id).length} مهنة مرتبطة</span></div><span className={`status-badge ${item.active ? "status-approved" : "status-rejected"}`}>{item.active ? "ظاهر" : "مخفي"}</span><div className="category-management-actions"><span className="category-order-arrows"><button className="icon-button" disabled={busy === item.id || siblingPosition(item).first} onClick={() => void moveCategory(item, "up")} aria-label={`تحريك ${item.name} لأعلى`}><ArrowUp size={14}/></button><button className="icon-button" disabled={busy === item.id || siblingPosition(item).last} onClick={() => void moveCategory(item, "down")} aria-label={`تحريك ${item.name} لأسفل`}><ArrowDown size={14}/></button></span><button className="icon-button" onClick={() => setEditing({ kind: "category", item })} aria-label={`تعديل ${item.name}`}><Pencil size={15}/></button><button className="icon-button" onClick={() => toggleCategory(item)} aria-label={`${item.active ? "إخفاء" : "إظهار"} ${item.name}`}>{item.active ? <EyeOff size={15}/> : <Eye size={15}/>}</button><button className="icon-button admin-delete" onClick={() => setConfirmation({ id: item.id, kind: "category", action: "delete", label: item.name })} aria-label={`حذف ${item.name}`}><Trash2 size={15}/></button></div></div>)}</div></div>)}{!filteredRoots.length && <AdminEmpty title="مفيش تصنيفات مطابقة" text="أضف تصنيفًا رئيسيًا جديدًا، ثم أضف التخصصات بداخله."/>}</div>}

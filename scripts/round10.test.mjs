@@ -874,3 +874,71 @@ test("analytics tiles are squares two per row with the icon on top, and seasonal
   assert.ok(css.includes(".seasonal-card {\n  grid-template-columns: 1fr;"));
   assert.ok(css.includes(".seasonal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }"));
 });
+
+test("completion reminders: one automatic notification after 3 days, never repeated", async () => {
+  const reminder = await loadLib("../src/lib/completion-reminder.ts");
+  assert.equal(reminder.COMPLETION_REMINDER_DAYS, 3);
+  const now = Date.parse("2026-11-10T12:00:00Z");
+  const asked = "2026-11-05T12:00:00Z"; // عدّى ٥ أيام
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: asked }, now).due, true);
+  // لسه بدري
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: "2026-11-09T12:00:00Z" }, now).reason, "too-early");
+  // ردّ أو أكّد → مفيش تذكير
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "submitted", completionRequestedAt: asked }, now).due, false);
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "done", completionRequestedAt: asked }, now).due, false);
+  // تذكير اتبعت بعد الطلب → ممنوع التكرار
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: asked, completionReminderAt: "2026-11-09T12:00:00Z" }, now).reason, "already-reminded");
+  // طلب استكمال جديد بعد التذكير القديم → تذكير واحد جديد مسموح
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: "2026-11-06T12:00:00Z", completionReminderAt: "2026-11-05T12:00:00Z" }, now).due, true);
+  // مفيش تاريخ طلب (بيانات قديمة) → مانبعتش عشوائي
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: null }, now).reason, "no-date");
+  const message = reminder.completionReminderMessage({ name: "أحمد السباك", daysWaiting: 5 });
+  assert.ok(message.title.includes("استكمال بيانات") && message.body.includes("أحمد السباك") && message.body.length <= 300);
+  assert.equal(reminder.dueReminderCount([
+    { completionStatus: "requested", completionRequestedAt: asked },
+    { completionStatus: "requested", completionRequestedAt: "2026-11-09T12:00:00Z" },
+  ], now), 1);
+
+  const api = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes('action === "completion-reminders"'));
+  assert.ok(api.includes("completionReminderMessage") && api.includes("completionReminderAt: new Date()"));
+  // الطلب الجديد بيبدأ عدّاد جديد ويسمح بتذكير واحد.
+  assert.ok(api.includes("completionRequestedAt: new Date(), completionReminderAt: null"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes("completionRequestedAt") && schema.includes("completionReminderAt"));
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("ADD COLUMN IF NOT EXISTS completion_requested_at"));
+  const panel = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.ok(panel.includes("completion-reminder-bar") && panel.includes("sendCompletionReminders"));
+  assert.ok(panel.includes("janzour-completion-reminders"));
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".completion-reminder-bar.is-due"));
+});
+
+test("splash audio starts on its own when the app opens, without any tap", () => {
+  const player = readFileSync(new URL("../src/components/splash-audio.tsx", import.meta.url), "utf8");
+  // الإعدادات بتوصل بعد أول رسم للصفحة: لازم إعادة قراءة + مراقبة التغيير + محاولات متتابعة.
+  assert.ok(player.includes("MutationObserver") && player.includes("attributeFilter"));
+  assert.ok(player.includes("RETRY_DELAYS") && player.includes("function scheduleAttempts"));
+  assert.ok(player.includes("readConfig") && player.includes("getAttribute(\"data-design-splash-audio\")"));
+  // بيحاول تاني لما الملف يبقى جاهز، ولما الصفحة ترجع تبان، ولما شاشة البداية تخلص.
+  assert.ok(player.includes("\"canplay\"") && player.includes("visibilitychange") && player.includes("pageshow"));
+  assert.ok(player.includes("SPLASH_FINISHED_EVENT"));
+  // لسه فيه خطة بديلة: أول لمسة في أي مكان تشغّل الصوت، وبتتعلّم إن الجهاز اتفتح عليه الموقع قبل كده.
+  assert.ok(player.includes("janzour-audio-unlocked") && player.includes("GESTURES"));
+  // مفيش قطع للمقطع أثناء التنقل: عنصر صوت واحد على مستوى التطبيق.
+  assert.ok(player.includes("let sharedAudio: HTMLAudioElement | null = null;"));
+  assert.ok(player.includes("SPLASH_AUDIO_BLOCKED_EVENT"));
+
+  const splash = readFileSync(new URL("../src/components/splash-screen.tsx", import.meta.url), "utf8");
+  assert.ok(splash.includes("export const SPLASH_FINISHED_EVENT = \"janzour-splash-finished\";"));
+  assert.ok(splash.includes("export const SPLASH_AUDIO_BLOCKED_EVENT = \"janzour-splash-audio-blocked\";"));
+  assert.ok(splash.includes("splash-sound-hint") && splash.includes("is-waiting"));
+  // الشاشة بتقول للصوت إنها خلصت من نفس الحدث اللي بيسمعه المشغّل.
+  assert.ok(splash.includes("new CustomEvent(SPLASH_FINISHED_EVENT)"));
+  assert.equal(splash.includes("new CustomEvent(\"janzour-splash-finished\")"), false);
+
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".splash-audio-toggle.is-waiting"));
+  assert.ok(css.includes(".splash-sound-hint {"));
+});

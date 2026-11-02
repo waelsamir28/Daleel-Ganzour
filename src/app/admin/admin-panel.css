@@ -3660,3 +3660,32 @@ html.dark .error-detail-note input { background: #12283c; border-color: #23425c;
 }
 .completion-all-btn { white-space: nowrap; }
 html.dark .completion-sent-chip { background: #12301f; border-color: #276b45; color: #9fe6bd; }
+
+/* ===== تذكير الاستكمال التلقائي (بعد ٣ أيام، إشعار واحد لكل مهنة) ===== */
+.completion-reminder-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f4f9ff;
+  border: 1px solid #d9e8f6;
+  text-align: start;
+}
+.completion-reminder-bar.is-due { background: #fff8ec; border-color: #f6dcae; }
+.completion-reminder-icon {
+  display: grid; place-items: center;
+  width: 38px; height: 38px; border-radius: 13px;
+  background: #0b5f9e; color: #fff; flex: none;
+}
+.completion-reminder-bar.is-due .completion-reminder-icon { background: #d97706; }
+.completion-reminder-copy { flex: 1; min-width: 180px; }
+.completion-reminder-copy strong { display: block; font-size: .88rem; font-weight: 900; color: #123252; }
+.completion-reminder-copy span { display: block; margin-top: 2px; font-size: .78rem; line-height: 1.8; color: #4c6b88; }
+.completion-reminder-bar .button { white-space: nowrap; }
+html.dark .completion-reminder-bar { background: #10283e; border-color: #1e3a52; }
+html.dark .completion-reminder-bar.is-due { background: #2a2113; border-color: #4a3a1f; }
+html.dark .completion-reminder-copy strong { color: #dbeafe; }
+html.dark .completion-reminder-copy span { color: #93aec6; }

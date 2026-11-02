@@ -42,6 +42,10 @@ export const services = pgTable("directory_services", {
   completionStatus: varchar("completion_status", { length: 20 }).notNull().default("none"),
   completionNote: text("completion_note").notNull().default(""),
   completionDraft: jsonb("completion_draft").$type<ServiceCompletionDraft | null>().default(null),
+  /** وقت آخر طلب استكمال من الإدارة — أساس حساب تذكير الـ٣ أيام. */
+  completionRequestedAt: timestamp("completion_requested_at", { withTimezone: true }),
+  /** وقت آخر تذكير تلقائي اتبعت لصاحب المهنة (إشعار واحد لكل مهنة، مش كل يوم). */
+  completionReminderAt: timestamp("completion_reminder_at", { withTimezone: true }),
   hours: varchar("hours", { length: 120 }).notNull().default(""),
   menuUrl: text("menu_url").notNull().default(""),
   menuWhatsapp: varchar("menu_whatsapp", { length: 24 }).notNull().default(""),
