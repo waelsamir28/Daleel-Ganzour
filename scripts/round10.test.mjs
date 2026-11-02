@@ -1272,3 +1272,124 @@ test("round 35: splash audio plays only once per session", async () => {
   assert.ok(component.includes("forced"), "معاينة الاستوديو لسه شغالة");
   assert.ok(!component.includes("sessionStorage.setItem(\"janzour-splash-audio-played\""), "التعليم بقى في lib واحدة");
 });
+
+test("round 36: shop banner formats, texts and layout geometry", async () => {
+  const banner = await loadLib("../src/lib/shop-banner.ts");
+
+  // ===== المقاسات =====
+  assert.equal(banner.BANNER_FORMATS.length, 4);
+  assert.deepEqual(banner.BANNER_FORMATS.map((format) => format.id), ["cover", "story", "screen", "square"]);
+  const cover = banner.bannerFormat("cover");
+  assert.equal(cover.width, 1640);
+  assert.equal(cover.height, 856);
+  assert.equal(cover.landscape, true);
+  assert.equal(banner.bannerFormat("غير-موجود").id, "cover", "أي مقاس غلط بيرجع للمقاس الافتراضي");
+  assert.equal(banner.bannerFormat("story").landscape, false);
+  assert.match(banner.bannerSizeLabel(cover), /1640 × 856/);
+  assert.equal(banner.bannerTheme("gold").id, "gold");
+  assert.equal(banner.bannerTheme(undefined).id, "day", "اللون الافتراضي نهاري");
+  assert.equal(banner.BANNER_THEMES.length, 4);
+
+  // ===== نصوص البانر =====
+  assert.deepEqual(banner.bannerPhones(["01001234567", "0100 123 4567", "", "01112223333", "01234567890"]), ["01001234567", "01112223333"], "بدون تكرار وبأقصى رقمين");
+  assert.equal(banner.bannerPhoneDisplay("01001234567"), "0100 123 4567");
+  assert.equal(banner.bannerOfferLine("  خصم   ١٠٪   على التصليح  "), "خصم ١٠٪ على التصليح");
+  assert.equal(banner.bannerOfferLine("ا".repeat(80)).length, banner.BANNER_OFFER_MAX, "سطر العرض بيتقصّر");
+  assert.equal(banner.bannerOfferLine("").length, 0);
+  assert.equal(banner.bannerHoursLine("من 9 - 5"), "من 9 – 5");
+  assert.equal(banner.bannerKicker({ siteName: "دليل جنزور", verified: true }), "محل موثّق على دليل جنزور");
+  assert.equal(banner.bannerKicker({ siteName: "دليل جنزور", verified: false }), "موجود على دليل جنزور");
+  assert.match(banner.bannerScanHint(), /امسح الكود/);
+
+  const data = {
+    name: "ورشة النور للنجارة",
+    headline: "نجارة — الحرفيين",
+    area: "شارع الجمهورية — بجوار المسجد",
+    phones: ["01001234567", "01112223333"],
+    hours: "من 9 ص إلى 6 م",
+    offer: "خصم ١٠٪ على التصليح طول نوفمبر",
+    url: "https://daleel-ganzour.vercel.app/?service=abc",
+    siteName: "دليل جنزور",
+    officePhone: "01222355769",
+    verified: true,
+  };
+  assert.equal(banner.bannerReady(data), true);
+  assert.equal(banner.bannerReady({ ...data, phones: [] }), false, "من غير رقم مفيش بانر مفيد");
+  assert.equal(banner.bannerFileName(data, "story"), "بانر-ورشة النور للنجارة-ستوري-دليل-جنزور.png");
+  assert.equal(banner.bannerFileName({ name: "أ/ب:ج" }, "cover"), "بانر-أ ب ج-غلاف-دليل-جنزور.png");
+  const caption = banner.bannerCaption(data, "story");
+  assert.ok(caption.includes("ورشة النور للنجارة") && caption.includes("01001234567") && caption.includes("ستوري"));
+  assert.ok(caption.includes("خصم ١٠٪"));
+  const facts = banner.bannerFacts(data);
+  assert.deepEqual(facts.map((fact) => fact.label), ["أرقام المحل", "المواعيد", "العنوان"]);
+
+  // ===== الهندسة: قياس تقريبي زي Canvas =====
+  const measure = (text, size) => String(text).length * size * 0.52;
+  const longName = "ورشة النور للأعمال الخشبية والديكور والمطابخ الألوميتال بجنزور";
+  const richData = { ...data, name: longName, offer: "خصم ٢٠٪ على كل أعمال النجارة والديكور حتى نهاية الشهر الكريم لكل أهل جنزور" };
+
+  for (const format of banner.BANNER_FORMATS) {
+    for (const theme of banner.BANNER_THEMES) {
+      const layout = banner.bannerLayout(richData, format.id, theme.id, measure);
+      const label = `${format.id}/${theme.id}`;
+      assert.equal(layout.width, format.width, label);
+      assert.equal(layout.height, format.height, label);
+
+      // الكود جوه الصورة وبمقاس يتقري بالكاميرا.
+      assert.ok(layout.qr.side >= 180, `${label}: الكود كبير كفاية (${layout.qr.side})`);
+      assert.ok(layout.qr.x >= 0 && layout.qr.y >= 0, label);
+      assert.ok(layout.qr.x + layout.qr.side <= format.width, `${label}: الكود مش خارج الصورة يمين`);
+      assert.ok(layout.qr.y + layout.qr.side <= format.height, `${label}: الكود مش خارج الصورة تحت`);
+      // لوحة الكود حواليها هامش.
+      assert.ok(layout.panel.x <= layout.qr.x && layout.panel.y <= layout.qr.y, label);
+
+      // مفيش نص خارج الصورة.
+      for (const item of layout.items) {
+        assert.ok(item.y > 0 && item.y <= format.height, `${label}: «${item.text}» جوه الارتفاع`);
+        const width = measure(item.text, item.size, item.weight);
+        const left = item.align === "right" ? item.x - width : item.align === "center" ? item.x - width / 2 : item.x;
+        assert.ok(left >= -2, `${label}: «${item.text}» مش خارج الصورة شمال (${Math.round(left)})`);
+        assert.ok(left + width <= format.width + 2, `${label}: «${item.text}» مش خارج الصورة يمين`);
+      }
+
+      // مفيش تزاحم: النصوص (غير الشريط) مش فوق لوحة الكود.
+      const stripTop = layout.strip.y;
+      const textTop = layout.panel.y;
+      for (const item of layout.items) {
+        if (item.y > stripTop) continue; // نصوص الشريط السفلي
+        const descent = Math.round(item.size * 0.32);
+        if (item.align === "center" && Math.abs(item.x - (layout.panel.x + layout.panel.w / 2)) < 2 && item.y > layout.panel.y) continue; // تلميح تحت الكود
+        if (format.landscape) {
+          const width = measure(item.text, item.size, item.weight);
+          const left = item.align === "right" ? item.x - width : item.x;
+          assert.ok(left >= layout.panel.x + layout.panel.w - 1, `${label}: «${item.text}» خارج لوحة الكود`);
+        } else {
+          assert.ok(item.y + descent <= textTop + 1, `${label}: «${item.text}» فوق لوحة الكود (${Math.round(item.y)} > ${textTop})`);
+        }
+      }
+
+      // العرض (لو موجود) جوه الصورة وفوق لوحة الكود.
+      if (layout.offer) {
+        assert.ok(layout.offer.w > 0 && layout.offer.h > 0, label);
+        assert.ok(layout.offer.x >= 0 && layout.offer.x + layout.offer.w <= format.width, `${label}: سطر العرض جوه العرض`);
+        if (format.landscape) assert.ok(layout.offer.x >= layout.panel.x + layout.panel.w, `${label}: سطر العرض في عمود النص مش فوق الكود`);
+        else assert.ok(layout.offer.y + layout.offer.h <= layout.panel.y, `${label}: سطر العرض فوق لوحة الكود`);
+      }
+      // الشريط السفلي آخر الصورة.
+      assert.equal(layout.strip.y + layout.strip.h, format.height, label);
+    }
+  }
+
+  // بدون عرض/مواعيد: البانر لسه مترتب
+  const plain = banner.bannerLayout({ ...data, offer: "", hours: "", area: "" }, "square", "night", measure);
+  assert.equal(plain.offer, null);
+  assert.equal(plain.items.some((item) => item.text.includes("📣")), false);
+
+  // ===== التوصيل =====
+  const modal = readFileSync(new URL("../src/components/shop-banner-modal.tsx", import.meta.url), "utf8");
+  assert.ok(modal.includes("bannerLayout") && modal.includes("renderShopBanner") && modal.includes("drawQr"));
+  const account = readFileSync(new URL("../src/components/provider-account.tsx", import.meta.url), "utf8");
+  assert.ok(account.includes("ShopBannerModal") && account.includes("بانر رقمي للمحل"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".shop-banner-preview {") && css.includes(".shop-banner-format {"));
+});
