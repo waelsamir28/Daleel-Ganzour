@@ -1166,6 +1166,34 @@ test("admin-created specialties get a sticker by name when they have no id-based
   assert.equal(categoryStickerSrc({ id: "9f1c-uuid", imageVersion: 3, name: "خدمات الكمبيوتر" }), "/api/category-icon/9f1c-uuid?v=3", "uploaded icon wins");
 });
 
+test("medical specialties added by the admin or the importer get a real sticker by name", () => {
+  const { stickerIdForName, categoryStickerSrc } = catalog;
+  // التخصصات اللي كانت بتظهر بسماعة رمادية في قسم العيادات.
+  assert.equal(stickerIdForName("الأورام"), "oncology");
+  assert.equal(stickerIdForName("جراحة"), "surgery");
+  assert.equal(stickerIdForName("الباطنة"), "internal-medicine");
+  assert.equal(stickerIdForName("القلب والصدر"), "chest");
+  assert.equal(stickerIdForName("المخ والأعصاب"), "neurology");
+  assert.equal(stickerIdForName("المسالك البولية"), "urology");
+  assert.equal(stickerIdForName("الطب البيطري"), "veterinary");
+  assert.equal(stickerIdForName("طب الأسرة والباطنة"), "internal-medicine");
+  // الأخص بيفوز: جراحة تجميل → التجميل، وطب الأسنان → الأسنان، والأنف والأذن → الأنف والأذن.
+  assert.equal(stickerIdForName("جراحة تجميل"), "cosmetic-surgery");
+  assert.equal(stickerIdForName("طب الأسنان"), "dentistry");
+  assert.equal(stickerIdForName("الأنف والأذن والحنجرة"), "ent");
+  assert.equal(stickerIdForName("أمراض النساء والتوليد"), "gynecology");
+  // الملفات الجديدة موجودة فعلًا بحجم 256px.
+  for (const id of ["oncology", "surgery", "internal-medicine", "chest"]) {
+    const file = new URL(`../public/images/specialty-stickers/${id}.webp`, import.meta.url);
+    assert.ok(existsSync(file), `${id}.webp exists`);
+    assert.ok(readFileSync(file).byteLength > 2000, `${id}.webp is a real image`);
+  }
+  assert.equal(categoryStickerSrc({ id: "import-0001", imageVersion: 0, name: "القلب والصدر" }), "/images/specialty-stickers/chest.webp");
+  assert.equal(categoryStickerSrc({ id: "import-0002", imageVersion: 0, name: "الأورام" }), "/images/specialty-stickers/oncology.webp");
+  // ومفيش مطابقة عشوائية لاسم مش تخصص.
+  assert.equal(stickerIdForName("محل بيع كل حاجة"), "");
+});
+
 test("temporary offers are validated (1–30 days), expire automatically and sort by soonest end", () => {
   const { parseServiceOffer, activeOffer, offerDaysLeft, servicesWithOffers, OFFER_MAX_DAYS } = catalog;
   assert.equal(OFFER_MAX_DAYS, 30);
