@@ -7,6 +7,7 @@ import { getViewer, sameOrigin } from "@/lib/auth";
 import { pushApprovedRating, pushNewProvider } from "@/lib/push";
 import { ICON_LIMITS, autoTransparentKey, designImageLimits, optimizeStoredImage, removeFlatBackground } from "@/lib/image-optimize";
 import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, resetHonorBaselines, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
+import { parseBackupPayload } from "@/lib/backup";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { saveServicePhoto } from "@/lib/service-photo";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
@@ -238,6 +239,58 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
       await db.insert(directorySettings).values({ key: "ad_pricing", value: JSON.stringify(pricing) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(pricing) } });
     } else if (type === "whatsapp-alert-kinds") {
       await saveWhatsappAlertKinds(body.kinds);
+    } else if (type === "backup" && action === "restore") {
+      // استرجاع نسخة احتياطية: يضيف ويحدّث اللي في الملف (خدمات، أقسام، عناوين، إعدادات، مظهر) بدون مسح أي بيانات موجودة.
+      const parsed = parseBackupPayload(body.values);
+      if (!parsed.ok) throw new InputError(parsed.error);
+      const backup = parsed.backup;
+      let created = 0, updated = 0, skipped = 0;
+      for (const category of backup.data.categories) {
+        const id = cleanText(category.id, 60).toLowerCase();
+        if (!/^[a-z][a-z0-9-]{1,59}$/.test(id)) { skipped += 1; continue; }
+        try {
+          const values = categoryInput({ ...category, slug: id });
+          const [existing] = await db.select({ id: directoryCategories.id }).from(directoryCategories).where(eq(directoryCategories.id, id)).limit(1);
+          if (existing) { await db.update(directoryCategories).set(values).where(eq(directoryCategories.id, id)); updated += 1; }
+          else { await db.insert(directoryCategories).values({ ...values, id }); created += 1; }
+        } catch { skipped += 1; }
+      }
+      for (const areaName of backup.data.areas) {
+        const name = cleanText(areaName, 80);
+        if (!name) { skipped += 1; continue; }
+        await db.insert(directoryAreas).values({ name, sortOrder: 0 }).onConflictDoNothing();
+      }
+      for (const service of backup.data.services) {
+        const rawId = cleanText(service.id, 60);
+        try {
+          const { photo: _photo, ...basics } = await serviceInput({ ...service, photo: undefined }, true);
+          const status = statusInput(service.status ?? "pending");
+          if (validId(rawId)) {
+            const [existing] = await db.select({ id: services.id }).from(services).where(eq(services.id, rawId)).limit(1);
+            if (existing) {
+              await db.update(services).set({ ...basics, status }).where(eq(services.id, rawId));
+              updated += 1;
+              continue;
+            }
+            await db.insert(services).values({ ...basics, id: rawId, status, verified: service.verified === true, featured: service.featured === true, demo: false });
+          } else {
+            await db.insert(services).values({ ...basics, status, verified: service.verified === true, featured: service.featured === true, demo: false });
+          }
+          created += 1;
+        } catch { skipped += 1; }
+      }
+      if (Object.keys(backup.data.settings).length) {
+        try {
+          const settings = settingsInput(backup.data.settings);
+          await db.insert(directorySettings).values({ key: "site_config", value: JSON.stringify(settings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(settings) } });
+        } catch { skipped += 1; }
+      }
+      if (Object.keys(backup.data.design).length) {
+        const design = sanitizeDesignSettings(backup.data.design);
+        await db.insert(directorySettings).values({ key: "design_config", value: JSON.stringify(design) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(design) } });
+      }
+      await logActivity(actor, "POST", { type: "backup", action: "restore" }, "استرجاع نسخة احتياطية");
+      return Response.json({ ok: true, created, updated, skipped, message: `تم الاسترجاع: ${created} جديد و${updated} محدّث${skipped ? ` و${skipped} صف اتجاهل` : ""}.`, ...(await getAdminDirectory(role)) });
     } else if (type === "honor-baselines") {
       // «بدء شهر جديد»: يحفظ أرقام التفاعل الحالية كبداية للشهر فتُحسب شهادات التكريم على تفاعل الشهر نفسه.
       const saved = await resetHonorBaselines();
