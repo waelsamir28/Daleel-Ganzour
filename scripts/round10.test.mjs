@@ -804,3 +804,73 @@ test("provider card stats endpoint feeds the daily «مهنتك على الدل�
   const account = readFileSync(new URL("../src/components/provider-account.tsx", import.meta.url), "utf8");
   assert.ok(account.includes("/api/my/insights") && account.includes("my-card-stats"));
 });
+
+test("browser errors: triage, status and the «تم الإصلاح» flow", async () => {
+  const triage = await loadLib("../src/lib/error-triage.ts");
+  assert.equal(triage.classifyError("Failed to load chunk /_next/static/chunks/11jyqajts.65y.js").kind, "chunk");
+  assert.equal(triage.classifyError("Uncaught Error: Error invoking postMessage: Java object is gone").kind, "webview");
+  assert.equal(triage.classifyError("Script error.").kind, "external-script");
+  assert.equal(triage.classifyError("TypeError: cannot read properties of undefined").kind, "app");
+  // لكل نوع شرح وخطوة علاج مكتوبة بالعربي.
+  for (const message of ["Failed to load chunk x", "Script error.", "TypeError: boom"]) {
+    const info = triage.classifyError(message);
+    assert.ok(info.label.length > 3 && info.hint.length > 10, message);
+  }
+  // الحالة: مفتوح / مقفول / رجع بعد الإصلاح.
+  assert.equal(triage.errorStatus({ lastAt: "2026-11-01T10:00:00Z" }), "open");
+  assert.equal(triage.errorStatus({ lastAt: "2026-11-01T10:00:00Z", resolvedAt: "2026-11-01T12:00:00Z" }), "resolved");
+  assert.equal(triage.errorStatus({ lastAt: "2026-11-01T15:00:00Z", resolvedAt: "2026-11-01T12:00:00Z" }), "regressed");
+  const summary = triage.errorSummary([
+    { count: 3, lastAt: "2026-11-01T10:00:00Z" },
+    { count: 2, lastAt: "2026-11-01T10:00:00Z", resolvedAt: "2026-11-01T12:00:00Z" },
+    { count: 1, lastAt: "2026-11-01T15:00:00Z", resolvedAt: "2026-11-01T12:00:00Z" },
+  ]);
+  assert.deepEqual({ ...summary }, { open: 1, resolved: 1, regressed: 1, occurrences: 6, kinds: 3 });
+  assert.equal(triage.ageLabel("2026-11-01T10:00:00Z", Date.parse("2026-11-01T10:05:00Z")), "قبل 5 دقيقة");
+
+  const api = readFileSync(new URL("../src/app/api/errors/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes("export async function PATCH"));
+  assert.ok(api.includes("errorResolutions") && api.includes("onConflictDoUpdate"));
+  assert.ok(api.includes("fingerprint") && api.includes("occurrences"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes('"directory_error_resolutions"'));
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("CREATE TABLE IF NOT EXISTS directory_error_resolutions"));
+
+  const panel = readFileSync(new URL("../src/components/admin-error-log.tsx", import.meta.url), "utf8");
+  assert.ok(panel.includes("تم الإصلاح") && panel.includes("إعادة فتح"));
+  assert.ok(panel.includes("error-log-filter") && panel.includes('filter === "open"'));
+  assert.ok(panel.includes("openDetail") && panel.includes("/api/errors?fingerprint="));
+  const hub = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
+  assert.ok(hub.includes("errorStatus") && hub.includes("errorCounts"));
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".error-log-row.is-regressed") && css.includes(".error-detail-stack"));
+});
+
+test("completion: «استكمال» only notifies the owner, shows «تم الإرسال», and there is «استكمال الكل»", () => {
+  const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  // الضغط على «استكمال» بيبعت الطلب لصاحب المهنة — مفيش شاشة استكمال بتتفتح عند الإدارة.
+  assert.ok(admin.includes("requestProviderCompletion"));
+  assert.equal(/requestProviderCompletion[\s\S]{0,400}setEditing\(\{ kind: "service"/.test(admin), false);
+  assert.ok(admin.includes("completionSent") && admin.includes("تم الإرسال"));
+  assert.ok(admin.includes("completion-sent-chip"));
+  // «استكمال الكل» بيحوّل كل الأزرار لـ«تم الإرسال».
+  assert.ok(admin.includes("requestAllCompletions") && admin.includes("استكمال الكل"));
+  assert.ok(admin.includes("setCompletionSent(incompleteServices.map"));
+  const api = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes('action === "request-completion-all"'));
+  assert.ok(api.includes("completionStatus: \"requested\""));
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".completion-sent-chip"));
+});
+
+test("analytics tiles are squares two per row with the icon on top, and seasonal cards share one size", () => {
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes("grid-template-columns: repeat(2, minmax(0, 1fr));\n  gap: 12px;\n}\n.analytics-tile {"));
+  assert.ok(css.includes("grid-template-areas: \"icon\" \"copy\" \"btn\";"));
+  assert.ok(css.includes("aspect-ratio: 1 / 1;"));
+  // المواسم: كروت القادم والمستحق بنفس المقاس، اتنين جنب بعض.
+  assert.ok(css.includes(".seasonal-upcoming-card {"));
+  assert.ok(css.includes(".seasonal-card {\n  grid-template-columns: 1fr;"));
+  assert.ok(css.includes(".seasonal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }"));
+});

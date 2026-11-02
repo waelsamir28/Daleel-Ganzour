@@ -221,7 +221,7 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
     const { type, action } = body;
     const activityLabel = await resolveActivityLabel(type, body.id, body.values);
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
-    const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link", "account-link", "account-link-reset"].includes(String(action)));
+    const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "request-completion-all", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link", "account-link", "account-link-reset"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
@@ -325,6 +325,24 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
         await tx.update(services).set({ area: name }).where(eq(services.area, existing.name));
         await tx.update(directoryAreas).set({ name, sortOrder: integerInput(values.sortOrder ?? 0, 0, 1000, "الترتيب") }).where(eq(directoryAreas.id, id));
       });
+    } else if (type === "service" && action === "request-completion-all") {
+      // «استكمال الكل»: طلب واحد يبعت إشعارًا داخليًا لكل مهنة ناقصة بدل ما المسؤول يضغط زر ورا زر.
+      const onlyOpen = body.onlyOpen !== false;
+      const rows = await db.select({ id: services.id, name: services.name, completionStatus: services.completionStatus })
+        .from(services)
+        .where(onlyOpen ? sql`${services.completionStatus} not in ('requested', 'submitted', 'done')` : sql`true`);
+      let sent = 0;
+      for (const row of rows.slice(0, 300)) {
+        await db.update(services).set({ completionStatus: "requested", completionNote: "" }).where(eq(services.id, row.id));
+        await db.insert(notifications).values({
+          type: "provider",
+          title: `مطلوب استكمال بيانات: ${row.name}`,
+          message: `يرجى الضغط على زر «استكمال بيانات» في بطاقة مهنتك «${row.name}» لتحديث بياناتك في دليل جنزور، وده هيخلي العميل يوصلك أسهل.`.slice(0, 300),
+          entityId: row.id,
+        });
+        sent += 1;
+      }
+      return Response.json({ ok: true, sent, message: `تم إرسال طلب الاستكمال لـ${sent} مهنة.` });
     } else if (type === "service") {
       const id = uuid(body.id);
       const [existing] = await db.select().from(services).where(eq(services.id, id));
