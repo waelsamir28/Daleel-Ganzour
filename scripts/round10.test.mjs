@@ -1139,3 +1139,107 @@ test("monthly honors: top 3 by real engagement, monthly when a baseline exists",
   const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
   assert.ok(admin.includes('href="/honors"'));
 });
+
+test("round 34: duplicate groups, backup payloads and public order lookup", async () => {
+  const duplicates = await loadLib("../src/lib/duplicate-groups.ts");
+  const backup = await loadLib("../src/lib/backup.ts");
+  const lookup = await loadLib("../src/lib/order-lookup.ts");
+
+  // ===== فحص المكررات =====
+  const services = [
+    { id: "a", name: "أحمد محمد السباك", phone: "0100 123 4567", category: "plumbing", area: "شارع الجمهورية", address: "بجوار المسجد", status: "approved", verified: true, photoVersion: 2, serviceItems: ["سباكة", "سخانات"], description: "سباك محترف في جنزور بخبرة خمسة عشر سنة في السباكة والسخانات والصيانة" },
+    { id: "b", name: "احمد محمد", phone: "01001234567", category: "plumbing", status: "pending" },
+    { id: "c", name: "د/ أحمد محمد السباك", phone: "01112223333", category: "plumbing", status: "approved" },
+    { id: "d", name: "محمود الكهربائي", phone: "01234567890", category: "electric", status: "approved" },
+    { id: "e", name: "خدمة تجريبية", phone: "01001234567", category: "plumbing", status: "approved", demo: true },
+  ];
+  const groups = duplicates.duplicateGroups(services);
+  assert.equal(groups.length, 2, "السجل التجريبي مستبعد من الفحص");
+  const group = groups.find((entry) => entry.reason === "phone");
+  assert.equal(group.keep.id, "a", "الأكمل هو المنشور الموثّق اللي فيه صورة وعنوان");
+  assert.deepEqual(group.duplicates.map((service) => service.id), ["b"]);
+  assert.match(duplicates.duplicateReasonLabel(group), /رقم/);
+  const nameGroup = groups.find((entry) => entry.reason === "name");
+  assert.deepEqual(nameGroup.all.map((service) => service.id).sort(), ["a", "b", "c"], "الاسم المتشابه بضم كل الأسامي القريبة");
+  assert.equal(nameGroup.keep.id, "a");
+  assert.deepEqual(duplicates.duplicateSummary(groups), { groups: 2, extra: 3, phones: 1 });
+  assert.ok(duplicates.candidateScore(services[0]) > duplicates.candidateScore(services[1]));
+  assert.equal(duplicates.normalizePersonName("د/ أحمد  محمّد السبّاك"), "احمد محمد سباك");
+  assert.equal(duplicates.phoneDigits("٠١٠٠١٢٣٤٥٦٧"), "01001234567");
+
+  // اسم متشابه داخل نفس التخصص = مجموعة «اسم» (بعد ما الرقم اتشال).
+  const nameOnly = duplicates.duplicateGroups([
+    { id: "x", name: "محمد علي النجار", phone: "01000000001", category: "carpentry", status: "approved", address: "الشارع الكبير" },
+    { id: "y", name: "محمد علي", phone: "01000000002", category: "carpentry", status: "pending" },
+    { id: "z", name: "محمد علي", phone: "01000000003", category: "electric", status: "approved" },
+  ]);
+  assert.equal(nameOnly.length, 1);
+  assert.equal(nameOnly[0].reason, "name");
+  assert.equal(nameOnly[0].keep.id, "x");
+  assert.deepEqual(nameOnly[0].duplicates.map((service) => service.id), ["y"]);
+
+  // ===== النسخة الاحتياطية =====
+  assert.equal(backup.BACKUP_APP, "daleel-ganzour-backup");
+  assert.equal(backup.RESTORE_CONFIRM_WORD, "استرجاع");
+  const payload = backup.buildBackup({
+    services: [{ id: "s1", name: "سباك", phone: "01001234567", category: "plumbing", status: "approved" }, { id: "s0", name: "تجربة", phone: "01000000000", category: "plumbing", status: "approved", demo: true }],
+    categories: [{ id: "plumbing", name: "سباكة" }],
+    areas: [{ name: "شارع الجمهورية" }],
+    settings: { siteName: "دليل جنزور" },
+  });
+  assert.equal(payload.app, "daleel-ganzour-backup");
+  assert.equal(payload.version, 1);
+  assert.equal(payload.data.services.length, 1, "السجل التجريبي مش بيتصدّر");
+  assert.equal(payload.counts.services, 1);
+  assert.match(backup.backupFileName(Date.parse("2026-11-02T10:00:00Z")), /^daleel-ganzour-backup-2026-11-0[12]$/);
+
+  const parsed = backup.parseBackupPayload(JSON.parse(JSON.stringify(payload)));
+  assert.equal(parsed.ok, true);
+  assert.equal(backup.parseBackupPayload({ app: "other" }).ok, false);
+  assert.equal(backup.parseBackupPayload({ ...payload, version: 99 }).ok, false);
+  assert.equal(backup.parseBackupPayload({ ...payload, data: { ...payload.data, services: [], categories: [] } }).ok, false);
+  assert.equal(backup.parseBackupPayload(null).ok, false);
+  assert.match(backup.backupSummaryText(payload), /1/);
+  assert.match(backup.restoreConfirmMessage(payload), /استرجاع/);
+  const rows = backup.servicesSheetRows(payload.data.services, new Map([["plumbing", "سباكة"]]));
+  assert.equal(rows.length, 2, "سطر العناوين + سطر لكل خدمة");
+  assert.equal(rows[1].length, 12);
+  assert.ok(rows[1].includes("سباكة"), "اسم القسم بالعربي في شيت Excel");
+
+  // ===== طلبي وصل فين؟ =====
+  assert.equal(lookup.normalizeLookupPhone("+20 100 123 4567"), "01001234567");
+  assert.equal(lookup.normalizeLookupPhone("0020-100-123-4567"), "01001234567");
+  assert.equal(lookup.normalizeLookupPhone("٠١٠٠١٢٣٤٥٦٧"), "01001234567");
+  assert.equal(lookup.normalizeLookupPhone("12345"), "");
+  assert.equal(lookup.normalizeLookupPhone("0111222333"), "");
+  assert.equal(lookup.maskName("أحمد محمد علي"), "أحمد م.");
+  assert.equal(lookup.maskName("سباك"), "سباك");
+  assert.equal(lookup.statusInfo("approved").label.length > 0, true);
+  assert.equal(lookup.statusInfo("pending").label, "قيد المراجعة");
+  assert.equal(lookup.lookupTimeLabel(new Date(Date.now() - 3 * 86400000).toISOString(), Date.now()), "من 3 أيام");
+
+  const results = lookup.orderLookupResults([
+    { id: "1", name: "أحمد محمد", category: "plumbing", categoryName: "سباكة", status: "approved", createdAt: new Date().toISOString(), statusUpdatedAt: new Date().toISOString(), reviewNote: null },
+    { id: "2", name: "أحمد محمد", category: "electric", categoryName: "كهرباء", status: "needs-info", createdAt: new Date().toISOString(), statusUpdatedAt: new Date().toISOString(), reviewNote: "ناقص رقم الأرضي" },
+  ], "https://daleel-ganzour.vercel.app");
+  assert.equal(results.length, 2);
+  const approved = results.find((entry) => entry.status === "approved");
+  assert.equal(approved.name, "أحمد م.", "الاسم مقنّع في النتيجة العامة");
+  assert.match(approved.publicHref, /^https:\/\/daleel-ganzour\.vercel\.app\//);
+  const needsInfo = results.find((entry) => entry.status === "needs-info");
+  assert.equal(needsInfo.canComplete, true);
+  assert.equal(needsInfo.publicHref, "", "غير المنشور مالوش رابط عام");
+  assert.ok(lookup.orderLookupResults(Array.from({ length: 20 }, (_, index) => ({ id: String(index), name: "س", category: "plumbing", categoryName: "سباكة", status: "pending", createdAt: new Date().toISOString(), statusUpdatedAt: new Date().toISOString() }))).length === lookup.LOOKUP_MAX_RESULTS);
+
+  // التوصيل
+  const admin = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(admin.includes('type === "backup"') && admin.includes("parseBackupPayload"));
+  const backupRoute = readFileSync(new URL("../src/app/api/admin/backup/route.ts", import.meta.url), "utf8");
+  assert.ok(backupRoute.includes("buildBackup") && backupRoute.includes('"xlsx"'));
+  const trackRoute = readFileSync(new URL("../src/app/api/track/lookup/route.ts", import.meta.url), "utf8");
+  assert.ok(trackRoute.includes("normalizeLookupPhone") && trackRoute.includes("orderLookupResults"));
+  const trackPage = readFileSync(new URL("../src/app/track/page.tsx", import.meta.url), "utf8");
+  assert.ok(trackPage.includes("OrderLookup"));
+  const panel = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.ok(panel.includes("AdminDuplicates") && panel.includes("AdminBackup"));
+});

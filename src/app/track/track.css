@@ -1,0 +1,67 @@
+/* ===== «طلبي وصل فين؟» — صفحة البحث برقم الموبايل ===== */
+.track-lookup-main { display: grid; gap: 14px; padding-block: 16px 34px; }
+.order-lookup {
+  display: grid; gap: 12px; padding: 18px;
+  border: 1px solid #dbe9f7; border-radius: 20px;
+  background: linear-gradient(165deg, #f6fbff, #fff 62%);
+  box-shadow: 0 12px 30px #0b3d6b12;
+}
+.order-lookup-head { display: flex; align-items: flex-start; gap: 11px; }
+.order-lookup-icon {
+  display: grid; place-items: center; flex: 0 0 auto;
+  width: 38px; height: 38px; border-radius: 12px;
+  background: #e8f3ff; color: #0b5f9e;
+}
+.order-lookup-head h2 { margin: 0; font-size: 16.5px; font-weight: 900; color: #0b3d77; }
+.order-lookup-head p { margin: 3px 0 0; font-size: 12px; line-height: 1.8; color: #5b7188; }
+
+.order-lookup-form { display: grid; gap: 6px; }
+.order-lookup-form label { font-size: 11.5px; font-weight: 900; color: #34506b; }
+.order-lookup-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.order-lookup-row input { flex: 1 1 200px; }
+.order-lookup-error { margin: 0; font-size: 11.5px; font-weight: 800; color: #b91c1c; }
+
+.order-lookup-empty {
+  padding: 14px; border-radius: 14px;
+  background: #fff8e6; border: 1px solid #f0dca8; color: #7c4a03;
+}
+.order-lookup-empty strong { font-size: 13px; }
+.order-lookup-empty p { margin: 4px 0 0; font-size: 11.5px; line-height: 1.8; }
+
+.order-lookup-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.order-lookup-card {
+  display: grid; gap: 7px; padding: 13px 14px;
+  border: 1px solid #e2ecf6; border-radius: 16px; background: #fff;
+  border-inline-start: 4px solid #94a3b8;
+}
+.order-lookup-card.is-pending { border-inline-start-color: #d97706; }
+.order-lookup-card.is-approved { border-inline-start-color: #15803d; }
+.order-lookup-card.is-rejected { border-inline-start-color: #b91c1c; }
+.order-lookup-card.is-needs-info { border-inline-start-color: #c2410c; }
+.order-lookup-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.order-lookup-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 999px;
+  background: #f1f7ff; border: 1px solid #d7e8f8; color: #0b4a93;
+  font-size: 11.5px; font-weight: 900;
+}
+.order-lookup-card.is-approved .order-lookup-status { background: #ecfdf3; border-color: #bfe6cf; color: #15803d; }
+.order-lookup-card.is-rejected .order-lookup-status { background: #fef2f2; border-color: #f6cccc; color: #b91c1c; }
+.order-lookup-card.is-needs-info .order-lookup-status { background: #fff7ed; border-color: #f5d6b3; color: #c2410c; }
+.order-lookup-name { font-size: 13px; font-weight: 900; color: #12233a; }
+.order-lookup-hint { margin: 0; font-size: 11.5px; line-height: 1.8; color: #52697f; }
+.order-lookup-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: #7b93a9; font-weight: 700; }
+.order-lookup-note { color: #b45309; font-weight: 900; }
+.order-lookup-actions { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.order-lookup-complete { font-size: 11px; font-weight: 800; color: #c2410c; }
+.order-lookup-privacy { margin: 0; font-size: 10.5px; line-height: 1.8; color: #8496a8; }
+.track-lookup-help { margin: 0; text-align: center; font-size: 11.5px; color: #6b8098; }
+
+html.dark .order-lookup { background: linear-gradient(165deg, #0d2032, #0f2133); border-color: #22384e; box-shadow: none; }
+html.dark .order-lookup-icon { background: #14304a; color: #9fd0ff; }
+html.dark .order-lookup-head h2 { color: #e6f1fb; }
+html.dark .order-lookup-head p, html.dark .order-lookup-privacy, html.dark .track-lookup-help { color: #93aec6; }
+html.dark .order-lookup-card { background: #0f2133; border-color: #1e3448; }
+html.dark .order-lookup-name { color: #e6f1fb; }
+html.dark .order-lookup-hint { color: #a7c4dd; }
+html.dark .order-lookup-empty { background: #2a2114; border-color: #7c5a1f; color: #fcd9a8; }
