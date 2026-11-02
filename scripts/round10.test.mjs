@@ -914,3 +914,31 @@ test("completion reminders: one automatic notification after 3 days, never repea
   const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
   assert.ok(css.includes(".completion-reminder-bar.is-due"));
 });
+
+test("splash audio starts on its own when the app opens, without any tap", () => {
+  const player = readFileSync(new URL("../src/components/splash-audio.tsx", import.meta.url), "utf8");
+  // الإعدادات بتوصل بعد أول رسم للصفحة: لازم إعادة قراءة + مراقبة التغيير + محاولات متتابعة.
+  assert.ok(player.includes("MutationObserver") && player.includes("attributeFilter"));
+  assert.ok(player.includes("RETRY_DELAYS") && player.includes("function scheduleAttempts"));
+  assert.ok(player.includes("readConfig") && player.includes("getAttribute(\"data-design-splash-audio\")"));
+  // بيحاول تاني لما الملف يبقى جاهز، ولما الصفحة ترجع تبان، ولما شاشة البداية تخلص.
+  assert.ok(player.includes("\"canplay\"") && player.includes("visibilitychange") && player.includes("pageshow"));
+  assert.ok(player.includes("SPLASH_FINISHED_EVENT"));
+  // لسه فيه خطة بديلة: أول لمسة في أي مكان تشغّل الصوت، وبتتعلّم إن الجهاز اتفتح عليه الموقع قبل كده.
+  assert.ok(player.includes("janzour-audio-unlocked") && player.includes("GESTURES"));
+  // مفيش قطع للمقطع أثناء التنقل: عنصر صوت واحد على مستوى التطبيق.
+  assert.ok(player.includes("let sharedAudio: HTMLAudioElement | null = null;"));
+  assert.ok(player.includes("SPLASH_AUDIO_BLOCKED_EVENT"));
+
+  const splash = readFileSync(new URL("../src/components/splash-screen.tsx", import.meta.url), "utf8");
+  assert.ok(splash.includes("export const SPLASH_FINISHED_EVENT = \"janzour-splash-finished\";"));
+  assert.ok(splash.includes("export const SPLASH_AUDIO_BLOCKED_EVENT = \"janzour-splash-audio-blocked\";"));
+  assert.ok(splash.includes("splash-sound-hint") && splash.includes("is-waiting"));
+  // الشاشة بتقول للصوت إنها خلصت من نفس الحدث اللي بيسمعه المشغّل.
+  assert.ok(splash.includes("new CustomEvent(SPLASH_FINISHED_EVENT)"));
+  assert.equal(splash.includes("new CustomEvent(\"janzour-splash-finished\")"), false);
+
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".splash-audio-toggle.is-waiting"));
+  assert.ok(css.includes(".splash-sound-hint {"));
+});

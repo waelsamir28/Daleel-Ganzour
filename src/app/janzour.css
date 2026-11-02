@@ -10860,3 +10860,17 @@ html.dark .welcome-audio-btn { background: #17324a; border-color: #26506f; color
 }
 .splash-audio-toggle:hover { background: #ffffff33; transform: scale(1.04); }
 .splash-audio-toggle.is-off { background: #00000045; color: #ffd4d4; border-color: #ff8a8a66; }
+/* المتصفح منع التشغيل التلقائي: الزر بينبض بهدوء يعني «لمسة واحدة وأنا شغّال». */
+.splash-audio-toggle.is-waiting { border-color: #ffe066cc; color: #ffe9a8; animation: splash-audio-pulse 1.8s ease-in-out infinite; }
+@keyframes splash-audio-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 #ffe06600; }
+  50% { box-shadow: 0 0 0 7px #ffe06633; }
+}
+.splash-sound-hint {
+  margin-top: -4px;
+  padding: 6px 12px; border-radius: 999px;
+  background: #0b2138cc; border: 1px solid #ffe06655;
+  color: #ffe9a8; font-size: 11.5px; font-weight: 800;
+  animation: splash-fade-up .5s ease both;
+}
+@media (prefers-reduced-motion: reduce) { .splash-audio-toggle.is-waiting { animation: none; } }
