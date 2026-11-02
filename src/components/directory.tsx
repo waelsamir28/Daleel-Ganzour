@@ -620,6 +620,18 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
               </Link>
             </div>
           ) : null}
+          {design.showHeaderBell && viewer.role !== "guest" && !isAdmin && (
+            <button
+              type="button"
+              className="header-bell-btn"
+              onClick={openFeed}
+              aria-label={feedUnread > 0 ? `إشعاراتي — ${feedUnread} جديد` : "إشعاراتي"}
+              title="إشعاراتي"
+            >
+              <BellRing size={18}/>
+              {feedUnread > 0 && <span className="header-bell-dot">{feedUnread > 9 ? "9+" : feedUnread}</span>}
+            </button>
+          )}
           {design.showHeaderDarkToggle && (
             <button type="button" className="theme-toggle" aria-label="تبديل الوضع الليلي والنهاري" title="وضع الليل والنهار" onClick={toggleTheme}>
               <span className="theme-toggle-track">

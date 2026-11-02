@@ -20,13 +20,13 @@ function readDuration(file: File): Promise<number> {
   });
 }
 
-type Props = { value: string; onChange: (url: string) => void };
+type Props = { value: string; onChange: (url: string) => void; audioKey?: "splash" | "welcome"; label?: string };
 
 /**
  * رفع صوت شاشة البداية من الاستوديو: MP3/M4A/WAV/OGG حتى ٢ ميجابايت و~٢٠ ثانية،
  * مع تعليمات الحجم مكتوبة للمسؤول، ومعاينة تشغيل وزر حذف.
  */
-export default function AudioUploadField({ value, onChange }: Props) {
+export default function AudioUploadField({ value, onChange, audioKey = "splash", label = "صوت شاشة البداية (رفع من الجهاز)" }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -47,7 +47,7 @@ export default function AudioUploadField({ value, onChange }: Props) {
       const seconds = await readDuration(file);
       if (seconds > SPLASH_AUDIO_MAX_SECONDS) throw new Error(`المقطع ${Math.round(seconds)} ثانية — الأقصى ${SPLASH_AUDIO_MAX_SECONDS} ثانية. اختر مقطعًا أقصر.`);
       const dataUrl = await readFileAsDataUrl(file);
-      const response = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "design-audio", key: "splash", audio: dataUrl }) });
+      const response = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "design-audio", key: audioKey, audio: dataUrl }) });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload?.url) throw new Error(payload?.error || "تعذّر رفع المقطع الصوتي.");
       setDuration(seconds);
@@ -59,7 +59,7 @@ export default function AudioUploadField({ value, onChange }: Props) {
   async function remove() {
     setBusy(true); setError("");
     try {
-      await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "design-audio", key: "splash", audio: "__remove__" }) });
+      await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "design-audio", key: audioKey, audio: "__remove__" }) });
       setDuration(0);
       onChange("");
     } finally { setBusy(false); }
@@ -67,7 +67,7 @@ export default function AudioUploadField({ value, onChange }: Props) {
 
   return (
     <div className="audio-upload-field">
-      <span className="image-upload-label"><Music4 size={15}/> صوت شاشة البداية (رفع من الجهاز)</span>
+      <span className="image-upload-label"><Music4 size={15}/> {label}</span>
       <div className="audio-upload-body">
         {value ? (
           <>

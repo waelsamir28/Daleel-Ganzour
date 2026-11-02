@@ -71,14 +71,12 @@ export async function renderSectionSticker(opts: { name: string; url: string; ac
   ctx.fillText(`${text.action} ⬇`, A6_W / 2, (logo ? 300 : 220) + titleLines.length * 88 + 30);
 
   // إطار QR
-  const qrSide = 660, qx = (A6_W - qrSide) / 2, qy = 820;
+  const qrSide = 660, qx = (A6_W - qrSide) / 2, qy = 700;
   round(qx - 30, qy - 30, qrSide + 60, qrSide + 60, 46, "#ffffff", opts.accent, 12);
   drawQr(ctx, opts.url, qx, qy, qrSide, shade(opts.accent, 0.5), "#ffffff", 1);
 
   ctx.fillStyle = "#0b2f55"; ctx.font = font(800, 38);
   ctx.fillText(text.sub, A6_W / 2, qy + qrSide + 100);
-  ctx.fillStyle = "#4b6584"; ctx.font = font(700, 30);
-  ctx.fillText(text.hint, A6_W / 2, qy + qrSide + 155);
 
   ctx.fillStyle = "#ffffff"; ctx.font = font(900, 40); ctx.fillText(opts.siteName, A6_W / 2, A6_H - 145);
   ctx.fillStyle = "rgba(255,255,255,.85)"; ctx.font = font(700, 32); ctx.direction = "ltr"; ctx.fillText(opts.siteHost, A6_W / 2, A6_H - 80); ctx.direction = "rtl";

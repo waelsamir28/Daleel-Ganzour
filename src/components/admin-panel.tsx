@@ -176,6 +176,17 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
           <button type="button" className="button button-primary button-small completion-btn" disabled={busy === service.id} onClick={() => void requestProviderCompletion(service)}>
             <ClipboardList size={14}/>استكمال
           </button>
+        ) : cStatus === "submitted" || cStatus === "done" ? (
+          /* المهني أكّد الاستكمال: زر «استكمال» بيختفي ويظهر «تم التنفيذ ✓» — الضغط عليه يشيل الاسم من البطاقات الناقصة. */
+          <button
+            type="button"
+            className="button button-success button-small completion-btn completion-done-btn"
+            disabled={busy === service.id}
+            onClick={() => void approveProviderCompletion(service)}
+            title="اعتماد الاستكمال وإخراج الاسم من البطاقات الناقصة"
+          >
+            <CheckCircle2 size={14}/>تم التنفيذ ✓
+          </button>
         ) : (
           <>
             <button type="button" className="button button-success button-small completion-btn" disabled={busy === service.id} onClick={() => void approveProviderCompletion(service)} title="موافقة على الاستكمال وإغلاق الزر عند المهني">
@@ -224,6 +235,8 @@ export default function AdminPanel({ initialData, initialTab, initialEditService
       ? " • ظهر زر الاستكمال للمهني"
       : cStatus === "submitted"
         ? " • أرسل المهني الاستكمال (بانتظار موافقتك)"
+        : cStatus === "done"
+          ? " • أكّد المهني «تم الاستكمال» — اضغط «تم التنفيذ ✓»"
         : cStatus === "rejected"
           ? " • مرفوض (نقطة حمراء للمهني لتصحيح الخطأ)"
           : service.status === "needs-info"

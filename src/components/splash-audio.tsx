@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { isSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
-import { SPLASH_PREVIEW_EVENT } from "@/components/splash-screen";
+import { SPLASH_AUDIO_STOP_EVENT, SPLASH_PREVIEW_EVENT } from "@/components/splash-screen";
 
 /** مفتاح منع تكرار الصوت في نفس الجلسة (يفتح التطبيق عشر مرات فيشتغل مرة). */
 const PLAYED_KEY = "janzour-splash-audio-played";
@@ -79,11 +79,20 @@ export default function SplashAudio() {
     };
     window.addEventListener(SPLASH_PREVIEW_EVENT, onPreview);
 
+    // زر السماعة على شاشة البداية: يوقف المقطع فورًا، وتشغيله تاني يرجّعه من الأول.
+    const onStop = (event: Event) => {
+      const muted = (event as CustomEvent<{ muted?: boolean }>).detail?.muted !== false;
+      if (muted) { audio.pause(); startedRef.current = false; cleanupGesture.forEach((off) => off()); cleanupGesture.length = 0; }
+      else { audio.currentTime = 0; void tryPlay(); }
+    };
+    window.addEventListener(SPLASH_AUDIO_STOP_EVENT, onStop);
+
     return () => {
       cancelled = true;
       cleanupGesture.forEach((off) => off());
       window.removeEventListener(SOUND_MUTE_EVENT, onMute);
       window.removeEventListener(SPLASH_PREVIEW_EVENT, onPreview);
+      window.removeEventListener(SPLASH_AUDIO_STOP_EVENT, onStop);
       audio.pause();
     };
   }, [pathname]);

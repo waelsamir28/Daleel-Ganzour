@@ -9949,20 +9949,6 @@ html.dark .quote-target-call { background: #142c42; border-color: #24445f; color
 html.dark .quote-done-note { color: #8fe0b0; }
 
 /* ===== لوحة الإدارة: طلبات عروض الأسعار + التذكيرات الموسمية ===== */
-.quote-admin-list { display: grid; gap: 8px; margin-top: 10px; }
-.quote-admin-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #f8fbff; border: 1px solid #e3eef8; }
-.quote-admin-main strong { font-size: 13px; font-weight: 900; color: #123a5e; }
-.quote-admin-main small { display: block; font-size: 11px; font-weight: 700; color: #5b7391; }
-.quote-admin-main p { margin: 5px 0 0; font-size: 12px; color: #33536f; line-height: 1.65; }
-.quote-admin-side { display: grid; gap: 4px; justify-items: end; font-size: 11.5px; font-weight: 800; }
-.quote-admin-side a { display: inline-flex; align-items: center; gap: 4px; color: #0d5fa8; text-decoration: none; }
-.quote-admin-side span { display: inline-flex; align-items: center; gap: 4px; color: #5b7391; }
-.quote-admin-side em { font-style: normal; font-size: 10.5px; color: #8ba1b8; }
-html.dark .quote-admin-row { background: #0f2337; border-color: #1e3a52; }
-html.dark .quote-admin-main strong { color: #dbeafe; }
-html.dark .quote-admin-main p { color: #b9cee6; }
-html.dark .quote-admin-side a { color: #8ec8ff; }
-
 .seasonal-grid { display: grid; gap: 8px; margin-top: 10px; }
 .seasonal-card { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #f8fbff; border: 1px solid #e3eef8; }
 .seasonal-emoji { font-size: 22px; line-height: 1; }
@@ -10790,3 +10776,87 @@ html.dark .audio-upload-drop { background: #16283c; border-color: #24445f; color
 .audio-upload-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .audio-upload-meta { font-size: 11.5px; font-weight: 700; color: #6b8aa8; }
 .audio-upload-actions .button-soft.is-danger { color: #b91c1c; border-color: #f5c2c2; }
+
+/* ===== الجولة ٢٥: جرس إشعارات العضو + أرقام المهني + زر الكتم على شاشة البداية ===== */
+.header-bell-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  border: 1px solid #d7e6f4;
+  background: #fff;
+  color: #0b5f9e;
+  cursor: pointer;
+}
+.header-bell-btn:hover { background: #eff7ff; }
+.header-bell-dot {
+  position: absolute;
+  inset-block-start: -4px;
+  inset-inline-start: -4px;
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 900;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: 0 4px 10px #b91c1c55;
+}
+html.dark .header-bell-btn { background: #12263a; border-color: #23425c; color: #9fd0ff; }
+
+.my-card-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.my-card-stats-row > div {
+  display: grid; justify-items: center; gap: 2px;
+  padding: 12px; border-radius: 16px;
+  background: linear-gradient(160deg, #eef7ff, #e4f1fd);
+  border: 1px solid #cfe4f6;
+}
+.my-card-stats-row b { font-size: 1.5rem; font-weight: 900; color: #0b5f9e; }
+.my-card-stats-row small { font-size: 11.5px; font-weight: 800; color: #4b6b88; }
+html.dark .my-card-stats-row > div { background: #10283e; border-color: #1e3a52; }
+html.dark .my-card-stats-row b { color: #8ec8ff; }
+
+.my-completion-done .availability-renew.is-green {
+  background: linear-gradient(135deg, #16a34a, #0b7a37);
+  color: #fff;
+}
+.my-completion-done.is-ack {
+  background: linear-gradient(160deg, #ecfdf3, #e2f8ea);
+  border: 1px solid #bfe6cf;
+}
+html.dark .my-completion-done.is-ack { background: #122a1e; border-color: #1f4a33; }
+
+.welcome-audio-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 auto 10px; max-width: 560px;
+  padding: 9px 12px; border-radius: 14px;
+  background: linear-gradient(135deg, #eff8ff, #e6f2fd);
+  border: 1px solid #cfe4f6; color: #16456b;
+  font-size: 12.5px; font-weight: 800;
+}
+.welcome-audio-bar span { flex: 1; }
+.welcome-audio-btn {
+  padding: 5px 10px; border-radius: 9px; border: 1px solid #bcd8ee;
+  background: #fff; color: #0b5f9e; font-family: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer;
+}
+.welcome-audio-btn.is-mute { display: inline-flex; align-items: center; padding: 5px 7px; }
+html.dark .welcome-audio-bar { background: #10283e; border-color: #1e3a52; color: #cfe3f5; }
+html.dark .welcome-audio-btn { background: #17324a; border-color: #26506f; color: #9fd0ff; }
+
+.splash-audio-toggle {
+  position: absolute;
+  inset-block-start: max(14px, env(safe-area-inset-top));
+  inset-inline-start: 14px;
+  z-index: 2;
+  display: grid; place-items: center;
+  width: 42px; height: 42px; border-radius: 14px;
+  background: #ffffff1f; border: 1px solid #ffffff3d;
+  color: #eaf4ff; cursor: pointer; backdrop-filter: blur(8px);
+  transition: background .2s ease, transform .2s ease;
+}
+.splash-audio-toggle:hover { background: #ffffff33; transform: scale(1.04); }
+.splash-audio-toggle.is-off { background: #00000045; color: #ffd4d4; border-color: #ff8a8a66; }

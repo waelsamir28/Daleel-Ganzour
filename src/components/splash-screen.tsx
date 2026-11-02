@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { Volume2, VolumeX } from "lucide-react";
 import { stickerIconUrl } from "@/lib/catalog";
 
 /** المدة الافتراضية: 12 ثانية كي تكتمل حركة التجمع ثم حركة الدوران حول الشعار. */
@@ -10,6 +11,8 @@ const VISIBLE_MS = 12000;
 const FADE_MS = 520;
 /** الحدث الذي يطلقه استوديو التصميم لمعاينة شاشة البداية فورًا (من أي صفحة). */
 export const SPLASH_PREVIEW_EVENT = "janzour-splash-preview";
+/** حدث إيقاف صوت شاشة البداية فورًا (زر السماعة الصغير على الشاشة). */
+export const SPLASH_AUDIO_STOP_EVENT = "janzour-splash-audio-stop";
 /** ملصقات تمثّل أشهر أقسام الدليل؛ تتجمع حول الشعار من أطراف الشاشة ثم تدور في مدار حوله. */
 const SPLASH_STICKERS = ["electricity", "dentistry", "pharmacies", "groceries", "teachers", "plumbing", "barbers", "charities"] as const;
 const DEFAULT_LOGO = "/images/logo-app.webp";
@@ -50,6 +53,9 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
   const [splashImage, setSplashImage] = useState(DEFAULT_LOGO);
   const [withStickers, setWithStickers] = useState(true);
   const [withOrbit, setWithOrbit] = useState(true);
+  /** صوت شاشة البداية شغال؟ (لزر السماعة الصغير) */
+  const [hasAudio, setHasAudio] = useState(false);
+  const [audioOff, setAudioOff] = useState(false);
   /** حالة الدليل الحقيقية (عدد المهن والمقدمين والزيارات) — تُقرأ بعد ظهور الشاشة فلا تؤخر شيئًا. */
   const [status, setStatus] = useState<DirectoryStatus | null>(null);
 
@@ -81,6 +87,7 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
       return;
     }
     const config = readConfig();
+    setHasAudio(root.getAttribute("data-design-splash-audio-enabled") === "true");
     setSplashImage(config.image);
     setWithStickers(config.stickers);
     setWithOrbit(config.orbit);
@@ -132,6 +139,24 @@ export default function SplashScreen({ tagline = "دليل المهن والخد
         <img className="splash-icon" src={splashImage} alt="" width={320} height={320}/>
       )}
     </div>
+    {hasAudio && (
+      <button
+        type="button"
+        className={`splash-audio-toggle ${audioOff ? "is-off" : ""}`}
+        aria-label={audioOff ? "تشغيل صوت شاشة البداية" : "كتم صوت شاشة البداية"}
+        title={audioOff ? "تشغيل الصوت" : "كتم الصوت"}
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
+          const next = !audioOff;
+          setAudioOff(next);
+          // إيقاف فوري للمقطع، والمعاينة ترجّعه من الأول لو المستخدم شغّله تاني.
+          window.dispatchEvent(new CustomEvent(SPLASH_AUDIO_STOP_EVENT, { detail: { muted: next } }));
+        }}
+      >
+        {audioOff ? <VolumeX size={18}/> : <Volume2 size={18}/>}
+      </button>
+    )}
     <span className="splash-tagline">{tagline}</span>
     {status && (
       <div className="splash-status" role="status" aria-label="حالة الدليل الآن">

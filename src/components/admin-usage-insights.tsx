@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Eye, MessageCircle, PhoneCall, RefreshCw, TrendingUp } from "lucide-react";
+import { Eye, Info, MessageCircle, PhoneCall, RefreshCw, TrendingUp } from "lucide-react";
 
 type Provider = { serviceId: string; name: string; area: string; categoryName: string; views: number; contacts: number };
 type Section = { categoryId: string; name: string; views: number; contacts: number };
 
+const AR = new Intl.NumberFormat("ar-EG");
+const fmt = (value: number) => AR.format(Number.isFinite(value) ? value : 0);
+
 /**
  * «أرقام الاستخدام الحقيقية»: مشاهدات البطاقات ونقرات الاتصال/الواتساب محسوبة على الخادم
- * لكل مهني وقسم — تساعد الإدارة تعرف مين محتاج متابعة ومين عليه طلب فعلي.
+ * لكل مهني وقسم. الأرقام مكتوبة بالعربي وبشرح بسيط تحت كل رقم حتى تكون مفهومة للمسؤول.
  */
 export default function AdminUsageInsights() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -38,10 +41,18 @@ export default function AdminUsageInsights() {
 
   return (
     <section className="analytics-panel-card">
+      <div className="usage-explain" role="note">
+        <Info size={16}/>
+        <p>
+          كل مرة زائر يفتح بطاقة مهني = <b>مشاهدة</b>. كل مرة يضغط «اتصال» أو «واتساب» = <b>تواصل</b>.
+          الأرقام مجمّعة على الخادم بدون أي اسم أو رقم للزائر، ومفيش أرقام من متصفحك أنت.
+        </p>
+      </div>
+
       <div className="analytics-panel-head">
         <div>
-          <h3><TrendingUp size={18}/> أرقام الاستخدام الحقيقية</h3>
-          <p>محسوبة على الخادم لكل مهني وقسم (بدون بيانات شخصية): فتح البطاقة = مشاهدة، وضغط الاتصال أو الواتساب = تواصل.</p>
+          <h3><TrendingUp size={18}/> أرقام الاستخدام</h3>
+          <p>آخر قراءة من الخادم — اضغط تحديث لجلب أحدث رقم.</p>
         </div>
         <button type="button" className="button button-soft button-small" onClick={() => { setState("loading"); void load(); }} disabled={state === "loading"}>
           <RefreshCw size={15} className={state === "loading" ? "code-report-spin" : ""}/> تحديث
@@ -51,34 +62,53 @@ export default function AdminUsageInsights() {
       {state === "error" && <p className="analytics-empty-hint">تعذّر تحميل الأرقام — جرّب التحديث تاني.</p>}
       {state === "ready" && (
         <>
-          <div className="insights-totals">
-            <div><Eye size={16}/><b>{totals.views}</b><small>مشاهدة بطاقة</small></div>
-            <div><PhoneCall size={16}/><b>{totals.contacts}</b><small>ضغطة تواصل</small></div>
-            <div><MessageCircle size={16}/><b>{conversion}%</b><small>نسبة التفاعل</small></div>
+          <div className="usage-stats">
+            <div className="usage-stat is-views">
+              <Eye size={18}/>
+              <b>{fmt(totals.views)}</b>
+              <span>مشاهدة بطاقة</span>
+              <small>زائر فتح تفاصيل مهني</small>
+            </div>
+            <div className="usage-stat is-contacts">
+              <PhoneCall size={18}/>
+              <b>{fmt(totals.contacts)}</b>
+              <span>ضغطة تواصل</span>
+              <small>اتصال أو واتساب من البطاقة</small>
+            </div>
+            <div className="usage-stat is-rate">
+              <MessageCircle size={18}/>
+              <b>{fmt(conversion)}%</b>
+              <span>نسبة التفاعل</span>
+              <small>من كل مشاهدة بقى تواصل</small>
+            </div>
           </div>
-          {providers.length === 0 && sections.length === 0 && <p className="analytics-empty-hint">لسه مفيش استخدام مسجّل — الأرقام بتظهر تلقائيًا مع أول زيارات حقيقية.</p>}
+
+          {providers.length === 0 && sections.length === 0 && <p className="analytics-empty-hint">لسه مفيش استخدام مسجّل — الأرقام تظهر تلقائيًا مع أول زيارات حقيقية.</p>}
+
           {providers.length > 0 && (
             <div className="insights-list">
-              <h4>الأكثر تواصلًا</h4>
+              <h4>الأكثر تواصلًا من الزوار</h4>
+              <div className="insights-table-head"><span>#</span><span>المهني</span><span>تواصل</span><span>مشاهدة</span></div>
               {providers.map((row, index) => (
                 <article key={row.serviceId} className="insights-row">
-                  <span className="insights-rank">{index + 1}</span>
+                  <span className="insights-rank">{fmt(index + 1)}</span>
                   <div><strong>{row.name}</strong><small>{[row.categoryName, row.area].filter(Boolean).join(" • ")}</small></div>
-                  <b dir="ltr">{row.contacts} ☎</b>
-                  <em dir="ltr">{row.views} 👁</em>
+                  <b className="insights-num is-contact">{fmt(row.contacts)}</b>
+                  <em className="insights-num is-view">{fmt(row.views)}</em>
                 </article>
               ))}
             </div>
           )}
           {sections.length > 0 && (
             <div className="insights-list">
-              <h4>الأقسام النشطة</h4>
-              {sections.map((row) => (
+              <h4>الأقسام الأكثر استخدامًا</h4>
+              <div className="insights-table-head"><span>#</span><span>القسم</span><span>تواصل</span><span>مشاهدة</span></div>
+              {sections.map((row, index) => (
                 <article key={row.categoryId} className="insights-row">
-                  <span className="insights-rank">•</span>
+                  <span className="insights-rank">{fmt(index + 1)}</span>
                   <div><strong>{row.name}</strong></div>
-                  <b dir="ltr">{row.contacts} ☎</b>
-                  <em dir="ltr">{row.views} 👁</em>
+                  <b className="insights-num is-contact">{fmt(row.contacts)}</b>
+                  <em className="insights-num is-view">{fmt(row.views)}</em>
                 </article>
               ))}
             </div>

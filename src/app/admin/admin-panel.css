@@ -3266,3 +3266,255 @@ html.dark .codes-settings-preview { border-color: #22384e; background: #0f2133; 
   border-color: #68bcb2;
   box-shadow: 0 0 0 3px rgba(21, 135, 125, .12);
 }
+
+/* ===== الجولة ٢٥: صفحة الإحصائيات كأزرار + شاشات عائمة منسّقة ===== */
+.analytics-hub-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eff6ff, #e6f1fb);
+  border: 1px solid #cfe2f5;
+  text-align: center;
+  flex-wrap: wrap;
+}
+.analytics-hub-head > div { flex: 1; min-width: 220px; }
+.analytics-hub-head h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #103252;
+}
+.analytics-hub-head p { margin: 0; font-size: .82rem; color: #4c6b88; line-height: 1.8; }
+.analytics-hub-count {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #0b5f9e;
+  color: #fff;
+  font-size: .76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.analytics-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 12px;
+}
+.analytics-tile {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  grid-template-areas: "icon copy" "btn btn";
+  align-items: start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #dbe8f5;
+  box-shadow: 0 8px 22px rgba(12, 42, 74, .05);
+}
+.analytics-tile-icon {
+  grid-area: icon;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--tile) 14%, #fff);
+  color: var(--tile);
+}
+.analytics-tile-copy { grid-area: copy; text-align: center; }
+.analytics-tile-copy strong { display: block; font-size: .95rem; font-weight: 900; color: #123252; line-height: 1.5; }
+.analytics-tile-copy small { display: block; margin-top: 3px; font-size: .76rem; color: #5b7691; line-height: 1.7; }
+.analytics-tile-badge {
+  position: absolute;
+  inset-inline-end: 12px;
+  inset-block-start: 12px;
+  min-width: 26px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tile) 16%, #fff);
+  color: var(--tile);
+  font-size: .74rem;
+  font-weight: 900;
+  text-align: center;
+}
+.analytics-tile-btn {
+  grid-area: btn;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--tile), color-mix(in srgb, var(--tile) 72%, #000));
+  color: #fff;
+  font-family: inherit;
+  font-size: .85rem;
+  font-weight: 800;
+  text-align: center;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.analytics-tile-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px color-mix(in srgb, var(--tile) 32%, transparent); }
+.analytics-tile-btn:active { transform: translateY(0); }
+
+/* الشاشة العائمة لقسم من الإحصائيات */
+.analytics-section-modal .modal-body { display: grid; gap: 12px; }
+.analytics-section-modal { text-align: center; }
+.analytics-section-modal .analytics-panel-card {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  text-align: center;
+}
+.analytics-section-modal .analytics-panel-head { justify-content: center; text-align: center; }
+.analytics-section-modal .analytics-panel-head h3,
+.analytics-section-modal .analytics-panel-head p { display: none; }
+.analytics-section-modal .analytics-panel-head .button { margin-inline: auto; }
+.analytics-section-body { display: grid; gap: 12px; justify-items: center; text-align: center; }
+.analytics-section-body .analytics-search-tags,
+.analytics-section-body .analytics-interaction-pills { justify-content: center; }
+.analytics-section-foot { display: flex; justify-content: center; }
+.analytics-kpi-grid-inline { justify-items: stretch; }
+.analytics-bars-list.is-centered .analytics-bar-label { text-align: center; }
+.analytics-kpi-card { text-align: center; justify-content: center; }
+
+/* أرقام الاستخدام */
+.usage-explain {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #eef6ff;
+  border: 1px solid #cfe2f5;
+  color: #16456b;
+  text-align: start;
+}
+.usage-explain svg { flex: none; margin-top: 2px; color: #0877e6; }
+.usage-explain p { margin: 0; font-size: .8rem; line-height: 1.9; }
+.usage-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.usage-stat {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 12px 10px;
+  border-radius: 16px;
+  border: 1px solid #e2edf8;
+  background: #f8fbff;
+  text-align: center;
+}
+.usage-stat b { font-size: 1.5rem; font-weight: 900; line-height: 1.3; }
+.usage-stat span { font-size: .82rem; font-weight: 800; color: #2c4b68; }
+.usage-stat small { font-size: .72rem; color: #6b869f; }
+.usage-stat.is-views { color: #0369a1; }
+.usage-stat.is-contacts { color: #15803d; }
+.usage-stat.is-rate { color: #b45309; }
+.insights-list h4 { text-align: center; margin: 6px 0; font-size: .86rem; font-weight: 900; color: #35608a; }
+.insights-table-head {
+  display: grid;
+  grid-template-columns: 34px 1fr 70px 70px;
+  gap: 8px;
+  padding: 4px 10px;
+  font-size: .72rem;
+  font-weight: 800;
+  color: #7b96b0;
+  text-align: center;
+}
+.insights-row { text-align: start; }
+.insights-num { font-style: normal; font-weight: 900; text-align: center; }
+.insights-num.is-contact { color: #15803d; }
+.insights-num.is-view { color: #0369a1; }
+
+/* التذكيرات الموسمية */
+.seasonal-panel { text-align: center; }
+.seasonal-where {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #eff8ff;
+  border: 1px solid #cfe6f7;
+  text-align: start;
+}
+.seasonal-where-icon {
+  display: grid; place-items: center; flex: none;
+  width: 36px; height: 36px; border-radius: 12px;
+  background: #0369a1; color: #fff;
+}
+.seasonal-where strong { display: block; font-size: .88rem; font-weight: 900; color: #0f3f63; }
+.seasonal-where p { margin: 4px 0 6px; font-size: .8rem; line-height: 1.9; color: #33536f; }
+.seasonal-where-meta { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem; font-weight: 800; color: #0369a1; }
+.seasonal-head-actions { display: flex; justify-content: center; }
+.seasonal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.seasonal-card { grid-template-columns: 34px 1fr; grid-template-areas: "emoji copy" "send send"; text-align: center; }
+.seasonal-emoji { grid-area: emoji; font-size: 1.4rem; }
+.seasonal-copy { grid-area: copy; text-align: center; }
+.seasonal-send { grid-area: send; justify-self: center; }
+.seasonal-upcoming { text-align: center; }
+.seasonal-upcoming h4 { display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+.seasonal-upcoming-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.seasonal-upcoming-card {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #f6faff;
+  border: 1px solid #e0edf9;
+  text-align: center;
+}
+.seasonal-upcoming-card span { font-size: 1.2rem; }
+.seasonal-upcoming-card strong { font-size: .8rem; font-weight: 800; color: #22496b; }
+.seasonal-upcoming-card em { font-style: normal; font-size: .72rem; color: #7b96b0; }
+
+/* شرح إشعار الزوار */
+.push-explainer {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #faf5ff;
+  border: 1px solid #e6d4f7;
+  text-align: start;
+}
+.push-explainer-head { display: flex; align-items: center; gap: 6px; font-size: .88rem; font-weight: 900; color: #5b1e93; }
+.push-explainer p { margin: 0; font-size: .8rem; line-height: 1.9; color: #4a3a63; }
+.push-explainer ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.push-explainer li { display: flex; align-items: center; gap: 5px; font-size: .78rem; color: #4a3a63; }
+.push-explainer small { font-size: .74rem; color: #7b6a92; }
+.push-explainer svg { flex: none; }
+.onboarding-note { margin: 0 0 4px; font-size: .76rem; color: #5b7691; text-align: center; line-height: 1.8; }
+
+html.dark .analytics-tile,
+html.dark .usage-stat,
+html.dark .seasonal-upcoming-card { background: #0f2337; border-color: #1e3a52; }
+html.dark .analytics-tile-copy strong { color: #dbeafe; }
+html.dark .analytics-tile-copy small { color: #93aec6; }
+html.dark .analytics-hub-head { background: #10283e; border-color: #1e3a52; }
+html.dark .analytics-hub-head h3 { color: #dbeafe; }
+html.dark .analytics-hub-head p { color: #9ab4cb; }
+html.dark .usage-explain,
+html.dark .seasonal-where { background: #10283e; border-color: #1e3a52; color: #cfe3f5; }
+html.dark .seasonal-where strong,
+html.dark .usage-stat span { color: #dbeafe; }
+html.dark .seasonal-where p { color: #b9cee6; }
+html.dark .push-explainer { background: #1d1530; border-color: #3a2a55; }
+html.dark .push-explainer p,
+html.dark .push-explainer li { color: #d8c9ec; }
+html.dark .push-explainer-head { color: #d7b8ff; }
+@media (max-width: 640px) {
+  .analytics-tiles { grid-template-columns: 1fr; }
+  .seasonal-grid, .seasonal-upcoming-grid { grid-template-columns: 1fr; }
+}

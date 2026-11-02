@@ -206,21 +206,6 @@ test("the public notification bell is gone, admin notifications stay", () => {
 
 // ===== دفعة ١٣: عروض الأسعار من ٣ مهنيين + التذكيرات الموسمية =====
 
-test("quote requests are validated before reaching providers", async () => {
-  const quotes = await loadLib("../src/lib/quotes.ts");
-  const good = quotes.cleanQuoteRequest({ name: " محمود  عبد الله ", phone: "01012345678", details: "تشطيب شقة ١٢٠ متر محارة وسيراميك", categoryId: "plumbing", area: "جنزور / السوق القديم" });
-  assert.equal(good.ok, true);
-  assert.equal(good.value.name, "محمود عبد الله");
-  assert.equal(good.value.phone, "01012345678");
-  for (const bad of [{ name: "", phone: "01012345678", details: "تشطيب شقة ١٢٠ متر", categoryId: "plumbing" }, { name: "محمود", phone: "12345", details: "تشطيب شقة ١٢٠ متر", categoryId: "plumbing" }, { name: "محمود", phone: "01012345678", details: "قصير", categoryId: "plumbing" }, { name: "محمود", phone: "01012345678", details: "تشطيب شقة ١٢٠ متر", categoryId: "../x" }]) {
-    assert.equal(quotes.cleanQuoteRequest(bad).ok, false);
-  }
-  const message = quotes.quoteWhatsappMessage({ name: "محمود", phone: "01012345678", details: "تشطيب شقة", area: "السوق القديم" }, "أحمد", "السباكة", "دليل جنزور");
-  assert.ok(message.includes("أحمد") && message.includes("تشطيب شقة") && message.includes("01012345678") && message.includes("من دليل جنزور"));
-  assert.equal(quotes.QUOTE_TARGETS, 3);
-  assert.ok(quotes.quoteSummary("ا".repeat(200), 50).length <= 51);
-});
-
 test("seasonal reminders produce ready texts for the right month", async () => {
   const seasonal = await loadLib("../src/lib/seasonal-reminders.ts");
   const may = seasonal.dueSeasonalReminders(new Date("2026-05-10T12:00:00Z"));
@@ -239,9 +224,10 @@ test("seasonal reminders produce ready texts for the right month", async () => {
   assert.ok(seasonal.upcomingSeasonalReminders(new Date("2026-05-10T12:00:00Z")).length > 0);
 });
 
-test("quotes and seasonal screens are wired end to end", () => {
-  const quotesApi = readFileSync(new URL("../src/app/api/quotes/route.ts", import.meta.url), "utf8");
-  assert.ok(quotesApi.includes("cleanQuoteRequest") && quotesApi.includes("rateLimit(request, \"quote-request\"") && quotesApi.includes("QUOTE_TARGETS"));
+test("seasonal screen is wired end to end and quote requests are gone", () => {
+  for (const gone of ["../src/app/api/quotes/route.ts", "../src/lib/quotes.ts", "../src/components/admin-quotes.tsx"]) {
+    assert.throws(() => readFileSync(new URL(gone, import.meta.url), "utf8"), gone);
+  }
   const seasonalApi = readFileSync(new URL("../src/app/api/seasonal/route.ts", import.meta.url), "utf8");
   assert.ok(seasonalApi.includes("dueSeasonalReminders") && seasonalApi.includes("sendPushToAll"));
   const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
@@ -249,9 +235,10 @@ test("quotes and seasonal screens are wired end to end", () => {
   assert.equal(directory.includes("quote-request-btn"), false);
   assert.equal(directory.includes('setModal("quote")'), false);
   const admin = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
-  for (const part of ["AdminQuotes", "AdminSeasonal"]) assert.ok(admin.includes(part));
+  assert.ok(admin.includes("AdminSeasonal"));
+  assert.equal(admin.includes("AdminQuotes"), false);
   const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
-  assert.ok(schema.includes("directory_quote_requests"));
+  assert.equal(schema.includes("directory_quote_requests"), false);
 });
 
 // ===== دفعة ١٤: دفتر الأرقام + ترحيب المهنيين + مهنة ناقصة + صحة الدليل =====
@@ -709,4 +696,111 @@ test("splash audio: uploaded from the admin studio and respects autoplay limits"
   assert.ok(studio.includes("AudioUploadField") && studio.includes("splashAudioEnabled"));
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
   assert.ok(css.includes(".audio-upload-drop {") && css.includes(".audio-upload-player {"));
+});
+
+test("analytics page is a hub of buttons, each opening its own floating screen", () => {
+  const admin = readFileSync(new URL("../src/components/admin-analytics.tsx", import.meta.url), "utf8");
+  // كل قسم له زر، والزر يفتح شاشة عائمة (Modal) بزر إغلاق.
+  assert.ok(admin.includes("analytics-tile-btn"));
+  assert.ok(admin.includes("const tiles: Tile[]") && admin.includes("setOpen(tile.id)"));
+  assert.ok(admin.includes("<Modal") && admin.includes("analytics-section-modal"));
+  assert.ok(admin.includes("onClose={() => setOpen(null)}"));
+  for (const section of ["summary", "search", "categories", "areas", "top", "underserved", "usage", "errors", "seasonal", "welcome", "push", "health", "missing", "quickRatings", "codes", "stickers"]) {
+    assert.ok(admin.includes(`"${section}"`), section);
+  }
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".analytics-tiles {") && css.includes(".analytics-tile-btn {"));
+  assert.ok(css.includes(".analytics-section-modal .analytics-panel-head h3"));
+  // توسيط المحتوى داخل الشاشات العائمة.
+  assert.ok(css.includes(".analytics-section-modal { text-align: center; }"));
+});
+
+test("quote requests are deleted everywhere", () => {
+  for (const gone of ["../src/app/api/quotes/route.ts", "../src/lib/quotes.ts", "../src/components/admin-quotes.tsx"]) {
+    assert.throws(() => readFileSync(new URL(gone, import.meta.url), "utf8"), gone);
+  }
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.equal(schema.includes("quoteRequests"), false);
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.equal(directory.includes("directory_quote_requests"), false);
+});
+
+test("browser errors: chunk failures recover and environment noise is filtered", async () => {
+  const errorReport = await loadLib("../src/lib/error-report.ts");
+  assert.equal(errorReport.isEnvironmentNoise("Script error."), true);
+  assert.equal(errorReport.isEnvironmentNoise("Uncaught Error: Error invoking postMessage: Java object is gone"), true);
+  assert.equal(errorReport.isEnvironmentNoise("ChunkLoadError: Loading chunk 12 failed"), true);
+  assert.equal(errorReport.isEnvironmentNoise("TypeError: cannot read properties of undefined"), false);
+  // البلاغات الضوضائية لا تُخزَّن ولا تبعت تنبيه.
+  assert.equal(errorReport.sanitizeErrorReport({ message: "Script error.", path: "/" }), null);
+  const reporter = readFileSync(new URL("../src/components/chunk-recovery.tsx", import.meta.url), "utf8");
+  assert.ok(reporter.includes("ChunkLoadError") && reporter.includes("location.replace"));
+  const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.ok(layout.includes("<ChunkRecovery />"));
+});
+
+test("member notifications bell and the completion handshake", () => {
+  const directory = readFileSync(new URL("../src/components/directory.tsx", import.meta.url), "utf8");
+  assert.ok(directory.includes("header-bell-btn") && directory.includes("openFeed"));
+  const my = readFileSync(new URL("../src/app/api/my/route.ts", import.meta.url), "utf8");
+  assert.ok(my.includes('body.action === "completion-done"'));
+  const account = readFileSync(new URL("../src/components/provider-account.tsx", import.meta.url), "utf8");
+  assert.ok(account.includes("تم الاستكمال ✓") && account.includes('call("completion-done"'));
+  const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.ok(admin.includes("تم التنفيذ ✓"));
+  // استكمال زر «استكمال» بيختفي لما المهني يأكّد.
+  assert.ok(admin.includes('cStatus === "submitted" || cStatus === "done"'));
+  const catalog = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
+  assert.ok(catalog.includes('"none" | "requested" | "submitted" | "rejected" | "done"'));
+  // إشعار ترحيب داخلي بجوار رسالة الواتساب والملصق.
+  const onboarding = readFileSync(new URL("../src/components/admin-onboarding.tsx", import.meta.url), "utf8");
+  assert.ok(onboarding.includes("إشعار بالترحيب") && onboarding.includes("notify-provider"));
+});
+
+test("seasonal reminders explain the destination and the visitor push number", () => {
+  const seasonal = readFileSync(new URL("../src/components/admin-seasonal.tsx", import.meta.url), "utf8");
+  assert.ok(seasonal.includes("بتروح فين بالظبط") && seasonal.includes("إشعار متصفح"));
+  assert.ok(seasonal.includes("seasonal-upcoming-grid") && seasonal.includes("seasonal-send"));
+  const api = readFileSync(new URL("../src/app/api/seasonal/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes("subscribers") && api.includes("countPushSubscribers"));
+  const push = readFileSync(new URL("../src/components/admin-push.tsx", import.meta.url), "utf8");
+  assert.ok(push.includes("مين بيشوفه") && push.includes("عدد الأجهزة"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  const adminCss = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(adminCss.includes(".seasonal-upcoming-grid") && adminCss.includes(".push-explainer {"));
+  assert.ok(css.includes(".header-bell-btn"));
+  assert.equal(css.includes(".quote-admin-row"), false);
+});
+
+test("stickers: no faint dark text under the white footer", () => {
+  const rating = readFileSync(new URL("../src/components/rating-sticker-modal.tsx", import.meta.url), "utf8");
+  const section = readFileSync(new URL("../src/components/section-sticker-modal.tsx", import.meta.url), "utf8");
+  // النص الرمادي الباهت اتشال، والكود مرفوع فوق الذيل الغامق فمافيش تراكب.
+  assert.equal(rating.includes("رأيك يساعد جيرانك"), false);
+  assert.ok(rating.includes("const qrSide = 640, qx = (A6_W - qrSide) / 2, qy = 740;"));
+  assert.equal(section.includes("text.hint"), false);
+  assert.ok(section.includes("const qrSide = 660, qx = (A6_W - qrSide) / 2, qy = 700;"));
+});
+
+test("splash audio can be muted from the splash screen, and providers get a welcome audio", () => {
+  const splash = readFileSync(new URL("../src/components/splash-screen.tsx", import.meta.url), "utf8");
+  assert.ok(splash.includes("splash-audio-toggle") && splash.includes("SPLASH_AUDIO_STOP_EVENT"));
+  const player = readFileSync(new URL("../src/components/splash-audio.tsx", import.meta.url), "utf8");
+  assert.ok(player.includes("SPLASH_AUDIO_STOP_EVENT") && player.includes("audio.pause()"));
+  const welcome = readFileSync(new URL("../src/components/welcome-audio.tsx", import.meta.url), "utf8");
+  assert.ok(welcome.includes("/api/site-audio") && welcome.includes("setSoundMuted"));
+  const page = readFileSync(new URL("../src/app/my/[token]/page.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes("<WelcomeAudio token={token}/>"));
+  const catalog = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
+  assert.ok(catalog.includes("WELCOME_AUDIO_KEY") && catalog.includes("welcomeAudioEnabled"));
+  const studio = readFileSync(new URL("../src/components/design-customizer.tsx", import.meta.url), "utf8");
+  assert.ok(studio.includes('audioKey="welcome"'));
+});
+
+test("provider card stats endpoint feeds the daily «مهنتك على الدليل» notification", () => {
+  const route = readFileSync(new URL("../src/app/api/my/insights/route.ts", import.meta.url), "utf8");
+  assert.ok(route.includes("serviceHits") && route.includes("📊 مهنتك على الدليل"));
+  assert.ok(route.includes("20 * 60 * 60 * 1000"));
+  const account = readFileSync(new URL("../src/components/provider-account.tsx", import.meta.url), "utf8");
+  assert.ok(account.includes("/api/my/insights") && account.includes("my-card-stats"));
 });

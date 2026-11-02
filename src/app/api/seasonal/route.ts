@@ -1,6 +1,6 @@
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { apiError, InputError, objectInput } from "@/lib/inputs";
-import { pushConfigured, sendPushToAll } from "@/lib/push";
+import { countPushSubscribers, pushConfigured, sendPushToAll } from "@/lib/push";
 import { sanitizePushMessage } from "@/lib/push-shared";
 import { SEASONAL_REMINDERS, dueSeasonalReminders, seasonalUrl, upcomingSeasonalReminders } from "@/lib/seasonal-reminders";
 import { rateLimit } from "@/lib/validation";
@@ -18,6 +18,7 @@ export async function GET() {
     if (viewer.role !== "admin" && viewer.role !== "moderator") throw new InputError("غير مسموح.", 403);
     return Response.json({
       configured: await pushConfigured(),
+      subscribers: await countPushSubscribers().catch(() => 0),
       due: dueSeasonalReminders().map((reminder) => ({ ...reminder, url: seasonalUrl(reminder) })),
       upcoming: upcomingSeasonalReminders().map((reminder) => ({ id: reminder.id, label: reminder.label, emoji: reminder.emoji, months: reminder.months })),
       total: SEASONAL_REMINDERS.length,

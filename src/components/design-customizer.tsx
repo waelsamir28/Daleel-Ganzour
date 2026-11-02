@@ -1735,6 +1735,16 @@ export default function DesignCustomizer({
                 <label className="checkbox-field"><input type="checkbox" checked={draft.splashAudioEnabled && Boolean(draft.splashAudioUrl)} disabled={!draft.splashAudioUrl} onChange={(e) => updateField("splashAudioEnabled", e.target.checked)}/>تشغيل المقطع تلقائيًا مع فتح التطبيق (شاشة البداية)</label>
                 <small className="input-help">المتصفحات تمنع الصوت التلقائي قبل أي تفاعل من الزائر؛ لو اتمنع، المقطع يشتغل مع أول لمسة على الشاشة. ويحترم زر «كتم الصوت» الموجود في الموقع، ويشتغل مرة واحدة في الجلسة. المقاس المناسب: ١٠ ثوانٍ، MP3 بجودة 96–128 كيلوبت (≈ ١٠٠–١٥٠ كيلوبايت).</small>
 
+                <InnerDivider title="صوت الترحيب بالمهني الجديد" />
+                <AudioUploadField
+                  audioKey="welcome"
+                  label="مقطع ترحيبي للمهني (رفع من الجهاز)"
+                  value={draft.welcomeAudioUrl}
+                  onChange={(url) => { updateField("welcomeAudioUrl", url); if (!url) updateField("welcomeAudioEnabled", false); }}
+                />
+                <label className="checkbox-field"><input type="checkbox" checked={draft.welcomeAudioEnabled && Boolean(draft.welcomeAudioUrl)} disabled={!draft.welcomeAudioUrl} onChange={(e) => updateField("welcomeAudioEnabled", e.target.checked)}/>تشغيل صوت الترحيب أول ما المهني يفتح صفحة «حسابي»</label>
+                <small className="input-help">يشتغل مرة واحدة لكل مهني (أول زيارة لحسابه)، ويحترم كتم الصوت. مناسب: ٥–١٠ ثوانٍ MP3.</small>
+
                 <label className="checkbox-field"><input type="checkbox" checked={draft.splashStickers} onChange={(e) => updateField("splashStickers", e.target.checked)}/>الحركة الأولى: ملصقات الأقسام 3D تتجمع حول الشعار في شاشة البداية</label>
                 <label className="checkbox-field"><input type="checkbox" checked={draft.splashOrbit} onChange={(e) => updateField("splashOrbit", e.target.checked)}/>الحركة الثانية: الملصقات تدور في مدار دائري حول الشعار بعد اكتمال التجمع</label>
                 <small className="input-help">المسافة بين الشعار والملصقات محسوبة تلقائيًا حتى لا تتراكب معه على أي مقاس شاشة. أي ضغطة على شاشة البداية تتخطاها فورًا.</small>
