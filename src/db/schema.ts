@@ -275,6 +275,15 @@ export const serviceGallery = pgTable("directory_service_gallery", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [primaryKey({ columns: [table.serviceId, table.slot] })]);
 
+/** مقطع صوتي مرفوع من الإدارة (صوت شاشة البداية) — داخل القاعدة لأن Vercel بلا قرص دائم. */
+export const designAudio = pgTable("directory_design_audio", {
+  key: varchar("key", { length: 40 }).primaryKey(),
+  mime: varchar("mime", { length: 60 }).notNull().default("audio/mpeg"),
+  data: text("data").notNull().default(""),
+  version: integer("version").notNull().default(1),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const categoryIcons = pgTable("directory_category_icons", {
   categoryId: varchar("category_id", { length: 60 }).primaryKey(),
   mime: varchar("mime", { length: 60 }).notNull().default("image/png"),

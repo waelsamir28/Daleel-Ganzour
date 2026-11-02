@@ -670,3 +670,43 @@ test("suggestion 9: directory status shows on the lock splash screen", () => {
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
   assert.ok(css.includes(".splash-status-pill {") && css.includes(".splash-status-row {"));
 });
+
+test("splash audio: uploaded from the admin studio and respects autoplay limits", async () => {
+  const catalog = await loadLib("../src/lib/catalog.ts");
+  assert.equal(catalog.SPLASH_AUDIO_KEY, "splash");
+  assert.equal(catalog.DESIGN_AUDIO_MAX_BYTES, 2 * 1024 * 1024);
+  assert.equal(catalog.isDesignAudioKey("splash"), true);
+  assert.equal(catalog.isDesignAudioKey("other"), false);
+  // data URL: يرفض غير الصوت ويقبل mp3، ويحسب الحجم من base64.
+  assert.throws(() => catalog.parseDesignAudioDataUrl("data:image/png;base64,AAAA"));
+  assert.equal(catalog.parseDesignAudioDataUrl("data:audio/mpeg;base64," + "A".repeat(4000)).mime, "audio/mpeg");
+  assert.equal(catalog.designAudioUrl("splash", 3), "/api/design-audio/splash?v=3");
+  assert.equal(catalog.defaultDesignSettings.splashAudioEnabled, false);
+  assert.equal(catalog.defaultDesignSettings.splashAudioUrl, "");
+
+  const admin = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(admin.includes('body.type === "design-audio"') && admin.includes("parseDesignAudioDataUrl"));
+  const route = readFileSync(new URL("../src/app/api/design-audio/[key]/route.ts", import.meta.url), "utf8");
+  assert.ok(route.includes("Accept-Ranges") && route.includes("Content-Range"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes('"directory_design_audio"'));
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("CREATE TABLE IF NOT EXISTS directory_design_audio"));
+
+  const applicator = readFileSync(new URL("../src/components/design-applicator.tsx", import.meta.url), "utf8");
+  assert.ok(applicator.includes("data-design-splash-audio-enabled"));
+
+  const player = readFileSync(new URL("../src/components/splash-audio.tsx", import.meta.url), "utf8");
+  // التشغيل التلقائي محاولة أولى، ثم أول تفاعل، مع احترام الكتم ومرة واحدة في الجلسة.
+  assert.ok(player.includes("audio.play()"));
+  assert.ok(player.includes("pointerdown") && player.includes("keydown"));
+  assert.ok(player.includes("isSoundMuted") && player.includes("SOUND_MUTE_EVENT"));
+  assert.ok(player.includes("janzour-splash-audio-played"));
+  const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.ok(layout.includes("<SplashAudio />"));
+
+  const studio = readFileSync(new URL("../src/components/design-customizer.tsx", import.meta.url), "utf8");
+  assert.ok(studio.includes("AudioUploadField") && studio.includes("splashAudioEnabled"));
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".audio-upload-drop {") && css.includes(".audio-upload-player {"));
+});
