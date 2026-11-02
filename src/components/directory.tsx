@@ -8,6 +8,8 @@ import { buildShopWhatsappOrderMessage, categoryStickerSrc, defaultDesignSetting
 import { isSoundMuted, menuFeedback, setSoundMuted, SOUND_MUTE_EVENT } from "@/lib/feedback";
 import { CategoryIcon, MainCategoryIcon, Modal, ServiceArt, SpecialtyIcon, StickerIcon } from "@/components/ui";
 import ProviderCard, { categoryTheme, ProviderRating } from "@/components/provider-card";
+import NewArrivals from "@/components/new-arrivals";
+import { newArrivalServices } from "@/lib/new-arrivals";
 import SoundSheet from "@/components/sound-sheet";
 import MissingProfessionModal from "@/components/missing-profession-modal";
 import { openInstallAppModal } from "@/components/install-app-modal";
@@ -453,6 +455,8 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
   const neededServices = services.filter((service) => service.neededRank > 0).sort((a, b) => a.neededRank - b.neededRank || a.name.localeCompare(b.name, "ar")).slice(0, 8);
   const dutyShift = useMemo(() => getDutyShiftInfo(now > 0 ? new Date(now) : undefined), [now]);
   const offerServices = useMemo(() => servicesWithOffers(services, now || undefined), [services, now]);
+  // «وصل حديثًا»: آخر المهن اللي دخلت الدليل في آخر ٧ أيام.
+  const arrivalServices = useMemo(() => (now > 0 ? newArrivalServices(services, now) : []), [services, now]);
   const dutyServices = useMemo(() => getOnDutyServices(services, categories, dutyFilter, now), [services, categories, dutyFilter, now]);
   const utilityNumbers = data.utilityNumbers && data.utilityNumbers.length > 0 ? data.utilityNumbers : publicUtilityNumbers;
   const isAdmin = viewer.role === "admin";
@@ -975,6 +979,11 @@ export default function Directory({ initialData, viewer, rootId, specialtyId, st
             </div>
           )}
         </section>
+      )}
+      {!scoped && !isFiltering && arrivalServices.length > 0 && (
+        <div style={{ order: sectionOrderIndex("offers", 3) }}>
+          <NewArrivals services={arrivalServices} categories={categories} now={now} onOpen={openDetail}/>
+        </div>
       )}
       {(scoped || design.showFeatureCards) && <section className="feature-cards-section" aria-label="الخدمات الحيوية والسريعة" style={scoped ? { order: 4 } : { order: sectionOrderIndex("features", 1) }}>
         <div className="category-grid main-category-grid feature-cards-grid">

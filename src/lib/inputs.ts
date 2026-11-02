@@ -2,6 +2,7 @@ import "server-only";
 import { databaseConfigured, db } from "@/db";
 import { directoryAreas, directoryCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { normalizeEmergencyLevel, normalizeEmergencyText } from "@/lib/emergency-alert";
 import { hasProfessionArt, categoryArtOptions, defaultSettings, iconNames, OTHER_ADDRESS, parseWorkingHours, parseServiceItems, normalizeStages, parseCenterSchedule, parseServiceOffer, TEACHERS_ROOT_ID, type SiteSettings } from "@/lib/catalog";
 import { cleanPhone, cleanText, validPhone } from "@/lib/validation";
 import { ensureSeed } from "@/lib/directory";
@@ -72,6 +73,11 @@ export function settingsInput(body: Record<string, unknown>): SiteSettings {
   next.whatsappAlertsNumber = normalizeWhatsappNumber(cleanPhone(body.whatsappAlertsNumber ?? ""));
   if (next.whatsappAlertsNumber && !/^20\d{10}$/.test(next.whatsappAlertsNumber)) throw new InputError("رقم واتساب التنبيهات غير صحيح (مثال: 01222355769).");
   next.whatsappAlertsApiKey = cleanText(body.whatsappAlertsApiKey ?? "", 64).replace(/[^A-Za-z0-9_-]/g, "");
+  // شريط التنبيه الطارئ: نص سطر واحد + مستوى اللون + وقت الانتهاء (مفيش تاريخ = لحد ما يمسحه الأدمن).
+  next.emergencyAlertText = normalizeEmergencyText(body.emergencyAlertText ?? "");
+  next.emergencyAlertLevel = normalizeEmergencyLevel(body.emergencyAlertLevel);
+  const until = typeof body.emergencyAlertUntil === "string" ? body.emergencyAlertUntil.trim() : "";
+  next.emergencyAlertUntil = until && Number.isFinite(Date.parse(until)) ? new Date(Date.parse(until)).toISOString() : "";
   return next;
 }
 export function apiError(error: unknown) {

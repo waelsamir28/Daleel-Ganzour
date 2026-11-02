@@ -10874,3 +10874,128 @@ html.dark .welcome-audio-btn { background: #17324a; border-color: #26506f; color
   animation: splash-fade-up .5s ease both;
 }
 @media (prefers-reduced-motion: reduce) { .splash-audio-toggle.is-waiting { animation: none; } }
+
+/* ===== الجولة ٣١: شريط التنبيه الطارئ ===== */
+.site-alert-bar {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 14px;
+  background: linear-gradient(135deg, #0b5f9e, #0a4b7d);
+  color: #fff; font-size: 13px; font-weight: 800; line-height: 1.6;
+  position: relative; z-index: 60;
+}
+.site-alert-bar.is-info { background: linear-gradient(135deg, #0b5f9e, #0a4b7d); }
+.site-alert-bar.is-warning { background: linear-gradient(135deg, #c2410c, #9a3412); }
+.site-alert-bar.is-danger { background: linear-gradient(135deg, #b91c1c, #7f1d1d); }
+.site-alert-bar.is-preview { border-radius: 12px; margin-top: 10px; width: auto; }
+.site-alert-icon { display: inline-flex; flex: 0 0 auto; opacity: .95; }
+.site-alert-text { flex: 1 1 auto; margin: 0; font-size: 13px; }
+.site-alert-close {
+  flex: 0 0 auto; display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 9px;
+  background: #ffffff24; border: 1px solid #ffffff33; color: #fff; cursor: pointer;
+}
+.site-alert-close:hover { background: #ffffff38; }
+html.dark .site-alert-bar { box-shadow: inset 0 -1px 0 #ffffff1f; }
+
+/* محرر التنبيه في الإعدادات */
+.emergency-alert-editor {
+  margin-top: 18px; padding: 14px;
+  border-radius: 16px; border: 1px dashed #e0a94c;
+  background: linear-gradient(135deg, #fffaf0, #fff4e0);
+}
+.emergency-alert-editor-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.emergency-alert-editor-icon {
+  display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 auto;
+  border-radius: 10px; background: #b91c1c; color: #fff;
+}
+.emergency-alert-editor-head h5 { margin: 0; font-size: 13.5px; font-weight: 900; color: #7c2d12; }
+.emergency-alert-editor-head p { margin: 3px 0 0; font-size: 11.5px; color: #9a6b2f; line-height: 1.7; }
+.emergency-alert-editor-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+html.dark .emergency-alert-editor { background: #2a2114; border-color: #7c5a1f; }
+html.dark .emergency-alert-editor-head h5 { color: #fcd9a8; }
+html.dark .emergency-alert-editor-head p { color: #d6b48a; }
+
+/* ===== الجولة ٣١: شريط «وصل حديثًا» ===== */
+.new-arrivals { margin: 18px auto; }
+.new-arrivals-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.new-arrivals-head h2 {
+  display: inline-flex; align-items: center; gap: 7px; margin: 0;
+  font-size: 17px; font-weight: 900; color: var(--design-primary, #0877e6);
+}
+.new-arrivals-icon { color: #d97706; }
+.new-arrivals-head p { margin: 0; font-size: 12px; color: #6b7d90; }
+.new-arrivals-strip {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(232px, 232px);
+  gap: 10px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.new-arrival-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px; border-radius: 16px;
+  background: #fff; border: 1px solid #e3edf7;
+  box-shadow: 0 4px 14px #0b4a9310; scroll-snap-align: start;
+}
+.new-arrival-main {
+  display: flex; align-items: flex-start; gap: 9px;
+  background: none; border: 0; padding: 0; cursor: pointer; text-align: right;
+  font-family: inherit;
+}
+.new-arrival-icon {
+  display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 auto;
+  border-radius: 12px; background: var(--cat-light, #eef6ff);
+}
+.new-arrival-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.new-arrival-name {
+  font-size: 13px; font-weight: 900; color: #12233a;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.new-arrival-cat { font-size: 11px; color: var(--cat, #0b5f9e); font-weight: 800; }
+.new-arrival-meta {
+  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+  font-size: 10.5px; color: #6b7d90; margin-top: 2px;
+}
+.new-arrival-date {
+  font-style: normal; padding: 1px 6px; border-radius: 999px;
+  background: #ecfdf3; color: #15803d; font-weight: 800;
+}
+.new-arrival-actions { display: flex; gap: 6px; }
+.new-arrival-call, .new-arrival-open {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 6px 8px; border-radius: 9px; font-family: inherit; font-size: 11.5px; font-weight: 800;
+  cursor: pointer; text-decoration: none;
+}
+.new-arrival-call { background: #0f9d58; border: 1px solid #0f9d58; color: #fff; }
+.new-arrival-open { background: #f2f8ff; border: 1px solid #d6e7f8; color: #0b5f9e; }
+html.dark .new-arrival-card { background: #12283d; border-color: #1f3f5c; box-shadow: none; }
+html.dark .new-arrival-name { color: #e6f1fb; }
+html.dark .new-arrival-open { background: #17324a; border-color: #26506f; color: #9fd0ff; }
+html.dark .new-arrival-date { background: #122a1e; color: #6ee7a8; }
+
+/* ===== الجولة ٣١: ملصق «بيانات مكتملة ✓» ===== */
+.complete-flag {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 3px; padding: 2px 8px; border-radius: 999px;
+  background: #ecfdf3; border: 1px solid #bfe6cf;
+  color: #15803d; font-size: 10.5px; font-weight: 900;
+}
+html.dark .complete-flag { background: #122a1e; border-color: #1f4a33; color: #6ee7a8; }
+
+/* ===== الجولة ٣١: وضع بدون نت ===== */
+.offline-bar {
+  position: fixed; inset-inline: 10px; bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 80; display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-radius: 14px;
+  font-size: 12px; font-weight: 800; line-height: 1.6;
+  box-shadow: 0 12px 30px #0b21383d; backdrop-filter: blur(6px);
+}
+.offline-bar.is-offline { background: #1f3550f2; color: #e6f1fb; border: 1px solid #ffffff26; }
+.offline-bar.is-back { background: #ecfdf3f7; color: #14532d; border: 1px solid #bfe6cf; }
+.offline-bar-icon { display: inline-flex; flex: 0 0 auto; }
+.offline-bar-text { flex: 1 1 auto; }
+.offline-bar-action {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 9px; border: 1px solid #ffffff3d;
+  background: #ffffff1f; color: inherit; font-family: inherit; font-size: 11.5px; font-weight: 800;
+  cursor: pointer; text-decoration: none;
+}
+.offline-bar.is-back .offline-bar-action { background: #15803d; border-color: #15803d; color: #fff; }
