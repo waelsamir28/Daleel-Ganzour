@@ -42,7 +42,7 @@ function getPreviewDirectory(): PublicDirectory {
  * إن طابق الإصدار الحالي نتخطى كل أوامر الترقية (~65 أمرًا كانت تُنفَّذ قبل كل صفحة وتسبب بطء فتح الأقسام).
  * ⚠️ أي تعديل على أوامر الترقية داخل `ensureSeed` يستلزم رفع هذا الرقم حتى تُطبَّق على القواعد القائمة.
  */
-export const SCHEMA_VERSION = "2026-11-02.11";
+export const SCHEMA_VERSION = "2026-11-02.12";
 const SCHEMA_VERSION_KEY = "schema_version";
 async function schemaUpToDate(): Promise<boolean> {
   try {
@@ -67,6 +67,9 @@ export async function ensureSeed() {
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_status varchar(20) NOT NULL DEFAULT 'none'`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_note text NOT NULL DEFAULT ''`);
       await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_draft jsonb`);
+      // تذكير تلقائي بالاستكمال: وقت الطلب ووقت آخر تذكير (إشعار واحد لكل مهنة بعد ٣ أيام).
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_requested_at timestamptz`);
+      await tx.execute(sql`ALTER TABLE directory_services ADD COLUMN IF NOT EXISTS completion_reminder_at timestamptz`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_submission_tracking (token_hash varchar(64) PRIMARY KEY, service_id uuid NOT NULL REFERENCES directory_services(id) ON DELETE CASCADE)`);
       await tx.execute(sql`CREATE TABLE IF NOT EXISTS directory_telecom_reports (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), scope varchar(20) NOT NULL, code varchar(60) NOT NULL, label varchar(160) NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now())`);
       await tx.execute(sql`CREATE INDEX IF NOT EXISTS directory_telecom_reports_created_idx ON directory_telecom_reports (created_at)`);
@@ -291,7 +294,7 @@ export async function getDesignSettings(): Promise<DesignSettings> {
 export function serializeService(item: typeof services.$inferSelect): ServiceRecord {
   const { reviewNote: _privateNote, availabilityToken: _privateToken, accountToken: _privateAccountToken, ...publicItem } = item;
   const completionStatus = (["none", "requested", "submitted", "rejected", "done"].includes(item.completionStatus) ? item.completionStatus : "none") as CompletionStatus;
-  return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString(), offerEndsAt: item.offerEndsAt?.toISOString() ?? null, offerStartedAt: item.offerStartedAt?.toISOString() ?? null, confirmedAt: (item.confirmedAt ?? item.createdAt).toISOString() };
+  return { ...publicItem, completionStatus, completionNote: item.completionNote ?? "", completionDraft: item.completionDraft ?? null, availableNow: item.availableNow && Boolean(item.availableUntil && item.availableUntil.getTime() > Date.now()), availableUntil: item.availableUntil?.toISOString() ?? null, createdAt: item.createdAt.toISOString(), completionRequestedAt: item.completionRequestedAt?.toISOString() ?? null, completionReminderAt: item.completionReminderAt?.toISOString() ?? null, offerEndsAt: item.offerEndsAt?.toISOString() ?? null, offerStartedAt: item.offerStartedAt?.toISOString() ?? null, confirmedAt: (item.confirmedAt ?? item.createdAt).toISOString() };
 }
 export function serializeCategory(item: typeof directoryCategories.$inferSelect, imageVersion = 0): CategoryRecord { return { ...item, light: `${item.color}12`, ...(imageVersion ? { imageVersion } : {}) }; }
 const adColumns = { id: adBanners.id, template: adBanners.template, transition: adBanners.transition, motion: adBanners.motion, accentColor: adBanners.accentColor, title: adBanners.title, caption: adBanners.caption, serviceId: adBanners.serviceId, whatsapp: adBanners.whatsapp, active: adBanners.active, startsAt: adBanners.startsAt, endsAt: adBanners.endsAt, sortOrder: adBanners.sortOrder, durationSeconds: adBanners.durationSeconds, imageMime: adBanners.imageMime, imageVersion: adBanners.imageVersion, hasImage: sql<boolean>`length(${adBanners.imageData}) > 0`, createdAt: adBanners.createdAt };

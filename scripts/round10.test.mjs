@@ -874,3 +874,43 @@ test("analytics tiles are squares two per row with the icon on top, and seasonal
   assert.ok(css.includes(".seasonal-card {\n  grid-template-columns: 1fr;"));
   assert.ok(css.includes(".seasonal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }"));
 });
+
+test("completion reminders: one automatic notification after 3 days, never repeated", async () => {
+  const reminder = await loadLib("../src/lib/completion-reminder.ts");
+  assert.equal(reminder.COMPLETION_REMINDER_DAYS, 3);
+  const now = Date.parse("2026-11-10T12:00:00Z");
+  const asked = "2026-11-05T12:00:00Z"; // عدّى ٥ أيام
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: asked }, now).due, true);
+  // لسه بدري
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: "2026-11-09T12:00:00Z" }, now).reason, "too-early");
+  // ردّ أو أكّد → مفيش تذكير
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "submitted", completionRequestedAt: asked }, now).due, false);
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "done", completionRequestedAt: asked }, now).due, false);
+  // تذكير اتبعت بعد الطلب → ممنوع التكرار
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: asked, completionReminderAt: "2026-11-09T12:00:00Z" }, now).reason, "already-reminded");
+  // طلب استكمال جديد بعد التذكير القديم → تذكير واحد جديد مسموح
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: "2026-11-06T12:00:00Z", completionReminderAt: "2026-11-05T12:00:00Z" }, now).due, true);
+  // مفيش تاريخ طلب (بيانات قديمة) → مانبعتش عشوائي
+  assert.equal(reminder.completionReminderDecision({ completionStatus: "requested", completionRequestedAt: null }, now).reason, "no-date");
+  const message = reminder.completionReminderMessage({ name: "أحمد السباك", daysWaiting: 5 });
+  assert.ok(message.title.includes("استكمال بيانات") && message.body.includes("أحمد السباك") && message.body.length <= 300);
+  assert.equal(reminder.dueReminderCount([
+    { completionStatus: "requested", completionRequestedAt: asked },
+    { completionStatus: "requested", completionRequestedAt: "2026-11-09T12:00:00Z" },
+  ], now), 1);
+
+  const api = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes('action === "completion-reminders"'));
+  assert.ok(api.includes("completionReminderMessage") && api.includes("completionReminderAt: new Date()"));
+  // الطلب الجديد بيبدأ عدّاد جديد ويسمح بتذكير واحد.
+  assert.ok(api.includes("completionRequestedAt: new Date(), completionReminderAt: null"));
+  const schema = readFileSync(new URL("../src/db/schema.ts", import.meta.url), "utf8");
+  assert.ok(schema.includes("completionRequestedAt") && schema.includes("completionReminderAt"));
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("ADD COLUMN IF NOT EXISTS completion_requested_at"));
+  const panel = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.ok(panel.includes("completion-reminder-bar") && panel.includes("sendCompletionReminders"));
+  assert.ok(panel.includes("janzour-completion-reminders"));
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".completion-reminder-bar.is-due"));
+});

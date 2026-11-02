@@ -15,6 +15,7 @@ import { saveWhatsappAlertKinds, sendAdminWhatsappAlert } from "@/lib/whatsapp-a
 import { sanitizeTelecomSettings } from "@/lib/telecom-settings";
 import { actorFromViewer, logActivity, resolveActivityLabel, type ActivityActor } from "@/lib/activity-log";
 import { extendAdEndsAt } from "@/lib/ad-expiry";
+import { completionReminderDecision, completionReminderMessage } from "@/lib/completion-reminder";
 
 function availabilityInput(action: unknown, current = { availableNow: false, availableUntil: null as Date | null }) {
   try { return availabilityUpdate(action, current); }
@@ -221,7 +222,7 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
     const { type, action } = body;
     const activityLabel = await resolveActivityLabel(type, body.id, body.values);
     if (type === "community") throw new InputError("تم إلغاء سوق جنزور المجتمعي.", 410);
-    const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "request-completion-all", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link", "account-link", "account-link-reset"].includes(String(action)));
+    const moderatorAllowed = type === "category" || type === "area" || type === "rating" || (type === "notification" && (action === "read" || action === "read-all")) || ((type === "service" || type === "community") && ["approve", "reject", "request-info", "request-completion", "request-completion-all", "completion-reminders", "approve-completion", "reject-completion", "notify-provider", "sold", "filled", "availability-link", "account-link", "account-link-reset"].includes(String(action)));
     if (role === "moderator" && !moderatorAllowed) denyModerator();
     if (type === "settings") {
       const settings = settingsInput(objectInput(body.values));
@@ -333,7 +334,7 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
         .where(onlyOpen ? sql`${services.completionStatus} not in ('requested', 'submitted', 'done')` : sql`true`);
       let sent = 0;
       for (const row of rows.slice(0, 300)) {
-        await db.update(services).set({ completionStatus: "requested", completionNote: "" }).where(eq(services.id, row.id));
+        await db.update(services).set({ completionStatus: "requested", completionNote: "", completionRequestedAt: new Date(), completionReminderAt: null }).where(eq(services.id, row.id));
         await db.insert(notifications).values({
           type: "provider",
           title: `مطلوب استكمال بيانات: ${row.name}`,
@@ -343,6 +344,25 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
         sent += 1;
       }
       return Response.json({ ok: true, sent, message: `تم إرسال طلب الاستكمال لـ${sent} مهنة.` });
+    } else if (type === "service" && action === "completion-reminders") {
+      // تذكير تلقائي: كل مهنة طلبنا منها الاستكمال وعدّى عليها ٣ أيام ومرضتش — إشعار واحد بس.
+      const rows = await db.select({
+        id: services.id, name: services.name, completionStatus: services.completionStatus,
+        completionRequestedAt: services.completionRequestedAt, completionReminderAt: services.completionReminderAt,
+      }).from(services).where(eq(services.completionStatus, "requested"));
+      const now = Date.now();
+      let sent = 0;
+      const due: string[] = [];
+      for (const row of rows) {
+        const decision = completionReminderDecision({ ...row, completionRequestedAt: row.completionRequestedAt?.toISOString() ?? null, completionReminderAt: row.completionReminderAt?.toISOString() ?? null }, now);
+        if (!decision.due) continue;
+        const message = completionReminderMessage({ name: row.name, daysWaiting: decision.daysWaiting });
+        await db.insert(notifications).values({ type: "provider", title: message.title, message: message.body, entityId: row.id });
+        await db.update(services).set({ completionReminderAt: new Date() }).where(eq(services.id, row.id));
+        due.push(row.name);
+        sent += 1;
+      }
+      return Response.json({ ok: true, sent, names: due.slice(0, 10), message: sent ? `تم إرسال تذكير لـ${sent} مهنة مردّتش على طلب الاستكمال.` : "مفيش مهن مستحقة للتذكير دلوقتي." });
     } else if (type === "service") {
       const id = uuid(body.id);
       const [existing] = await db.select().from(services).where(eq(services.id, id));
@@ -370,7 +390,8 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
         }
       } else if (action === "request-completion") {
         const completionNote = cleanText(body.completionNote ?? "", 500);
-        await db.update(services).set({ completionStatus: "requested", completionNote }).where(eq(services.id, id));
+        // وقت الطلب بيتسجل عشان تذكير الـ٣ أيام يبدأ منه، والتذكير القديم بيتشال فمسموح بتذكير واحد جديد.
+        await db.update(services).set({ completionStatus: "requested", completionNote, completionRequestedAt: new Date(), completionReminderAt: null }).where(eq(services.id, id));
         await db.insert(notifications).values({
           type: "provider",
           title: `مطلوب استكمال بيانات: ${existing.name}`,
@@ -393,7 +414,7 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
               emergency: typeof draft.emergency === "boolean" ? draft.emergency : existing.emergency,
             }
           : {};
-        await db.update(services).set({ ...nextValues, completionStatus: "none", completionNote: "", completionDraft: null }).where(eq(services.id, id));
+        await db.update(services).set({ ...nextValues, completionStatus: "none", completionNote: "", completionDraft: null, completionRequestedAt: null, completionReminderAt: null }).where(eq(services.id, id));
         await db.insert(notifications).values({
           type: "provider",
           title: `تمت الموافقة على استكمال بيانات: ${existing.name}`,

@@ -540,6 +540,10 @@ export type ServiceRecord = {
   description: string; status: string; verified: boolean; featured: boolean; demo: boolean;
   availabilityToken?: string; comments?: ServiceComment[]; weeklyStar?: boolean; emergency: boolean; availableNow: boolean; availableUntil: string | null; workingHours: WorkingHours; serviceItems: string[]; subSpecialties: string[]; /** جدول حصص السنتر التعليمي. */ schedule?: CenterSchedule; neededRank: number; hours: string; menuUrl: string; menuWhatsapp: string; rating: string; reviews: number; createdAt: string;
   completionStatus?: CompletionStatus; completionNote?: string; completionDraft?: ServiceCompletionDraft | null;
+  /** وقت آخر طلب استكمال (ISO) — التذكير التلقائي بعد ٣ أيام منه. */
+  completionRequestedAt?: string | null;
+  /** وقت آخر تذكير اتبعت لصاحب المهنة (ISO) — التذكير بيتبعت مرة واحدة بس. */
+  completionReminderAt?: string | null;
   /** عرض/خصم مؤقت (اختياري). */
   offerTitle?: string; offerDetails?: string; offerEndsAt?: string | null; offerStartedAt?: string | null;
   /** آخر تأكيد/تحديث للبيانات من المهني. */
