@@ -1,0 +1,117 @@
+/* ===== شهادة التكريم الشهرية: تنسيق شاشة + طباعة A4 أفقي ===== */
+.honors-page {
+  max-width: 1000px; margin: 0 auto; padding: 20px 16px 44px;
+  background: #f4f9ff; color: #12233a; font-family: "Cairo", Arial, Tahoma, sans-serif;
+}
+.honors-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 16px; padding: 12px 14px; border-radius: 16px;
+  background: linear-gradient(135deg, #fff8e6, #fdf1d6); border: 1px solid #f0dca8;
+}
+.honors-toolbar-text { display: grid; gap: 2px; }
+.honors-toolbar-text strong { font-size: 14.5px; color: #7c4a03; }
+.honors-toolbar-text small { font-size: 11.5px; color: #94662a; }
+.honors-toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.honors-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 13px; border-radius: 11px; border: 1px solid #e2cf9f;
+  background: #fff; color: #7c4a03; font-family: inherit; font-size: 12.5px; font-weight: 800;
+  cursor: pointer; text-decoration: none;
+}
+.honors-btn.is-primary { background: #b45309; border-color: #b45309; color: #fff; }
+
+.honors-intro { margin-bottom: 18px; text-align: center; }
+.honors-intro h1 { margin: 0 0 6px; font-size: 21px; font-weight: 900; color: #0b3d77; }
+.honors-intro p { margin: 0 auto; max-width: 62ch; font-size: 12.5px; line-height: 1.9; color: #4e6b86; }
+.honors-intro-range {
+  display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 999px;
+  background: #fff; border: 1px solid #d7e7f6; color: #0b5f9e; font-size: 11.5px; font-weight: 800;
+}
+
+.honors-list { display: grid; gap: 16px; }
+.honor-certificate {
+  position: relative; padding: 10px; border-radius: 22px;
+  background: linear-gradient(140deg, var(--honor-tone, #b45309), #0b3d77 78%);
+  box-shadow: 0 16px 36px #0b3d7718;
+}
+.honor-certificate-frame {
+  position: relative; padding: 18px 20px 14px; border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0, #fdf6e308, transparent 60%),
+    linear-gradient(165deg, #fffdf7, #ffffff 62%);
+  border: 1px solid #ffffffb3;
+  outline: 2px dashed color-mix(in srgb, var(--honor-tone, #b45309) 32%, #ffffff);
+  outline-offset: -10px;
+}
+.honor-head { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #f0e6cf; }
+.honor-head img { width: 46px; height: 46px; object-fit: contain; }
+.honor-head-copy { flex: 1 1 auto; display: grid; gap: 1px; }
+.honor-head-copy strong { font-size: 13.5px; font-weight: 900; color: #0b3d77; }
+.honor-head-copy span { font-size: 10.5px; color: #8a7a55; font-weight: 700; }
+.honor-medal { font-size: 28px; line-height: 1; filter: drop-shadow(0 3px 6px #0000001f); }
+
+.honor-rank {
+  margin: 14px 0 2px; text-align: center;
+  font-size: 12.5px; font-weight: 900; letter-spacing: .2px; color: var(--honor-tone, #b45309);
+}
+.honor-name { margin: 0; text-align: center; font-size: 26px; font-weight: 900; color: #0f2c4d; }
+.honor-category { margin: 4px 0 0; text-align: center; font-size: 12px; font-weight: 700; color: #5b7188; }
+.honor-body { margin: 12px auto 0; max-width: 58ch; text-align: center; font-size: 12px; line-height: 1.95; color: #43596e; }
+
+.honor-stats { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.honor-stats span {
+  display: inline-flex; align-items: baseline; gap: 5px;
+  padding: 6px 12px; border-radius: 999px; background: #f6fbff; border: 1px solid #dbe9f7;
+  font-size: 11px; font-weight: 800; color: #31506d;
+}
+.honor-stats b { font-size: 15px; color: #0b4a93; }
+.honor-stats .honor-total { background: #fff8e6; border-color: #f0dca8; color: #7c4a03; }
+.honor-stats .honor-total b { color: #b45309; }
+.honor-achievement { margin: 8px 0 0; text-align: center; font-size: 11px; color: #7b8fa3; }
+
+.honor-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.honor-sign { display: grid; gap: 3px; text-align: center; }
+.honor-sign-line { min-width: 150px; padding: 4px 8px; border-bottom: 1.5px solid #0b3d7755; font-size: 12px; font-weight: 900; color: #0b3d77; direction: ltr; }
+.honor-sign small { font-size: 9.5px; color: #8496a8; font-weight: 700; }
+.honor-qr { display: grid; justify-items: center; gap: 3px; }
+.honor-qr small { font-size: 9px; color: #8496a8; font-weight: 700; }
+.honor-serial { font-size: 9.5px; color: #a3b2c1; font-weight: 800; direction: ltr; letter-spacing: .5px; }
+
+.honors-empty {
+  padding: 26px 18px; border-radius: 18px; text-align: center;
+  background: #fff; border: 1px dashed #cfe0f0;
+}
+.honors-empty h2 { margin: 0 0 6px; font-size: 16px; color: #0b3d77; }
+.honors-empty p { margin: 0; font-size: 12px; line-height: 1.9; color: #5b7188; }
+.honors-note { margin-top: 16px; font-size: 11px; line-height: 1.9; color: #6b8098; text-align: center; }
+
+@media (max-width: 560px) {
+  .honor-name { font-size: 21px; }
+  .honor-foot { flex-direction: column; align-items: center; }
+  .honors-toolbar { flex-direction: column; align-items: stretch; }
+}
+
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+  body { background: #fff !important; }
+  .honors-toolbar, .honors-intro p, .honors-note, .site-header, .site-footer, header nav, .floating-whatsapp, .splash-screen, .site-alert-bar { display: none !important; }
+  .honors-page { max-width: none; padding: 0; background: #fff; }
+  .honors-intro h1 { font-size: 16px; margin-bottom: 10px; }
+  .honors-intro-range { border: 0; background: transparent; }
+  .honors-list { gap: 0; }
+  .honor-certificate {
+    break-after: page; page-break-after: always;
+    box-shadow: none; padding: 8px; border-radius: 18px;
+  }
+  .honor-certificate:last-child { break-after: auto; page-break-after: auto; }
+  .honor-certificate-frame { padding: 14px 18px 12px; }
+  .honor-stats span, .honor-stats .honor-total { background: #fff !important; }
+}
+
+/* زر «بدء شهر جديد» — للأدمن فقط */
+.honors-admin-reset { margin-top: 18px; display: grid; justify-items: center; gap: 6px; }
+.honors-admin-reset small { font-size: 10.5px; color: #8496a8; text-align: center; max-width: 52ch; }
+.honors-admin-error { color: #b91c1c !important; font-weight: 800; }
+.honors-btn.is-admin { background: #0b4a93; border-color: #0b4a93; color: #fff; }
+.honors-btn:disabled { opacity: .7; cursor: default; }
+@media print { .honors-admin-reset { display: none !important; } }

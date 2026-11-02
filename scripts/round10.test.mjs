@@ -1084,3 +1084,58 @@ test("new arrivals and mobile codes sit inside one outer frame with the cards in
   const telecom = readFileSync(new URL("../src/components/telecom-cards.tsx", import.meta.url), "utf8");
   assert.ok(telecom.includes("telecom-cards-grid") && telecom.includes("category-tile"));
 });
+
+test("monthly honors: top 3 by real engagement, monthly when a baseline exists", async () => {
+  const honors = await loadLib("../src/lib/monthly-honors.ts");
+  assert.equal(honors.HONORS_LIMIT, 3);
+  assert.equal(honors.HONOR_CONTACT_WEIGHT, 3);
+  assert.equal(honors.honorScore({ views: 10, contacts: 2 }), 16);
+
+  const services = [
+    { id: "a", name: "أحمد السباك", category: "plumbing", rating: "4.5", reviews: 4 },
+    { id: "b", name: "محمود الكهربائي", category: "electricity", rating: "4.9", reviews: 9 },
+    { id: "c", name: "سارة الأسنان", category: "dentistry", rating: "5" },
+    { id: "d", name: "بلا تفاعل", category: "crafts" },
+  ];
+  const stats = [
+    { serviceId: "a", views: 30, contacts: 10 },   // 60
+    { serviceId: "b", views: 20, contacts: 12 },   // 56
+    { serviceId: "c", views: 90, contacts: 0 },    // 90
+    { serviceId: "d", views: 1, contacts: 0 },     // 1 → أقل من الحد
+  ];
+  const ranked = honors.rankMonthlyHonors(services, stats, { month: "2026-11" });
+  assert.deepEqual(ranked.map((entry) => entry.service.id), ["c", "a", "b"]);
+  assert.deepEqual(ranked.map((entry) => entry.rank), [1, 2, 3]);
+  assert.equal(ranked[0].certificateNo, "JZ-2026-11-1");
+  assert.equal(honors.honorTitle(2).medal, "🥈");
+
+  // بداية شهر: الفرق عن الـsnapshot هو تفاعل الشهر (والسالب يصبح صفر).
+  const baseline = { a: [28, 9], b: [20, 12], c: [10, 0] };
+  const monthly = honors.rankMonthlyHonors(services, stats, { month: "2026-11", baselines: baseline });
+  assert.equal(monthly[0].service.id, "c", "٨٠ مشاهدة هذا الشهر");
+  assert.equal(monthly[0].views, 80);
+  assert.equal(monthly.find((entry) => entry.service.id === "b"), undefined, "مفيش تفاعل جديد هذا الشهر");
+  assert.deepEqual(honors.monthDelta({ serviceId: "x", views: 3, contacts: 1 }, [10, 5]), { views: 0, contacts: 0 });
+  assert.deepEqual(honors.monthDelta({ serviceId: "x", views: 13, contacts: 6 }, [10, 5]), { views: 3, contacts: 1 });
+
+  // الشهور والأرقام والنصوص
+  assert.equal(honors.monthKey(Date.parse("2026-11-02T12:00:00Z")), "2026-11");
+  assert.match(honors.monthLabel("2026-11"), /نوفمبر/);
+  assert.equal(honors.honorAchievementLine({ views: 12, contacts: 4 }), "12 مشاهدة و4 اتصال");
+  assert.equal(honors.honorAchievementLine({ views: 0, contacts: 0 }), "تفاعل مميز من أهل القرية");
+  assert.deepEqual(Object.keys(honors.trimmedBaselines({ "2026-10": {}, "2026-11": {} }, "2026-11")), ["2026-11"]);
+  const post = honors.honorPostText("2026-11", ranked);
+  assert.ok(post.includes("تكريم") && post.includes("أحمد السباك") && post.includes("نوفمبر"));
+
+  // التوصيل
+  const directory = readFileSync(new URL("../src/lib/directory.ts", import.meta.url), "utf8");
+  assert.ok(directory.includes("getMonthlyHonors") && directory.includes("resetHonorBaselines") && directory.includes("honor_baselines"));
+  const api = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes('type === "honor-baselines"') && api.includes("resetHonorBaselines"));
+  const page = readFileSync(new URL("../src/app/honors/page.tsx", import.meta.url), "utf8");
+  assert.ok(page.includes("getMonthlyHonors") && page.includes("HonorsToolbar") && page.includes("QrSvg"));
+  const css = readFileSync(new URL("../src/app/honors/honors.css", import.meta.url), "utf8");
+  assert.ok(css.includes("@media print") && css.includes("size: A4 landscape"));
+  const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  assert.ok(admin.includes('href="/honors"'));
+});
