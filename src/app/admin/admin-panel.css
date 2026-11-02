@@ -3303,18 +3303,21 @@ html.dark .codes-settings-preview { border-color: #22384e; background: #0f2133; 
 }
 .analytics-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 .analytics-tile {
   position: relative;
   display: grid;
-  grid-template-columns: 44px 1fr;
-  grid-template-areas: "icon copy" "btn btn";
-  align-items: start;
-  gap: 10px;
-  padding: 14px;
+  grid-template-columns: 1fr;
+  grid-template-areas: "icon" "copy" "btn";
+  align-content: space-between;
+  justify-items: center;
+  gap: 8px;
+  aspect-ratio: 1 / 1;
+  padding: 16px 14px;
   border-radius: 18px;
+  text-align: center;
   background: #fff;
   border: 1px solid #dbe8f5;
   box-shadow: 0 8px 22px rgba(12, 42, 74, .05);
@@ -3323,13 +3326,13 @@ html.dark .codes-settings-preview { border-color: #22384e; background: #0f2133; 
   grid-area: icon;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
   background: color-mix(in srgb, var(--tile) 14%, #fff);
   color: var(--tile);
 }
-.analytics-tile-copy { grid-area: copy; text-align: center; }
+.analytics-tile-copy { grid-area: copy; text-align: center; align-self: center; }
 .analytics-tile-copy strong { display: block; font-size: .95rem; font-weight: 900; color: #123252; line-height: 1.5; }
 .analytics-tile-copy small { display: block; margin-top: 3px; font-size: .76rem; color: #5b7691; line-height: 1.7; }
 .analytics-tile-badge {
@@ -3347,7 +3350,8 @@ html.dark .codes-settings-preview { border-color: #22384e; background: #0f2133; 
 }
 .analytics-tile-btn {
   grid-area: btn;
-  margin-top: 4px;
+  width: 100%;
+  margin-top: auto;
   padding: 10px 12px;
   border: 0;
   border-radius: 12px;
@@ -3457,20 +3461,33 @@ html.dark .codes-settings-preview { border-color: #22384e; background: #0f2133; 
 .seasonal-where p { margin: 4px 0 6px; font-size: .8rem; line-height: 1.9; color: #33536f; }
 .seasonal-where-meta { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem; font-weight: 800; color: #0369a1; }
 .seasonal-head-actions { display: flex; justify-content: center; }
-.seasonal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.seasonal-card { grid-template-columns: 34px 1fr; grid-template-areas: "emoji copy" "send send"; text-align: center; }
+.seasonal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.seasonal-card {
+  grid-template-columns: 1fr;
+  grid-template-areas: "emoji" "copy" "send";
+  align-content: space-between;
+  justify-items: center;
+  min-height: 168px;
+  aspect-ratio: 1 / 1;
+  padding: 12px;
+  text-align: center;
+}
 .seasonal-emoji { grid-area: emoji; font-size: 1.4rem; }
 .seasonal-copy { grid-area: copy; text-align: center; }
 .seasonal-send { grid-area: send; justify-self: center; }
 .seasonal-upcoming { text-align: center; }
 .seasonal-upcoming h4 { display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
-.seasonal-upcoming-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.seasonal-upcoming-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .seasonal-upcoming-card {
   display: grid;
+  grid-template-rows: auto auto auto;
   justify-items: center;
-  gap: 2px;
-  padding: 10px;
-  border-radius: 14px;
+  align-content: center;
+  gap: 4px;
+  min-height: 128px;
+  aspect-ratio: 1 / 1;
+  padding: 12px 10px;
+  border-radius: 16px;
   background: #f6faff;
   border: 1px solid #e0edf9;
   text-align: center;
@@ -3515,8 +3532,13 @@ html.dark .push-explainer p,
 html.dark .push-explainer li { color: #d8c9ec; }
 html.dark .push-explainer-head { color: #d7b8ff; }
 @media (max-width: 640px) {
-  .analytics-tiles { grid-template-columns: 1fr; }
-  .seasonal-grid, .seasonal-upcoming-grid { grid-template-columns: 1fr; }
+  .analytics-tiles { gap: 9px; }
+  .analytics-tile { padding: 12px 9px; border-radius: 16px; }
+  .analytics-tile-icon { width: 46px; height: 46px; border-radius: 15px; }
+  .analytics-tile-copy strong { font-size: .86rem; }
+  .analytics-tile-copy small { font-size: .7rem; line-height: 1.6; }
+  .analytics-tile-btn { font-size: .78rem; padding: 8px; }
+  .seasonal-card, .seasonal-upcoming-card { min-height: 140px; }
 }
 
 /* ===== الجولة ٢٦: متابعة أخطاء المتصفح (تصنيف + تم الإصلاح + تفاصيل) ===== */
@@ -3620,3 +3642,21 @@ html.dark .error-detail-note input { background: #12283c; border-color: #23425c;
   .error-log-row { grid-template-columns: 26px 1fr; }
   .error-log-actions { grid-column: 1 / -1; justify-content: center; }
 }
+
+/* ===== «تم الإرسال» بدل زر الاستكمال + «استكمال الكل» ===== */
+.completion-sent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 9px;
+  background: #e7f7ee;
+  border: 1px solid #bfe6cf;
+  color: #0b7a4a;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.completion-all-btn { white-space: nowrap; }
+html.dark .completion-sent-chip { background: #12301f; border-color: #276b45; color: #9fe6bd; }

@@ -846,3 +846,31 @@ test("browser errors: triage, status and the «تم الإصلاح» flow", asyn
   const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
   assert.ok(css.includes(".error-log-row.is-regressed") && css.includes(".error-detail-stack"));
 });
+
+test("completion: «استكمال» only notifies the owner, shows «تم الإرسال», and there is «استكمال الكل»", () => {
+  const admin = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
+  // الضغط على «استكمال» بيبعت الطلب لصاحب المهنة — مفيش شاشة استكمال بتتفتح عند الإدارة.
+  assert.ok(admin.includes("requestProviderCompletion"));
+  assert.equal(/requestProviderCompletion[\s\S]{0,400}setEditing\(\{ kind: "service"/.test(admin), false);
+  assert.ok(admin.includes("completionSent") && admin.includes("تم الإرسال"));
+  assert.ok(admin.includes("completion-sent-chip"));
+  // «استكمال الكل» بيحوّل كل الأزرار لـ«تم الإرسال».
+  assert.ok(admin.includes("requestAllCompletions") && admin.includes("استكمال الكل"));
+  assert.ok(admin.includes("setCompletionSent(incompleteServices.map"));
+  const api = readFileSync(new URL("../src/app/api/admin/route.ts", import.meta.url), "utf8");
+  assert.ok(api.includes('action === "request-completion-all"'));
+  assert.ok(api.includes("completionStatus: \"requested\""));
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes(".completion-sent-chip"));
+});
+
+test("analytics tiles are squares two per row with the icon on top, and seasonal cards share one size", () => {
+  const css = readFileSync(new URL("../src/app/admin/admin-panel.css", import.meta.url), "utf8");
+  assert.ok(css.includes("grid-template-columns: repeat(2, minmax(0, 1fr));\n  gap: 12px;\n}\n.analytics-tile {"));
+  assert.ok(css.includes("grid-template-areas: \"icon\" \"copy\" \"btn\";"));
+  assert.ok(css.includes("aspect-ratio: 1 / 1;"));
+  // المواسم: كروت القادم والمستحق بنفس المقاس، اتنين جنب بعض.
+  assert.ok(css.includes(".seasonal-upcoming-card {"));
+  assert.ok(css.includes(".seasonal-card {\n  grid-template-columns: 1fr;"));
+  assert.ok(css.includes(".seasonal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }"));
+});
