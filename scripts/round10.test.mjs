@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import ts from "typescript";
 
@@ -976,7 +976,7 @@ test("emergency alert bar: appears instantly, colours by level, and expires on i
   const route = readFileSync(new URL("../src/app/api/site-alert/route.ts", import.meta.url), "utf8");
   assert.ok(route.includes("activeEmergencyAlert") && route.includes("no-store"));
   const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
-  assert.ok(layout.includes("<EmergencyAlertBar />") && layout.includes("<OfflineIndicator />"));
+  assert.ok(layout.includes("<EmergencyAlertBar />"));
   const editor = readFileSync(new URL("../src/components/settings-editor.tsx", import.meta.url), "utf8");
   assert.ok(editor.includes("emergencyAlertText") && editor.includes("EMERGENCY_ALERT_LEVELS") && editor.includes("شريط التنبيه الطارئ أعلى الموقع"));
   const inputs = readFileSync(new URL("../src/lib/inputs.ts", import.meta.url), "utf8");
@@ -1043,20 +1043,44 @@ test("monthly printed guide groups published services by section with phone numb
   assert.ok(admin.includes('href="/print/guide"'));
 });
 
-test("profile-complete badge and offline mode are wired into the public app", () => {
+test("profile-complete badge is wired into the public app, and the offline mode is gone", () => {
   const catalog = readFileSync(new URL("../src/lib/catalog.ts", import.meta.url), "utf8");
   assert.ok(catalog.includes("export function isProfileComplete"));
   assert.ok(catalog.includes("بيانات مكتملة ✓"));
   const card = readFileSync(new URL("../src/components/provider-card.tsx", import.meta.url), "utf8");
   assert.ok(card.includes("isProfileComplete") && card.includes("complete-flag"));
   const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
-  assert.ok(css.includes(".complete-flag {") && css.includes(".offline-bar.is-offline"));
+  assert.ok(css.includes(".complete-flag {"));
   assert.ok(css.includes(".site-alert-bar.is-danger") && css.includes(".new-arrival-card"));
 
+  // وضع بدون نت اتشال بالكامل: مفيش حفظ صفحات ولا مؤشر أوفلاين، وسيرفس وركر رجع لحفظ صفحة الأكواد فقط.
   const sw = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
-  assert.ok(sw.includes("PAGES_CACHE") && sw.includes("handleNavigation"));
-  assert.ok(sw.includes("/api/site-alert") && sw.includes("OFFLINE_PAGE"));
-  assert.ok(sw.includes("const CACHE_NAME = `${CACHE_PREFIX}-v4`;"));
-  const indicator = readFileSync(new URL("../src/components/offline-indicator.tsx", import.meta.url), "utf8");
-  assert.ok(indicator.includes("addEventListener(\"offline\"") && indicator.includes("location.reload"));
+  assert.equal(sw.includes("PAGES_CACHE"), false);
+  assert.equal(sw.includes("handleNavigation"), false);
+  // رجع لإصدار ما قبل وضع بدون نت (حفظ صفحة الأكواد فقط).
+  assert.ok(sw.includes("const CACHE_NAME = `${CACHE_PREFIX}-v3`;"));
+  assert.equal(existsSync(new URL("../src/components/offline-indicator.tsx", import.meta.url)), false);
+  assert.equal(css.includes(".offline-bar"), false);
+  const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.equal(layout.includes("OfflineIndicator"), false);
+});
+
+test("new arrivals and mobile codes sit inside one outer frame with the cards inside", () => {
+  const css = readFileSync(new URL("../src/app/janzour.css", import.meta.url), "utf8");
+  // إطار «وصل حديثًا»: حد + استدارة كبيرة + شريط علوي ملوّن، والكروت جوّه في مسار داخلي.
+  assert.ok(css.includes(".new-arrivals {\n  position: relative;"));
+  assert.ok(css.includes(".new-arrivals::before {"));
+  assert.ok(css.includes("border: 1px solid #e4eefa; border-radius: 18px; background: #f2f8ff;"));
+  assert.ok(css.includes("html.dark .new-arrivals-strip { border-color: #1e3448; background: #0b1a29; }"));
+  // إطار أكواد المحمول (الرئيسية + صفحة /telecom).
+  assert.ok(css.includes(".telecom-section {\n  position: relative;"));
+  assert.ok(css.includes(".telecom-section::before {"));
+  assert.ok(css.includes(".telecom-cards-grid {\n  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;\n  padding: 10px;"));
+  assert.ok(css.includes(".telecom-home::before {"));
+  assert.ok(css.includes(".telecom-panel::before {"));
+  // الكروت نفسها لسه موجودة جوّه الإطار.
+  const arrivals = readFileSync(new URL("../src/components/new-arrivals.tsx", import.meta.url), "utf8");
+  assert.ok(arrivals.includes("new-arrivals-strip") && arrivals.includes("new-arrival-card"));
+  const telecom = readFileSync(new URL("../src/components/telecom-cards.tsx", import.meta.url), "utf8");
+  assert.ok(telecom.includes("telecom-cards-grid") && telecom.includes("category-tile"));
 });
