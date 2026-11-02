@@ -688,7 +688,10 @@ test("splash audio: uploaded from the admin studio and respects autoplay limits"
   assert.ok(player.includes("audio.play()"));
   assert.ok(player.includes("pointerdown") && player.includes("keydown"));
   assert.ok(player.includes("isSoundMuted") && player.includes("SOUND_MUTE_EVENT"));
-  assert.ok(player.includes("janzour-splash-audio-played"));
+  // «مرة واحدة في الجلسة» بقت في منطق نقي مشترك بين المكوّن والاختبارات.
+  const splashState = readFileSync(new URL("../src/lib/splash-audio.ts", import.meta.url), "utf8");
+  assert.ok(splashState.includes("janzour-splash-audio-played") && splashState.includes("claimSessionPlay"));
+  assert.ok(player.includes("claimSessionPlay") && player.includes("SPLASH_AUDIO_SESSION_KEY"));
   const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
   assert.ok(layout.includes("<SplashAudio />"));
 
@@ -1242,4 +1245,30 @@ test("round 34: duplicate groups, backup payloads and public order lookup", asyn
   assert.ok(trackPage.includes("OrderLookup"));
   const panel = readFileSync(new URL("../src/components/admin-panel.tsx", import.meta.url), "utf8");
   assert.ok(panel.includes("AdminDuplicates") && panel.includes("AdminBackup"));
+});
+
+test("round 35: splash audio plays only once per session", async () => {
+  const splashAudio = await loadLib("../src/lib/splash-audio.ts");
+
+  // مخزن جلسة وهمي
+  const store = { data: new Map(), getItem(key) { return this.data.has(key) ? this.data.get(key) : null; }, setItem(key, value) { this.data.set(key, String(value)); } };
+
+  assert.equal(splashAudio.SPLASH_AUDIO_SESSION_KEY, "janzour-splash-audio-played");
+  assert.equal(splashAudio.hasPlayedThisSession(store), false);
+  assert.equal(splashAudio.claimSessionPlay(store, false), true, "أول محاولة في الجلسة بتتشغل");
+  assert.equal(splashAudio.hasPlayedThisSession(store), true, "الجلسة اتعلّمت بعد التشغيل");
+  assert.equal(splashAudio.claimSessionPlay(store, false), false, "التنقل بين الصفحات أو إعادة التحميل مش بتشغّل تاني");
+  assert.equal(splashAudio.claimSessionPlay(store, true), false, "ولا حتى بنفس التحميل");
+  assert.equal(splashAudio.claimSessionPlay(null, false), true, "لو التخزين ممنوع مابنكسرش");
+
+  // جلسة جديدة = تاب جديد = مخزن جديد
+  const nextSession = { data: new Map(), getItem(key) { return this.data.has(key) ? this.data.get(key) : null; }, setItem(key, value) { this.data.set(key, String(value)); } };
+  assert.equal(splashAudio.claimSessionPlay(nextSession, false), true, "جلسة جديدة تشتغل مرة واحدة برضه");
+  assert.equal(splashAudio.claimSessionPlay(nextSession, false), false);
+
+  // التوصيل: المكوّن بيستخدم الحجز، والمعاينة من الاستوديو مش بتتحسب
+  const component = readFileSync(new URL("../src/components/splash-audio.tsx", import.meta.url), "utf8");
+  assert.ok(component.includes("claimSessionPlay") && component.includes("hasPlayedThisSession"));
+  assert.ok(component.includes("forced"), "معاينة الاستوديو لسه شغالة");
+  assert.ok(!component.includes("sessionStorage.setItem(\"janzour-splash-audio-played\""), "التعليم بقى في lib واحدة");
 });
