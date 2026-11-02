@@ -1,17 +1,9 @@
 const CACHE_PREFIX = "daleel-janzour-shell";
-const CACHE_NAME = `${CACHE_PREFIX}-v4`;
-const PAGES_CACHE = `${CACHE_PREFIX}-pages-v1`;
-const DATA_CACHE = `${CACHE_PREFIX}-api-v1`;
+const CACHE_NAME = `${CACHE_PREFIX}-v3`;
 const OFFLINE_PAGE = "/offline.html";
 /** صفحة أكواد المحمول تُحفظ مسبقًا لأنها الأكثر احتياجًا وقت نفاد الرصيد/انقطاع الإنترنت. */
 const TELECOM_PAGE = "/telecom";
-const PRECACHE = [OFFLINE_PAGE, TELECOM_PAGE, "/"];
-/** ردود صغيرة تتغير كتير: نحفظها وبنحدّثها في الخلفية، فيشتغل التطبيق بدون نت. */
-const DATA_PATHS = ["/api/status", "/api/site-alert", "/api/services", "/api/site-audio"];
-/** أقصى عدد صفحات محفوظة (بعد كده نمسح الأقدم) حتى لا يكبر التخزين على الموبايل. */
-const MAX_PAGES = 40;
-/** صفحات فيها بيانات شخصية أو جلسات: لا تُحفظ في الكاش إطلاقًا (خصوصية على الأجهزة المشتركة). */
-const PRIVATE_PREFIXES = ["/admin", "/my", "/account", "/login", "/register", "/track", "/availability", "/profile"];
+const PRECACHE = [OFFLINE_PAGE, TELECOM_PAGE];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -25,7 +17,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
-        keys.filter((key) => key.startsWith(CACHE_PREFIX) && ![CACHE_NAME, PAGES_CACHE, DATA_CACHE].includes(key))
+        keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
           .map((key) => caches.delete(key)),
       ))
       .then(() => self.clients.claim()),
@@ -56,62 +48,31 @@ self.addEventListener("notificationclick", (event) => {
   }));
 });
 
-/** مسح أقدم الصفحات المحفوظة لما العدد يزيد على الحد. */
-async function trimPages(cache) {
-  const keys = await cache.keys();
-  if (keys.length <= MAX_PAGES) return;
-  await Promise.all(keys.slice(0, keys.length - MAX_PAGES).map((key) => cache.delete(key)));
-}
-
-/** صفحات التنقل: الشبكة أولًا، ولو فشلت نرجّع نفس الصفحة المحفوظة ثم الرئيسية ثم صفحة الطوارئ. */
-async function handleNavigation(request) {
-  const pages = await caches.open(PAGES_CACHE);
-  const path = new URL(request.url).pathname;
-  // الصفحات الخاصة: شبكة فقط، بدون أي حفظ.
-  if (PRIVATE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
-    try { return await fetch(request); } catch { return (await caches.match(OFFLINE_PAGE)) || Response.error(); }
-  }
-  try {
-    const response = await fetch(request);
-    if (response && response.ok) {
-      const copy = response.clone();
-      void pages.put(request, copy).then(() => trimPages(pages)).catch(() => undefined);
-    }
-    return response;
-  } catch {
-    const cached = await pages.match(request, { ignoreSearch: true });
-    if (cached) return cached;
-    const home = await pages.match("/") || await caches.match("/");
-    if (home) return home;
-    return (await caches.match(OFFLINE_PAGE)) || Response.error();
-  }
-}
-
-/** ردود API صغيرة: نرجّع المحفوظ فورًا (لو موجود) وبنحدّثه في الخلفية. */
-async function handleData(request) {
-  const cache = await caches.open(DATA_CACHE);
-  const cached = await cache.match(request);
-  const network = fetch(request)
-    .then((response) => {
-      if (response && response.ok) void cache.put(request, response.clone()).catch(() => undefined);
-      return response;
-    })
-    .catch(() => cached || Response.error());
-  return cached || network;
-}
-
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
+  if (request.method !== "GET" || request.mode !== "navigate") return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === "navigate") {
-    event.respondWith(handleNavigation(request));
-    return;
-  }
-  if (DATA_PATHS.some((path) => url.pathname === path)) {
-    event.respondWith(handleData(request));
-  }
+  const isTelecom = url.pathname === TELECOM_PAGE || url.pathname === `${TELECOM_PAGE}/`;
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        // نحدّث نسخة الأكواد المحفوظة كل ما نجح الاتصال حتى تظل متاحة دون إنترنت.
+        if (isTelecom && response.ok) {
+          const copy = response.clone();
+          void caches.open(CACHE_NAME).then((cache) => cache.put(TELECOM_PAGE, copy)).catch(() => undefined);
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        if (isTelecom) {
+          const cached = await cache.match(TELECOM_PAGE);
+          if (cached) return cached;
+        }
+        return (await cache.match(OFFLINE_PAGE)) || Response.error();
+      }),
+  );
 });
