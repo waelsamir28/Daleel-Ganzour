@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties, type FormEvent } from "react";
-import { BellRing, ClipboardCheck, ImagePlus, RefreshCw, BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Trash2, XCircle, Zap } from "lucide-react";
-import { activeOffer, servicePhotoUrl, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerTimeLeft, recentlyExpiredOffer, type CenterSchedule, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
+import dynamic from "next/dynamic";
+import { BellRing, ClipboardCheck, ImagePlus, RefreshCw, BadgeCheck, BadgePercent, CalendarClock, Camera, CheckCircle2, Clock3, ExternalLink, Lightbulb, LoaderCircle, Lock, MessageCircle, Pencil, Phone, QrCode, ShieldCheck, Star, Store, Trash2, XCircle, Zap } from "lucide-react";
+import { activeOffer, servicePhotoUrl, AVAILABILITY_HOURS, centerSubjectNames, daysSinceConfirmed, DATA_CONFIRM_MONTHS, getCategory, needsDataConfirmation, OFFER_MAX_DAYS, offerTimeLeft, recentlyExpiredOffer, type CenterSchedule, OFFICE_PHONE, OFFICE_WHATSAPP, serviceStageIds, TEACHER_CENTER_ID, TEACHER_STAGES, TEACHERS_ROOT_ID, teacherSubjects, type CategoryRecord, type ServiceRecord, type TeacherStageId } from "@/lib/catalog";
 import SelectField from "@/components/select-field";
 import WorkingHoursEditor from "@/components/working-hours-editor";
 import CenterScheduleEditor from "@/components/center-schedule-editor";
 import CenterScheduleView from "@/components/center-schedule-view";
 import { SpecialtyIcon, StickerIcon } from "@/components/ui";
+import type { ShopBannerData } from "@/lib/shop-banner";
 import RatingStickerModal from "@/components/rating-sticker-modal";
 import AvatarPicker from "@/components/avatar-picker";
 import ProviderGallery from "@/components/provider-gallery";
 import { rememberMyToken } from "@/lib/viewer-ownership";
+
+/** البانر بيرسم على Canvas: تحميله وقت الحاجة بس حتى تفضل صفحة «حسابي» خفيفة. */
+const ShopBannerModal = dynamic(() => import("@/components/shop-banner-modal"), { ssr: false });
 
 type Props = { token: string; initial: ServiceRecord; categories: CategoryRecord[]; areas: string[] };
 type Notice = { text: string; error: boolean } | null;
@@ -26,6 +31,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   const [offerDetails, setOfferDetails] = useState(initial.offerDetails ?? "");
   const [offerDays, setOfferDays] = useState(7);
   const [stickerOpen, setStickerOpen] = useState(false);
+  const [bannerOpen, setBannerOpen] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   /** أرقام بطاقتك (مشاهدات/تواصل) من الخادم — تُقرأ مرة عند فتح الصفحة. */
   const [cardStats, setCardStats] = useState<{ views: number; contacts: number } | null>(null);
@@ -121,6 +127,21 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
   }
 
   const publicUrl = category.parentId ? `/categories/${root.id}/${category.id}` : `/categories/${root.id}`;
+  /** بيانات البانر: بتتقرأ من أحدث نسخة من بيانات المحل، فأي تعديل بيظهر في البانر فورًا. */
+  const bannerData: ShopBannerData = {
+    name: service.name,
+    headline: category.parentId ? `${category.name} — ${root.name}` : category.name,
+    area: [service.area, service.address].filter(Boolean).join(" — "),
+    phones: [service.phone, service.phoneSecondary],
+    hours: service.hours,
+    offer: currentOffer?.title ?? "",
+    url: `${typeof window === "undefined" ? "" : window.location.origin}/?service=${encodeURIComponent(service.id)}`,
+    siteName: "دليل جنزور",
+    officePhone: OFFICE_PHONE,
+    verified: service.verified,
+    rating: service.rating,
+    reviews: Number(service.reviews) || 0,
+  };
 
   return <>
     <section className="availability-card my-hero">
@@ -159,6 +180,13 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
       <section className="availability-card my-tools">
         <header className="my-section-head"><QrCode size={18}/><div><h2>ملصق التقييم للمحل</h2><span>ملصق A6 جاهز للطباعة: العميل يمسح الرمز فيفتح بطاقتك على نافذة التقييم مباشرة.</span></div></header>
         <button type="button" className="button button-primary" onClick={() => setStickerOpen(true)}><QrCode size={16}/> تجهيز ملصق «امسح لتقييمنا»</button>
+      </section>
+    )}
+
+    {service.status === "approved" && (
+      <section className="availability-card my-tools my-banner-tool">
+        <header className="my-section-head"><Store size={18}/><div><h2>بانر رقمي للمحل</h2><span>صورة واحدة ببياناتك ورقمك وكود بطاقتك: غلاف صفحة المحل، حالة واتساب، شاشة على الكاونتر، أو منشور في جروبات جنزور.</span></div></header>
+        <button type="button" className="button button-primary" onClick={() => setBannerOpen(true)}><Store size={16}/> تجهيز بانر المحل</button>
       </section>
     )}
 
@@ -277,6 +305,7 @@ export default function ProviderAccount({ token, initial, categories, areas }: P
     </form>
 
     {stickerOpen && <RatingStickerModal name={service.name} category={category.name} serviceId={service.id} siteName="دليل جنزور" onClose={() => setStickerOpen(false)}/>}
+    {bannerOpen && <ShopBannerModal data={bannerData} onClose={() => setBannerOpen(false)}/>}
     <a className="availability-contact" href={OFFICE_WHATSAPP} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/> تحتاج مساعدة أو حذف بياناتك؟ تواصل مع الإدارة</a>
   </>;
 }
