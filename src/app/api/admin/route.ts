@@ -6,7 +6,7 @@ import { adBanners, adRequests, categoryIcons, communityListings, designAudio, d
 import { getViewer, sameOrigin } from "@/lib/auth";
 import { pushApprovedRating, pushNewProvider } from "@/lib/push";
 import { ICON_LIMITS, autoTransparentKey, designImageLimits, optimizeStoredImage, removeFlatBackground } from "@/lib/image-optimize";
-import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
+import { ensureSeed, getAdminDirectory, getSettings, readDeletedCategoryIds, resetHonorBaselines, withDirectoryInvalidation, writeDeletedCategoryIds } from "@/lib/directory";
 import { apiError, categoryInput, InputError, integerInput, objectInput, serviceInput, settingsInput } from "@/lib/inputs";
 import { saveServicePhoto } from "@/lib/service-photo";
 import { cleanPhone, cleanText, validId, validPhone } from "@/lib/validation";
@@ -238,6 +238,10 @@ export const PATCH = withDirectoryInvalidation(async (request: Request) => {
       await db.insert(directorySettings).values({ key: "ad_pricing", value: JSON.stringify(pricing) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(pricing) } });
     } else if (type === "whatsapp-alert-kinds") {
       await saveWhatsappAlertKinds(body.kinds);
+    } else if (type === "honor-baselines") {
+      // «بدء شهر جديد»: يحفظ أرقام التفاعل الحالية كبداية للشهر فتُحسب شهادات التكريم على تفاعل الشهر نفسه.
+      const saved = await resetHonorBaselines();
+      return Response.json({ ok: true, ...saved, message: `تم بدء شهر ${saved.month} — الشهادات القادمة بتحسب تفاعل الشهر نفسه.` });
     } else if (type === "greetings") {
       const greetings = sanitizeGreetingSettings(body.values);
       await db.insert(directorySettings).values({ key: "greetings", value: JSON.stringify(greetings) }).onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(greetings) } });

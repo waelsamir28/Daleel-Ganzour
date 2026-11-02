@@ -4,6 +4,7 @@ import { and, asc, avg, count, desc, eq, gte, inArray, isNull, like, ne, notInAr
 import { databaseConfigured, db } from "@/db";
 import { activityLog, adBanners, adRequests, categoryHits, serviceHits, categoryIcons, communityListings, villageEvents, directoryAreas, directoryCategories, directorySettings, members, notifications, serviceRatings, services, specialtyFollows } from "@/db/schema";
 import { activeGreetings, areas, defaultAdPricing, defaultDesignSettings, defaultGreetingSettings, isAdLive, sanitizeAdPricing, sanitizeGreetingSettings, type GreetingSettings, type VillageEventRecord, defaultSettings, initialCategories, publicUtilityNumbers, sampleServices, sanitizeDesignSettings, sanitizeSettings, sanitizeUtilityNumbers, type AdBannerRecord, type AdPricing, type AdminDirectory, type CategoryRecord, type CompletionStatus, type CommunityListingType, type DesignSettings, type PublicDirectory, type PublicUtilityContact, type ServiceComment, type ServiceRecord, type SiteSettings, type parsePinnedProfessions, DEFAULT_ADMIN_PALETTE, sanitizeAdminPalette, type AdminPaletteId } from "@/lib/catalog";
+import { rankMonthlyHonors, monthKey, monthLabel, trimmedBaselines, type HonorBaselines, type HonorEntry } from "@/lib/monthly-honors";
 import { getWhatsappAlertKinds, getWhatsappAlertStatus } from "@/lib/whatsapp-alert";
 import { defaultTelecomSettings, sanitizeTelecomSettings, type TelecomSettings } from "@/lib/telecom-settings";
 
@@ -328,6 +329,61 @@ export async function recordServiceHit(serviceId: string, kind: "view" | "contac
   const column = kind === "contact" ? serviceHits.contacts : serviceHits.views;
   await db.insert(serviceHits).values({ serviceId, views: kind === "view" ? 1 : 0, contacts: kind === "contact" ? 1 : 0 })
     .onConflictDoUpdate({ target: serviceHits.serviceId, set: { [kind === "contact" ? "contacts" : "views"]: sql`${column} + 1`, updatedAt: new Date() } });
+}
+
+/* ===== شهادة التكريم الشهرية (أفضل ٣ مهنيين) ===== */
+export const HONOR_BASELINES_KEY = "honor_baselines";
+
+export type MonthlyHonors = {
+  month: string;
+  monthLabel: string;
+  /** true = الأرقام دي تفاعل الشهر نفسه (فيه بداية شهر محفوظة)، false = إجمالي من بداية الدليل. */
+  monthly: boolean;
+  honors: HonorEntry[];
+  totals: { views: number; contacts: number };
+};
+
+/** قراءة بدايات الشهور المحفوظة (snapshot لأرقام التفاعل أول الشهر). */
+export async function getHonorBaselines(): Promise<HonorBaselines> {
+  if (!databaseConfigured) return {};
+  try {
+    const [row] = await db.select({ value: directorySettings.value }).from(directorySettings).where(eq(directorySettings.key, HONOR_BASELINES_KEY)).limit(1);
+    if (!row?.value) return {};
+    const parsed = JSON.parse(row.value) as unknown;
+    return parsed && typeof parsed === "object" ? (parsed as HonorBaselines) : {};
+  } catch { return {}; }
+}
+
+/** «بداية شهر جديد»: يحفظ أرقام اللحظة الحالية كبداية للشهر، فالتكريم القادم يقيس تفاعل الشهر نفسه. */
+export async function resetHonorBaselines(): Promise<{ month: string; saved: number }> {
+  const month = monthKey();
+  const rows = await db.select({ serviceId: serviceHits.serviceId, views: serviceHits.views, contacts: serviceHits.contacts }).from(serviceHits);
+  const baselines: HonorBaselines = {};
+  for (const row of rows) baselines[month] = { ...(baselines[month] ?? {}), [row.serviceId]: [row.views, row.contacts] };
+  const trimmed = trimmedBaselines(baselines, month);
+  await db.insert(directorySettings).values({ key: HONOR_BASELINES_KEY, value: JSON.stringify(trimmed) })
+    .onConflictDoUpdate({ target: directorySettings.key, set: { value: JSON.stringify(trimmed) } });
+  return { month, saved: rows.length };
+}
+
+/** أفضل ٣ مهنيين للشهر الحالي مع أرقامهم — تُستخدم في صفحة الشهادة. */
+export async function getMonthlyHonors(): Promise<MonthlyHonors> {
+  const month = monthKey();
+  const empty: MonthlyHonors = { month, monthLabel: monthLabel(month), monthly: false, honors: [], totals: { views: 0, contacts: 0 } };
+  if (!databaseConfigured) return empty;
+  try {
+    const [rows, stats, baselines] = await Promise.all([
+      db.select({ id: services.id, name: services.name, category: services.category, area: services.area, address: services.address, rating: services.rating, reviews: services.reviews, photoVersion: services.photoVersion })
+        .from(services).where(eq(services.status, "approved")),
+      db.select({ serviceId: serviceHits.serviceId, views: serviceHits.views, contacts: serviceHits.contacts }).from(serviceHits),
+      getHonorBaselines(),
+    ]);
+    const monthBaselines = baselines[month] ?? {};
+    const monthly = Object.keys(monthBaselines).length > 0;
+    const honors = rankMonthlyHonors(rows, stats, { month, baselines: monthly ? monthBaselines : undefined });
+    const totals = stats.reduce((sum, row) => ({ views: sum.views + row.views, contacts: sum.contacts + row.contacts }), { views: 0, contacts: 0 });
+    return { month, monthLabel: monthLabel(month), monthly, honors, totals };
+  } catch { return empty; }
 }
 
 /**
